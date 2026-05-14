@@ -1,0 +1,33 @@
+{
+  "name": "ifp-connect",
+  "version": "0.0.0",
+  "private": true,
+  "description": "IFP Connect — plataforma multi-tenant do Instituto Família Poncio",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@9.12.3",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "db:generate": "pnpm --filter @ifp/database generate",
+    "db:migrate": "pnpm --filter @ifp/database migrate",
+    "db:seed": "pnpm --filter @ifp/database seed",
+    "db:studio": "pnpm --filter @ifp/database studio"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.6",
+    "turbo": "^2.1.3",
+    "typescript": "^5.5.4"
+  }
+}
