@@ -177,38 +177,63 @@ kiizinbr-ifp-familiaponcio/
 ├── projetoifp.md                  ✅ memória do projeto
 ├── README.md                      ✅ inicial
 ├── .gitignore                     ✅ Node/Next.js/Prisma
+├── .env.example                   ✅ template de variáveis (DATABASE_URL, NEXTAUTH_*, ...)
 ├── .nvmrc                         ✅ Node 20.18.0
 ├── .npmrc                         ✅ engine-strict, auto-install-peers
 ├── .prettierrc.json               ✅ Prettier + plugin Tailwind
 ├── .prettierignore                ✅
 ├── package.json                   ✅ root do monorepo (scripts turbo, prettier, ts)
 ├── pnpm-workspace.yaml            ✅ workspaces apps/* e packages/*
+├── pnpm-lock.yaml                 ✅ lockfile (gerado por pnpm install)
 ├── turbo.json                     ✅ pipeline (build, dev, lint, typecheck, db:*)
 ├── tsconfig.base.json             ✅ TS strict compartilhado
 ├── apps/
-│   ├── web/
-│   │   ├── package.json           ✅ @ifp/web (Next.js 14, RHF, zod, RQ)
-│   │   └── tailwind.config.ts     ✅ tokens IFP
-│   └── api/
-│       └── package.json           ✅ @ifp/api (NestJS 10, Prisma, BullMQ, JWT)
+│   ├── web/                       ✅ @ifp/web — Next.js 14 (App Router) bootstrappado
+│   │   ├── package.json
+│   │   ├── tsconfig.json          (estende tsconfig.base)
+│   │   ├── next.config.mjs        (serverComponentsExternalPackages: Prisma, bcrypt)
+│   │   ├── postcss.config.mjs
+│   │   ├── tailwind.config.ts     (consome tokens IFP)
+│   │   ├── .eslintrc.json         (next/core-web-vitals)
+│   │   ├── next-env.d.ts
+│   │   ├── lib/cn.ts              (utilitário clsx + tailwind-merge)
+│   │   └── app/
+│   │       ├── layout.tsx         (Inter como fallback até Garet chegar)
+│   │       ├── page.tsx           (homepage com 4 unidades)
+│   │       └── globals.css        (importa @ifp/design-tokens/tokens.css)
+│   └── api/                       ✅ @ifp/api — NestJS 10 bootstrappado
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── nest-cli.json
+│       └── src/
+│           ├── main.ts            (Helmet, ValidationPipe, Swagger em /api/docs)
+│           ├── app.module.ts      (Throttler global, ConfigModule, módulos iniciais)
+│           ├── health.controller.ts
+│           ├── prisma/            (PrismaService global)
+│           ├── auth/, users/, tenants/, fichas-cidadas/  (placeholders)
 ├── packages/
 │   ├── ui/
 │   │   ├── package.json           ✅ @ifp/ui (cva, clsx, lucide)
-│   │   └── src/index.ts           ✅ placeholder de exports
+│   │   ├── tsconfig.json
+│   │   └── src/index.ts           placeholder de exports
 │   ├── design-tokens/
 │   │   ├── package.json           ✅ @ifp/design-tokens (export ./tokens.css)
-│   │   └── tokens.css             ✅ paleta + tipografia + temas por unidade
+│   │   └── tokens.css             paleta + tipografia + temas por unidade
 │   └── database/
-│       ├── package.json           ✅ @ifp/database (Prisma 5, tsx p/ seed)
-│       ├── src/index.ts           ✅ PrismaClient singleton + re-export
-│       └── schema.prisma          ✅ Ficha Cidadã + RBAC + AuditLog
+│       ├── package.json           ✅ @ifp/database (Prisma 5, bcryptjs, tsx)
+│       ├── tsconfig.json
+│       ├── src/index.ts           PrismaClient singleton + re-export
+│       ├── schema.prisma          Ficha Cidadã + RBAC + AuditLog (relação User↔Ficha corrigida)
+│       └── prisma/seed.ts         seed das 4 Unidades + Super Admin (opt-in via env)
 └── docs/
-    └── .gitkeep                   ✅ placeholder (documentação técnica pendente)
+    └── .gitkeep                   placeholder (documentação técnica pendente)
 ```
 
-Versões pinadas (engines): Node ≥ 20.11, pnpm ≥ 9. Stack: Next 14.2, NestJS 10.4, Prisma 5.18, Tailwind 3.4, Turbo 2.1, TS 5.5.
+Versões pinadas (engines): Node ≥ 20.11, pnpm ≥ 9. Stack instalada: Next 14.2.35, NestJS 10.4, Prisma 5.22, Tailwind 3.4, Turbo 2.9, TS 5.9.
 
-PENDENTE no monorepo (próxima sessão): `pnpm install` (gera `pnpm-lock.yaml`), bootstrap real do Next.js (`app/`, `globals.css`, layout, fonts/Garet), bootstrap real do NestJS (`src/main.ts`, módulos auth/users/tenants/fichas), seed do Prisma com 4 Unidades + Super Admin.
+**Validação local**: `pnpm install` (957 pacotes), `pnpm db:generate` ok, `tsc --noEmit` passa nos 4 workspaces, `next build` e `nest build` concluem sem erros, `next lint` limpo.
+
+PENDENTE: primeira migration do Prisma (precisa de Postgres rodando), implementação real dos módulos NestJS (auth/users/tenants/fichas), Auth.js no `apps/web`, fonte Garet, logos SVG.
 
 ---
 
@@ -266,21 +291,28 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] `packages/database/package.json` + `src/index.ts` (Prisma 5.18, singleton)
 - [x] `packages/design-tokens/package.json` (export ./tokens.css)
 - [x] `packages/ui/package.json` + `src/index.ts` (cva + clsx + lucide, peer React 18)
+- [x] `pnpm install` rodado — 957 pacotes, `pnpm-lock.yaml` commitado
+- [x] `pnpm db:generate` ok (Prisma Client gerado a partir do schema)
+- [x] Fix: relação `User.fichaCidada ↔ FichaCidada.user` agora com `fields`/`references`
+- [x] Bootstrap completo do **Next.js 14** em `apps/web`: `app/layout.tsx`, `app/page.tsx` (homepage com 4 unidades), `app/globals.css` (importa tokens), `next.config.mjs`, `postcss.config.mjs`, `tsconfig.json`, `.eslintrc.json`, `lib/cn.ts` — `next build` e `next lint` passam
+- [x] Bootstrap completo do **NestJS 10** em `apps/api`: `main.ts` (Helmet + ValidationPipe + Swagger em `/api/docs`), `app.module.ts` (Throttler global, ConfigModule), `health.controller.ts`, `prisma/` (PrismaService global), módulos placeholder `auth/`, `users/`, `tenants/`, `fichas-cidadas/` — `nest build` passa
+- [x] `packages/database/prisma/seed.ts` (upsert das 4 Unidades + Super Admin opt-in via env)
+- [x] `tsconfig.json` em cada workspace (estendendo `tsconfig.base.json`)
+- [x] `.env.example` com DATABASE_URL, NEXTAUTH_*, SEED_*
 
 ### Próximos passos (próxima sessão)
 
-1. **Instalar dependências e gerar lockfile**: `pnpm install` na raiz; verificar resolução de workspaces e `@prisma/client`.
-2. **Bootstrap do Next.js** em `apps/web`: criar `app/layout.tsx`, `app/page.tsx`, `app/globals.css` importando `@ifp/design-tokens/tokens.css`, `next.config.mjs`, `tsconfig.json` (estendendo `tsconfig.base.json`), `postcss.config.mjs`. Configurar fonte Garet localmente em `apps/web/app/fonts/` (pendente arquivos do Erick — usar Inter como fallback).
-3. **Bootstrap do NestJS** em `apps/api`: `src/main.ts`, `src/app.module.ts`, `nest-cli.json`, `tsconfig.json` (estendendo o base), Helmet + ValidationPipe + Swagger. Módulos iniciais: `auth`, `users`, `tenants`, `fichas-cidadas`.
-4. **Setup completo do Prisma**: gerar client (`pnpm db:generate`), criar primeira migration a partir do `schema.prisma`, `prisma/seed.ts` populando as 4 Unidades + Super Admin.
-5. **Auth.js** em `apps/web` com login por e-mail/senha (bcrypt) + magic link (Resend). Sessão JWT compartilhada com a API.
-6. **Telas iniciais do Serviço Social**:
+1. **Subir Postgres local + primeira migration**: `docker-compose.yml` com Postgres 16 e Redis; rodar `pnpm db:migrate` para gerar a migration inicial a partir do schema; em seguida `pnpm db:seed` (definir `SEED_SUPER_ADMIN_PASSWORD`).
+2. **Implementar Auth real**: `AuthModule` no NestJS (JWT + bcrypt + estratégia Passport) e Auth.js em `apps/web` com Credentials provider compartilhando JWT com a API.
+3. **CRUD de Ficha Cidadã** (`fichas-cidadas.service.ts` + controller + DTOs com `class-validator`); endpoint `GET /fichas`, `POST /fichas`, `PATCH /fichas/:id`.
+4. **Telas iniciais do Serviço Social** em `apps/web`:
    - Login + dashboard
    - Listagem de fichas com filtro por status
    - Wizard de nova Ficha Cidadã (etapa 1: titular; etapa 2: composição familiar; etapa 3: socioeconômico; etapa 4: documentos; etapa 5: consentimentos LGPD; etapa 6: avaliação de elegibilidade por unidade)
-7. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration.
-8. **Layout base com troca de tema por unidade** (`data-theme` no html).
-9. **Logo SVG e fonte Garet**: pedir ao Erick os arquivos vetoriais e tipográficos para colocar em `apps/web/public/` e `apps/web/app/fonts/`.
+5. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration.
+6. **Layout base com troca de tema por unidade** (`data-theme` no html).
+7. **Logo SVG e fonte Garet**: pedir ao Erick os arquivos vetoriais e tipográficos para colocar em `apps/web/public/` e `apps/web/app/fonts/`.
+8. **ESLint compartilhado**: hoje só `apps/web` tem config (next/core-web-vitals); adicionar `@typescript-eslint` + plugin Nest em `apps/api` e flat config em `packages/ui`.
 
 ### Decisões pendentes (perguntar ao Erick / Simone)
 
@@ -343,6 +375,17 @@ Contato do projeto:
   - `@ifp/ui` — cva + clsx + tailwind-merge + lucide, peer React 18.
 - Removidos `.gitkeep` de `apps/api` e `packages/ui` (substituídos por `package.json` e `src/`).
 
+### Sessão 3 — Instalação, bootstrap dos apps e seed (passos 1–4 da seção 10)
+
+- `pnpm install` rodado com sucesso: 957 pacotes resolvidos, `pnpm-lock.yaml` gerado e commitado.
+- Bug do schema corrigido: relação `User.fichaCidada ↔ FichaCidada.user` agora declara `fields: [fichaCidadaId], references: [id]` no lado do User. `prisma generate` passa.
+- **Next.js 14.2 bootstrap** em `apps/web/`: `next.config.mjs` (com `serverComponentsExternalPackages` pra Prisma/bcrypt e `transpilePackages` pros workspaces internos), `tsconfig.json`, `postcss.config.mjs`, `.eslintrc.json` (next/core-web-vitals), `next-env.d.ts`, `lib/cn.ts` (clsx + tailwind-merge), `app/globals.css` importando `@ifp/design-tokens/tokens.css`, `app/layout.tsx` (Inter como fallback enquanto Garet não chega), `app/page.tsx` (homepage exibindo as 4 unidades com os temas IFP). `next build` e `next lint` passam.
+- **NestJS 10 bootstrap** em `apps/api/`: `main.ts` (Helmet + CORS + ValidationPipe global + Swagger em `/api/docs` + prefix `api/v1`), `app.module.ts` (ConfigModule global + ThrottlerGuard global + módulos), `health.controller.ts` (`GET /api/v1/health`), `prisma/` (`PrismaService` extendendo `PrismaClient` com `OnModuleInit/Destroy` e marcado `@Global`), módulos placeholder `auth/`, `users/`, `tenants/`, `fichas-cidadas/`. `nest build` passa.
+- **Seed do Prisma**: `packages/database/prisma/seed.ts` faz upsert das 4 Unidades (slugs `medico`/`capacitacao`/`esportivo`/`educacional`) e, se `SEED_SUPER_ADMIN_PASSWORD` estiver setado, cria um Super Admin com bcryptjs.
+- `tsconfig.json` em todos os workspaces estendendo `tsconfig.base.json`. `tsc --noEmit` passa em `@ifp/web`, `@ifp/api`, `@ifp/database` e `@ifp/ui`.
+- `.env.example` na raiz documentando DATABASE_URL, NEXTAUTH_*, RESEND_API_KEY e seed.
+- Lint dos workspaces sem ESLint config (`apps/api`, `packages/ui`) virou noop temporário pra não quebrar o `turbo run lint` — config real fica pra próxima sessão.
+
 ---
 
-Última atualização: Sessão 2 — monorepo configurado (pnpm + Turbo), versões dos pacotes pinadas em todos os workspaces. Próximo passo: rodar `pnpm install` e bootstrappar Next.js + NestJS.
+Última atualização: Sessão 3 — pnpm install rodado, Next.js e NestJS bootstrappados e validados (build + typecheck), seed do Prisma escrito. Próximo passo: subir Postgres local, rodar primeira migration e implementar Auth real.
