@@ -1,0 +1,15 @@
+{
+  "name": "@ifp/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Design tokens do IFP Connect — paleta, tipografia, temas por unidade",
+  "main": "./tokens.css",
+  "exports": {
+    ".": "./tokens.css",
+    "./tokens.css": "./tokens.css"
+  },
+  "files": ["tokens.css"],
+  "scripts": {
+    "clean": "rm -rf node_modules .turbo"
+  }
+}
