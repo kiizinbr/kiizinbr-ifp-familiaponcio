@@ -1,0 +1,129 @@
+/* ============================================================
+ * IFP Connect — Design Tokens
+ * Instituto Família Poncio
+ *
+ * Fonte oficial: Garet (Light, Book, Regular, Bold, Heavy)
+ * Fallback web: Inter, "Plus Jakarta Sans", system-ui, sans-serif
+ *
+ * Estes tokens são a única fonte de verdade para cores, tipografia,
+ * espaçamentos e raios do sistema. Qualquer cor usada na UI deve
+ * vir DAQUI — nunca hardcoded em componentes.
+ *
+ * Referência: brandbook oficial enviado pelo cliente.
+ * ============================================================ */
+
+:root {
+  /* ---------- Cores institucionais (paleta principal) ---------- */
+  --ifp-orange-primary: #FF772E;  /* cor institucional, CTAs, tema Capacitação */
+  --ifp-orange-mid:     #C24D0F;  /* hover/ativo, textos de destaque */
+  --ifp-orange-deep:    #752C05;  /* tema Esportivo, dark accents */
+  --ifp-teal-deep:      #007571;  /* tema Centro Recreativo / Educacional */
+  --ifp-teal-bright:    #10C2BB;  /* tema Centro Médico */
+
+  /* ---------- Neutros ---------- */
+  --ifp-white:          #FFFFFF;
+  --ifp-gray:           #4A4A49;  /* texto corpo */
+  --ifp-gray-50:        #FAFAFA;
+  --ifp-gray-100:       #F4F4F4;
+  --ifp-gray-200:       #E5E5E5;
+  --ifp-gray-300:       #D4D4D4;
+  --ifp-gray-500:       #737373;
+  --ifp-gray-700:       #404040;
+  --ifp-gray-900:       #171717;
+
+  /* ---------- Semânticas (alias para uso em componentes) ---------- */
+  --color-bg:           var(--ifp-white);
+  --color-surface:      var(--ifp-gray-50);
+  --color-text:         var(--ifp-gray);
+  --color-text-muted:   var(--ifp-gray-500);
+  --color-border:       var(--ifp-gray-200);
+  --color-primary:      var(--ifp-orange-primary);
+  --color-primary-hover:var(--ifp-orange-mid);
+  --color-success:      #16A34A;
+  --color-warning:      #F59E0B;
+  --color-danger:       #DC2626;
+  --color-info:         var(--ifp-teal-bright);
+
+  /* ---------- Degradês oficiais ---------- */
+  --ifp-gradient-orange: linear-gradient(90deg, #FF772E 0%, #C24D0F 50%, #752C05 100%);
+  --ifp-gradient-teal:   linear-gradient(90deg, #10C2BB 0%, #007571 100%);
+
+  /* ---------- Tipografia ---------- */
+  --ifp-font-family: "Garet", "Inter", "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --ifp-font-weight-light:   300;
+  --ifp-font-weight-book:    350;
+  --ifp-font-weight-regular: 400;
+  --ifp-font-weight-bold:    700;
+  --ifp-font-weight-heavy:   900;
+
+  --ifp-text-xs:   0.75rem;   /* 12px */
+  --ifp-text-sm:   0.875rem;  /* 14px */
+  --ifp-text-base: 1rem;      /* 16px */
+  --ifp-text-lg:   1.125rem;  /* 18px */
+  --ifp-text-xl:   1.25rem;   /* 20px */
+  --ifp-text-2xl:  1.5rem;    /* 24px */
+  --ifp-text-3xl:  1.875rem;  /* 30px */
+  --ifp-text-4xl:  2.25rem;   /* 36px */
+  --ifp-text-5xl:  3rem;      /* 48px */
+
+  /* ---------- Espaçamentos (escala 4px) ---------- */
+  --ifp-space-1:  0.25rem;
+  --ifp-space-2:  0.5rem;
+  --ifp-space-3:  0.75rem;
+  --ifp-space-4:  1rem;
+  --ifp-space-6:  1.5rem;
+  --ifp-space-8:  2rem;
+  --ifp-space-12: 3rem;
+  --ifp-space-16: 4rem;
+
+  /* ---------- Raios ---------- */
+  --ifp-radius-sm:   0.25rem;
+  --ifp-radius-md:   0.5rem;
+  --ifp-radius-lg:   0.75rem;
+  --ifp-radius-xl:   1rem;
+  --ifp-radius-full: 9999px;
+
+  /* ---------- Sombras ---------- */
+  --ifp-shadow-sm: 0 1px 2px rgba(74, 74, 73, 0.08);
+  --ifp-shadow-md: 0 4px 8px rgba(74, 74, 73, 0.10);
+  --ifp-shadow-lg: 0 12px 24px rgba(74, 74, 73, 0.12);
+}
+
+/* ============================================================
+ * Temas por unidade
+ *
+ * Cada módulo aplica um data-theme no <html> ou <body> para
+ * trocar a cor "primária" sem alterar o resto do sistema.
+ * Uso: <html data-theme="medico"> ... </html>
+ * ============================================================ */
+
+[data-theme="medico"] {
+  --color-primary:       var(--ifp-teal-bright);
+  --color-primary-hover: var(--ifp-teal-deep);
+}
+
+[data-theme="capacitacao"] {
+  --color-primary:       var(--ifp-orange-primary);
+  --color-primary-hover: var(--ifp-orange-mid);
+}
+
+[data-theme="esportivo"] {
+  --color-primary:       var(--ifp-orange-deep);
+  --color-primary-hover: var(--ifp-orange-mid);
+}
+
+[data-theme="educacional"] {
+  --color-primary:       var(--ifp-teal-deep);
+  --color-primary-hover: var(--ifp-teal-bright);
+}
+
+[data-theme="servico-social"] {
+  --color-primary:       var(--ifp-gray-700);
+  --color-primary-hover: var(--ifp-gray-900);
+}
+
+[data-theme="presidencia"] {
+  --color-primary:       var(--ifp-orange-mid);
+  --color-primary-hover: var(--ifp-orange-deep);
+}
