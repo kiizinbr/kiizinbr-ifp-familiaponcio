@@ -187,9 +187,16 @@ kiizinbr-ifp-familiaponcio/
 ├── pnpm-lock.yaml                 ✅ lockfile (gerado por pnpm install)
 ├── turbo.json                     ✅ pipeline (build, dev, lint, typecheck, db:*)
 ├── tsconfig.base.json             ✅ TS strict compartilhado
+├── docker-compose.yml             ✅ dev (Postgres + Redis)
+├── docker-compose.prod.yml        ✅ produção (postgres + redis + api + web + caddy + migrate)
+├── .dockerignore                  ✅ root (exclui node_modules, exports, backups, etc.)
+├── .env.production.example        ✅ template de variáveis de produção
+├── caddy/Caddyfile                ✅ reverse proxy + HTTPS automático
 ├── apps/
 │   ├── web/                       ✅ @ifp/web — Next.js 14 (App Router) bootstrappado
 │   │   ├── package.json
+│   │   ├── Dockerfile             (multi-stage standalone)
+│   │   ├── .dockerignore
 │   │   ├── tsconfig.json          (estende tsconfig.base)
 │   │   ├── next.config.mjs        (serverComponentsExternalPackages: Prisma, bcrypt)
 │   │   ├── postcss.config.mjs
@@ -205,6 +212,8 @@ kiizinbr-ifp-familiaponcio/
 │       ├── package.json
 │       ├── tsconfig.json
 │       ├── nest-cli.json
+│       ├── Dockerfile             (multi-stage com target migrator)
+│       ├── .dockerignore
 │       └── src/
 │           ├── main.ts            (Helmet, ValidationPipe, Swagger em /api/docs)
 │           ├── app.module.ts      (Throttler global, ConfigModule, módulos iniciais)
@@ -226,7 +235,7 @@ kiizinbr-ifp-familiaponcio/
 │       ├── schema.prisma          Ficha Cidadã + RBAC + AuditLog (relação User↔Ficha corrigida)
 │       └── prisma/seed.ts         seed das 4 Unidades + Super Admin (opt-in via env)
 └── docs/
-    └── .gitkeep                   placeholder (documentação técnica pendente)
+    └── deploy-vps.md              ✅ walkthrough completo de deploy em VPS único
 ```
 
 Versões pinadas (engines): Node ≥ 20.11, pnpm ≥ 9. Stack instalada: Next 14.2.35, NestJS 10.4, Prisma 5.22, Tailwind 3.4, Turbo 2.9, TS 5.9.
@@ -303,6 +312,7 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] **Auth real no NestJS**: `AuthService` (bcrypt + emite JWT), `AuthController` (`POST /api/v1/auth/login`, `GET /api/v1/auth/me`), `JwtStrategy` (Passport), `JwtAuthGuard`, decorator `@CurrentUser`, `UsersService` (`findByEmail`, `findByIdWithPerfis`, `registrarLogin`)
 - [x] **Auth.js no Next.js**: `lib/auth.ts` com `CredentialsProvider` chamando a API, callbacks `jwt`/`session` propagando `accessToken`/`perfis`/`unidades`, tipos extendidos em `types/next-auth.d.ts`, route handler em `app/api/auth/[...nextauth]/route.ts`, `Providers` (SessionProvider) injetado no `RootLayout`
 - [x] Página `/login` (form e-mail/senha com tratamento de erro) e `/servico-social` (rota protegida por sessão + checagem de perfil SUPER_ADMIN/SERVICO_SOCIAL)
+- [x] **Deploy plug-and-play em VPS**: Dockerfiles multi-stage para `apps/web` (Next.js standalone) e `apps/api` (pnpm deploy + target `migrator`), `.dockerignore` na raiz e em cada app, `docker-compose.prod.yml` (postgres + redis + api + web + caddy + migrate como service `tools`), `caddy/Caddyfile` com HTTPS automático via Let's Encrypt, `.env.production.example`, `docs/deploy-vps.md` com walkthrough completo. `next build` valida o output standalone.
 
 ### Próximos passos (próxima sessão)
 
@@ -388,6 +398,19 @@ Contato do projeto:
 - `.env.example` na raiz documentando DATABASE_URL, NEXTAUTH_*, RESEND_API_KEY e seed.
 - Lint dos workspaces sem ESLint config (`apps/api`, `packages/ui`) virou noop temporário pra não quebrar o `turbo run lint` — config real fica pra próxima sessão.
 
+### Sessão 5 — Deploy plug-and-play (Dockerfiles, compose de produção, Caddy)
+
+- `apps/web/Dockerfile` multi-stage (deps → builder → runner) usando `output: "standalone"` do Next.js. Roda como usuário não-root, telemetria desligada, expõe :3000.
+- `apps/web/next.config.mjs`: adicionado `output: "standalone"` e `outputFileTracingRoot` apontando pra raiz do monorepo (pnpm workspaces precisa disso pra incluir pacotes internos no bundle).
+- `apps/api/Dockerfile` multi-stage usando `pnpm deploy --filter @ifp/api --prod /prod/api` pra criar bundle auto-suficiente. Target adicional `migrator` reaproveita o builder pra rodar `prisma migrate deploy` em produção.
+- `.dockerignore` na raiz e em cada app (exclui `node_modules`, `.next`, `.git`, `.env`, exports/backups/data — proteção LGPD).
+- `docker-compose.prod.yml` na raiz: services `postgres`, `redis` (com `--requirepass`), `api`, `web`, `caddy` (HTTPS automático), `migrate` (no profile `tools` pra rodar uma vez). Todos com `restart: unless-stopped`, healthchecks e network `ifp-net`. Volumes nomeados para dados de cada um, mais `ifp-caddy-data` pra certificados.
+- `caddy/Caddyfile`: dois sites (`{$WEB_DOMAIN}` e `{$API_DOMAIN}`) com encode gzip+zstd, cache-control para `/_next/static`, reverse_proxy com headers de forwarded.
+- `.env.production.example`: template com `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `NEXTAUTH_SECRET`, `WEB_DOMAIN`, `API_DOMAIN`, `WEB_ORIGIN`, `ACME_EMAIL`.
+- `docs/deploy-vps.md`: walkthrough de 9 passos (preparar VPS Ubuntu, instalar Docker, clonar repo, build, migrate, seed, up, smoke tests, update, backup do Postgres via cron, escalar quando crescer).
+- `docs/.gitkeep` substituído pelo doc real.
+- Validação: `docker compose -f docker-compose.prod.yml --env-file .env.production.example config` parseia ok, `next build` produz `.next/standalone/apps/web/server.js`.
+
 ### Sessão 4 — Docker, Auth real (NestJS + Auth.js) e rota protegida
 
 - `docker-compose.yml` na raiz com Postgres 16 e Redis 7 (volumes nomeados + healthchecks). Comandos: `docker compose up -d` para subir, `docker compose down -v` para resetar.
@@ -409,4 +432,4 @@ Contato do projeto:
 
 ---
 
-Última atualização: Sessão 4 — Auth real ponta-a-ponta (NestJS JWT + Auth.js Credentials), login page e dashboard de Serviço Social protegido. Próximo passo: subir Postgres local, rodar primeira migration + seed e validar login real.
+Última atualização: Sessão 5 — Deploy plug-and-play (Dockerfiles + docker-compose.prod + Caddy + docs/deploy-vps.md). Próximo passo (lado do dev): subir Postgres local com `docker compose up -d`, rodar `pnpm db:migrate` + seed, validar login real, e quando estiver pronto seguir o `docs/deploy-vps.md` pra subir num VPS.
