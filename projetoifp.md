@@ -298,21 +298,23 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] Bootstrap completo do **NestJS 10** em `apps/api`: `main.ts` (Helmet + ValidationPipe + Swagger em `/api/docs`), `app.module.ts` (Throttler global, ConfigModule), `health.controller.ts`, `prisma/` (PrismaService global), módulos placeholder `auth/`, `users/`, `tenants/`, `fichas-cidadas/` — `nest build` passa
 - [x] `packages/database/prisma/seed.ts` (upsert das 4 Unidades + Super Admin opt-in via env)
 - [x] `tsconfig.json` em cada workspace (estendendo `tsconfig.base.json`)
-- [x] `.env.example` com DATABASE_URL, NEXTAUTH_*, SEED_*
+- [x] `.env.example` com DATABASE_URL, NEXTAUTH_*, JWT_*, API_URL, SEED_*
+- [x] `docker-compose.yml` (Postgres 16 + Redis 7 com healthchecks e volumes nomeados)
+- [x] **Auth real no NestJS**: `AuthService` (bcrypt + emite JWT), `AuthController` (`POST /api/v1/auth/login`, `GET /api/v1/auth/me`), `JwtStrategy` (Passport), `JwtAuthGuard`, decorator `@CurrentUser`, `UsersService` (`findByEmail`, `findByIdWithPerfis`, `registrarLogin`)
+- [x] **Auth.js no Next.js**: `lib/auth.ts` com `CredentialsProvider` chamando a API, callbacks `jwt`/`session` propagando `accessToken`/`perfis`/`unidades`, tipos extendidos em `types/next-auth.d.ts`, route handler em `app/api/auth/[...nextauth]/route.ts`, `Providers` (SessionProvider) injetado no `RootLayout`
+- [x] Página `/login` (form e-mail/senha com tratamento de erro) e `/servico-social` (rota protegida por sessão + checagem de perfil SUPER_ADMIN/SERVICO_SOCIAL)
 
 ### Próximos passos (próxima sessão)
 
-1. **Subir Postgres local + primeira migration**: `docker-compose.yml` com Postgres 16 e Redis; rodar `pnpm db:migrate` para gerar a migration inicial a partir do schema; em seguida `pnpm db:seed` (definir `SEED_SUPER_ADMIN_PASSWORD`).
-2. **Implementar Auth real**: `AuthModule` no NestJS (JWT + bcrypt + estratégia Passport) e Auth.js em `apps/web` com Credentials provider compartilhando JWT com a API.
-3. **CRUD de Ficha Cidadã** (`fichas-cidadas.service.ts` + controller + DTOs com `class-validator`); endpoint `GET /fichas`, `POST /fichas`, `PATCH /fichas/:id`.
-4. **Telas iniciais do Serviço Social** em `apps/web`:
-   - Login + dashboard
-   - Listagem de fichas com filtro por status
-   - Wizard de nova Ficha Cidadã (etapa 1: titular; etapa 2: composição familiar; etapa 3: socioeconômico; etapa 4: documentos; etapa 5: consentimentos LGPD; etapa 6: avaliação de elegibilidade por unidade)
-5. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration.
-6. **Layout base com troca de tema por unidade** (`data-theme` no html).
-7. **Logo SVG e fonte Garet**: pedir ao Erick os arquivos vetoriais e tipográficos para colocar em `apps/web/public/` e `apps/web/app/fonts/`.
-8. **ESLint compartilhado**: hoje só `apps/web` tem config (next/core-web-vitals); adicionar `@typescript-eslint` + plugin Nest em `apps/api` e flat config em `packages/ui`.
+1. **Subir Postgres + primeira migration** (lado do dev): `docker compose up -d`, ajustar `.env`, `pnpm db:migrate`, `pnpm db:seed`. Validar login via `POST /api/v1/auth/login` e fluxo Next.js → API.
+2. **CRUD de Ficha Cidadã**: `FichasCidadasService` + Controller no NestJS com DTOs (`class-validator` + Zod opcional), endpoints `GET /fichas`, `POST /fichas`, `GET /fichas/:id`, `PATCH /fichas/:id/elegibilidade`. Guards: `JwtAuthGuard` + verificação de perfil.
+3. **Wizard de nova Ficha Cidadã** em `/servico-social/fichas/nova`: 6 etapas (titular → composição → socioeconômico → documentos → consentimentos LGPD → elegibilidade), salvando rascunho a cada passo.
+4. **Listagem de fichas** em `/servico-social/fichas` com filtros (status, unidade, busca por nome/CPF).
+5. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration; criar role `app_user` que respeita RLS.
+6. **Magic link via Resend**: provider adicional no Auth.js + endpoint no NestJS pra emitir token de um clique. Tornar obrigatório no primeiro login.
+7. **Layout base com troca de tema por unidade** (`data-theme` no `<html>`) e header com menu de unidades.
+8. **Logo SVG e fonte Garet**: arquivos do Erick em `apps/web/public/` e `apps/web/app/fonts/` (substituir Inter por `next/font/local`).
+9. **ESLint compartilhado**: `@typescript-eslint` + plugin Nest em `apps/api` e flat config em `packages/ui` (hoje noop).
 
 ### Decisões pendentes (perguntar ao Erick / Simone)
 
@@ -386,6 +388,25 @@ Contato do projeto:
 - `.env.example` na raiz documentando DATABASE_URL, NEXTAUTH_*, RESEND_API_KEY e seed.
 - Lint dos workspaces sem ESLint config (`apps/api`, `packages/ui`) virou noop temporário pra não quebrar o `turbo run lint` — config real fica pra próxima sessão.
 
+### Sessão 4 — Docker, Auth real (NestJS + Auth.js) e rota protegida
+
+- `docker-compose.yml` na raiz com Postgres 16 e Redis 7 (volumes nomeados + healthchecks). Comandos: `docker compose up -d` para subir, `docker compose down -v` para resetar.
+- **NestJS — autenticação real**:
+  - `AuthService.login(email, senha)`: busca usuário por e-mail (lowercased), valida `senhaHash` com `bcrypt.compare`, registra `ultimoLogin`, emite JWT com `{ sub, email, perfis[] }` e retorna `{ accessToken, user: { id, nome, email, perfis, unidades } }`.
+  - `AuthController`: `POST /api/v1/auth/login` (com `class-validator` no `LoginDto`) e `GET /api/v1/auth/me` protegido por `JwtAuthGuard`.
+  - `JwtStrategy`: Passport JWT extraindo `Authorization: Bearer …`, secret via `ConfigService` (`JWT_SECRET`), `validate` confirma que o usuário continua existindo e ativo.
+  - `UsersService`: `findByEmail`, `findById`, `findByIdWithPerfis` (inclui perfis e unidades), `registrarLogin`.
+  - Decorator `@CurrentUser` para extrair o usuário injetado pelo guard.
+- **Next.js — Auth.js (next-auth v4)**:
+  - `lib/auth.ts` com `CredentialsProvider` que chama `POST ${API_URL}/auth/login`. Callbacks `jwt`/`session` propagam `accessToken`, `perfis` e `unidades` para a sessão.
+  - Tipos estendidos em `types/next-auth.d.ts` (`User`, `Session`, `JWT`).
+  - Route handler em `app/api/auth/[...nextauth]/route.ts`.
+  - `app/providers.tsx` com `SessionProvider`, injetado no `RootLayout` via `getServerSession`.
+  - `app/login/page.tsx`: formulário e-mail/senha com `signIn("credentials", …, { redirect: false })`, exibindo erro inline.
+  - `app/servico-social/page.tsx`: server component que `redirect("/login?callbackUrl=…")` se não houver sessão e checa se a sessão tem perfil `SUPER_ADMIN` ou `SERVICO_SOCIAL`. Mostra dashboard placeholder com cards de "Nova Ficha", "Pendentes", "Reavaliações".
+- `.env.example` ganhou `JWT_SECRET`, `JWT_EXPIRES_IN` e `API_URL`.
+- Validação local: `tsc --noEmit` passa em todos os workspaces, `next build` agora prerenderiza 6 rotas (`/`, `/login`, `/servico-social`, `/api/auth/[...nextauth]`, `/_not-found`, mais o layout), `nest build` gera `dist/` com `auth/`, `users/` e demais módulos.
+
 ---
 
-Última atualização: Sessão 3 — pnpm install rodado, Next.js e NestJS bootstrappados e validados (build + typecheck), seed do Prisma escrito. Próximo passo: subir Postgres local, rodar primeira migration e implementar Auth real.
+Última atualização: Sessão 4 — Auth real ponta-a-ponta (NestJS JWT + Auth.js Credentials), login page e dashboard de Serviço Social protegido. Próximo passo: subir Postgres local, rodar primeira migration + seed e validar login real.
