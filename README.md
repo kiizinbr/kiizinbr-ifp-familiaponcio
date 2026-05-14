@@ -26,8 +26,8 @@ O acompanhamento detalhado de tudo o que já foi feito, decisões técnicas, sta
 ## 🔗 Links Úteis
 
 - 📄 [Documento de status do projeto](./projetoifp.md)
-- 🐛 [Issues](../../issues)
-- 📌 [Projects (board de acompanhamento)](../../projects)
+- 📌 [Kanban do projeto (board de acompanhamento)](https://github.com/users/kiizinbr/projects/1)
+- 🐛 [Issues do repositório](https://github.com/kiizinbr/kiizinbr-ifp-familiaponcio/issues)
 
 ---
 
