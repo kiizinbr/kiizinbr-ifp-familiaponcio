@@ -1,0 +1,70 @@
+# Dependências
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Builds e cache
+.next/
+out/
+dist/
+build/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Testes
+coverage/
+.nyc_output/
+
+# Variáveis de ambiente
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+logs/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/migrations/dev/
+*.db
+*.db-journal
+
+# Uploads e storage local
+uploads/
+storage/
+public/uploads/
+
+# Sentry / Vercel
+.vercel
+.sentryclirc
+
+# OS
+.DS_Store
+ehthumbs.db
+
+# Certificados e segredos
+*.pem
+*.key
+*.crt
+secrets/
+
+# Próprios (LGPD: nunca commitar dados de beneficiários)
+exports/
+backups/
+data/
