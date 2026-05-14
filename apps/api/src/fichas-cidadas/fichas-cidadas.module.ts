@@ -1,4 +1,11 @@
 import { Module } from "@nestjs/common";
-// Placeholder. Próxima sessão: FichasCidadasService + Controller + DTOs (zod via class-validator).
-@Module({})
+
+import { FichasCidadasController } from "./fichas-cidadas.controller";
+import { FichasCidadasService } from "./fichas-cidadas.service";
+
+@Module({
+  controllers: [FichasCidadasController],
+  providers: [FichasCidadasService],
+  exports: [FichasCidadasService],
+})
 export class FichasCidadasModule {}
