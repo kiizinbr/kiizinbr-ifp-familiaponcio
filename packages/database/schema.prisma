@@ -1,0 +1,386 @@
+// ============================================================
+// IFP Connect — Schema Prisma (esboço inicial Fase 0)
+// Instituto Família Poncio
+//
+// Princípios de design:
+// - Multi-tenant LÓGICO: toda tabela operacional tem tenant_id (Unidade).
+//   Tabelas globais (User, FichaCidada) NÃO têm tenant_id, mas seu
+//   acesso é mediado por relações + RBAC + Row-Level Security no Postgres.
+// - Ficha Cidadã é GLOBAL: o mesmo cidadão pode ser beneficiário em
+//   múltiplas unidades. A elegibilidade por unidade fica em
+//   ElegibilidadePorUnidade (tabela de junção).
+// - Sigilo: prontuário clínico, fichas pedagógicas e dados sensíveis
+//   ficam em tabelas próprias de cada módulo (a serem criadas em
+//   migrations futuras) e SEMPRE vinculados a uma Unidade.
+// - LGPD: AuditLog registra leituras e escritas em dados sensíveis.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Tenancy / Unidades
+// ============================================================
+
+enum TipoUnidade {
+  MEDICO
+  CAPACITACAO
+  ESPORTIVO
+  EDUCACIONAL
+}
+
+model Unidade {
+  id          String       @id @default(cuid())
+  tipo        TipoUnidade  @unique
+  nome        String
+  slug        String       @unique          // "medico", "capacitacao", "esportivo", "educacional"
+  endereco    String?
+  telefone    String?
+  email       String?
+  ativo       Boolean      @default(true)
+  criadoEm    DateTime     @default(now())
+  atualizadoEm DateTime    @updatedAt
+
+  usuarios       UsuarioUnidade[]
+  elegibilidades ElegibilidadePorUnidade[]
+
+  @@map("unidades")
+}
+
+// ============================================================
+// Usuários e RBAC
+// ============================================================
+
+enum Perfil {
+  SUPER_ADMIN
+  PRESIDENCIA
+  SERVICO_SOCIAL
+  GESTOR_UNIDADE
+  PROFISSIONAL
+  RECEPCAO
+  RESPONSAVEL_FAMILIAR
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  senhaHash   String?                       // null se usar magic link / SSO
+  nome        String
+  cpf         String?  @unique
+  ativo       Boolean  @default(true)
+  ultimoLogin DateTime?
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  perfis    UsuarioPerfil[]
+  unidades  UsuarioUnidade[]
+  fichaCidada FichaCidada? @relation("UserToFichaCidada")
+  fichaCidadaId String? @unique
+
+  @@map("usuarios")
+}
+
+// Um usuário pode ter mais de um perfil (ex.: médico que também é gestor)
+model UsuarioPerfil {
+  id     String @id @default(cuid())
+  userId String
+  perfil Perfil
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, perfil])
+  @@map("usuarios_perfis")
+}
+
+// Usuário pode atuar em N unidades (raro, mas existe)
+model UsuarioUnidade {
+  id        String  @id @default(cuid())
+  userId    String
+  unidadeId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unidade Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, unidadeId])
+  @@map("usuarios_unidades")
+}
+
+// ============================================================
+// Ficha Cidadã — núcleo do Serviço Social
+// ============================================================
+
+enum EstadoCivil {
+  SOLTEIRO
+  CASADO
+  UNIAO_ESTAVEL
+  DIVORCIADO
+  VIUVO
+}
+
+enum SituacaoMoradia {
+  PROPRIA
+  ALUGADA
+  CEDIDA
+  FINANCIADA
+  OCUPACAO
+  OUTRA
+}
+
+enum Escolaridade {
+  SEM_ESCOLARIDADE
+  FUND_INCOMPLETO
+  FUND_COMPLETO
+  MEDIO_INCOMPLETO
+  MEDIO_COMPLETO
+  SUPERIOR_INCOMPLETO
+  SUPERIOR_COMPLETO
+  POS_GRADUACAO
+}
+
+model FichaCidada {
+  id              String    @id @default(cuid())
+  protocolo       String    @unique         // ex.: "IFP-2025-000123"
+
+  // Dados do titular (responsável familiar)
+  nomeCompleto    String
+  cpf             String    @unique
+  rg              String?
+  dataNascimento  DateTime
+  estadoCivil     EstadoCivil?
+  escolaridade    Escolaridade?
+  fotoUrl         String?
+
+  // Contato
+  telefone        String
+  telefoneAlt     String?
+  email           String?
+  whatsappOptIn   Boolean   @default(false)
+
+  // Endereço
+  cep             String?
+  logradouro      String?
+  numero          String?
+  complemento     String?
+  bairro          String?
+  cidade          String    @default("Duque de Caxias")
+  uf              String    @default("RJ")
+
+  // Status geral
+  ativa           Boolean   @default(true)
+  observacoes     String?
+
+  criadoEm        DateTime  @default(now())
+  atualizadoEm    DateTime  @updatedAt
+
+  user            User?     @relation("UserToFichaCidada")
+
+  membros         MembroFamiliar[]
+  dadosSocio     DadosSocioeconomicos?
+  documentos      Documento[]
+  entrevistas     Entrevista[]
+  elegibilidades  ElegibilidadePorUnidade[]
+  consentimentos  Consentimento[]
+
+  @@map("fichas_cidadas")
+}
+
+enum Parentesco {
+  CONJUGE
+  FILHO
+  FILHA
+  ENTEADO
+  PAI
+  MAE
+  IRMAO
+  IRMA
+  AVO
+  AVOH
+  NETO
+  NETA
+  OUTRO
+}
+
+model MembroFamiliar {
+  id             String     @id @default(cuid())
+  fichaId        String
+  nomeCompleto   String
+  cpf            String?
+  dataNascimento DateTime
+  parentesco     Parentesco
+  ocupacao       String?
+  escolaridade   Escolaridade?
+  rendaMensal    Decimal?   @db.Decimal(10, 2)
+  observacoes    String?
+
+  ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  @@map("membros_familiares")
+}
+
+model DadosSocioeconomicos {
+  id                    String   @id @default(cuid())
+  fichaId               String   @unique
+
+  rendaFamiliarTotal    Decimal  @db.Decimal(10, 2)
+  rendaPerCapita        Decimal  @db.Decimal(10, 2)
+  recebeBolsaFamilia    Boolean  @default(false)
+  recebeBPC             Boolean  @default(false)
+  recebeAuxilioGas      Boolean  @default(false)
+  outrosBeneficios      String?
+
+  situacaoMoradia       SituacaoMoradia
+  numeroPessoasMoradia  Int
+  numeroComodos         Int?
+  temAguaEncanada       Boolean  @default(true)
+  temEsgoto             Boolean  @default(true)
+  temEnergiaEletrica    Boolean  @default(true)
+
+  vulnerabilidades      String?  // texto livre da assistente social
+
+  atualizadoEm          DateTime @updatedAt
+
+  ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  @@map("dados_socioeconomicos")
+}
+
+enum TipoDocumento {
+  RG
+  CPF
+  COMPROVANTE_RESIDENCIA
+  COMPROVANTE_RENDA
+  CADUNICO
+  CARTEIRA_TRABALHO
+  CERTIDAO_NASCIMENTO
+  LAUDO_MEDICO
+  OUTRO
+}
+
+model Documento {
+  id          String        @id @default(cuid())
+  fichaId     String
+  tipo        TipoDocumento
+  nomeArquivo String
+  url         String                         // S3 / R2 / MinIO
+  tamanhoBytes Int
+  mimeType    String
+  enviadoPor  String?                        // userId
+  enviadoEm   DateTime      @default(now())
+
+  ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  @@map("documentos")
+}
+
+model Entrevista {
+  id           String   @id @default(cuid())
+  fichaId      String
+  realizadaPor String                        // userId do assistente social
+  realizadaEm  DateTime
+  resumo       String                        // markdown
+  proximaEm    DateTime?                     // reavaliação agendada
+
+  ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  @@map("entrevistas")
+}
+
+enum StatusElegibilidade {
+  PENDENTE
+  APROVADO
+  REPROVADO
+  SUSPENSO
+  DESLIGADO
+}
+
+model ElegibilidadePorUnidade {
+  id          String              @id @default(cuid())
+  fichaId     String
+  unidadeId   String
+  status      StatusElegibilidade @default(PENDENTE)
+  avaliadoPor String?                                // userId do assistente
+  avaliadoEm  DateTime?
+  motivo      String?
+  reavaliarEm DateTime?
+  criadoEm    DateTime            @default(now())
+  atualizadoEm DateTime           @updatedAt
+
+  ficha   FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  unidade Unidade     @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  @@unique([fichaId, unidadeId])
+  @@map("elegibilidades")
+}
+
+enum TipoConsentimento {
+  USO_DADOS_LGPD
+  USO_IMAGEM
+  COMUNICACAO_WHATSAPP
+  COMUNICACAO_EMAIL
+  COMPARTILHAMENTO_PARCEIROS
+}
+
+model Consentimento {
+  id        String            @id @default(cuid())
+  fichaId   String
+  tipo      TipoConsentimento
+  concedido Boolean
+  versaoTermo String                          // versão do termo aceito
+  ip          String?
+  userAgent   String?
+  registradoEm DateTime        @default(now())
+
+  ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  @@unique([fichaId, tipo, versaoTermo])
+  @@map("consentimentos")
+}
+
+// ============================================================
+// Auditoria (LGPD)
+// ============================================================
+
+enum AcaoAuditoria {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+model AuditLog {
+  id         String        @id @default(cuid())
+  userId     String?
+  acao       AcaoAuditoria
+  entidade   String                          // ex.: "FichaCidada"
+  entidadeId String?
+  ip         String?
+  userAgent  String?
+  metadados  Json?
+  criadoEm   DateTime      @default(now())
+
+  @@index([userId])
+  @@index([entidade, entidadeId])
+  @@index([criadoEm])
+  @@map("audit_logs")
+}
+
+// ============================================================
+// NOTAS PARA PRÓXIMAS MIGRATIONS
+// ============================================================
+// - Centro Médico: Profissional, Especialidade, Agenda, Consulta, PEP,
+//   Prescrição, Atestado, ExameAnexado (todos com unidadeId).
+// - Capacitação: Curso, Turma, Matricula, AulaPlano, Presenca, Certificado.
+// - Esportivo: Modalidade, Turma, Aluno, Graduacao, AtestadoMedico.
+// - Educacional: Crianca, ResponsavelAutorizado, RotinaDiaria, Comunicado,
+//   FichaSaudeCrianca, CheckInOut.
+// - Comum: Notificacao, MensagemWhatsApp, MensagemEmail.
+// - RLS: configurar policies no Postgres por unidadeId após migration inicial.
