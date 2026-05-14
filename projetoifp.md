@@ -68,6 +68,8 @@ Plataforma única, multi-tenant lógico, com 4 módulos verticais isolados + cam
 
 Degradês oficiais: laranja #FF772E → #C24D0F → #752C05 e teal #10C2BB → #007571.
 
+Tokens implementados em: `packages/design-tokens/tokens.css` (CSS variables) e consumidos por `apps/web/tailwind.config.ts`.
+
 ### Tipografia
 
 - **Fonte principal**: Garet (Light, Book, Regular, Bold, Heavy).
@@ -98,6 +100,9 @@ Registro unificado da família atendida. Criado uma única vez pelo Serviço Soc
 ### Regra de visibilidade
 
 Gestores de unidade veem apenas pessoas com status aprovado para sua unidade, e só veem: nome, foto, contato, flag de elegibilidade. Dados socioeconômicos sensíveis ficam restritos ao Serviço Social. Prontuário clínico é sigilo exclusivo do Centro Médico.
+
+Modelos Prisma já criados em `packages/database/schema.prisma`:
+`FichaCidada`, `MembroFamiliar`, `DadosSocioeconomicos`, `Documento`, `Entrevista`, `ElegibilidadePorUnidade`, `Consentimento`, `AuditLog`, `Unidade`, `User`, `UsuarioPerfil`, `UsuarioUnidade`.
 
 ---
 
@@ -165,26 +170,30 @@ Referências: Agenda Edu, ClassApp.
 
 ---
 
-## 7. Estrutura de pastas planejada
+## 7. Estrutura de pastas (estado atual no repo)
 
 ```
 kiizinbr-ifp-familiaponcio/
-├── projetoifp.md                  # este arquivo (memória do projeto)
-├── README.md
-├── .gitignore
-├── package.json                   # root (pnpm workspaces + turbo)
-├── turbo.json
+├── projetoifp.md                  ✅ memória do projeto
+├── README.md                      ✅ inicial
+├── .gitignore                     ✅ Node/Next.js/Prisma
 ├── apps/
-│   ├── web/                       # Next.js (frontend único com todos os módulos)
-│   │   ├── tailwind.config.ts
-│   │   └── app/
-│   └── api/                       # NestJS (backend)
+│   ├── web/
+│   │   └── tailwind.config.ts     ✅ tokens IFP
+│   └── api/
+│       └── .gitkeep               ✅ placeholder (NestJS pendente)
 ├── packages/
-│   ├── ui/                        # componentes compartilhados (shadcn customizado)
-│   ├── design-tokens/             # tokens.css com paleta IFP
-│   └── database/                  # Prisma schema + migrations
-└── docs/                          # documentação técnica detalhada
+│   ├── ui/
+│   │   └── .gitkeep               ✅ placeholder (shadcn customizado pendente)
+│   ├── design-tokens/
+│   │   └── tokens.css             ✅ paleta + tipografia + temas por unidade
+│   └── database/
+│       └── schema.prisma          ✅ Ficha Cidadã + RBAC + AuditLog
+└── docs/
+    └── .gitkeep                   ✅ placeholder (documentação técnica pendente)
 ```
+
+PENDENTE no monorepo (próxima sessão): `package.json` root, `turbo.json`, `pnpm-workspace.yaml`, bootstrap real do Next.js e do NestJS, instalação de dependências.
 
 ---
 
@@ -200,11 +209,13 @@ kiizinbr-ifp-familiaponcio/
 | Recepção | 1 unidade | Agendamento, check-in, busca de fichas aprovadas |
 | Responsável Familiar | Próprio núcleo | App: rotina do filho, agenda médica, certificados |
 
+Enum `Perfil` já definido no `schema.prisma`.
+
 ---
 
 ## 9. Roadmap em fases
 
-- **Fase 0 — Fundação (4–6 semanas)**: monorepo, design system, auth, RBAC, Serviço Social + Ficha Cidadã.
+- **Fase 0 — Fundação (4–6 semanas)**: monorepo, design system, auth, RBAC, Serviço Social + Ficha Cidadã. ⏳ em andamento
 - **Fase 1 — MVP por unidade (8–12 semanas)**: agendamento + presença + busca de beneficiários. Começar por Centro Médico e Educacional.
 - **Fase 2 — Aprofundamento (3–4 meses)**: prontuário completo, certificados, app dos pais, WhatsApp, dashboards.
 - **Fase 3 — Integrações**: e-SUS/CNES, BI para doadores, app mobile nativo.
@@ -224,24 +235,26 @@ kiizinbr-ifp-familiaponcio/
 - [x] Roadmap em 4 fases aprovado
 - [x] Repositório criado (kiizinbr/kiizinbr-ifp-familiaponcio)
 - [x] Criação do projetoifp.md (este arquivo)
-
-### Em andamento (sessão atual)
-
-- [ ] Estrutura inicial de pastas (.gitkeep nos diretórios)
-- [ ] .gitignore para Node/Next.js/Prisma
-- [ ] packages/design-tokens/tokens.css com paleta IFP
-- [ ] packages/database/schema.prisma com modelos iniciais
-- [ ] apps/web/tailwind.config.ts
+- [x] .gitignore (Node/Next.js/Prisma)
+- [x] Estrutura inicial de pastas (apps/web, apps/api, packages/ui, packages/design-tokens, packages/database, docs)
+- [x] packages/design-tokens/tokens.css com paleta IFP + temas por unidade
+- [x] packages/database/schema.prisma com Ficha Cidadã, Unidades, RBAC, AuditLog
+- [x] apps/web/tailwind.config.ts consumindo tokens
 
 ### Próximos passos (próxima sessão)
 
-1. Setup do monorepo de verdade: rodar pnpm init, configurar turbo.json, criar pnpm-workspace.yaml.
-2. Bootstrap do Next.js em apps/web com App Router, Tailwind e shadcn/ui.
-3. Bootstrap do NestJS em apps/api com módulos base (auth, users, tenants).
-4. Migração inicial do Prisma com os modelos da Ficha Cidadã.
-5. Telas iniciais do Serviço Social: login, dashboard, listagem de fichas, formulário de nova ficha (etapa 1: titular).
-6. Implementar Row-Level Security no Postgres por tenant_id.
-7. Configurar Auth.js com login por e-mail/senha + magic link.
+1. **Setup do monorepo real**: criar `package.json` root, `pnpm-workspace.yaml`, `turbo.json`. Definir versões dos pacotes.
+2. **Bootstrap do Next.js** em `apps/web` (`pnpm dlx create-next-app` com App Router, TypeScript, Tailwind). Importar tokens.css em `app/globals.css`. Configurar fonte Garet localmente.
+3. **Bootstrap do NestJS** em `apps/api` (`pnpm dlx @nestjs/cli new api`). Módulos iniciais: auth, users, tenants, fichas-cidadas.
+4. **Setup do Prisma**: `packages/database/package.json`, gerar client, criar primeira migration a partir do `schema.prisma`, seed inicial com 4 Unidades e um Super Admin.
+5. **Auth.js** com login por e-mail/senha + magic link (Resend).
+6. **Telas iniciais do Serviço Social**:
+   - Login + dashboard
+   - Listagem de fichas com filtro por status
+   - Wizard de nova Ficha Cidadã (etapa 1: titular; etapa 2: composição familiar; etapa 3: socioeconômico; etapa 4: documentos; etapa 5: consentimentos LGPD; etapa 6: avaliação de elegibilidade por unidade)
+7. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration.
+8. **Layout base com troca de tema por unidade** (`data-theme` no html).
+9. **Logo SVG e fonte Garet**: pedir ao Erick os arquivos vetoriais e tipográficos para colocar em `apps/web/public/` e `apps/web/app/fonts/`.
 
 ### Decisões pendentes (perguntar ao Erick / Simone)
 
@@ -261,8 +274,8 @@ Ao iniciar uma nova sessão (Claude Code, Claude.ai, etc.):
 1. Leia este projetoifp.md inteiro.
 2. Verifique a seção Status atual para saber onde paramos.
 3. Confirme com o Erick se as decisões pendentes foram resolvidas.
-4. Comece pela primeira tarefa não marcada em Em andamento ou Próximos passos.
-5. Ao terminar a sessão, atualize este arquivo: mova itens de Em andamento para Concluído e atualize Próximos passos.
+4. Comece pela primeira tarefa não marcada em Próximos passos.
+5. Ao terminar a sessão, atualize este arquivo: mova itens para Concluído e atualize Próximos passos.
 
 Contato do projeto:
 
@@ -272,4 +285,23 @@ Contato do projeto:
 
 ---
 
-Última atualização: sessão inicial de arquitetura e bootstrap do repositório.
+## 12. Histórico de sessões
+
+### Sessão 1 — Arquitetura e bootstrap do repositório
+
+- Levantamento completo do contexto e missão do Instituto.
+- Análise do brandbook (paleta, tipografia, logos por unidade, grafismos).
+- Definição da arquitetura macro IFP Connect (multi-tenant lógico).
+- Conceito da Ficha Cidadã como núcleo do Serviço Social.
+- Stack e roadmap aprovados.
+- Repositório criado e estrutura inicial commitada:
+  - `projetoifp.md` (memória do projeto)
+  - `.gitignore`
+  - `packages/design-tokens/tokens.css`
+  - `packages/database/schema.prisma`
+  - `apps/web/tailwind.config.ts`
+  - `.gitkeep` em `apps/api`, `packages/ui`, `docs`
+
+---
+
+Última atualização: Sessão 1 — arquitetura aprovada, design system implementado em CSS/Tailwind, schema Prisma da Fundação criado, pastas do monorepo estruturadas.
