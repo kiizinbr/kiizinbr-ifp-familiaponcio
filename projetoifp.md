@@ -216,10 +216,14 @@ kiizinbr-ifp-familiaponcio/
 │       ├── .dockerignore
 │       └── src/
 │           ├── main.ts            (Helmet, ValidationPipe, Swagger em /api/docs)
-│           ├── app.module.ts      (Throttler global, ConfigModule, módulos iniciais)
+│           ├── app.module.ts      (Throttler global, ConfigModule, todos os módulos)
 │           ├── health.controller.ts
 │           ├── prisma/            (PrismaService global)
-│           ├── auth/, users/, tenants/, fichas-cidadas/  (placeholders)
+│           ├── audit/             (AuditService global — AuditLog LGPD)
+│           ├── auth/              (login JWT + JwtStrategy + Perfis decorator/guard)
+│           ├── users/             (UsersService: findByEmail, findByIdWithPerfis)
+│           ├── tenants/           (placeholder)
+│           └── fichas-cidadas/    (Service + Controller + DTOs validados — CRUD completo)
 ├── packages/
 │   ├── ui/
 │   │   ├── package.json           ✅ @ifp/ui (cva, clsx, lucide)
@@ -313,18 +317,24 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] **Auth.js no Next.js**: `lib/auth.ts` com `CredentialsProvider` chamando a API, callbacks `jwt`/`session` propagando `accessToken`/`perfis`/`unidades`, tipos extendidos em `types/next-auth.d.ts`, route handler em `app/api/auth/[...nextauth]/route.ts`, `Providers` (SessionProvider) injetado no `RootLayout`
 - [x] Página `/login` (form e-mail/senha com tratamento de erro) e `/servico-social` (rota protegida por sessão + checagem de perfil SUPER_ADMIN/SERVICO_SOCIAL)
 - [x] **Deploy plug-and-play em VPS**: Dockerfiles multi-stage para `apps/web` (Next.js standalone) e `apps/api` (pnpm deploy + target `migrator`), `.dockerignore` na raiz e em cada app, `docker-compose.prod.yml` (postgres + redis + api + web + caddy + migrate como service `tools`), `caddy/Caddyfile` com HTTPS automático via Let's Encrypt, `.env.production.example`, `docs/deploy-vps.md` com walkthrough completo. `next build` valida o output standalone.
+- [x] **RBAC por perfil**: `@Perfis(...perfis)` decorator + `PerfisGuard` consultando metadata via `Reflector`. Falha com `ForbiddenException` se o usuário não tem nenhum dos perfis requeridos.
+- [x] **AuditLog service** (`AuditModule` global): wrapper `audit.registrar({ userId, acao, entidade, entidadeId, metadados })` que nunca bloqueia a operação principal (falha de gravação só vira log).
+- [x] **CRUD de Ficha Cidadã**: `FichasCidadasService` + `FichasCidadasController` protegidos por `JwtAuthGuard + PerfisGuard` (SUPER_ADMIN ou SERVICO_SOCIAL). Endpoints: `POST /fichas-cidadas` (cria titular, gera protocolo `IFP-YYYY-XXXXXX`), `GET /fichas-cidadas` (paginação + filtros por nome/CPF/protocolo/status/unidade/ativa), `GET /fichas-cidadas/:id` (registra READ no audit), `PATCH /fichas-cidadas/:id`, `PUT /fichas-cidadas/:id/membros`, `PUT /fichas-cidadas/:id/dados-socio`, `PUT /fichas-cidadas/:id/elegibilidade/:unidadeSlug`. Todos documentados via Swagger e com `class-validator` nos DTOs.
 
 ### Próximos passos (próxima sessão)
 
-1. **Subir Postgres + primeira migration** (lado do dev): `docker compose up -d`, ajustar `.env`, `pnpm db:migrate`, `pnpm db:seed`. Validar login via `POST /api/v1/auth/login` e fluxo Next.js → API.
-2. **CRUD de Ficha Cidadã**: `FichasCidadasService` + Controller no NestJS com DTOs (`class-validator` + Zod opcional), endpoints `GET /fichas`, `POST /fichas`, `GET /fichas/:id`, `PATCH /fichas/:id/elegibilidade`. Guards: `JwtAuthGuard` + verificação de perfil.
-3. **Wizard de nova Ficha Cidadã** em `/servico-social/fichas/nova`: 6 etapas (titular → composição → socioeconômico → documentos → consentimentos LGPD → elegibilidade), salvando rascunho a cada passo.
-4. **Listagem de fichas** em `/servico-social/fichas` com filtros (status, unidade, busca por nome/CPF).
-5. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration; criar role `app_user` que respeita RLS.
-6. **Magic link via Resend**: provider adicional no Auth.js + endpoint no NestJS pra emitir token de um clique. Tornar obrigatório no primeiro login.
-7. **Layout base com troca de tema por unidade** (`data-theme` no `<html>`) e header com menu de unidades.
-8. **Logo SVG e fonte Garet**: arquivos do Erick em `apps/web/public/` e `apps/web/app/fonts/` (substituir Inter por `next/font/local`).
-9. **ESLint compartilhado**: `@typescript-eslint` + plugin Nest em `apps/api` e flat config em `packages/ui` (hoje noop).
+1. **Subir Postgres + primeira migration** (lado do dev): `docker compose up -d`, ajustar `.env`, `pnpm db:migrate`, `pnpm db:seed`. Validar login real via `POST /api/v1/auth/login` e testar o CRUD da Ficha Cidadã via Swagger (`/api/docs`).
+2. **Telas do Serviço Social** em `apps/web`:
+   - `/servico-social/fichas` (listagem com filtros + paginação)
+   - `/servico-social/fichas/nova` (wizard de 6 etapas que consome o CRUD criado)
+   - `/servico-social/fichas/[id]` (detalhe + ações de elegibilidade)
+   - Hook `useAuthFetch` que injeta o `accessToken` da sessão em todas as chamadas.
+3. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration; criar role `app_user` que respeita RLS.
+4. **Documentos e consentimentos** (etapas 4 e 5 do wizard): upload pra storage S3-compatível (signed URLs) + endpoints `POST /fichas-cidadas/:id/documentos` e `POST /fichas-cidadas/:id/consentimentos`.
+5. **Magic link via Resend**: provider adicional no Auth.js + endpoint no NestJS pra emitir token de um clique. Obrigatório no primeiro login.
+6. **Layout base com troca de tema por unidade** (`data-theme` no `<html>`) e header com menu de unidades.
+7. **Logo SVG e fonte Garet**: arquivos do Erick em `apps/web/public/` e `apps/web/app/fonts/` (substituir Inter por `next/font/local`).
+8. **ESLint compartilhado**: `@typescript-eslint` + plugin Nest em `apps/api` e flat config em `packages/ui` (hoje noop).
 
 ### Decisões pendentes (perguntar ao Erick / Simone)
 
@@ -398,6 +408,26 @@ Contato do projeto:
 - `.env.example` na raiz documentando DATABASE_URL, NEXTAUTH_*, RESEND_API_KEY e seed.
 - Lint dos workspaces sem ESLint config (`apps/api`, `packages/ui`) virou noop temporário pra não quebrar o `turbo run lint` — config real fica pra próxima sessão.
 
+### Sessão 6 — CRUD da Ficha Cidadã na API (RBAC + AuditLog)
+
+- `@Perfis(...perfis)` decorator (`SetMetadata`) + `PerfisGuard` (lê metadata via `Reflector`, valida contra `user.perfis`). Lança `ForbiddenException` com mensagem explicando o perfil necessário.
+- `AuditModule` global com `AuditService.registrar(...)` (fire-and-forget: falha de gravação só gera log, nunca bloqueia operação). Eventos: `CREATE`, `READ`, `UPDATE` registrados nas operações da Ficha Cidadã.
+- DTOs com `class-validator` + `class-transformer`:
+  - `CreateFichaCidadaDto` (titular + contato + endereço; normaliza CPF/CEP/telefone removendo não-dígitos via `@Transform`).
+  - `UpdateFichaCidadaDto` (estende `PartialType` do nest swagger + flag `ativa`).
+  - `ListFichasQuery` (page, perPage 1-100, `q`, `unidade`, `status`, `ativa`).
+  - `ReplaceMembrosDto` (array aninhado validado, decimal para renda mensal).
+  - `UpsertDadosSocioDto` (renda total/per capita, benefícios, situação de moradia, infraestrutura, vulnerabilidades).
+  - `UpdateElegibilidadeDto` (status + motivo + reavaliarEm).
+- `FichasCidadasService`:
+  - `create` checa unicidade do CPF, gera protocolo `IFP-${ano}-${randomBytes(3).hex.upper()}`, retorna ficha com todas as relações incluídas.
+  - `findOne` registra `READ` no audit log (LGPD).
+  - `findAll` constrói `Prisma.FichaCidadaWhereInput` dinamicamente, busca por nome (case-insensitive), CPF (só dígitos) e protocolo (uppercase); filtra elegibilidades por slug da unidade e/ou status; retorna `{ items, pagination }`.
+  - `update`, `replaceMembros` (transação: deleteMany + createMany), `upsertDadosSocio` (Decimal nos valores), `updateElegibilidade` (upsert via `fichaId_unidadeId`).
+- `FichasCidadasController` protegido por `@UseGuards(JwtAuthGuard, PerfisGuard)` + `@Perfis(SUPER_ADMIN, SERVICO_SOCIAL)`. 7 endpoints documentados via `@ApiOperation`/`@ApiParam` (visíveis em `/api/docs`).
+- `AppModule` agora importa `AuditModule`; antigo `users/users.module` placeholder virou módulo com `UsersService` exportado.
+- Validado: `pnpm --filter @ifp/api typecheck` + `build` (28 arquivos `.js` em `dist/`, incluindo `auth/perfis.guard`, `audit/audit.service` e toda a árvore `fichas-cidadas/`).
+
 ### Sessão 5 — Deploy plug-and-play (Dockerfiles, compose de produção, Caddy)
 
 - `apps/web/Dockerfile` multi-stage (deps → builder → runner) usando `output: "standalone"` do Next.js. Roda como usuário não-root, telemetria desligada, expõe :3000.
@@ -432,4 +462,4 @@ Contato do projeto:
 
 ---
 
-Última atualização: Sessão 5 — Deploy plug-and-play (Dockerfiles + docker-compose.prod + Caddy + docs/deploy-vps.md). Próximo passo (lado do dev): subir Postgres local com `docker compose up -d`, rodar `pnpm db:migrate` + seed, validar login real, e quando estiver pronto seguir o `docs/deploy-vps.md` pra subir num VPS.
+Última atualização: Sessão 6 — CRUD da Ficha Cidadã na API com RBAC e AuditLog. Próximo passo: subir Postgres local, rodar migration + seed e testar o CRUD via Swagger em `/api/docs`; depois implementar as telas de listagem e wizard no `apps/web`.
