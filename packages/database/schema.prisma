@@ -80,7 +80,7 @@ model User {
 
   perfis    UsuarioPerfil[]
   unidades  UsuarioUnidade[]
-  fichaCidada FichaCidada? @relation("UserToFichaCidada")
+  fichaCidada FichaCidada? @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
   fichaCidadaId String? @unique
 
   @@map("usuarios")
