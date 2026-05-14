@@ -189,9 +189,13 @@ kiizinbr-ifp-familiaponcio/
 ├── tsconfig.base.json             ✅ TS strict compartilhado
 ├── docker-compose.yml             ✅ dev (Postgres + Redis)
 ├── docker-compose.prod.yml        ✅ produção (postgres + redis + api + web + caddy + migrate)
+├── docker-compose.onprem.yml      ✅ override pra LAN interna (porta 80 só, Caddyfile.internal)
 ├── .dockerignore                  ✅ root (exclui node_modules, exports, backups, etc.)
-├── .env.production.example        ✅ template de variáveis de produção
-├── caddy/Caddyfile                ✅ reverse proxy + HTTPS automático
+├── .env.production.example        ✅ template (público — Let's Encrypt)
+├── .env.onprem.example            ✅ template (LAN — ifp.lan, sem Let's Encrypt)
+├── caddy/
+│   ├── Caddyfile                  ✅ produção pública (HTTPS automático via Let's Encrypt)
+│   └── Caddyfile.internal         ✅ on-prem LAN (HTTP + opção `tls internal` comentada)
 ├── apps/
 │   ├── web/                       ✅ @ifp/web — Next.js 14 (App Router) bootstrappado
 │   │   ├── package.json
@@ -239,7 +243,8 @@ kiizinbr-ifp-familiaponcio/
 │       ├── schema.prisma          Ficha Cidadã + RBAC + AuditLog (relação User↔Ficha corrigida)
 │       └── prisma/seed.ts         seed das 4 Unidades + Super Admin (opt-in via env)
 └── docs/
-    └── deploy-vps.md              ✅ walkthrough completo de deploy em VPS único
+    ├── deploy-vps.md              ✅ walkthrough de deploy em VPS público
+    └── deploy-onprem-hyperv.md    ✅ walkthrough de deploy em Hyper-V (LAN interna)
 ```
 
 Versões pinadas (engines): Node ≥ 20.11, pnpm ≥ 9. Stack instalada: Next 14.2.35, NestJS 10.4, Prisma 5.22, Tailwind 3.4, Turbo 2.9, TS 5.9.
@@ -320,10 +325,11 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] **RBAC por perfil**: `@Perfis(...perfis)` decorator + `PerfisGuard` consultando metadata via `Reflector`. Falha com `ForbiddenException` se o usuário não tem nenhum dos perfis requeridos.
 - [x] **AuditLog service** (`AuditModule` global): wrapper `audit.registrar({ userId, acao, entidade, entidadeId, metadados })` que nunca bloqueia a operação principal (falha de gravação só vira log).
 - [x] **CRUD de Ficha Cidadã**: `FichasCidadasService` + `FichasCidadasController` protegidos por `JwtAuthGuard + PerfisGuard` (SUPER_ADMIN ou SERVICO_SOCIAL). Endpoints: `POST /fichas-cidadas` (cria titular, gera protocolo `IFP-YYYY-XXXXXX`), `GET /fichas-cidadas` (paginação + filtros por nome/CPF/protocolo/status/unidade/ativa), `GET /fichas-cidadas/:id` (registra READ no audit), `PATCH /fichas-cidadas/:id`, `PUT /fichas-cidadas/:id/membros`, `PUT /fichas-cidadas/:id/dados-socio`, `PUT /fichas-cidadas/:id/elegibilidade/:unidadeSlug`. Todos documentados via Swagger e com `class-validator` nos DTOs.
+- [x] **Deploy on-prem (Hyper-V + Ubuntu)**: `caddy/Caddyfile.internal` (HTTP por padrão, com opção comentada de `tls internal`), `docker-compose.onprem.yml` (override que usa `!override` em `ports` pra ficar só na 80), `.env.onprem.example` com hostnames `ifp.lan` / `api.ifp.lan`, `docs/deploy-onprem-hyperv.md` com 12 passos (Hyper-V VM specs e External Switch, instalação do Ubuntu Server 22.04, IP estático via Netplan, Docker via get.docker.com, ufw, build/migrate/seed/up, DNS interno via hosts ou AD, smoke tests, atualização, backup com cron, opção de HTTPS interno via Caddy CA, troubleshooting).
 
 ### Próximos passos (próxima sessão)
 
-1. **Subir Postgres + primeira migration** (lado do dev): `docker compose up -d`, ajustar `.env`, `pnpm db:migrate`, `pnpm db:seed`. Validar login real via `POST /api/v1/auth/login` e testar o CRUD da Ficha Cidadã via Swagger (`/api/docs`).
+1. **Provisionar a VM Hyper-V** seguindo `docs/deploy-onprem-hyperv.md` (External Switch, Ubuntu Server 22.04, Netplan com IP estático, Docker, ufw). Dentro da VM, `docker compose -f docker-compose.prod.yml -f docker-compose.onprem.yml --env-file .env.production up -d` + DNS interno (hosts file ou A record no AD).
 2. **Telas do Serviço Social** em `apps/web`:
    - `/servico-social/fichas` (listagem com filtros + paginação)
    - `/servico-social/fichas/nova` (wizard de 6 etapas que consome o CRUD criado)
@@ -408,6 +414,14 @@ Contato do projeto:
 - `.env.example` na raiz documentando DATABASE_URL, NEXTAUTH_*, RESEND_API_KEY e seed.
 - Lint dos workspaces sem ESLint config (`apps/api`, `packages/ui`) virou noop temporário pra não quebrar o `turbo run lint` — config real fica pra próxima sessão.
 
+### Sessão 7 — Deploy on-prem (Hyper-V + Ubuntu Server, LAN interna)
+
+- `caddy/Caddyfile.internal`: serve em HTTP (porta 80) por padrão com `auto_https off`; bloco `tls internal` comentado pra ligar HTTPS com a CA interna do Caddy quando quiser.
+- `docker-compose.onprem.yml`: override do `docker-compose.prod.yml` que usa `ports: !override` pra ficar só com a porta 80 (sem 443), monta o `Caddyfile.internal` em vez do externo, e neutraliza o `ACME_EMAIL` (não fala com Let's Encrypt). Uso: `docker compose -f docker-compose.prod.yml -f docker-compose.onprem.yml --env-file .env.production up -d`.
+- `.env.onprem.example`: template com hostnames internos (`WEB_DOMAIN=ifp.lan`, `API_DOMAIN=api.ifp.lan`), `WEB_ORIGIN=http://ifp.lan`, e placeholders sinalizando "gerar com openssl rand".
+- `docs/deploy-onprem-hyperv.md` (12 seções): specs da VM no Hyper-V Manager (Generation 2, 2 vCPU, 4 GB, 60 GB, External Switch), instalação do Ubuntu 22.04 com OpenSSH, IP estático via Netplan, instalação do Docker via `get.docker.com`, firewall com `ufw`, clone do repo, `.env.production` derivado do `.env.onprem.example`, build/migrate/seed/up, DNS interno (hosts file OU A records no AD), smoke tests, atualização contínua, backup diário do Postgres via cron com retenção de 30 dias, instruções para ligar HTTPS interno depois (cert root da Caddy CA via GPO), tabela de troubleshooting, e nota de escalonamento.
+- Validado: `docker compose -f docker-compose.prod.yml -f docker-compose.onprem.yml config` mostra `caddy` com apenas porta 80 mapeada e `Caddyfile.internal` em bind mount.
+
 ### Sessão 6 — CRUD da Ficha Cidadã na API (RBAC + AuditLog)
 
 - `@Perfis(...perfis)` decorator (`SetMetadata`) + `PerfisGuard` (lê metadata via `Reflector`, valida contra `user.perfis`). Lança `ForbiddenException` com mensagem explicando o perfil necessário.
@@ -462,4 +476,4 @@ Contato do projeto:
 
 ---
 
-Última atualização: Sessão 6 — CRUD da Ficha Cidadã na API com RBAC e AuditLog. Próximo passo: subir Postgres local, rodar migration + seed e testar o CRUD via Swagger em `/api/docs`; depois implementar as telas de listagem e wizard no `apps/web`.
+Última atualização: Sessão 7 — Deploy on-prem (Hyper-V + Ubuntu Server, LAN interna) com `Caddyfile.internal`, override de compose e walkthrough em `docs/deploy-onprem-hyperv.md`. Próximo passo: criar a VM no Hyper-V seguindo o doc, rodar `docker compose -f docker-compose.prod.yml -f docker-compose.onprem.yml up -d` lá dentro, e implementar as telas de Serviço Social (listagem + wizard) consumindo o CRUD da API.
