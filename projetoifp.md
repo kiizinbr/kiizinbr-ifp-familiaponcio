@@ -177,23 +177,38 @@ kiizinbr-ifp-familiaponcio/
 ├── projetoifp.md                  ✅ memória do projeto
 ├── README.md                      ✅ inicial
 ├── .gitignore                     ✅ Node/Next.js/Prisma
+├── .nvmrc                         ✅ Node 20.18.0
+├── .npmrc                         ✅ engine-strict, auto-install-peers
+├── .prettierrc.json               ✅ Prettier + plugin Tailwind
+├── .prettierignore                ✅
+├── package.json                   ✅ root do monorepo (scripts turbo, prettier, ts)
+├── pnpm-workspace.yaml            ✅ workspaces apps/* e packages/*
+├── turbo.json                     ✅ pipeline (build, dev, lint, typecheck, db:*)
+├── tsconfig.base.json             ✅ TS strict compartilhado
 ├── apps/
 │   ├── web/
+│   │   ├── package.json           ✅ @ifp/web (Next.js 14, RHF, zod, RQ)
 │   │   └── tailwind.config.ts     ✅ tokens IFP
 │   └── api/
-│       └── .gitkeep               ✅ placeholder (NestJS pendente)
+│       └── package.json           ✅ @ifp/api (NestJS 10, Prisma, BullMQ, JWT)
 ├── packages/
 │   ├── ui/
-│   │   └── .gitkeep               ✅ placeholder (shadcn customizado pendente)
+│   │   ├── package.json           ✅ @ifp/ui (cva, clsx, lucide)
+│   │   └── src/index.ts           ✅ placeholder de exports
 │   ├── design-tokens/
+│   │   ├── package.json           ✅ @ifp/design-tokens (export ./tokens.css)
 │   │   └── tokens.css             ✅ paleta + tipografia + temas por unidade
 │   └── database/
+│       ├── package.json           ✅ @ifp/database (Prisma 5, tsx p/ seed)
+│       ├── src/index.ts           ✅ PrismaClient singleton + re-export
 │       └── schema.prisma          ✅ Ficha Cidadã + RBAC + AuditLog
 └── docs/
     └── .gitkeep                   ✅ placeholder (documentação técnica pendente)
 ```
 
-PENDENTE no monorepo (próxima sessão): `package.json` root, `turbo.json`, `pnpm-workspace.yaml`, bootstrap real do Next.js e do NestJS, instalação de dependências.
+Versões pinadas (engines): Node ≥ 20.11, pnpm ≥ 9. Stack: Next 14.2, NestJS 10.4, Prisma 5.18, Tailwind 3.4, Turbo 2.1, TS 5.5.
+
+PENDENTE no monorepo (próxima sessão): `pnpm install` (gera `pnpm-lock.yaml`), bootstrap real do Next.js (`app/`, `globals.css`, layout, fonts/Garet), bootstrap real do NestJS (`src/main.ts`, módulos auth/users/tenants/fichas), seed do Prisma com 4 Unidades + Super Admin.
 
 ---
 
@@ -240,14 +255,25 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] packages/design-tokens/tokens.css com paleta IFP + temas por unidade
 - [x] packages/database/schema.prisma com Ficha Cidadã, Unidades, RBAC, AuditLog
 - [x] apps/web/tailwind.config.ts consumindo tokens
+- [x] `package.json` root do monorepo (scripts turbo, prettier, db:*)
+- [x] `pnpm-workspace.yaml` (workspaces apps/* e packages/*)
+- [x] `turbo.json` (pipeline build/dev/lint/typecheck/test/db:*)
+- [x] `tsconfig.base.json` (TS 5 strict + noUncheckedIndexedAccess)
+- [x] `.nvmrc` (Node 20.18.0), `.npmrc` (engine-strict, auto-install-peers)
+- [x] `.prettierrc.json` + `.prettierignore` (com plugin Tailwind)
+- [x] `apps/web/package.json` (@ifp/web, Next 14.2 + RHF + zod + RQ + zustand)
+- [x] `apps/api/package.json` (@ifp/api, NestJS 10.4 + JWT + Passport + BullMQ + Helmet)
+- [x] `packages/database/package.json` + `src/index.ts` (Prisma 5.18, singleton)
+- [x] `packages/design-tokens/package.json` (export ./tokens.css)
+- [x] `packages/ui/package.json` + `src/index.ts` (cva + clsx + lucide, peer React 18)
 
 ### Próximos passos (próxima sessão)
 
-1. **Setup do monorepo real**: criar `package.json` root, `pnpm-workspace.yaml`, `turbo.json`. Definir versões dos pacotes.
-2. **Bootstrap do Next.js** em `apps/web` (`pnpm dlx create-next-app` com App Router, TypeScript, Tailwind). Importar tokens.css em `app/globals.css`. Configurar fonte Garet localmente.
-3. **Bootstrap do NestJS** em `apps/api` (`pnpm dlx @nestjs/cli new api`). Módulos iniciais: auth, users, tenants, fichas-cidadas.
-4. **Setup do Prisma**: `packages/database/package.json`, gerar client, criar primeira migration a partir do `schema.prisma`, seed inicial com 4 Unidades e um Super Admin.
-5. **Auth.js** com login por e-mail/senha + magic link (Resend).
+1. **Instalar dependências e gerar lockfile**: `pnpm install` na raiz; verificar resolução de workspaces e `@prisma/client`.
+2. **Bootstrap do Next.js** em `apps/web`: criar `app/layout.tsx`, `app/page.tsx`, `app/globals.css` importando `@ifp/design-tokens/tokens.css`, `next.config.mjs`, `tsconfig.json` (estendendo `tsconfig.base.json`), `postcss.config.mjs`. Configurar fonte Garet localmente em `apps/web/app/fonts/` (pendente arquivos do Erick — usar Inter como fallback).
+3. **Bootstrap do NestJS** em `apps/api`: `src/main.ts`, `src/app.module.ts`, `nest-cli.json`, `tsconfig.json` (estendendo o base), Helmet + ValidationPipe + Swagger. Módulos iniciais: `auth`, `users`, `tenants`, `fichas-cidadas`.
+4. **Setup completo do Prisma**: gerar client (`pnpm db:generate`), criar primeira migration a partir do `schema.prisma`, `prisma/seed.ts` populando as 4 Unidades + Super Admin.
+5. **Auth.js** em `apps/web` com login por e-mail/senha (bcrypt) + magic link (Resend). Sessão JWT compartilhada com a API.
 6. **Telas iniciais do Serviço Social**:
    - Login + dashboard
    - Listagem de fichas com filtro por status
@@ -302,6 +328,21 @@ Contato do projeto:
   - `apps/web/tailwind.config.ts`
   - `.gitkeep` em `apps/api`, `packages/ui`, `docs`
 
+### Sessão 2 — Setup do monorepo (passo 1 da seção 10)
+
+- `package.json` raiz com scripts agregados via Turbo (build/dev/lint/typecheck/test) e atalhos para o Prisma (`db:generate`, `db:migrate`, `db:seed`, `db:studio`).
+- `pnpm-workspace.yaml` cobrindo `apps/*` e `packages/*`.
+- `turbo.json` com pipeline declarando dependências entre tasks (build depende de `^build` e `^db:generate`).
+- `tsconfig.base.json` compartilhado (strict, ES2022, moduleResolution Bundler, `noUncheckedIndexedAccess`).
+- `.nvmrc` (Node 20.18.0), `.npmrc` (engine-strict, auto-install-peers), `.prettierrc.json` + `.prettierignore` com plugin Tailwind.
+- `package.json` de cada workspace com versões pinadas:
+  - `@ifp/web` — Next.js 14.2, React Hook Form, Zod, TanStack Query/Table, Zustand, NextAuth, lucide.
+  - `@ifp/api` — NestJS 10.4, JWT/Passport, BullMQ + ioredis, Helmet, class-validator, Swagger.
+  - `@ifp/database` — Prisma 5.18, `src/index.ts` com `PrismaClient` singleton e re-export dos tipos.
+  - `@ifp/design-tokens` — exporta `./tokens.css` como entrada principal.
+  - `@ifp/ui` — cva + clsx + tailwind-merge + lucide, peer React 18.
+- Removidos `.gitkeep` de `apps/api` e `packages/ui` (substituídos por `package.json` e `src/`).
+
 ---
 
-Última atualização: Sessão 1 — arquitetura aprovada, design system implementado em CSS/Tailwind, schema Prisma da Fundação criado, pastas do monorepo estruturadas.
+Última atualização: Sessão 2 — monorepo configurado (pnpm + Turbo), versões dos pacotes pinadas em todos os workspaces. Próximo passo: rodar `pnpm install` e bootstrappar Next.js + NestJS.
