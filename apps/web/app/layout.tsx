@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { getServerSession } from "next-auth";
 import "./globals.css";
+import { authOptions } from "@/lib/auth";
+import { Providers } from "./providers";
 
 // Fallback enquanto a fonte Garet oficial não está disponível.
 // Quando o Erick enviar os arquivos .woff2, trocar por next/font/local.
@@ -28,10 +31,13 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <Providers session={session}>{children}</Providers>
+      </body>
     </html>
   );
 }
