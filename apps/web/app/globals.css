@@ -1,0 +1,30 @@
+@import "@ifp/design-tokens/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: var(--ifp-font-family);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+  }
+
+  body {
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--ifp-white);
+  }
+}
