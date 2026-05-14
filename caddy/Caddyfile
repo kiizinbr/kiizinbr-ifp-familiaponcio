@@ -1,0 +1,37 @@
+# Caddyfile — IFP Connect (produção)
+# Caddy emite e renova certificados TLS automaticamente via Let's Encrypt.
+
+{
+	email {$ACME_EMAIL}
+	# servers {
+	#     trusted_proxies static 0.0.0.0/0  # descomentar se atrás de outro proxy/CDN
+	# }
+}
+
+# Frontend (Next.js)
+{$WEB_DOMAIN} {
+	encode zstd gzip
+	@static path /_next/static/*
+	header @static Cache-Control "public, max-age=31536000, immutable"
+	reverse_proxy web:3000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+# API (NestJS)
+{$API_DOMAIN} {
+	encode zstd gzip
+	@cors {
+		method OPTIONS
+	}
+	respond @cors 204 {
+		close
+	}
+	reverse_proxy api:3333 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}

@@ -1,0 +1,136 @@
+# docker-compose para produção (VPS único) do IFP Connect.
+# Sobe: Postgres 16, Redis 7, NestJS API, Next.js web, Caddy (HTTPS automático).
+#
+# Pré-requisitos no servidor:
+#   - Docker + Docker Compose plugin instalados.
+#   - DNS apontando para o IP do VPS (A record em "ifp.example.com" e "api.ifp.example.com").
+#   - .env.production preenchido (vide .env.production.example).
+#
+# Fluxo de deploy:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production pull   # opcional, se usar registry
+#   docker compose -f docker-compose.prod.yml --env-file .env.production build
+#   docker compose -f docker-compose.prod.yml --env-file .env.production run --rm migrate
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    <<: *restart-policy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ifp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD é obrigatório}
+      POSTGRES_DB: ${POSTGRES_DB:-ifp_connect}
+    volumes:
+      - ifp-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ifp} -d ${POSTGRES_DB:-ifp_connect}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [ifp-net]
+
+  redis:
+    image: redis:7-alpine
+    <<: *restart-policy
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD é obrigatório}"]
+    volumes:
+      - ifp-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [ifp-net]
+
+  # Rodar via `docker compose run --rm migrate` antes de subir api/web.
+  # Reaproveita a imagem ifp-api mas no target "migrator" (prisma CLI disponível).
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrator
+    image: ifp-connect/migrate:latest
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ifp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ifp_connect}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [ifp-net]
+    profiles: [tools]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: ifp-connect/api:latest
+    <<: *restart-policy
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      WEB_ORIGIN: ${WEB_ORIGIN}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ifp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ifp_connect}?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3333/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [ifp-net]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: ifp-connect/web:latest
+    <<: *restart-policy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      NEXTAUTH_URL: ${WEB_ORIGIN}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?NEXTAUTH_SECRET é obrigatório}
+      API_URL: http://api:3333/api/v1
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [ifp-net]
+
+  caddy:
+    image: caddy:2-alpine
+    <<: *restart-policy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      WEB_DOMAIN: ${WEB_DOMAIN:?WEB_DOMAIN é obrigatório}
+      API_DOMAIN: ${API_DOMAIN:?API_DOMAIN é obrigatório}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL é obrigatório}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ifp-caddy-data:/data
+      - ifp-caddy-config:/config
+    depends_on:
+      - web
+      - api
+    networks: [ifp-net]
+
+volumes:
+  ifp-pgdata:
+  ifp-redisdata:
+  ifp-caddy-data:
+  ifp-caddy-config:
+
+networks:
+  ifp-net:
+    driver: bridge
