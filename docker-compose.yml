@@ -1,0 +1,45 @@
+# docker-compose para desenvolvimento local do IFP Connect.
+# Sobe Postgres 16 e Redis 7 com volumes persistentes.
+# Uso:
+#   docker compose up -d
+#   pnpm db:migrate     # primeira migration
+#   pnpm db:seed        # popula Unidades + Super Admin (se SEED_SUPER_ADMIN_PASSWORD)
+#
+# Para resetar tudo: docker compose down -v
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ifp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ifp
+      POSTGRES_PASSWORD: ifp
+      POSTGRES_DB: ifp_connect
+    ports:
+      - "5432:5432"
+    volumes:
+      - ifp-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ifp -d ifp_connect"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: ifp-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ifp-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ifp-pgdata:
+  ifp-redisdata:

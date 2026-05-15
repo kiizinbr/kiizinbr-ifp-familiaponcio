@@ -1,0 +1,27 @@
+# Override do docker-compose.prod.yml para deploy on-prem (LAN interna).
+# Usar SEMPRE junto com o arquivo principal:
+#
+#   docker compose \
+#     -f docker-compose.prod.yml \
+#     -f docker-compose.onprem.yml \
+#     --env-file .env.production \
+#     up -d
+#
+# O que muda:
+#   - Caddy serve apenas HTTP (porta 80), usando Caddyfile.internal
+#   - Variavel ACME_EMAIL nao e' usada (Caddy nao fala com Let's Encrypt)
+
+services:
+  caddy:
+    # !override substitui completamente a lista herdada do .prod.yml
+    # (que tinha 80 + 443) — fica so' a porta 80. Pra HTTPS interno,
+    # descomente o 443:443 e ligue `tls internal` no Caddyfile.internal.
+    ports: !override
+      - "80:80"
+      # - "443:443"
+    environment:
+      ACME_EMAIL: "disabled-on-lan@local"
+    volumes:
+      - ./caddy/Caddyfile.internal:/etc/caddy/Caddyfile:ro
+      - ifp-caddy-data:/data
+      - ifp-caddy-config:/config
