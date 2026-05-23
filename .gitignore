@@ -1,0 +1,44 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+build/
+dist/
+
+# env
+.env
+.env.local
+.env*.local
+
+# tests
+coverage/
+playwright-report/
+playwright/.cache/
+test-results/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Docker volumes locais
+.data/
+
+# superpowers brainstorm artifacts (visual companion files)
+.superpowers/
+
+# samples de migração (podem conter PII)
+docs/migration-samples/
