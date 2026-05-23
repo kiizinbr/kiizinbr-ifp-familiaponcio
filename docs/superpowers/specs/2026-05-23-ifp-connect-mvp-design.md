@@ -283,11 +283,30 @@ Adiados para **F2 em diante:** PIA formal, contrato DPA com fornecedores externo
 | Escopo aumenta antes do MVP terminar | Travamento (já aconteceu) | Quaisquer pedidos de unidade durante MVP entram em backlog F2+, **sem exceção** |
 | CSV da Amplimed em formato proprietário | Importer não cobre | Sample CSV antes do código; testes do importer rodam contra samples reais |
 
-## 12. Itens em aberto (a confirmar com Erick antes do plano)
+## 12. Itens confirmados e pendências (revisão 2026-05-23)
 
-- Domínio definitivo da aplicação (sugestão: `app.familiaponcio.org.br`).
-- Existência e formato exato do export CSV da Amplimed (sample anonimizado).
-- Logo IFP em vetor (SVG) e arquivo Garet (otf/woff2).
-- Lista nominal dos usuários piloto (assistente social + recepção + Erick + Presidência).
-- Endereço fiscal e CNPJ do IFP para footer e documentos LGPD.
-- DPO formal — Erick aceita o papel inicialmente? Quando passa para alguém da IFP?
+### 12.1 Confirmados pelo Erick
+
+- **Domínio:** o IFP possui domínio próprio; encaminhamento DNS será feito quando Erick obtiver acesso. Aplicação roda em subdomínio (`app.<dominio-ifp>`) — durante desenvolvimento usar `app.familiaponcio.local` ou IP direto.
+- **CSV Amplimed:** export solicitado em 2026-05-23, previsão de entrega ~2 dias. Importer no MVP será desenvolvido contra spec genérica primeiro; ajuste fino ao formato real assim que o sample chegar.
+- **Logo IFP:** disponível no BrandBook em formato raster. Converter para SVG via tracing (Illustrator/Inkscape/online) antes do início da implementação de UI.
+- **DPO:** Erick Ramos aceita o papel inicialmente.
+- **Usuários piloto (3 perfis iniciais):**
+  | Login | Perfil RBAC | Função |
+  |---|---|---|
+  | `erick.ramos` | `super_admin` | TI/Dev — administra usuários, papéis, importações |
+  | `raquel.barros` | `gestor` (multi-unidade) e/ou `social` | Coordenadora — conduz triagem e aprova encaminhamentos |
+  | `saulo.poncio` | `presidencia` | Vê dashboards agregados |
+
+### 12.2 Aguardando
+
+- **CNPJ + endereço fiscal** do IFP — Raquel passa na segunda (≈2026-05-25).
+- **Sample CSV anonimizado** da Amplimed — Erick repassa em ~2 dias.
+- **Logo em SVG** — Erick converte do BrandBook antes do sprint de UI (Sprint 3+).
+- **Garet em woff2/otf** com licença de uso — confirmar com IFP se a licença permite uso web.
+
+### 12.3 A esclarecer com Raquel/IFP
+
+- **Presidência:** `projetoifp.md` originalmente referenciou Simone Pôncio. Piloto agora referencia `saulo.poncio`. Confirmar se houve transição de gestão ou se ambos têm acesso `presidencia`. Não bloqueia o MVP — schema suporta múltiplos usuários no mesmo papel.
+- **Domínio definitivo** e responsável técnico do DNS.
+- **Aprovação formal** do papel de DPO do Erick durante a fase de operação (idealmente em ata).
