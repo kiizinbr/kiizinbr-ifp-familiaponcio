@@ -1,0 +1,18 @@
+# Normalização de EOL para o repo (LF) — Windows converte na working tree.
+* text=auto eol=lf
+
+# Scripts Windows precisam CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binários — sem conversão
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.otf binary
+*.ttf binary
+*.pdf binary
