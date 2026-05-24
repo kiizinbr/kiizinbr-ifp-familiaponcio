@@ -1,0 +1,45 @@
+# Dev environment para IFP Connect.
+# Volumes: named (ifp_postgres_data, ifp_minio_data) ficam no filesystem ext4 do WSL2.
+# NUNCA usar bind mount em /mnt/c/... pra dados de Postgres — 9P quebra fsync/locks.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ifp_postgres_dev
+    environment:
+      POSTGRES_USER: ifp
+      POSTGRES_PASSWORD: ifp_dev_pw
+      POSTGRES_DB: ifp_connect
+    # Host port 5433 porque 5432 ja eh usado pelo Postgres 9.6 do Alterdata/Bimer
+    ports:
+      - "5433:5432"
+    volumes:
+      - ifp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ifp -d ifp_connect"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: ifp_minio_dev
+    environment:
+      MINIO_ROOT_USER: ifp_minio
+      MINIO_ROOT_PASSWORD: ifp_minio_dev_pw
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ifp_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  ifp_postgres_data:
+  ifp_minio_data:
