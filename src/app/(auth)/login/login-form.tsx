@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useFormStatus } from "react-dom";
 import { signInAction } from "./actions";
 
@@ -19,14 +20,21 @@ function SubmitButton() {
 export function LoginForm({ error }: { error?: string }) {
   return (
     <form action={signInAction} className="w-full max-w-sm rounded-xl bg-white p-8 shadow">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">IFP Connect</h1>
-        <div className="mt-2 flex h-1 w-16 overflow-hidden rounded">
+      <div className="mb-6 flex flex-col items-center">
+        <Image
+          src="/logo/ifp-lockup.png"
+          alt="Instituto Família Pôncio"
+          width={160}
+          height={180}
+          priority
+        />
+        <div className="mt-4 flex h-1 w-20 overflow-hidden rounded">
           <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-capacitacao))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
         </div>
+        <p className="mt-3 text-xs tracking-widest text-slate-500 uppercase">IFP Connect</p>
       </div>
 
       {error === "invalid" && (

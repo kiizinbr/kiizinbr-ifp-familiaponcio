@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { auth } from "@/lib/auth";
 import { signOutAction } from "./actions";
 
@@ -10,6 +11,7 @@ export default async function AppHome() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
+            <Image src="/logo/ifp-symbol.png" alt="IFP" width={36} height={36} priority />
             <span className="text-lg font-semibold">IFP Connect</span>
             <div className="flex h-1 w-12 overflow-hidden rounded">
               <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
