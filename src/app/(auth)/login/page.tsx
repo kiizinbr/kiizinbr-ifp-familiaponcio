@@ -2,7 +2,7 @@ import { signIn } from "@/lib/auth";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen grid place-items-center bg-slate-50">
+    <main className="grid min-h-screen place-items-center bg-slate-50">
       <form
         action={async (formData) => {
           "use server";
@@ -12,31 +12,23 @@ export default function LoginPage() {
             redirectTo: "/app",
           });
         }}
-        className="w-full max-w-sm bg-white p-8 rounded-xl shadow"
+        className="w-full max-w-sm rounded-xl bg-white p-8 shadow"
       >
-        <h1 className="text-2xl font-semibold mb-6">IFP Connect</h1>
-        <label className="block mb-3">
-          <span className="block text-sm mb-1">E-mail</span>
-          <input
-            name="email"
-            type="email"
-            required
-            className="w-full border rounded px-3 py-2"
-          />
+        <h1 className="mb-6 text-2xl font-semibold">IFP Connect</h1>
+        <label className="mb-3 block">
+          <span className="mb-1 block text-sm">E-mail</span>
+          <input name="email" type="email" required className="w-full rounded border px-3 py-2" />
         </label>
-        <label className="block mb-6">
-          <span className="block text-sm mb-1">Senha</span>
+        <label className="mb-6 block">
+          <span className="mb-1 block text-sm">Senha</span>
           <input
             name="password"
             type="password"
             required
-            className="w-full border rounded px-3 py-2"
+            className="w-full rounded border px-3 py-2"
           />
         </label>
-        <button
-          type="submit"
-          className="w-full bg-slate-900 text-white rounded py-2"
-        >
+        <button type="submit" className="w-full rounded bg-slate-900 py-2 text-white">
           Entrar
         </button>
       </form>
