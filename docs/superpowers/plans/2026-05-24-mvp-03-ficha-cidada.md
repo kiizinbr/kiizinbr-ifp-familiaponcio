@@ -14,53 +14,66 @@
 
 ## 0. DECISÕES ABERTAS (resolver antes de executar)
 
-### 0.1 Schema obrigatório vs opcional
+### ✅ 0.1 Schema — FECHADA em 2026-05-24
 
-Campos sugeridos. Marque ✅ se obrigatório, ⭕ se opcional, ❌ se NÃO incluir:
+**Obrigatórios (4):**
 
-**Identificação**
+- `nome_completo` (string)
+- `cpf` (string, único, 11 dígitos normalizado)
+- `data_nascimento` (date)
+- `telefone_principal` (string)
 
-- [ ] `nome_completo` (string) — proposta: ✅ obrigatório
-- [ ] `nome_social` (string) — proposta: ⭕ opcional (LGBTQIA+, pessoas trans)
-- [ ] `cpf` (string, único) — proposta: ⭕ opcional (alguns sem documento, ainda atendem)
-- [ ] `rg` (string) — proposta: ⭕ opcional
-- [ ] `data_nascimento` (date) — proposta: ✅
-- [ ] `genero` (enum) — proposta: ⭕ (`feminino | masculino | nao_binario | nao_informar`)
-- [ ] `orientacao_sexual` (enum) — proposta: ❌ (sensível, perguntar antes)
-- [ ] `cor_raca` (enum IBGE: branca/preta/parda/amarela/indigena) — proposta: ⭕ (relatório de equidade)
-- [ ] `estado_civil` (enum) — proposta: ⭕
-- [ ] `nacionalidade` (string) — proposta: ⭕
+**NÃO incluir** (dados sensíveis LGPD art. 5º II — sem ganho operacional):
 
-**Contato**
+- `orientacao_sexual`
+- `religiao`
 
-- [ ] `telefone_principal` (string) — proposta: ✅
-- [ ] `telefone_secundario` (string) — proposta: ⭕
-- [ ] `email` (string) — proposta: ⭕
-- [ ] `whatsapp_consente` (boolean) — proposta: ⭕
+**Opcionais — Identificação:**
 
-**Socioeconômico** (visível pra perfil `social` — Raquel)
+- `nome_social` (LGBTQIA+, pessoas trans — dignidade no atendimento)
+- `rg` (alguns só CIN ou RG vencido)
+- `documento_alternativo` (CNH, passaporte — pra quem não tem RG normal)
+- `genero` (enum: feminino / masculino / nao_binario / nao_informar)
+- `cor_raca` (enum IBGE: branca / preta / parda / amarela / indigena)
+- `estado_civil` (enum)
+- `nacionalidade` (string)
+- `naturalidade` (cidade + UF de nascimento)
+- `nome_mae` (importante pra menor de idade — responsável legal)
+- `nome_pai` (idem)
+- `escola_atual` (criança/adolescente do recreativo/capacitação)
 
-- [ ] `renda_familiar` (decimal) — proposta: ⭕
-- [ ] `pessoas_na_casa` (int) — proposta: ⭕
-- [ ] `beneficio_social` (enum: `bolsa_familia | bpc | nenhum | outro`) — proposta: ⭕
-- [ ] `escolaridade` (enum) — proposta: ⭕
-- [ ] `trabalha` (boolean + descricao) — proposta: ⭕
+**Opcionais — Contato:**
 
-**Saúde** (visível pra perfil `profissional` da unidade médica — Plano 4)
+- `telefone_secundario`
+- `email`
+- `whatsapp_consente` (boolean — LGPD base legal pra contato WhatsApp)
 
-- [ ] `tipo_sanguineo` (enum) — proposta: ⭕
-- [ ] `alergias` (text) — proposta: ⭕
-- [ ] `medicamentos_em_uso` (text) — proposta: ⭕
-- [ ] `condicoes_cronicas` (text) — proposta: ⭕
+**Opcionais — Socioeconômico** (visíveis SÓ pra perfil `social` — Regina + equipe):
 
-**Sistema**
+- `renda_familiar` (decimal)
+- `pessoas_na_casa` (int)
+- `beneficio_social` (enum: bolsa_familia / bpc / nenhum / outro)
+- `escolaridade` (enum)
+- `trabalha` (boolean) + `trabalho_descricao` (text)
 
-- `created_by` (User) — automático
-- `unit_id_origem` (Unit) — automático (qual unidade cadastrou primeiro)
-- `created_at`, `updated_at` — automático
-- `deleted_at` (soft delete) — automático
+**Opcionais — Saúde** (visíveis SÓ pra perfis `profissional` do Centro Médico):
 
-**❓ Pergunta:** revisar cada campo, marcar obrigatório/opcional/excluir. Adicionar campos que eu esqueci.
+- `tipo_sanguineo` (enum)
+- `alergias` (text)
+- `medicamentos_em_uso` (text)
+- `condicoes_cronicas` (text)
+
+**Sistema (automático):**
+
+- `id`, `created_at`, `updated_at`, `deleted_at`
+- `foto_url` (campo separado da tabela Anexo — decisão §0.5)
+- `created_by_id` (User)
+- `unit_id_origem` (qual unidade fez primeiro cadastro)
+- `anonimizado_em` (timestamp, NULL = não anonimizado — usado pra LGPD §0.9)
+
+**Total**: 4 obrigatórios + 23 opcionais + 7 sistema = **34 campos**.
+
+Decisão guiada por: "se algo não for necessário, depois verifica" (Erick) — privilegiar mais campos opcionais que menos.
 
 ### ✅ 0.2 CPF — FECHADA em 2026-05-24
 
