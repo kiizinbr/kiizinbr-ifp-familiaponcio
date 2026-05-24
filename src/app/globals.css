@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  /* IFP brand tokens (do brandbook) */
+  --ifp-medico: 16 194 187;        /* #10C2BB teal */
+  --ifp-capacitacao: 255 119 46;   /* #FF772E laranja */
+  --ifp-esportivo: 117 44 5;       /* #752C05 terracota */
+  --ifp-educacional: 0 117 113;    /* #007571 teal escuro */
+  --ifp-social: 30 64 175;         /* #1E40AF azul institucional */
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
