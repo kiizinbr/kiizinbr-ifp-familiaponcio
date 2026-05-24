@@ -20,12 +20,14 @@
 ## Tarefas autorizadas (executar em ordem, parar à primeira que pedir input)
 
 ### T1 — Garantir CI verde (commit 58be526 + correções triviais)
+
 - [ ] Monitorar CI run 26351766013 até completion
 - [ ] Se conclusion=success: T12 do Plano 1 Foundation marcada COMPLETA, atualizar memoria
 - [ ] Se conclusion=failure no step "Format check" ou "Lint": autofix (`pnpm format` / `pnpm lint --fix`), commit, push, novo monitor (1 retry máximo)
 - [ ] Se falhar por outro motivo (test, build, migrate): PARAR, anotar em "Bloqueado"
 
 ### T2 — Refactor `middleware.ts` → `proxy.ts` (Next.js 16 deprecation)
+
 **Por quê:** Build/dev imprime warning `The "middleware" file convention is deprecated. Please use "proxy" instead.` Risco zero pois renomeação direta + ajuste de import path se necessário.
 
 - [ ] `git mv src/middleware.ts src/proxy.ts`
@@ -34,6 +36,7 @@
 - [ ] Commit: `refactor: middleware.ts -> proxy.ts (Next.js 16 convention)`
 
 ### T3 — Remover `@types/bcryptjs` deprecated
+
 **Por quê:** Avisado pelo npm warn. bcryptjs 3.x agora exporta types nativos.
 
 - [ ] `pnpm remove -D @types/bcryptjs`
@@ -41,6 +44,7 @@
 - [ ] Commit: `chore: remove @types/bcryptjs (deprecated, bcryptjs 3.x has native types)`
 
 ### T4 — README polish
+
 **Por quê:** Dev pessoal hoje + alinhar com decisão de Node DENTRO do WSL.
 
 - [ ] Atualizar seção "Setup local" pra refletir comandos via `wsl -d Ubuntu`
@@ -49,6 +53,7 @@
 - [ ] Commit: `docs: README com comandos WSL + troubleshooting`
 
 ### T5 — Script `dev:up` no package.json
+
 **Por quê:** Comando único conveniente pra preflight (sobe containers + warm relay).
 
 - [ ] Adicionar `"dev:up": "docker compose -f docker-compose.dev.yml up -d && docker exec ifp_postgres_dev pg_isready -U ifp -d ifp_connect"`
@@ -56,6 +61,7 @@
 - [ ] Commit: `chore: pnpm dev:up para boot containers + warmup`
 
 ### T6 — Atualizar memorias do projeto + index
+
 - [ ] Marcar Plano 1 Foundation 12/12 done em [[project-ifp-connect]]
 - [ ] Atualizar [[reference-ifp-dev-commands]] com `dev:up`
 - [ ] (Não atualizar MEMORY.md desnecessariamente — links existentes seguem corretos)
@@ -77,10 +83,13 @@
 ---
 
 ## Bloqueado (preencher se aparecer)
+
 _(vazio)_
 
 ## Backlog descoberto durante execução (preencher se aparecer)
+
 _(vazio)_
 
 ## Log de execução
+
 _(adicionar timestamp + commit hash + observação a cada tarefa concluída)_
