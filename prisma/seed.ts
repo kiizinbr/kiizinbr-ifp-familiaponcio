@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { GLOBAL_ROLES, ROLE_DESCRIPTIONS, ROLE_NAMES } from "../src/lib/rbac-types";
 import type { RoleName, UnitScope } from "../src/lib/rbac-types";
+import { seedCidadaos } from "./seed-cidadaos";
 
 const db = new PrismaClient();
 
@@ -153,7 +154,7 @@ async function main() {
   await seedRoles();
 
   // Erick = super_admin (senha diferente, conta principal)
-  await seedUser({
+  const erick = await seedUser({
     email: "erick.ramos@familiaponcio.org.br",
     name: "Erick Ramos",
     password: ERICK_PASSWORD,
@@ -168,6 +169,9 @@ async function main() {
     await seedUser(spec);
   }
   console.log(`Seeded ${DEMO_USERS.length} demo users (senha: ${DEMO_PASSWORD})`);
+
+  // Cidadãos exemplo pra demo (Plano 3)
+  await seedCidadaos(db, erick.id);
 }
 
 main().finally(() => db.$disconnect());
