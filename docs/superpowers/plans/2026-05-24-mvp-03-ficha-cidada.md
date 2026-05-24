@@ -62,83 +62,50 @@ Campos sugeridos. Marque ✅ se obrigatório, ⭕ se opcional, ❌ se NÃO inclu
 
 **❓ Pergunta:** revisar cada campo, marcar obrigatório/opcional/excluir. Adicionar campos que eu esqueci.
 
-### 0.2 CPF — validação e unicidade
+### ✅ 0.2 CPF — FECHADA em 2026-05-24
 
-- Aceitar sem CPF (`null`)?
-- Validar dígito verificador (algoritmo CPF) antes de salvar?
-- Aceitar CPF duplicado? (caso: hospital cadastrou cidadão, IFP cadastra de novo — dois registros com mesmo CPF?)
-- Máscara: aceitar `000.000.000-00` ou só dígitos? Normalizar pra dígitos no DB?
+**Decisão:** CPF **OBRIGATÓRIO** (não permite cadastro sem CPF). Único. Valida dígito verificador antes de salvar. Normaliza pra 11 dígitos no DB (sem ponto/traço). Máscara só visual no form.
 
-**❓ Pergunta sugerida:** CPF opcional, mas se preenchido = único + validar dígito + normalizar pra 11 dígitos. Atendimento sem CPF gera flag `cpf_pendente`. OK?
+**Trade-off conhecido:** atendimento de pessoa sem documento fica bloqueado. Recepção precisa orientar regularização antes. Pode evoluir pra "CPF obrigatório com exceção via super_admin" no futuro se necessário.
 
-### 0.3 Endereço
+### ✅ 0.3 Endereço — FECHADA em 2026-05-24
 
-- 1 endereço apenas ou múltiplos (residencial, trabalho, contato)?
-- Schema separado (tabela `Endereco` 1:N) ou JSONB embutido na Ficha?
-- Auto-completar CEP via ViaCEP/BrasilAPI?
-- Geocoding (lat/long) — guardar?
+**Decisão:** Tabela `Endereco` **1:N** (residencial / trabalho / contato com `tipo` enum). Auto-complete via **BrasilAPI** ao digitar CEP → preenche logradouro/bairro/cidade/UF; recepção completa número e complemento. **Sem geocoding** (lat/long) no MVP.
 
-**❓ Pergunta sugerida:** 1:N com tabela própria `Endereco(id, cidadao_id, tipo, cep, logradouro, numero, ...)`. Auto-completar CEP via BrasilAPI. Sem geocoding no MVP.
+### ✅ 0.4 Familiares — FECHADA em 2026-05-24
 
-### 0.4 Familiares / Dependentes
+**Decisão:** Opção **C** — `Familia` agrupa + `Cidadao` membro. Cada membro pode ser Cidadao próprio (com Ficha completa) OU só `Familiar` (nome, parentesco, idade — sem Ficha). Simplifica relatórios "famílias atendidas" vs "indivíduos atendidos".
 
-- IFP atende família, não só indivíduo. Como representar?
-- Opção A — Cada pessoa = 1 Cidadao próprio + relação `familiar_de(cidadaoA, cidadaoB, parentesco)`
-- Opção B — Cidadão principal + tabela `Dependente(nome, parentesco, data_nasc, ...)` sem virar Cidadao próprio
-- Opção C — Ambos: Familia (grupo) + Cidadao (membro)
+### ✅ 0.5 Anexos — FECHADA em 2026-05-24
 
-**❓ Pergunta:** A, B ou C? Recomendado: C (Familia agrupa, Cidadao = membro, simplifica relatórios "famílias atendidas" vs "indivíduos").
+**Decisão:**
 
-### 0.5 Anexos
+- **Tipos**: PDF, JPG, PNG (sem Office docs — vetor macro malware)
+- **Tamanho**: max **10MB/arquivo**, total **100MB/cidadão**
+- **Bucket MinIO**: `ifp-cidadao-anexos`
+- **Naming**: hash (SHA-256 do conteúdo) — evita colisão e duplicidade
+- **Antivírus**: NÃO no MVP (ClamAV futuro)
+- **Foto do cidadão**: campo `foto_url` **separado** da tabela de anexos
 
-- Tipos permitidos: PDF, JPG, PNG, DOCX, XLSX?
-- Tamanho max por arquivo: 5MB? 10MB?
-- Tamanho max total por Cidadao: 50MB? 100MB?
-- Onde guardar: MinIO bucket `ifp-cidadao-anexos`
-- Naming: `{cidadao_id}/{anexo_id}_{slug_nome_original}.{ext}` ou hash?
-- Antivírus scan? (ClamAV no upload?)
-- Foto do cidadão = "anexo do tipo avatar" ou campo separado?
+### ✅ 0.6 Busca — FECHADA em 2026-05-24
 
-**❓ Pergunta sugerida:** Tipos PDF/JPG/PNG (sem Office docs - vetor de macro malware), max 10MB por arquivo, 100MB total. Naming com hash. SEM antivírus no MVP (próximo plano). Foto = campo `foto_url` separado da tabela de anexos.
+**Decisão:** Trigram fuzzy (`pg_trgm`) em `nome_completo + nome_social + cpf + telefone_principal`. Tolerância erro via `similarity > 0.3` (Maria Silba encontra Maria Silva). Filtros: unidade + status + faixa etária + data cadastro. Busca semântica pra futuro (Plano A.3 CLEANHUB-like).
 
-### 0.6 Busca
+### ✅ 0.7 UI form — FECHADA em 2026-05-24
 
-- Quais campos pesquisar: nome, cpf, telefone? Endereço?
-- Full-text Postgres (`tsvector`) ou trigram (`pg_trgm`)?
-- Busca "fuzzy" (tolerância a erro): "Maria Silba" encontra "Maria Silva"?
-- Filtros: por unidade, por status, por idade range, por data cadastro?
+**Decisão:** Form **tabbed** — 7 abas em ordem: Identificação / Contato / Endereço / Socioeconômico / Saúde / Anexos / Família. Salvamento parcial automático após Identificação válida (cria draft). Validação inline campo-a-campo (zod + react-hook-form). **Mobile-first** (recepção usa tablet).
 
-**❓ Pergunta sugerida:** Trigram em nome_completo + nome_social + CPF + telefone_principal. Fuzzy via similarity > 0.3. Filtros: unidade + status + range etário. Busca semantica fica pra Plano A.3 (refinement futuro).
+### ✅ 0.8 Histórico — FECHADA em 2026-05-24
 
-### 0.7 UI do form de cadastro
+**Decisão:** Audit log captura `entity=cidadao, action=update, meta={changedFields, oldValue, newValue}`. UI mostra **timeline simples** (quem, quando, qual campo) sem diff visual fancy. Evolução pós-MVP.
 
-- Form único longo (scroll) vs wizard multi-step vs tabbed
-- Salvamento parcial (draft) ou só finalize?
-- Validação inline (campo por campo) ou só no submit?
-- Mobile-first? Tablet (recepção usa tablet)?
+### ✅ 0.9 Soft delete + LGPD — FECHADA em 2026-05-24
 
-**❓ Pergunta sugerida:** Tabbed (Identificação / Contato / Endereço / Socioeconômico / Saúde / Anexos / Família) com salvamento parcial após Identificação preenchida. Validação inline. Mobile-first (recepção da capacitação usa tablet).
+**Decisão:** Soft delete por default (`deleted_at`). Botão **"Excluir definitivamente (LGPD)"** SOMENTE pra `super_admin` (Erick) — anonimiza (PII vira `[anonimizado]`) e mantém `id` + counters pra relatórios. **Hard delete NUNCA** (compliance).
 
-### 0.8 Histórico / versionamento
+### ✅ 0.10 Importador — FECHADA em 2026-05-24
 
-- Toda mudança vira entry no audit log (Plano 2) — OK
-- MAS precisamos de "diff visual" (campo X mudou de Y pra Z)?
-- Snapshot completo a cada save vs apenas diff?
-
-**❓ Pergunta sugerida:** Audit log captura `entity=cidadao, action=update, meta={changedFields: ["telefone"], oldValue, newValue}`. UI mostra timeline simples no MVP, sem diff visual fancy. OK?
-
-### 0.9 Soft delete e direito ao esquecimento (LGPD)
-
-- Soft delete = `deleted_at IS NOT NULL`, registro permanece pra histórico
-- LGPD "direito ao esquecimento" = hard delete + anonimização
-
-**❓ Pergunta sugerida:** Soft delete por default. UI tem botão "Excluir definitivamente (LGPD)" só pra `super_admin`, que anonimiza (PII vira `[anonimizado]`) e mantém `id` + counters pra relatórios. Hard delete real = nunca (compliance). OK?
-
-### 0.10 Importador de dados existentes
-
-Spec menciona "importador genérico no MVP por causa das origens Amplimed + Google Sheets". Esse é o **Plano 6** (Importer), separado deste.
-
-**❓ Pergunta:** confirma que importador NÃO está no Plano 3, fica no Plano 6?
+**Decisão:** Importador (CSV Amplimed + Google Sheets) confirmado **fora do Plano 3** → vai pro **Plano 6** separado.
 
 ---
 
