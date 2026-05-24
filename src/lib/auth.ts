@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { logEvent } from "@/lib/audit";
 import type { RoleAssignment, RoleName, UnitScope } from "@/lib/rbac-types";
 
 const credentialsSchema = z.object({
@@ -73,6 +74,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             : null,
         },
       };
+    },
+  },
+  events: {
+    async signIn(message) {
+      if (message.user.id) {
+        await logEvent({
+          userId: message.user.id,
+          action: "signin_success",
+          meta: { provider: message.account?.provider ?? "credentials" },
+        });
+      }
+    },
+    async signOut(message) {
+      const userId =
+        "token" in message ? (message.token?.sub ?? null) : (message.session?.userId ?? null);
+      if (userId) {
+        await logEvent({ userId, action: "signout" });
+      }
     },
   },
   providers: [

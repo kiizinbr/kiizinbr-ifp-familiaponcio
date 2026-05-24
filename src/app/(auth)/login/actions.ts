@@ -3,6 +3,7 @@
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
+import { logEvent } from "@/lib/audit";
 
 /**
  * Sign in com role-based landing.
@@ -23,6 +24,10 @@ export async function signInAction(formData: FormData) {
     });
   } catch (error) {
     if (error instanceof AuthError) {
+      await logEvent({
+        action: "signin_failed",
+        meta: { email: typeof email === "string" ? email : null },
+      });
       redirect("/login?error=invalid");
     }
     // NEXT_REDIRECT do signIn precisa propagar pra fazer o redirect funcionar
