@@ -16,8 +16,15 @@ model User {
   image          String?
   accounts       Account[]
   sessions       Session[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+
+  // RBAC (Plano 2)
+  userRoles        UserRole[]
+  primaryRoleName  String?    // 'super_admin' | 'gestor_geral' | 'gestor_unidade' | ...
+  primaryUnitScope String?    // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo' | null
+  auditLogs        AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -53,4 +60,61 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// RBAC tables (Plano 2)
+
+/// Os 7 roles definidos no §0.1 do Plano 2 RBAC.
+/// Nome é a chave estável: super_admin, presidencia, gestor_geral,
+/// gestor_unidade, social, profissional, recepcao.
+model Role {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  /// 'global' = role sem unit_scope (super_admin, presidencia, gestor_geral, social)
+  /// 'unit' = role exige unit_scope (gestor_unidade, profissional, recepcao)
+  scope       String     @default("global")
+  userRoles   UserRole[]
+  createdAt   DateTime   @default(now())
+}
+
+/// Associação many-to-many User↔Role com unit_scope opcional.
+/// Ex: Raquel tem 2 entries — (gestor_geral, null) + (gestor_unidade, 'medico').
+/// Regina tem 1 entry — (social, null).
+/// Maria callcenter tem 1 entry — (recepcao, 'medico').
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  unitScope String?  // null se role.scope = 'global'
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId, unitScope])
+  @@index([userId])
+  @@index([roleId])
+}
+
+/// Audit log append-only. Detalhes de scope/retenção: Plano 2 §0.3 e §0.4 (ainda abertas).
+model AuditLog {
+  id         String   @id @default(cuid())
+  /// null para eventos pre-auth (signin_attempt sem user known)
+  userId     String?
+  /// signin_success, signin_failed, ficha_created, role_changed, etc.
+  action     String
+  entityType String?  // 'ficha_cidada', 'user', 'role', etc.
+  entityId   String?
+  meta       Json?
+  ipAddress  String?
+  userAgent  String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
