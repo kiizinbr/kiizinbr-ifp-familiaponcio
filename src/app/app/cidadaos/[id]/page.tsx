@@ -8,6 +8,7 @@ import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
 import { hasAnyRole } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
+import { AnexoUploader } from "./anexo-uploader";
 
 const UNIT_LABELS: Record<UnitScope, string> = {
   medico: "Centro Médico",
@@ -230,28 +231,22 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
             </Section>
           )}
 
-          {/* Anexos (placeholder) */}
+          {/* Anexos */}
           <Section title={`Anexos (${cidadao.anexos.length})`}>
-            {cidadao.anexos.length === 0 ? (
-              <p className="text-sm text-slate-500">
-                Nenhum anexo. Upload de PDF/JPG/PNG ficará disponível na próxima atualização (Plano
-                3 Task 8).
-              </p>
-            ) : (
-              <ul className="space-y-2 text-sm">
-                {cidadao.anexos.map((a) => (
-                  <li
-                    key={a.id}
-                    className="flex items-center justify-between rounded border border-slate-200 px-3 py-2"
-                  >
-                    <span>{a.fileName}</span>
-                    <span className="text-xs text-slate-500">
-                      {(a.sizeBytes / 1024).toFixed(0)} KB
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="sm:col-span-2">
+              <AnexoUploader
+                cidadaoId={cidadao.id}
+                podeEditar={podeEditar}
+                anexos={cidadao.anexos.map((a) => ({
+                  id: a.id,
+                  fileName: a.fileName,
+                  mimeType: a.mimeType,
+                  sizeBytes: a.sizeBytes,
+                  descricao: a.descricao,
+                  createdAt: a.createdAt,
+                }))}
+              />
+            </div>
           </Section>
         </div>
 
