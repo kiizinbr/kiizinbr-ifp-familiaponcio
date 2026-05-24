@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* IFP brand font - Garet (self-hosted) */
+/* CDN cdnfonts.com so disponibiliza Book (300) e Heavy (850) */
+/* Mapeamos por range pra cobrir todos os font-weight CSS */
+@font-face {
+  font-family: "Garet";
+  font-style: normal;
+  font-weight: 100 500;
+  src: url("/fonts/garet/Garet-Book.woff") format("woff");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Garet";
+  font-style: normal;
+  font-weight: 600 900;
+  src: url("/fonts/garet/Garet-Heavy.woff") format("woff");
+  font-display: swap;
+}
+
 :root {
   /* IFP brand tokens - paleta oficial do brandbook 2026 */
   /* Institucional (capa + accent principal) */
@@ -15,6 +34,7 @@
 
 body {
   font-family:
+    "Garet",
     ui-sans-serif,
     system-ui,
     -apple-system,
