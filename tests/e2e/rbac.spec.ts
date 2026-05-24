@@ -11,6 +11,8 @@ const DEMO_PASSWORD = "ifp-demo-2026";
 const ERICK_PASSWORD = "ifp-dev-2026";
 
 async function loginAs(page: Page, email: string, password: string) {
+  // Garante state limpo (sem cookie residual de teste anterior)
+  await page.context().clearCookies();
   await page.goto("/login");
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
@@ -118,13 +120,13 @@ test.describe("UnitSwitcher visibility", () => {
   test("Raquel (multi-role) vê switcher no header", async ({ page }) => {
     await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
     // Switcher aparece como botão com aria-haspopup=menu
-    const switcher = page.locator('button[aria-haspopup="menu"]');
+    const switcher = page.locator('[data-testid="unit-switcher"]');
     await expect(switcher).toBeVisible();
   });
 
   test("Luciana (mono-role) NÃO vê switcher", async ({ page }) => {
     await loginAs(page, "luciana@familiaponcio.org.br", DEMO_PASSWORD);
-    const switcher = page.locator('button[aria-haspopup="menu"]');
+    const switcher = page.locator('[data-testid="unit-switcher"]');
     await expect(switcher).toHaveCount(0);
   });
 
@@ -132,7 +134,7 @@ test.describe("UnitSwitcher visibility", () => {
     await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
     await expect(page).toHaveURL(/\/app$/);
 
-    await page.click('button[aria-haspopup="menu"]');
+    await page.click('[data-testid="unit-switcher"]');
     await page.click('a:has-text("Centro Médico")');
 
     await expect(page).toHaveURL(/\/app\/medico$/);

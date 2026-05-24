@@ -86,6 +86,7 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
     <div ref={containerRef} className="relative">
       <button
         type="button"
+        data-testid="unit-switcher"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}

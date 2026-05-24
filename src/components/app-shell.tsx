@@ -1,7 +1,10 @@
+import type { Route } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import type { Session } from "next-auth";
 import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
+import { hasAnyRole } from "@/lib/rbac";
 
 interface AppShellProps {
   session: Session;
@@ -30,6 +33,14 @@ export function AppShell({ session, children }: AppShellProps) {
 
           <div className="flex items-center gap-4 text-sm">
             <UnitSwitcher roles={session.user.roles} />
+            {hasAnyRole(session, "super_admin", "gestor_geral") && (
+              <Link
+                href={"/admin/users" as Route}
+                className="text-slate-600 transition hover:text-[rgb(var(--ifp-laranja))]"
+              >
+                Admin
+              </Link>
+            )}
             <span className="text-slate-600">{displayName}</span>
             <form action={signOutAction}>
               <button
