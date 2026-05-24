@@ -23,6 +23,10 @@ model User {
   primaryUnitScope String?    // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo' | null
   auditLogs        AuditLog[]
 
+  // Cidadao (Plano 3) — reverse relations
+  cidadaosCriados Cidadao[]      @relation("CidadaoCreatedBy")
+  anexosEnviados  AnexoCidadao[] @relation("AnexoUploadedBy")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -117,4 +121,147 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// Plano 3 — Ficha Cidadã (decisões §0.1 a §0.10 fechadas em 2026-05-24)
+
+/// Família que agrupa um ou mais cidadãos atendidos.
+/// Ex: "Família Almeida" com membros mãe (Cidadao), pai (Cidadao) e dois filhos (Familiar).
+model Familia {
+  id             String     @id @default(cuid())
+  nomeReferencia String     // ex: "Família Almeida"
+  observacoes    String?    @db.Text
+  cidadaos       Cidadao[]
+  familiares     Familiar[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+/// Membro de família que NÃO tem Ficha Cidadã própria (criança pequena, idoso sem CPF).
+/// Quando esse membro evoluir pra Cidadão (ex: adquirir CPF), cria-se Cidadao e linka via familiaId.
+model Familiar {
+  id             String    @id @default(cuid())
+  familiaId      String
+  familia        Familia   @relation(fields: [familiaId], references: [id], onDelete: Cascade)
+  nome           String
+  parentesco     String    // ex: "filho", "esposa", "mãe", "neto"
+  dataNascimento DateTime? @db.Date
+  idadeAprox     Int?      // se data desconhecida
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+
+  @@index([familiaId])
+}
+
+/// Ficha Cidadã — registro central de cada pessoa atendida pelo IFP.
+/// Schema definido em §0.1 (34 campos: 4 obrigatórios + 23 opcionais + 7 sistema).
+model Cidadao {
+  id String @id @default(cuid())
+
+  // Obrigatórios (§0.1)
+  nomeCompleto      String
+  cpf               String   @unique // 11 dígitos normalizado (sem ponto/traço)
+  dataNascimento    DateTime @db.Date
+  telefonePrincipal String
+
+  // Identificação opcional
+  nomeSocial           String?
+  rg                   String?
+  documentoAlternativo String? // CNH, passaporte
+  genero               String? // 'feminino' | 'masculino' | 'nao_binario' | 'nao_informar'
+  corRaca              String? // IBGE: 'branca' | 'preta' | 'parda' | 'amarela' | 'indigena'
+  estadoCivil          String?
+  nacionalidade        String?
+  naturalidade         String? // cidade + UF
+  nomeMae              String?
+  nomePai              String?
+  escolaAtual          String? // pra criança/adolescente
+
+  // Contato opcional
+  telefoneSecundario String?
+  email              String?
+  whatsappConsente   Boolean @default(false) // LGPD base legal pra contato WhatsApp
+
+  // Socioeconômico (visível só pra perfil `social` via RBAC) — §0.5
+  rendaFamiliar     Decimal? @db.Decimal(10, 2)
+  pessoasNaCasa     Int?
+  beneficioSocial   String? // 'bolsa_familia' | 'bpc' | 'nenhum' | 'outro'
+  escolaridade      String?
+  trabalha          Boolean?
+  trabalhoDescricao String?
+
+  // Saúde (visível só pra `profissional` do Centro Médico via RBAC)
+  tipoSanguineo     String?
+  alergias          String? @db.Text
+  medicamentosEmUso String? @db.Text
+  condicoesCronicas String? @db.Text
+
+  // Sistema — foto separada de anexos (§0.5)
+  fotoUrl       String?
+  createdById   String
+  createdBy     User    @relation("CidadaoCreatedBy", fields: [createdById], references: [id])
+  /// Qual unidade fez o primeiro cadastro: 'medico' | 'capacitacao' | 'esportivo' | 'recreativo'
+  unitIdOrigem  String
+  familiaId     String?
+  familia       Familia? @relation(fields: [familiaId], references: [id], onDelete: SetNull)
+
+  // Soft delete + LGPD anonimização (§0.9)
+  deletedAt     DateTime?
+  anonimizadoEm DateTime? // NULL = não anonimizado
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enderecos Endereco[]
+  anexos    AnexoCidadao[]
+
+  @@index([cpf])
+  @@index([nomeCompleto])
+  @@index([familiaId])
+  @@index([unitIdOrigem])
+  @@index([deletedAt])
+}
+
+/// Endereços 1:N por Cidadao — §0.3. Auto-preenche via BrasilAPI ao digitar CEP.
+model Endereco {
+  id              String   @id @default(cuid())
+  cidadaoId       String
+  cidadao         Cidadao  @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
+  tipo            String   // 'residencial' | 'trabalho' | 'contato'
+  cep             String   // 8 dígitos normalizado
+  logradouro      String
+  numero          String?
+  complemento     String?
+  bairro          String?
+  cidade          String
+  uf              String   // 2 letras (ex: 'RJ')
+  pontoReferencia String?
+  isPrincipal     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([cidadaoId])
+  @@index([cep])
+}
+
+/// Anexos do Cidadão — §0.5. PDF/JPG/PNG only, max 10MB/file, 100MB/total.
+/// Armazenamento MinIO bucket 'ifp-cidadao-anexos', naming por hash SHA-256.
+model AnexoCidadao {
+  id            String    @id @default(cuid())
+  cidadaoId     String
+  cidadao       Cidadao   @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
+  fileName      String    // nome original do upload
+  mimeType      String    // 'application/pdf' | 'image/jpeg' | 'image/png'
+  sizeBytes     Int
+  hashSha256    String    // pra deduplicação + naming
+  storageBucket String    @default("ifp-cidadao-anexos")
+  storageKey    String    // path no MinIO (ex: "{cidadaoId}/{hash}.pdf")
+  descricao     String?
+  uploadedById  String
+  uploadedBy    User      @relation("AnexoUploadedBy", fields: [uploadedById], references: [id])
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([cidadaoId])
+  @@index([hashSha256])
 }
