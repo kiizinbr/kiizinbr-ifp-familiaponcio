@@ -12,10 +12,10 @@ export default async function AppHome() {
           <div className="flex items-center gap-3">
             <span className="text-lg font-semibold">IFP Connect</span>
             <div className="flex h-1 w-12 overflow-hidden rounded">
-              <span className="flex-1 bg-[rgb(var(--ifp-social))]" />
               <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
               <span className="flex-1 bg-[rgb(var(--ifp-capacitacao))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-educacional))]" />
+              <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
+              <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
             </div>
           </div>
           <div className="flex items-center gap-4 text-sm">
@@ -41,9 +41,9 @@ export default async function AppHome() {
 
         <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <PlaceholderCard color="medico" title="Centro Médico" />
-          <PlaceholderCard color="capacitacao" title="Capacitação" />
-          <PlaceholderCard color="esportivo" title="Esportivo" />
-          <PlaceholderCard color="educacional" title="Recreativo / Educacional" />
+          <PlaceholderCard color="capacitacao" title="Centro de Capacitação" />
+          <PlaceholderCard color="esportivo" title="Centro Esportivo" />
+          <PlaceholderCard color="recreativo" title="Centro Recreativo" />
         </section>
       </main>
 
@@ -58,7 +58,7 @@ function PlaceholderCard({
   color,
   title,
 }: {
-  color: "medico" | "capacitacao" | "esportivo" | "educacional";
+  color: "medico" | "capacitacao" | "esportivo" | "recreativo";
   title: string;
 }) {
   return (

@@ -1,12 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* IFP brand tokens (do brandbook) */
-  --ifp-medico: 16 194 187; /* #10C2BB teal */
-  --ifp-capacitacao: 255 119 46; /* #FF772E laranja */
-  --ifp-esportivo: 117 44 5; /* #752C05 terracota */
-  --ifp-educacional: 0 117 113; /* #007571 teal escuro */
-  --ifp-social: 30 64 175; /* #1E40AF azul institucional */
+  /* IFP brand tokens - paleta oficial do brandbook 2026 */
+  /* Institucional (capa + accent principal) */
+  --ifp-laranja: 255 119 46; /* #FF772E laranja institucional */
+  --ifp-cinza: 74 74 73; /* #4A4A49 cinza institucional (texto) */
+
+  /* Cores por unidade */
+  --ifp-medico: 16 194 187; /* #10C2BB teal claro */
+  --ifp-capacitacao: 194 77 15; /* #C24D0F laranja queimado */
+  --ifp-esportivo: 117 44 5; /* #752C05 terracota (ancora monocromatica) */
+  --ifp-recreativo: 0 117 113; /* #007571 teal escuro */
 }
 
 body {

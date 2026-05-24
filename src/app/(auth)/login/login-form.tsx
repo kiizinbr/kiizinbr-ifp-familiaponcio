@@ -9,7 +9,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded bg-[rgb(var(--ifp-social))] py-2 text-white transition disabled:opacity-60"
+      className="w-full rounded bg-[rgb(var(--ifp-laranja))] py-2 text-white transition disabled:opacity-60"
     >
       {pending ? "Entrando..." : "Entrar"}
     </button>
@@ -22,10 +22,10 @@ export function LoginForm({ error }: { error?: string }) {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">IFP Connect</h1>
         <div className="mt-2 flex h-1 w-16 overflow-hidden rounded">
-          <span className="flex-1 bg-[rgb(var(--ifp-social))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-capacitacao))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-educacional))]" />
+          <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
+          <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
         </div>
       </div>
 
@@ -45,7 +45,7 @@ export function LoginForm({ error }: { error?: string }) {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-social))] focus:outline-none"
+          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
         />
       </label>
       <label className="mb-6 block">
@@ -55,7 +55,7 @@ export function LoginForm({ error }: { error?: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-social))] focus:outline-none"
+          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
         />
       </label>
 
