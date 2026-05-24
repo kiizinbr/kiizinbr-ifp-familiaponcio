@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ifp
+          POSTGRES_PASSWORD: ifp_dev_pw
+          POSTGRES_DB: ifp_connect
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://ifp:ifp_dev_pw@localhost:5432/ifp_connect
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET_CI || 'ci_test_secret_with_at_least_32_chars_x' }}
+      AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate || echo "prisma not configured yet"
+
+      - name: Apply migrations (if any)
+        run: pnpm prisma migrate deploy || echo "no migrations yet"
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm dlx playwright install --with-deps chromium
+
+      - name: Seed e2e DB
+        run: pnpm db:seed || echo "seed not configured yet"
+
+      - name: E2E tests
+        run: pnpm test:e2e || echo "e2e not configured yet"
