@@ -10,10 +10,12 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "pnpm dev",
+    // Usa build + start em vez de dev (Turbopack) por previsibilidade:
+    // dev mode compila rotas on-demand (75s+ na primeira hit), prod ja vem pronto.
+    command: "pnpm start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    timeout: 120_000,
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
 });
