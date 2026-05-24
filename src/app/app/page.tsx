@@ -1,73 +1,184 @@
-import Image from "next/image";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { signOutAction } from "./actions";
+import { AppShell } from "@/components/app-shell";
+import { KpiCard } from "@/components/kpi-card";
 
-export default async function AppHome() {
+export default async function GlobalDashboard() {
   const session = await auth();
-  const displayName = session?.user?.name ?? session?.user?.email ?? "Usuário";
+  if (!session) redirect("/login");
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Image src="/logo/ifp-symbol.png" alt="IFP" width={36} height={36} priority />
-            <span className="text-lg font-semibold">IFP Connect</span>
-            <div className="flex h-1 w-12 overflow-hidden rounded">
-              <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-capacitacao))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-slate-600">{displayName}</span>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="rounded border border-slate-300 px-3 py-1 text-slate-700 transition hover:bg-slate-100"
-              >
-                Sair
-              </button>
-            </form>
-          </div>
-        </div>
+    <AppShell session={session}>
+      <header className="mb-8">
+        <p className="text-xs tracking-widest text-slate-500 uppercase">Visão geral</p>
+        <h1 className="mt-1 text-3xl font-semibold text-slate-900">
+          Olá, {session.user.name?.split(" ")[0] ?? "Erick"}
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Resumo consolidado das 4 unidades do Instituto Família Pôncio.
+        </p>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
-        <h1 className="text-3xl font-semibold">Olá, {displayName}</h1>
-        <p className="mt-2 text-slate-600">
-          Bem-vindo ao Núcleo Transversal do IFP Connect. O dashboard será adicionado nos próximos
-          planos (RBAC, Ficha Cidadã, Triagem).
-        </p>
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Atendimentos no mês"
+          value="1.247"
+          delta="+12%"
+          accent="laranja"
+          hint="vs mês anterior"
+        />
+        <KpiCard
+          label="Cidadãos ativos"
+          value="892"
+          delta="+34"
+          accent="esportivo"
+          hint="novos este mês"
+        />
+        <KpiCard label="Triagens pendentes" value="15" accent="cinza" hint="aguardando aprovação" />
+        <KpiCard label="Profissionais ativos" value="48" accent="cinza" hint="nas 4 unidades" />
+      </section>
 
-        <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <PlaceholderCard color="medico" title="Centro Médico" />
-          <PlaceholderCard color="capacitacao" title="Centro de Capacitação" />
-          <PlaceholderCard color="esportivo" title="Centro Esportivo" />
-          <PlaceholderCard color="recreativo" title="Centro Recreativo" />
-        </section>
-      </main>
+      <section className="mt-10">
+        <h2 className="mb-4 text-sm font-medium tracking-wide text-slate-700 uppercase">
+          Unidades
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <UnitSummary
+            color="medico"
+            name="Centro Médico"
+            atendimentos={512}
+            ativos={324}
+            href="/app/medico"
+          />
+          <UnitSummary
+            color="capacitacao"
+            name="Capacitação"
+            atendimentos={184}
+            ativos={180}
+            href="/app/capacitacao"
+          />
+          <UnitSummary
+            color="esportivo"
+            name="Esportivo"
+            atendimentos={278}
+            ativos={240}
+            href="/app/esportivo"
+          />
+          <UnitSummary
+            color="recreativo"
+            name="Recreativo"
+            atendimentos={273}
+            ativos={148}
+            href="/app/recreativo"
+          />
+        </div>
+      </section>
 
-      <footer className="border-t bg-white py-4 text-center text-xs text-slate-500">
-        Instituto Família Pôncio · Uso interno
-      </footer>
+      <section className="mt-10 grid gap-6 lg:grid-cols-2">
+        <Panel title="Pendências">
+          <PendingItem label="Aprovação de 3 triagens socioeconômicas" highlight="Hoje" />
+          <PendingItem label="Reunião quinzenal com coordenadoras" highlight="Amanhã 10h" />
+          <PendingItem label="Renovação de convênio Centro Médico" highlight="3 dias" />
+        </Panel>
+
+        <Panel title="Atividade recente">
+          <ActivityItem
+            who="Luciana"
+            what="cadastrou nova turma de informática básica"
+            when="há 2h"
+            accent="capacitacao"
+          />
+          <ActivityItem
+            who="Regina"
+            what="aprovou triagem da família Almeida"
+            when="há 4h"
+            accent="laranja"
+          />
+          <ActivityItem
+            who="Livia"
+            what="atualizou cronograma de futebol infantil"
+            when="ontem"
+            accent="esportivo"
+          />
+        </Panel>
+      </section>
+    </AppShell>
+  );
+}
+
+function UnitSummary({
+  color,
+  name,
+  atendimentos,
+  ativos,
+  href,
+}: {
+  color: "medico" | "capacitacao" | "esportivo" | "recreativo";
+  name: string;
+  atendimentos: number;
+  ativos: number;
+  href: string;
+}) {
+  return (
+    <a href={href} className="block rounded-lg border bg-white p-4 transition hover:shadow-md">
+      <div className={`h-1 w-8 rounded bg-[rgb(var(--ifp-${color}))]`} />
+      <h3 className="mt-3 text-sm font-medium text-slate-900">{name}</h3>
+      <div className="mt-3 flex items-baseline gap-3">
+        <div>
+          <p className="text-xs text-slate-500">Atendimentos</p>
+          <p className="text-lg font-semibold text-slate-900">{atendimentos}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Ativos</p>
+          <p className="text-lg font-semibold text-slate-900">{ativos}</p>
+        </div>
+      </div>
+    </a>
+  );
+}
+
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border bg-white p-5 shadow-sm">
+      <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
+      <ul className="mt-4 space-y-3">{children}</ul>
     </div>
   );
 }
 
-function PlaceholderCard({
-  color,
-  title,
+function PendingItem({ label, highlight }: { label: string; highlight: string }) {
+  return (
+    <li className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+      <span className="text-sm text-slate-700">{label}</span>
+      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+        {highlight}
+      </span>
+    </li>
+  );
+}
+
+function ActivityItem({
+  who,
+  what,
+  when,
+  accent,
 }: {
-  color: "medico" | "capacitacao" | "esportivo" | "recreativo";
-  title: string;
+  who: string;
+  what: string;
+  when: string;
+  accent: "medico" | "capacitacao" | "esportivo" | "recreativo" | "laranja";
 }) {
   return (
-    <div className="rounded-lg border bg-white p-4">
-      <div className={`h-1 w-8 rounded bg-[rgb(var(--ifp-${color}))]`} />
-      <h2 className="mt-3 text-sm font-medium text-slate-900">{title}</h2>
-      <p className="mt-1 text-xs text-slate-500">Em breve</p>
-    </div>
+    <li className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+      <span
+        className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full"
+        style={{ background: `rgb(var(--ifp-${accent}))` }}
+      />
+      <div className="flex-1 text-sm">
+        <span className="font-medium text-slate-900">{who}</span>{" "}
+        <span className="text-slate-600">{what}</span>
+        <p className="text-xs text-slate-500">{when}</p>
+      </div>
+    </li>
   );
 }

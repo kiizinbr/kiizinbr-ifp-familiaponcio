@@ -19,7 +19,7 @@ export default auth((req) => {
   // /admin/audit → só super_admin
   if (path.startsWith("/admin/audit")) {
     if (!hasAnyRole(session, "super_admin")) {
-      return Response.redirect(new URL("/app", origin));
+      return Response.redirect(new URL("/", origin));
     }
     return;
   }
@@ -27,7 +27,7 @@ export default auth((req) => {
   // /admin/* (users etc) → super_admin ou gestor_geral
   if (path.startsWith("/admin")) {
     if (!hasAnyRole(session, "super_admin", "gestor_geral")) {
-      return Response.redirect(new URL("/app", origin));
+      return Response.redirect(new URL("/", origin));
     }
     return;
   }
@@ -35,7 +35,15 @@ export default auth((req) => {
   // /app/social → social, super_admin, gestor_geral
   if (path.startsWith("/app/social")) {
     if (!hasAnyRole(session, "social", "super_admin", "gestor_geral")) {
-      return Response.redirect(new URL("/app", origin));
+      return Response.redirect(new URL("/", origin));
+    }
+    return;
+  }
+
+  // /app (raiz) → só global roles (Plano 2 §0.9)
+  if (path === "/app" || path === "/app/") {
+    if (!hasAnyRole(session, "super_admin", "presidencia", "gestor_geral")) {
+      return Response.redirect(new URL("/", origin));
     }
     return;
   }
@@ -46,7 +54,7 @@ export default auth((req) => {
   if (unitMatch) {
     const unit = unitMatch[1] as UnitScope;
     if (!canAccessUnit(session, unit)) {
-      return Response.redirect(new URL("/app", origin));
+      return Response.redirect(new URL("/", origin));
     }
   }
 });
