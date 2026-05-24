@@ -7,7 +7,7 @@
  * de /app/social).
  */
 
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import type { UnitScope } from "../src/lib/rbac-types";
 
 /**

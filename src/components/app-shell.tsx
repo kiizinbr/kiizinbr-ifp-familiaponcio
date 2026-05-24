@@ -33,6 +33,12 @@ export function AppShell({ session, children }: AppShellProps) {
 
           <div className="flex items-center gap-4 text-sm">
             <UnitSwitcher roles={session.user.roles} />
+            <Link
+              href={"/app/cidadaos" as Route}
+              className="text-slate-600 transition hover:text-[rgb(var(--ifp-laranja))]"
+            >
+              Cidadãos
+            </Link>
             {hasAnyRole(session, "super_admin", "gestor_geral") && (
               <Link
                 href={"/admin/users" as Route}
