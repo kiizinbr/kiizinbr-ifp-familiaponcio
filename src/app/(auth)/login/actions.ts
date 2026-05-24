@@ -1,11 +1,16 @@
 "use server";
 
-import type { Route } from "next";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { auth, signIn } from "@/lib/auth";
-import { getLandingPath } from "@/lib/rbac";
+import { signIn } from "@/lib/auth";
 
+/**
+ * Sign in com role-based landing.
+ *
+ * Estrategia: signIn redireciona pra /, que e server component que le auth()
+ * e calcula getLandingPath(session). Isso evita o bug do Auth.js v5 beta com
+ * { redirect: false } sempre lancando, e funciona ponta-a-ponta.
+ */
 export async function signInAction(formData: FormData) {
   const email = formData.get("email");
   const password = formData.get("password");
@@ -14,17 +19,13 @@ export async function signInAction(formData: FormData) {
     await signIn("credentials", {
       email,
       password,
-      redirect: false,
+      redirectTo: "/",
     });
   } catch (error) {
     if (error instanceof AuthError) {
       redirect("/login?error=invalid");
     }
+    // NEXT_REDIRECT do signIn precisa propagar pra fazer o redirect funcionar
     throw error;
   }
-
-  // Role-based landing: lê session JWT recém-criado e redireciona
-  // pro path apropriado conforme primaryRole (Plano 2 §0.9).
-  const session = await auth();
-  redirect(getLandingPath(session) as Route);
 }

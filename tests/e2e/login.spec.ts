@@ -9,5 +9,6 @@ test("login flow funciona com erick.ramos", async ({ page }) => {
   await page.click('button[type="submit"]');
 
   await expect(page).toHaveURL(/\/app/);
-  await expect(page.locator("h1")).toContainText("Erick Ramos");
+  // /app Global (super_admin) tem h1 "Olá, Erick"
+  await expect(page.locator("h1")).toContainText(/Olá, Erick/);
 });
