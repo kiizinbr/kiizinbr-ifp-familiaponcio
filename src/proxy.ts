@@ -1,14 +1,56 @@
+import type { Session } from "next-auth";
 import { auth } from "@/lib/auth";
+import { canAccessUnit, hasAnyRole } from "@/lib/rbac";
+import type { UnitScope } from "@/lib/rbac-types";
 
 export default auth((req) => {
-  const isApp = req.nextUrl.pathname.startsWith("/app");
+  const session = req.auth as Session | null;
+  const path = req.nextUrl.pathname;
+  const origin = req.nextUrl.origin;
 
-  if (isApp && !req.auth) {
-    const loginUrl = new URL("/login", req.nextUrl.origin);
-    return Response.redirect(loginUrl);
+  // Sem sessão → /login pra qualquer rota protegida
+  if (!session) {
+    if (path.startsWith("/app") || path.startsWith("/admin")) {
+      return Response.redirect(new URL("/login", origin));
+    }
+    return;
+  }
+
+  // /admin/audit → só super_admin
+  if (path.startsWith("/admin/audit")) {
+    if (!hasAnyRole(session, "super_admin")) {
+      return Response.redirect(new URL("/app", origin));
+    }
+    return;
+  }
+
+  // /admin/* (users etc) → super_admin ou gestor_geral
+  if (path.startsWith("/admin")) {
+    if (!hasAnyRole(session, "super_admin", "gestor_geral")) {
+      return Response.redirect(new URL("/app", origin));
+    }
+    return;
+  }
+
+  // /app/social → social, super_admin, gestor_geral
+  if (path.startsWith("/app/social")) {
+    if (!hasAnyRole(session, "social", "super_admin", "gestor_geral")) {
+      return Response.redirect(new URL("/app", origin));
+    }
+    return;
+  }
+
+  // /app/<unidade> → quem tem acesso à unidade (gestor_unidade/profissional/recepcao
+  // da unidade OU super_admin/gestor_geral/presidencia que têm acesso global)
+  const unitMatch = path.match(/^\/app\/(medico|capacitacao|esportivo|recreativo)(?:\/|$)/);
+  if (unitMatch) {
+    const unit = unitMatch[1] as UnitScope;
+    if (!canAccessUnit(session, unit)) {
+      return Response.redirect(new URL("/app", origin));
+    }
   }
 });
 
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: ["/app/:path*", "/admin/:path*"],
 };
