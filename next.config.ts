@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: true,
+  typedRoutes: true,
+  turbopack: {
+    root: path.resolve(import.meta.dirname),
   },
 };
 
