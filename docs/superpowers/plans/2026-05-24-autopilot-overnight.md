@@ -14,6 +14,7 @@
 8. **Nunca** mexer em outros projetos do Erick (CLEANHUB, intranet, scheduled tasks, IIS).
 9. **CI vermelho**: tentar 1 autofix (formato, lint). Se falhar de novo OU se a falha for de teste/build, PARAR e documentar.
 10. **Se confuso**, PARAR e documentar em "Bloqueado" no fim.
+11. **Pre-commit ritual obrigatório**: rodar `pnpm format && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test` ANTES de cada commit. Só commit se todos passam. Evita ciclo "commit → push → CI vermelho → autofix → commit".
 
 ---
 
