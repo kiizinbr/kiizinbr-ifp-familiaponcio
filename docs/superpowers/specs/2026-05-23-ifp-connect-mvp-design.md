@@ -41,22 +41,22 @@ O IFP Connect é a plataforma única para operar essas unidades. Esta spec cobre
 
 ### 3.1 Stack
 
-| Camada | Escolha | Justificativa |
-|---|---|---|
-| Frontend + Backend | **Next.js 16** (App Router, Server Components, Server Actions, Cache Components) | Full-stack num único repo elimina NestJS; reduz superfície de erro; Cache Components dão revalidação granular sem Redis |
-| Linguagem | **TypeScript estrito** | `strict: true`, sem `any` implícito |
-| UI base | **Tailwind CSS + shadcn/ui** | Acessibilidade WCAG AA grátis, totalmente customizável, sem lock-in |
-| Design tokens | **CSS variables a partir do brandbook IFP** | Paleta por unidade já mapeada (#FF772E, #10C2BB, #752C05, #007571) |
-| Tipografia | **Garet** (com fallback Inter / Plus Jakarta Sans) | Conforme brandbook |
-| ORM | **Prisma** | Migrações versionadas; tipagem ponta a ponta |
-| Banco | **PostgreSQL 16** com **Row-Level Security** | Isolamento ao nível de linha — defesa em profundidade |
-| Auth | **Auth.js v5** (credentials + Magic Link opcional, **TOTP MFA** para perfis administrativos) | Maduro, integra direto com Next.js |
-| Storage | **MinIO** (S3-compatible) on-premise; migração futura para Azure Blob | Anexos da Ficha Cidadã, sem lock-in |
-| Container | **Docker + Docker Compose** | Mesma imagem rodando em VM hoje e em Container Apps amanhã |
-| CI/CD | **GitHub Actions** | Build → test → push image → deploy via SSH/WireGuard |
-| Observabilidade | **OpenTelemetry → Grafana + Loki** (self-hosted) | Logs estruturados + traces sem custo de SaaS |
-| Validação | **Zod** | Schema único compartilhado entre form, action e DB |
-| Testes | **Vitest** (unit) + **Playwright** (e2e) + **pgTAP** (RLS policies) | RLS precisa ser testado como código |
+| Camada             | Escolha                                                                                      | Justificativa                                                                                                           |
+| ------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Frontend + Backend | **Next.js 16** (App Router, Server Components, Server Actions, Cache Components)             | Full-stack num único repo elimina NestJS; reduz superfície de erro; Cache Components dão revalidação granular sem Redis |
+| Linguagem          | **TypeScript estrito**                                                                       | `strict: true`, sem `any` implícito                                                                                     |
+| UI base            | **Tailwind CSS + shadcn/ui**                                                                 | Acessibilidade WCAG AA grátis, totalmente customizável, sem lock-in                                                     |
+| Design tokens      | **CSS variables a partir do brandbook IFP**                                                  | Paleta por unidade já mapeada (#FF772E, #10C2BB, #752C05, #007571)                                                      |
+| Tipografia         | **Garet** (com fallback Inter / Plus Jakarta Sans)                                           | Conforme brandbook                                                                                                      |
+| ORM                | **Prisma**                                                                                   | Migrações versionadas; tipagem ponta a ponta                                                                            |
+| Banco              | **PostgreSQL 16** com **Row-Level Security**                                                 | Isolamento ao nível de linha — defesa em profundidade                                                                   |
+| Auth               | **Auth.js v5** (credentials + Magic Link opcional, **TOTP MFA** para perfis administrativos) | Maduro, integra direto com Next.js                                                                                      |
+| Storage            | **MinIO** (S3-compatible) on-premise; migração futura para Azure Blob                        | Anexos da Ficha Cidadã, sem lock-in                                                                                     |
+| Container          | **Docker + Docker Compose**                                                                  | Mesma imagem rodando em VM hoje e em Container Apps amanhã                                                              |
+| CI/CD              | **GitHub Actions**                                                                           | Build → test → push image → deploy via SSH/WireGuard                                                                    |
+| Observabilidade    | **OpenTelemetry → Grafana + Loki** (self-hosted)                                             | Logs estruturados + traces sem custo de SaaS                                                                            |
+| Validação          | **Zod**                                                                                      | Schema único compartilhado entre form, action e DB                                                                      |
+| Testes             | **Vitest** (unit) + **Playwright** (e2e) + **pgTAP** (RLS policies)                          | RLS precisa ser testado como código                                                                                     |
 
 ### 3.2 Princípios
 
@@ -140,6 +140,7 @@ import_rows            (id, job_id FK, row_index, raw_jsonb,
 ### 4.1 Row-Level Security
 
 Cada request seta variáveis de sessão Postgres:
+
 ```sql
 SET LOCAL ifp.user_id = '<uuid>';
 SET LOCAL ifp.roles   = '{social,super_admin}';
@@ -147,6 +148,7 @@ SET LOCAL ifp.units   = '{medico}';
 ```
 
 Policy exemplo (Ficha Cidadã visível por Serviço Social ou unidades onde o cidadão é elegível):
+
 ```sql
 CREATE POLICY citizens_read ON citizens
 FOR SELECT USING (
@@ -241,11 +243,11 @@ Adiados para **F2 em diante:** PIA formal, contrato DPA com fornecedores externo
 
 ### 9.1 Origens identificadas
 
-| Origem | Sistema | Formato | Volume estimado | Fase de migração |
-|---|---|---|---|---|
-| Centro Médico | **Amplimed** | CSV export nativo | "quantidade boa" — confirmar com Erick | F5 ou pré-piloto MVP para validar importer |
-| Capacitação | **Google Sheets** | CSV export | A confirmar | F2 |
-| Outras | Manual / planilhas internas | CSV / XLSX | Variável | Conforme surgirem |
+| Origem        | Sistema                     | Formato           | Volume estimado                        | Fase de migração                           |
+| ------------- | --------------------------- | ----------------- | -------------------------------------- | ------------------------------------------ |
+| Centro Médico | **Amplimed**                | CSV export nativo | "quantidade boa" — confirmar com Erick | F5 ou pré-piloto MVP para validar importer |
+| Capacitação   | **Google Sheets**           | CSV export        | A confirmar                            | F2                                         |
+| Outras        | Manual / planilhas internas | CSV / XLSX        | Variável                               | Conforme surgirem                          |
 
 ### 9.2 Decisões
 
@@ -262,26 +264,26 @@ Adiados para **F2 em diante:** PIA formal, contrato DPA com fornecedores externo
 
 ## 10. Roadmap pós-MVP
 
-| Fase | Conteúdo | Sprint estimado | Pré-requisitos |
-|---|---|---|---|
-| **MVP** | Núcleo Transversal completo (esta spec) | 6–8 semanas | — |
-| **F2** | Centro de Capacitação (cursos, turmas, frequência, certificados) | +4–6 sem | MVP em produção |
-| **F3** | Centro Esportivo (turmas, presença, graduação Jiu-Jitsu) | +2–3 sem | MVP em produção |
-| **F4** | Centro Recreativo/Educacional (creche: atividades, alimentação, descanso) | +4 sem | MVP em produção, CMDCA |
-| **F5** | Centro Médico (agenda + prontuário simplificado) | +8–10 sem | MVP + CFM 1.821, NGS2, ICP-Brasil |
-| **F6** | Dashboard agregado Presidência | paralelo F2–F4 | F2 ou F3 em produção |
-| **F7** | Migração para Azure Container Apps | 1 sprint | Budget Azure aprovado |
+| Fase    | Conteúdo                                                                  | Sprint estimado | Pré-requisitos                    |
+| ------- | ------------------------------------------------------------------------- | --------------- | --------------------------------- |
+| **MVP** | Núcleo Transversal completo (esta spec)                                   | 6–8 semanas     | —                                 |
+| **F2**  | Centro de Capacitação (cursos, turmas, frequência, certificados)          | +4–6 sem        | MVP em produção                   |
+| **F3**  | Centro Esportivo (turmas, presença, graduação Jiu-Jitsu)                  | +2–3 sem        | MVP em produção                   |
+| **F4**  | Centro Recreativo/Educacional (creche: atividades, alimentação, descanso) | +4 sem          | MVP em produção, CMDCA            |
+| **F5**  | Centro Médico (agenda + prontuário simplificado)                          | +8–10 sem       | MVP + CFM 1.821, NGS2, ICP-Brasil |
+| **F6**  | Dashboard agregado Presidência                                            | paralelo F2–F4  | F2 ou F3 em produção              |
+| **F7**  | Migração para Azure Container Apps                                        | 1 sprint        | Budget Azure aprovado             |
 
 ## 11. Riscos e mitigações
 
-| Risco | Impacto | Mitigação |
-|---|---|---|
-| Backup do CL-SRV-DC01 ainda não validado (F0/F1 do plano CLEAN) | Perda de dados de beneficiários | Backup off-site Azure Blob **desde o dia 1**; teste de restore mensal documentado |
-| Blast radius compartilhado com CLEAN | Incidente em uma derruba a outra | VM isolada com vSwitch própria; recursos limitados (4 vCPU / 8GB); migração Azure planejada |
-| Single dev (Erick) | Bus factor 1 | Doc no repo; commits pequenos; spec antes de código; testes como documentação executável |
-| LGPD descumprida em produção | Multa + reputação | DPO designado, revisão jurídica antes do go-live, audit log imutável |
-| Escopo aumenta antes do MVP terminar | Travamento (já aconteceu) | Quaisquer pedidos de unidade durante MVP entram em backlog F2+, **sem exceção** |
-| CSV da Amplimed em formato proprietário | Importer não cobre | Sample CSV antes do código; testes do importer rodam contra samples reais |
+| Risco                                                           | Impacto                          | Mitigação                                                                                   |
+| --------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------- |
+| Backup do CL-SRV-DC01 ainda não validado (F0/F1 do plano CLEAN) | Perda de dados de beneficiários  | Backup off-site Azure Blob **desde o dia 1**; teste de restore mensal documentado           |
+| Blast radius compartilhado com CLEAN                            | Incidente em uma derruba a outra | VM isolada com vSwitch própria; recursos limitados (4 vCPU / 8GB); migração Azure planejada |
+| Single dev (Erick)                                              | Bus factor 1                     | Doc no repo; commits pequenos; spec antes de código; testes como documentação executável    |
+| LGPD descumprida em produção                                    | Multa + reputação                | DPO designado, revisão jurídica antes do go-live, audit log imutável                        |
+| Escopo aumenta antes do MVP terminar                            | Travamento (já aconteceu)        | Quaisquer pedidos de unidade durante MVP entram em backlog F2+, **sem exceção**             |
+| CSV da Amplimed em formato proprietário                         | Importer não cobre               | Sample CSV antes do código; testes do importer rodam contra samples reais                   |
 
 ## 12. Itens confirmados e pendências (revisão 2026-05-23)
 

@@ -6,11 +6,7 @@ export const metadata: Metadata = {
   description: "Plataforma do Instituto Família Pôncio",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
       <body className="antialiased">{children}</body>

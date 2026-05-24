@@ -68,6 +68,7 @@ ifp-connect/
 ## Task 1: Inicializar repositório e configuração base do Node
 
 **Files:**
+
 - Create: `.gitignore`
 - Create: `.nvmrc`
 - Create: `.editorconfig`
@@ -151,7 +152,7 @@ pnpm-debug.log*
 
 - [ ] **Step 5: Criar `README.md`**
 
-```markdown
+````markdown
 # IFP Connect
 
 Plataforma única para operação do Instituto Família Pôncio (IFP) — Núcleo Transversal (Ficha Cidadã, Triagem Social, RBAC, LGPD).
@@ -184,6 +185,7 @@ pnpm prisma migrate dev
 # 6. Rodar dev server
 pnpm dev
 ```
+````
 
 App em http://localhost:3000.
 
@@ -200,20 +202,22 @@ App em http://localhost:3000.
 
 - Spec do MVP: `docs/superpowers/specs/2026-05-23-ifp-connect-mvp-design.md`
 - Planos de implementação: `docs/superpowers/plans/`
-```
+
+````
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add .gitignore .nvmrc .editorconfig README.md
 git commit -m "chore: bootstrap repo base (gitignore, nvmrc, editorconfig, readme)"
-```
+````
 
 ---
 
 ## Task 2: Instalar e configurar pnpm + workspace TS
 
 **Files:**
+
 - Create: `package.json`
 - Create: `tsconfig.json`
 
@@ -296,6 +300,7 @@ git commit -m "chore: pnpm + typescript strict config"
 ## Task 3: Bootstrap Next.js 16
 
 **Files:**
+
 - Modify: `package.json` (adicionar deps Next/React)
 - Create: `next.config.ts`
 - Create: `next-env.d.ts` (auto-gerado pelo Next)
@@ -306,6 +311,7 @@ git commit -m "chore: pnpm + typescript strict config"
 - [ ] **Step 1: Instalar Next.js 16 + React 19**
 
 Run:
+
 ```bash
 pnpm add next@latest react@latest react-dom@latest
 pnpm add -D @types/node @types/react @types/react-dom typescript
@@ -335,11 +341,11 @@ export default nextConfig;
 
 :root {
   /* IFP brand tokens (do brandbook) */
-  --ifp-medico: 16 194 187;        /* #10C2BB teal */
-  --ifp-capacitacao: 255 119 46;   /* #FF772E laranja */
-  --ifp-esportivo: 117 44 5;       /* #752C05 terracota */
-  --ifp-educacional: 0 117 113;    /* #007571 teal escuro */
-  --ifp-social: 30 64 175;         /* #1E40AF azul institucional */
+  --ifp-medico: 16 194 187; /* #10C2BB teal */
+  --ifp-capacitacao: 255 119 46; /* #FF772E laranja */
+  --ifp-esportivo: 117 44 5; /* #752C05 terracota */
+  --ifp-educacional: 0 117 113; /* #007571 teal escuro */
+  --ifp-social: 30 64 175; /* #1E40AF azul institucional */
 }
 ```
 
@@ -398,6 +404,7 @@ git commit -m "feat: bootstrap next.js 16 app router com hello ifp"
 ## Task 4: Configurar Tailwind CSS 4 + shadcn/ui (vazio)
 
 **Files:**
+
 - Create: `postcss.config.mjs`
 - Create: `tailwind.config.ts`
 - Create: `components.json`
@@ -406,6 +413,7 @@ git commit -m "feat: bootstrap next.js 16 app router com hello ifp"
 - [ ] **Step 1: Instalar Tailwind 4**
 
 Run:
+
 ```bash
 pnpm add -D tailwindcss @tailwindcss/postcss postcss
 ```
@@ -426,9 +434,7 @@ export default {
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: [
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -452,6 +458,7 @@ export default config;
 Run: `pnpm dlx shadcn@latest init`
 
 Responder:
+
 - Style: New York
 - Base color: Slate
 - CSS variables: Yes
@@ -475,6 +482,7 @@ git commit -m "feat: tailwind 4 + shadcn ui inicializado"
 ## Task 5: Variáveis de ambiente com validação Zod
 
 **Files:**
+
 - Create: `.env.example`
 - Create: `.env.local`
 - Create: `src/lib/env.ts`
@@ -614,6 +622,7 @@ git commit -m "feat: env validation com zod + vitest setup"
 ## Task 6: Docker Compose para Postgres + MinIO
 
 **Files:**
+
 - Create: `docker-compose.dev.yml`
 - Create: `.dockerignore`
 
@@ -700,12 +709,14 @@ git commit -m "feat: docker compose dev (postgres 16 + minio)"
 ## Task 7: Prisma + schema inicial (Auth.js v5 models)
 
 **Files:**
+
 - Create: `prisma/schema.prisma`
 - Create: `src/lib/db.ts`
 
 - [ ] **Step 1: Instalar Prisma**
 
 Run:
+
 ```bash
 pnpm add @prisma/client
 pnpm add -D prisma
@@ -809,6 +820,7 @@ git commit -m "feat: prisma + schema inicial auth.js"
 ## Task 8: Auth.js v5 com Credentials provider mínimo
 
 **Files:**
+
 - Create: `src/lib/auth.ts`
 - Create: `src/app/api/auth/[...nextauth]/route.ts`
 - Create: `src/middleware.ts`
@@ -817,6 +829,7 @@ git commit -m "feat: prisma + schema inicial auth.js"
 - [ ] **Step 1: Instalar Auth.js v5 + adapter Prisma + bcrypt**
 
 Run:
+
 ```bash
 pnpm add next-auth@beta @auth/prisma-adapter bcryptjs
 pnpm add -D @types/bcryptjs
@@ -879,10 +892,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         if (!user?.hashedPassword) return null;
 
-        const ok = await bcrypt.compare(
-          parsed.data.password,
-          user.hashedPassword,
-        );
+        const ok = await bcrypt.compare(parsed.data.password, user.hashedPassword);
         if (!ok) return null;
 
         return { id: user.id, email: user.email, name: user.name };
@@ -1026,6 +1036,7 @@ Expected: `Seeded user erick.ramos`.
 Run: `pnpm dev`
 
 No browser:
+
 1. http://localhost:3000/app → redireciona para `/login`
 2. Login com `erick.ramos@familiaponcio.org.br` / `ifp-dev-2026`
 3. Pousa em `/app` mostrando "Olá, Erick Ramos"
@@ -1046,12 +1057,14 @@ git commit -m "feat: auth.js v5 com credentials + seed inicial"
 ## Task 9: Lint + Format (ESLint + Prettier)
 
 **Files:**
+
 - Create: `eslint.config.mjs`
 - Create: `prettier.config.mjs`
 
 - [ ] **Step 1: Instalar**
 
 Run:
+
 ```bash
 pnpm add -D eslint @eslint/js typescript-eslint eslint-config-next prettier eslint-config-prettier
 ```
@@ -1107,6 +1120,7 @@ Editar `scripts`:
 - [ ] **Step 5: Rodar lint + format**
 
 Run:
+
 ```bash
 pnpm lint
 pnpm format
@@ -1127,12 +1141,14 @@ git commit -m "chore: eslint + prettier config"
 ## Task 10: Playwright E2E (smoke test do login)
 
 **Files:**
+
 - Create: `playwright.config.ts`
 - Create: `tests/e2e/login.spec.ts`
 
 - [ ] **Step 1: Instalar Playwright**
 
 Run:
+
 ```bash
 pnpm add -D @playwright/test
 pnpm dlx playwright install chromium
@@ -1158,9 +1174,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
-  projects: [
-    { name: "chromium", use: { browserName: "chromium" } },
-  ],
+  projects: [{ name: "chromium", use: { browserName: "chromium" } }],
 });
 ```
 
@@ -1202,6 +1216,7 @@ git commit -m "test: playwright e2e smoke do login"
 ## Task 11: GitHub Actions CI
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Criar `.github/workflows/ci.yml`**
@@ -1276,6 +1291,7 @@ git commit -m "ci: github actions com typecheck + lint + unit + e2e"
 - [ ] **Step 3: Validar CI (depois de push)**
 
 Após primeiro push pro GitHub:
+
 1. Abrir https://github.com/kiizinbr/kiizinbr-ifp-familiaponcio/actions
 2. Aguardar primeira run
 3. Expected: pipeline verde
@@ -1287,11 +1303,13 @@ Se falhar, ler logs, corrigir, commitar novamente.
 ## Task 12: Sincronizar com GitHub remote
 
 **Files:**
+
 - Nenhum arquivo novo.
 
 - [ ] **Step 1: Configurar identidade git (uma vez por máquina)**
 
 Run:
+
 ```bash
 git config --global user.name "Erick Ramos"
 git config --global user.email "erickramos.ti@gmail.com"
@@ -1302,6 +1320,7 @@ git config --global user.email "erickramos.ti@gmail.com"
 Como o committer dos commits anteriores ficou como `unknown <administrador@CLEAN.LAN>`, opcionalmente reescrever:
 
 Run:
+
 ```bash
 git -c user.name="Erick Ramos" -c user.email="erickramos.ti@gmail.com" rebase --root --exec "git commit --amend --no-edit --reset-author"
 ```
@@ -1311,6 +1330,7 @@ git -c user.name="Erick Ramos" -c user.email="erickramos.ti@gmail.com" rebase --
 - [ ] **Step 3: Adicionar remote do GitHub**
 
 Run:
+
 ```bash
 git remote add origin https://github.com/kiizinbr/kiizinbr-ifp-familiaponcio.git
 ```
@@ -1321,6 +1341,7 @@ Run: `git fetch origin`
 Expected: lista branches do remote.
 
 Se houver commits no `origin/main` que você não tem localmente (porque já existia coisa lá), parar e decidir estratégia:
+
 - **a.** Trazer remote pra cá: `git pull origin main --rebase`
 - **b.** Sobrescrever remote: `git push -u origin main --force-with-lease` (⚠️ destrutivo — só se for repo vazio ou bootstrap)
 
@@ -1341,6 +1362,7 @@ Expected: workflow rodando.
 ## Self-Review Checklist (executado pelo autor do plano)
 
 **1. Spec coverage:**
+
 - ✅ Stack Next.js 16 + Postgres + Prisma + Auth.js v5 + shadcn (Tasks 3, 4, 7, 8)
 - ✅ TypeScript estrito (Task 2)
 - ✅ Docker dev (Task 6)
