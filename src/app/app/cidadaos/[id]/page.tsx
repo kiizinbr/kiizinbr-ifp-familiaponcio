@@ -271,11 +271,13 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
             <Field label="Última atualização" value={formatDate(cidadao.updatedAt)} />
           </Section>
 
-          <Section title="Histórico" hint="Mostra eventos de criação/edição via audit log">
-            <p className="text-sm text-slate-500">
-              Timeline em desenvolvimento (Plano 3 Task 9). Por enquanto, os eventos ficam no audit
-              log do sistema (acessível pelo super_admin em /admin/audit).
-            </p>
+          <Section title="Histórico" hint="Eventos de criação, edição e anexos desta ficha">
+            <Link
+              href={`/app/cidadaos/${cidadao.id}/historico` as Route}
+              className="text-sm font-medium text-[rgb(var(--ifp-laranja))] hover:underline"
+            >
+              Ver histórico completo →
+            </Link>
           </Section>
         </aside>
       </div>

@@ -56,6 +56,8 @@ describe("logEvent", () => {
         action: "signin_success",
         entityType: null,
         entityId: null,
+        rootEntityType: null,
+        rootEntityId: null,
         meta: { provider: "credentials" },
         ipAddress: "203.0.113.10",
         userAgent: "Mozilla/5.0 Test",
@@ -77,6 +79,8 @@ describe("logEvent", () => {
         action: "signin_failed",
         entityType: null,
         entityId: null,
+        rootEntityType: null,
+        rootEntityId: null,
         meta: { email: "ghost@example.com" },
         ipAddress: null,
         userAgent: "curl/8.0",
@@ -108,11 +112,29 @@ describe("logEvent", () => {
         action: "role_changed",
         entityType: "user",
         entityId: "target-user-1",
+        rootEntityType: null,
+        rootEntityId: null,
         meta: { from: "social", to: "gestor_geral" },
         ipAddress: null,
         userAgent: null,
       },
     });
+  });
+
+  it("encaminha rootEntityType e rootEntityId (aggregate root) quando fornecidos", async () => {
+    await logEvent({
+      userId: "recep-1",
+      action: "anexo_uploaded",
+      entityType: "anexo_cidadao",
+      entityId: "anexo-9",
+      rootEntityType: "cidadao",
+      rootEntityId: "cid-1",
+      meta: { fileName: "rg.pdf" },
+    });
+
+    const call = createMock.mock.calls[0]?.[0];
+    expect(call.data.rootEntityType).toBe("cidadao");
+    expect(call.data.rootEntityId).toBe("cid-1");
   });
 
   it("nao lanca quando db.create rejeita (audit nao quebra fluxo)", async () => {

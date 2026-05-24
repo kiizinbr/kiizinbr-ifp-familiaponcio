@@ -7,13 +7,20 @@ export type AuditAction =
   | "signout"
   | "role_changed"
   | "data_exported"
-  | "medical_data_accessed";
+  | "medical_data_accessed"
+  | "ficha_created"
+  | "ficha_updated"
+  | "anexo_uploaded"
+  | "anexo_removed";
 
 interface LogEventArgs {
   userId?: string | null;
   action: AuditAction;
   entityType?: string;
   entityId?: string;
+  /** Entidade-raiz do evento (ex.: 'cidadao') — correlaciona sub-entidades na timeline. */
+  rootEntityType?: string;
+  rootEntityId?: string;
   meta?: Record<string, unknown>;
 }
 
@@ -41,6 +48,8 @@ export async function logEvent(args: LogEventArgs): Promise<void> {
         action: args.action,
         entityType: args.entityType ?? null,
         entityId: args.entityId ?? null,
+        rootEntityType: args.rootEntityType ?? null,
+        rootEntityId: args.rootEntityId ?? null,
         meta: args.meta ? (args.meta as object) : undefined,
         ipAddress,
         userAgent: userAgent ?? null,

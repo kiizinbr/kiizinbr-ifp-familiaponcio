@@ -129,9 +129,11 @@ export async function confirmAnexoUpload(args: {
 
   await logEvent({
     userId: check.session.user.id,
-    action: "data_exported" as never, // reuso enquanto não tem action 'anexo_uploaded'
+    action: "anexo_uploaded",
     entityType: "anexo_cidadao",
     entityId: anexo.id,
+    rootEntityType: "cidadao",
+    rootEntityId: args.cidadaoId,
     meta: {
       cidadaoId: args.cidadaoId,
       fileName: args.fileName,
@@ -170,9 +172,11 @@ export async function removeAnexo(anexoId: string): Promise<AnexoActionResult> {
 
   await logEvent({
     userId: session.user.id,
-    action: "data_exported" as never,
+    action: "anexo_removed",
     entityType: "anexo_cidadao",
     entityId: anexoId,
+    rootEntityType: "cidadao",
+    rootEntityId: anexo.cidadaoId,
     meta: { removed: true, fileName: anexo.fileName },
   });
 

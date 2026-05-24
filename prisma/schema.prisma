@@ -108,8 +108,13 @@ model AuditLog {
   userId     String?
   /// signin_success, signin_failed, ficha_created, role_changed, etc.
   action     String
-  entityType String?  // 'ficha_cidada', 'user', 'role', etc.
+  entityType String?  // 'cidadao', 'anexo_cidadao', 'user', 'role', etc.
   entityId   String?
+  /// Entidade-raiz do evento (aggregate root). Correlaciona sub-entidades:
+  /// um anexo (entityType='anexo_cidadao') aponta seu cidadão aqui, permitindo
+  /// "histórico do cidadão X" como query indexada. Plano 4 (triagem) reusa.
+  rootEntityType String?
+  rootEntityId   String?
   meta       Json?
   ipAddress  String?
   userAgent  String?  @db.Text
@@ -120,6 +125,7 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([action, createdAt])
   @@index([entityType, entityId])
+  @@index([rootEntityType, rootEntityId, createdAt])
   @@index([createdAt])
 }
 

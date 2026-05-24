@@ -100,9 +100,11 @@ export async function createCidadaoAction(input: CidadaoCreateInput): Promise<Cr
 
   await logEvent({
     userId: session.user.id,
-    action: "ficha_created" as never,
+    action: "ficha_created",
     entityType: "cidadao",
     entityId: cidadao.id,
+    rootEntityType: "cidadao",
+    rootEntityId: cidadao.id,
     meta: { nomeCompleto: cidadao.nomeCompleto, unitIdOrigem: cidadao.unitIdOrigem },
   });
 
