@@ -14,7 +14,13 @@ export type AuditAction =
   | "anexo_removed"
   | "triagem_aberta"
   | "triagem_concluida"
-  | "elegibilidade_decidida";
+  | "elegibilidade_decidida"
+  | "vaga_criada"
+  | "agendamento_criado"
+  | "agendamento_confirmado"
+  | "agendamento_realizado"
+  | "agendamento_cancelado"
+  | "agendamento_faltou";
 
 interface LogEventArgs {
   userId?: string | null;

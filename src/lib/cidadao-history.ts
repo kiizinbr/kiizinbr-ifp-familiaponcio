@@ -22,6 +22,8 @@ export type HistoryEventAction =
   | "triagem_aberta"
   | "triagem_concluida"
   | "elegibilidade_decidida"
+  | "agendamento_criado"
+  | "agendamento_realizado"
   | "outro";
 
 export interface HistoryEvent {
@@ -68,6 +70,8 @@ const ACTION_LABELS: Record<HistoryEventAction, string> = {
   triagem_aberta: "Triagem aberta",
   triagem_concluida: "Triagem concluída",
   elegibilidade_decidida: "Elegibilidade decidida",
+  agendamento_criado: "Agendamento criado",
+  agendamento_realizado: "Entrevista realizada",
   outro: "Evento registrado",
 };
 
@@ -119,6 +123,8 @@ const KNOWN_ACTIONS = new Set<HistoryEventAction>([
   "triagem_aberta",
   "triagem_concluida",
   "elegibilidade_decidida",
+  "agendamento_criado",
+  "agendamento_realizado",
 ]);
 
 /** Rótulos pt-BR das unidades pra exibição em detalhes de eventos. */

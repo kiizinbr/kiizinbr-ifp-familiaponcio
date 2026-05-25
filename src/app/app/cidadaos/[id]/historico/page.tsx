@@ -24,6 +24,8 @@ const DOT_COLOR: Record<HistoryEventAction, string> = {
   triagem_aberta: "bg-violet-500",
   triagem_concluida: "bg-violet-700",
   elegibilidade_decidida: "bg-amber-500",
+  agendamento_criado: "bg-sky-400",
+  agendamento_realizado: "bg-emerald-600",
   outro: "bg-slate-400",
 };
 
