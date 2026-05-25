@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IFP Connect — Premium · 4 modelos</title>
+    <style>
+      @font-face {
+        font-family: "Garet";
+        font-weight: 100 500;
+        src: url("/fonts/garet/Garet-Book.woff") format("woff");
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Garet";
+        font-weight: 600 900;
+        src: url("/fonts/garet/Garet-Heavy.woff") format("woff");
+        font-display: swap;
+      }
+
+      :root {
+        --laranja: 255 119 46;
+        --medico: 16 194 187;
+        --capacitacao: 196 77 15;
+        --esportivo: 117 44 5;
+        --recreativo: 0 117 113;
+        --ink: #2a2724;
+        --muted: #8a8378;
+        --hair: rgba(60, 50, 40, 0.1);
+        /* defaults (modelo 1 sobrescreve abaixo) */
+        --bg: #fbfbfd;
+        --card: #ffffff;
+        --pill-active: #f4f4f6;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          "Garet",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+        letter-spacing: -0.01em;
+        transition: background 0.4s ease;
+      }
+
+      /* ===== switcher de modelos ===== */
+      .switch {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        background: rgba(20, 18, 15, 0.92);
+        color: #f3ede1;
+        backdrop-filter: blur(8px);
+      }
+      .switch strong {
+        font-weight: 800;
+        margin-right: auto;
+        font-size: 14px;
+      }
+      .switch button {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        color: #f3ede1;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 7px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.15s;
+      }
+      .switch button .sw {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+      .switch button:hover {
+        border-color: rgba(var(--laranja), 0.7);
+      }
+      .switch button.on {
+        background: rgb(var(--laranja));
+        border-color: rgb(var(--laranja));
+        color: #fff;
+      }
+
+      /* ===== fundos por modelo (tints do brandbook) ===== */
+      body[data-model="1"] {
+        --bg: #fbfbfd;
+        --card: #ffffff;
+        --pill-active: #f3f3f5;
+      } /* Neve — branco frio */
+      body[data-model="2"] {
+        --bg: #faf5ec;
+        --card: #fffdf9;
+        --pill-active: #f1e9da;
+      } /* Areia — creme quente (laranja/terracota) */
+      body[data-model="3"] {
+        --bg: #eef6f5;
+        --card: #ffffff;
+        --pill-active: #e2efed;
+      } /* Névoa — teal sutil (médico/recreativo) */
+      body[data-model="4"] {
+        --bg: #f1f0ec;
+        --card: #ffffff;
+        --pill-active: #e9e7e1;
+      } /* Pedra — cinza quente (institucional) */
+
+      .app {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: calc(100vh - 49px);
+      }
+      .side {
+        padding: 30px 18px;
+        background: color-mix(in srgb, var(--card) 80%, transparent);
+        backdrop-filter: saturate(180%) blur(20px);
+        border-right: 1px solid var(--hair);
+        display: flex;
+        flex-direction: column;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 2px 12px 30px;
+      }
+      .brand img {
+        height: 34px;
+      }
+      .brand b {
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #6b6459;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 2px;
+        transition: 0.15s;
+      }
+      .nav a .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #c7c2b8;
+      }
+      .nav a:hover {
+        background: var(--pill-active);
+      }
+      .nav a.on {
+        background: var(--pill-active);
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .nav a.on .dot {
+        background: rgb(var(--laranja));
+      }
+      .grp {
+        font-size: 11px;
+        font-weight: 700;
+        color: #b0a99c;
+        margin: 22px 12px 8px;
+      }
+      .u-medico .dot {
+        background: rgb(var(--medico)) !important;
+      }
+      .u-capacitacao .dot {
+        background: rgb(var(--capacitacao)) !important;
+      }
+      .u-esportivo .dot {
+        background: rgb(var(--esportivo)) !important;
+      }
+      .u-recreativo .dot {
+        background: rgb(var(--recreativo)) !important;
+      }
+      .me {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 10px 12px;
+      }
+      .me .av {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .me .nm {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .me .rl {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .main {
+        padding: 56px 60px 90px;
+        max-width: 1180px;
+      }
+      .kick {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      h1 {
+        font-size: 50px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.04;
+        margin-top: 10px;
+      }
+      .sub {
+        font-size: 18px;
+        color: var(--muted);
+        margin-top: 14px;
+        font-weight: 500;
+        max-width: 540px;
+        line-height: 1.45;
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-top: 48px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--hair);
+        border-radius: 20px;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.03),
+          0 16px 36px -26px rgba(40, 30, 20, 0.22);
+        transition:
+          transform 0.22s ease,
+          box-shadow 0.22s ease;
+      }
+      /* micro-interação: cards levantam sutil no hover */
+      .kpi:hover,
+      .panel:hover {
+        transform: translateY(-3px);
+        box-shadow:
+          0 2px 4px rgba(0, 0, 0, 0.04),
+          0 26px 50px -28px rgba(40, 30, 20, 0.3);
+      }
+      .kpi {
+        padding: 22px;
+      }
+      .kpi .lbl {
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .kpi .num {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        margin-top: 12px;
+      }
+      .kpi .d {
+        font-size: 13px;
+        color: rgb(var(--recreativo));
+        font-weight: 600;
+        margin-top: 6px;
+      }
+      .kpi.ring {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .ring svg {
+        width: 72px;
+        height: 72px;
+        flex: none;
+      }
+      .ring .rt {
+        font-size: 15px;
+        font-weight: 800;
+        fill: var(--ink);
+      }
+
+      .cols {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 18px;
+        margin-top: 18px;
+      }
+      .panel {
+        padding: 26px 28px;
+      }
+      .panel h2 {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .panel .hint {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 2px 0 12px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--hair);
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .row .av {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        flex: none;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 12px;
+        color: #fff;
+      }
+      .row .name {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .row .unit {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 1px;
+      }
+      .row .when {
+        margin-left: auto;
+        font-size: 13px;
+        color: #b0a99c;
+      }
+
+      .journey {
+        display: flex;
+        align-items: center;
+        margin: 6px 0 24px;
+      }
+      .jstep {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .jstep .b {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 12px;
+        background: var(--pill-active);
+        color: #b0a99c;
+      }
+      .jstep.done .b {
+        background: rgb(var(--laranja));
+        color: #fff;
+      }
+      .jstep .t {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .jstep.todo .t {
+        color: #b0a99c;
+      }
+      .jline {
+        flex: 1;
+        height: 2px;
+        margin: 0 10px;
+        background: var(--pill-active);
+        border-radius: 2px;
+      }
+      .jline.done {
+        background: rgb(var(--laranja));
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(var(--medico), 0.12);
+        color: #0a7d78;
+      }
+      .pill .d {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgb(var(--medico));
+      }
+
+      .btns {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .btn-p {
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 13px 26px;
+        border-radius: 999px;
+        border: 0;
+        cursor: pointer;
+        color: #fff;
+        background: rgb(var(--laranja));
+        transition: 0.18s ease;
+      }
+      .btn-s {
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 13px 26px;
+        border-radius: 999px;
+        cursor: pointer;
+        color: var(--ink);
+        background: var(--pill-active);
+        border: 0;
+        transition: 0.18s ease;
+      }
+      .btn-s:hover {
+        filter: brightness(0.96);
+      }
+
+      /* ===== HOVER DOS BOTÕES — um comportamento por modelo ===== */
+      /* M1 Neve: levanta + clareia */
+      body[data-model="1"] .btn-p:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.07);
+        box-shadow: 0 8px 20px -8px rgba(var(--laranja), 0.5);
+      }
+      /* M2 Areia: preenche mais fundo (terracota) */
+      body[data-model="2"] .btn-p:hover {
+        background: rgb(var(--capacitacao));
+      }
+      /* M3 Névoa: brilho/sombra que floresce */
+      body[data-model="3"] .btn-p:hover {
+        box-shadow: 0 12px 30px -6px rgba(var(--laranja), 0.55);
+        transform: scale(1.03);
+      }
+      /* M4 Pedra: pressiona pra dentro */
+      body[data-model="4"] .btn-p:hover {
+        transform: translateY(2px);
+        filter: brightness(0.95);
+        box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.22);
+      }
+
+      .hoverhint {
+        margin-top: 26px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .hoverhint b {
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body data-model="1">
+    <div class="switch">
+      <strong>IFP Connect · Premium — 4 modelos (fundo + hover)</strong>
+      <button data-m="1" class="on">
+        <span class="sw" style="background: #fbfbfd"></span>1 · Neve
+      </button>
+      <button data-m="2"><span class="sw" style="background: #faf5ec"></span>2 · Areia</button>
+      <button data-m="3"><span class="sw" style="background: #eef6f5"></span>3 · Névoa</button>
+      <button data-m="4"><span class="sw" style="background: #f1f0ec"></span>4 · Pedra</button>
+    </div>
+
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="/logo/ifp-symbol.png" alt="IFP" /><b>IFP Connect</b></div>
+        <nav class="nav">
+          <a class="on"><span class="dot"></span>Visão geral</a>
+          <a><span class="dot"></span>Cidadãos</a>
+          <a><span class="dot"></span>Triagens</a>
+          <a><span class="dot"></span>Serviço Social</a>
+        </nav>
+        <div class="grp">Unidades</div>
+        <nav class="nav">
+          <a class="u-medico"><span class="dot"></span>Centro Médico</a>
+          <a class="u-capacitacao"><span class="dot"></span>Capacitação</a>
+          <a class="u-esportivo"><span class="dot"></span>Esportivo</a>
+          <a class="u-recreativo"><span class="dot"></span>Recreativo</a>
+        </nav>
+        <div class="me">
+          <span class="av">ER</span>
+          <div>
+            <div class="nm">Erick Ramos</div>
+            <div class="rl">Coordenação geral</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header>
+          <div class="kick">Serviço Social · Visão geral</div>
+          <h1>Olá, Erick.</h1>
+          <p class="sub">Quatro unidades, uma plataforma. O Instituto Família Pôncio de perto.</p>
+        </header>
+
+        <section class="kpis">
+          <div class="card kpi">
+            <div class="lbl">Total de cidadãos</div>
+            <div class="num">892</div>
+            <div class="d">+34 este mês</div>
+          </div>
+          <div class="card kpi ring">
+            <svg viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.5" fill="none" stroke="#e7e3da" stroke-width="3.4" />
+              <circle
+                cx="18"
+                cy="18"
+                r="15.5"
+                fill="none"
+                stroke="rgb(16,194,187)"
+                stroke-width="3.4"
+                stroke-linecap="round"
+                stroke-dasharray="92.5 97.4"
+                transform="rotate(-90 18 18)"
+              />
+              <text x="18" y="21.5" text-anchor="middle" class="rt">95%</text>
+            </svg>
+            <div>
+              <div class="lbl">Cidadãos ativos</div>
+              <div class="num" style="font-size: 30px">847</div>
+            </div>
+          </div>
+          <div class="card kpi">
+            <div class="lbl">Triagens pendentes</div>
+            <div class="num">15</div>
+            <div class="d" style="color: var(--muted)">esta semana</div>
+          </div>
+          <div class="card kpi">
+            <div class="lbl">Famílias atendidas</div>
+            <div class="num">62</div>
+            <div class="d">+18%</div>
+          </div>
+        </section>
+
+        <section class="cols">
+          <div class="card panel">
+            <h2>Triagens pendentes</h2>
+            <p class="hint">Entrevistas em aberto no Serviço Social</p>
+            <div class="row">
+              <span class="av" style="background: rgb(var(--medico))">MA</span>
+              <div>
+                <div class="name">Maria Aparecida da Silva</div>
+                <div class="unit">Centro Médico</div>
+              </div>
+              <span class="when">aberta 24/05</span>
+            </div>
+            <div class="row">
+              <span class="av" style="background: rgb(var(--capacitacao))">JP</span>
+              <div>
+                <div class="name">João Pedro Almeida</div>
+                <div class="unit">Capacitação</div>
+              </div>
+              <span class="when">aberta 23/05</span>
+            </div>
+            <div class="row">
+              <span class="av" style="background: rgb(var(--recreativo))">FC</span>
+              <div>
+                <div class="name">Família Costa</div>
+                <div class="unit">Recreativo</div>
+              </div>
+              <span class="when">aberta 22/05</span>
+            </div>
+          </div>
+
+          <div class="card panel">
+            <h2>Triagem · Maria</h2>
+            <p class="hint">Centro Médico</p>
+            <div class="journey">
+              <div class="jstep done"><span class="b">✓</span><span class="t">Aberta</span></div>
+              <div class="jline done"></div>
+              <div class="jstep done"><span class="b">✓</span><span class="t">Entrev.</span></div>
+              <div class="jline done"></div>
+              <div class="jstep done"><span class="b">3</span><span class="t">Elegív.</span></div>
+              <div class="jline"></div>
+              <div class="jstep todo"><span class="b">4</span><span class="t">Concl.</span></div>
+            </div>
+            <span class="pill"><span class="d"></span>Centro Médico · aprovado</span>
+            <div class="btns">
+              <button class="btn-p">Concluir triagem</button>
+              <button class="btn-s">Salvar</button>
+            </div>
+            <p class="hoverhint">
+              👆 Passe o mouse nos botões e cards — o <b>hover</b> muda por modelo.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const btns = document.querySelectorAll(".switch button");
+      btns.forEach((b) => {
+        b.addEventListener("click", () => {
+          btns.forEach((x) => x.classList.toggle("on", x === b));
+          document.body.dataset.model = b.dataset.m;
+        });
+      });
+    </script>
+  </body>
+</html>
