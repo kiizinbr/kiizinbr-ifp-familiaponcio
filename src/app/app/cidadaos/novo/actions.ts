@@ -5,7 +5,9 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cidadaoCreateSchema, type CidadaoCreateInput } from "@/lib/cidadao-schema";
-import { hasAnyRole } from "@/lib/rbac";
+import { can, hasAnyRole } from "@/lib/rbac";
+import type { UnitScope } from "@/lib/rbac-types";
+import { changedFields } from "@/lib/cidadao-diff";
 import { logEvent } from "@/lib/audit";
 
 export type CreateCidadaoResult =
@@ -109,6 +111,88 @@ export async function createCidadaoAction(input: CidadaoCreateInput): Promise<Cr
   });
 
   return { ok: true, id: cidadao.id };
+}
+
+/**
+ * Edição de Ficha Cidadã. Atualiza os campos escalares (NÃO endereços/família —
+ * fluxos próprios). Calcula changedFields e emite `ficha_updated` na timeline,
+ * o que ativa a redação de campo sensível (Refinement B do Plano 3). CPF é imutável.
+ */
+export async function updateCidadaoAction(
+  id: string,
+  input: CidadaoCreateInput,
+): Promise<CreateCidadaoResult> {
+  const session = await auth();
+  if (!session) return { ok: false, errors: {}, message: "Sessão expirada" };
+
+  const atual = await db.cidadao.findUnique({ where: { id } });
+  if (!atual) return { ok: false, errors: {}, message: "Ficha não encontrada" };
+
+  const allowed = can(session, "edit", "ficha_cidada", {
+    unitScope: atual.unitIdOrigem as UnitScope,
+  });
+  if (!allowed) return { ok: false, errors: {}, message: "Sem permissão para editar esta Ficha" };
+
+  const parsed = cidadaoCreateSchema.safeParse(input);
+  if (!parsed.success) {
+    const errors: Record<string, string[]> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      errors[key] = errors[key] ?? [];
+      errors[key].push(issue.message);
+    }
+    return { ok: false, errors };
+  }
+
+  const d = parsed.data;
+  const data = {
+    nomeCompleto: d.nomeCompleto,
+    dataNascimento: new Date(d.dataNascimento),
+    telefonePrincipal: d.telefonePrincipal,
+    nomeSocial: d.nomeSocial,
+    rg: d.rg,
+    documentoAlternativo: d.documentoAlternativo,
+    genero: d.genero,
+    corRaca: d.corRaca,
+    estadoCivil: d.estadoCivil,
+    nacionalidade: d.nacionalidade,
+    naturalidade: d.naturalidade,
+    nomeMae: d.nomeMae,
+    nomePai: d.nomePai,
+    escolaAtual: d.escolaAtual,
+    telefoneSecundario: d.telefoneSecundario,
+    email: d.email,
+    whatsappConsente: d.whatsappConsente,
+    rendaFamiliar: d.rendaFamiliar,
+    pessoasNaCasa: d.pessoasNaCasa,
+    beneficioSocial: d.beneficioSocial,
+    escolaridade: d.escolaridade,
+    trabalha: d.trabalha,
+    trabalhoDescricao: d.trabalhoDescricao,
+    tipoSanguineo: d.tipoSanguineo,
+    alergias: d.alergias,
+    medicamentosEmUso: d.medicamentosEmUso,
+    condicoesCronicas: d.condicoesCronicas,
+  };
+
+  const antigoSubset: Record<string, unknown> = {};
+  const atualRec = atual as unknown as Record<string, unknown>;
+  for (const k of Object.keys(data)) antigoSubset[k] = atualRec[k];
+  const mudou = changedFields(antigoSubset, data as unknown as Record<string, unknown>);
+
+  await db.cidadao.update({ where: { id }, data });
+
+  await logEvent({
+    userId: session.user.id,
+    action: "ficha_updated",
+    entityType: "cidadao",
+    entityId: id,
+    rootEntityType: "cidadao",
+    rootEntityId: id,
+    meta: { changedFields: mudou },
+  });
+
+  return { ok: true, id };
 }
 
 /** Helper Server Action — chama action acima e redireciona pra detalhe se sucesso. */

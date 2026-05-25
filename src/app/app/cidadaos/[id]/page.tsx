@@ -114,13 +114,12 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           </div>
 
           {podeEditar && (
-            <button
-              disabled
-              title="Edição em desenvolvimento (Plano 3 Task 6)"
-              className="cursor-not-allowed rounded border border-slate-300 px-4 py-2 text-sm text-slate-400"
+            <Link
+              href={`/app/cidadaos/${cidadao.id}/editar` as Route}
+              className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
             >
-              Editar (em breve)
-            </button>
+              Editar
+            </Link>
           )}
         </div>
       </header>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { TABS, type TabId } from "@/lib/cidadao-schema";
 import type { UnitScope } from "@/lib/rbac-types";
 import { fetchAddressFromCep } from "@/lib/cep";
-import { createCidadaoAction } from "./actions";
+import { createCidadaoAction, updateCidadaoAction } from "./actions";
 
 type FieldErrors = Record<string, string[]>;
 
@@ -98,13 +98,24 @@ const INITIAL_STATE: FormState = {
 export function NovoCidadaoForm({
   defaultUnit,
   canChooseUnit,
+  mode = "create",
+  initialValues,
+  cidadaoId,
 }: {
   defaultUnit: UnitScope;
   canChooseUnit: boolean;
+  mode?: "create" | "edit";
+  initialValues?: Partial<FormState>;
+  cidadaoId?: string;
 }) {
   const router = useRouter();
+  const isEdit = mode === "edit";
   const [tab, setTab] = useState<TabId>("identificacao");
-  const [state, setState] = useState<FormState>({ ...INITIAL_STATE, unitIdOrigem: defaultUnit });
+  const [state, setState] = useState<FormState>({
+    ...INITIAL_STATE,
+    unitIdOrigem: defaultUnit,
+    ...initialValues,
+  });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [cepLoading, setCepLoading] = useState(false);
@@ -196,8 +207,12 @@ export function NovoCidadaoForm({
     };
 
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await createCidadaoAction(payload as any);
+      const result =
+        isEdit && cidadaoId
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await updateCidadaoAction(cidadaoId, payload as any)
+          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await createCidadaoAction(payload as any);
       if (result.ok) {
         router.push(`/app/cidadaos/${result.id}`);
       } else {
@@ -263,6 +278,7 @@ export function NovoCidadaoForm({
             onChange={(v) => update("cpf", v)}
             placeholder="000.000.000-00"
             error={errors.cpf}
+            disabled={isEdit}
           />
           <Input
             label="Data de nascimento *"
@@ -557,7 +573,7 @@ export function NovoCidadaoForm({
             disabled={isPending}
             className="rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
           >
-            {isPending ? "Salvando…" : "Salvar Ficha"}
+            {isPending ? "Salvando…" : isEdit ? "Salvar alterações" : "Salvar Ficha"}
           </button>
         </div>
       </div>
@@ -635,6 +651,7 @@ function Input({
   placeholder,
   error,
   colSpan = 1,
+  disabled = false,
 }: {
   label: string;
   type?: string;
@@ -644,6 +661,7 @@ function Input({
   placeholder?: string;
   error?: string[];
   colSpan?: 1 | 2;
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -658,7 +676,8 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
-        className={`w-full rounded border px-3 py-2 text-sm focus:outline-none ${
+        disabled={disabled}
+        className={`w-full rounded border px-3 py-2 text-sm focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 ${
           error
             ? "border-red-300 focus:border-red-500"
             : "border-slate-300 focus:border-[rgb(var(--ifp-laranja))]"
