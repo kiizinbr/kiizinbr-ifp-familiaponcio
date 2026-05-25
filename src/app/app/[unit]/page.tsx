@@ -1,8 +1,11 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { KpiCard } from "@/components/kpi-card";
 import { UNIT_SCOPES, type UnitScope } from "@/lib/rbac-types";
+import { listEncaminhamentosUnidade } from "@/lib/triagem";
 
 interface UnitData {
   name: string;
@@ -131,6 +134,7 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
 
   const data = UNITS[unit as UnitScope];
   const accent = unit as UnitScope;
+  const encaminhamentos = await listEncaminhamentosUnidade(unit, session);
 
   return (
     <AppShell session={session}>
@@ -170,6 +174,39 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
           {data.highlights.map((h) => (
             <HighlightItem key={h.titulo} titulo={h.titulo} detalhe={h.detalhe} accent={accent} />
           ))}
+        </Panel>
+      </section>
+
+      <section className="mt-10">
+        <Panel title="Encaminhamentos da triagem" accent={accent}>
+          {encaminhamentos.length === 0 ? (
+            <li className="text-sm text-slate-500">
+              Nenhum encaminhamento do Serviço Social para esta unidade ainda.
+            </li>
+          ) : (
+            encaminhamentos.map((e) => (
+              <li
+                key={e.id}
+                className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+              >
+                <Link
+                  href={`/app/cidadaos/${e.triagem.cidadao.id}` as Route}
+                  className="text-sm font-medium text-slate-900 hover:text-[rgb(var(--ifp-laranja))]"
+                >
+                  {e.triagem.cidadao.nomeCompleto}
+                </Link>
+                <span
+                  className={`rounded px-2 py-0.5 text-xs font-medium ${
+                    e.status === "aprovado"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {e.status}
+                </span>
+              </li>
+            ))
+          )}
         </Panel>
       </section>
     </AppShell>

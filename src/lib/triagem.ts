@@ -8,7 +8,8 @@
 
 import type { Session } from "next-auth";
 import { db } from "@/lib/db";
-import { hasAnyRole } from "@/lib/rbac";
+import { canAccessUnit, hasAnyRole } from "@/lib/rbac";
+import type { UnitScope } from "@/lib/rbac-types";
 
 /** Roles que conduzem triagem: assistente social + coordenação geral + super_admin. */
 export function podeFazerTriagem(session: Session | null): boolean {
@@ -65,4 +66,24 @@ export async function listTriagensPendentes(session: Session | null) {
 export async function countTriagensAbertas(session: Session | null): Promise<number> {
   if (!podeFazerTriagem(session)) return 0;
   return db.triagem.count({ where: { status: "aberta" } });
+}
+
+/**
+ * Encaminhamentos da triagem para uma unidade (aprovado/encaminhado) — visão do gestor.
+ * RBAC: só quem tem acesso à unidade (gestor da unidade, coordenação, social, super_admin).
+ * Substitui a notificação por e-mail (in-app por ora).
+ */
+export async function listEncaminhamentosUnidade(unidade: string, session: Session | null) {
+  if (!session) return [];
+  if (!canAccessUnit(session, unidade as UnitScope)) return [];
+  return db.elegibilidadeUnidade.findMany({
+    where: { unidade, status: { in: ["aprovado", "encaminhado"] } },
+    include: {
+      triagem: {
+        include: { cidadao: { select: { id: true, nomeCompleto: true } } },
+      },
+    },
+    orderBy: { decididoEm: "desc" },
+    take: 20,
+  });
 }
