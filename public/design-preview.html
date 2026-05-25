@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IFP Connect — Preview de design</title>
+    <style>
+      @font-face {
+        font-family: "Garet";
+        font-weight: 100 500;
+        src: url("/fonts/garet/Garet-Book.woff") format("woff");
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Garet";
+        font-weight: 600 900;
+        src: url("/fonts/garet/Garet-Heavy.woff") format("woff");
+        font-display: swap;
+      }
+
+      :root {
+        --laranja: #ff772e;
+        --cinza: #4a4a49;
+        --medico: #10c2bb;
+        --capacitacao: #c24d0f;
+        --esportivo: #752c05;
+        --recreativo: #007571;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Garet", system-ui, sans-serif;
+        background: #1c1a17;
+        color: #222;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ===== switcher ===== */
+      .switch {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        background: #16140f;
+        color: #f3ede1;
+        border-bottom: 1px solid #2e2a22;
+      }
+      .switch strong {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-right: auto;
+        font-size: 14px;
+      }
+      .switch small {
+        opacity: 0.6;
+        font-size: 12px;
+        margin-right: 8px;
+      }
+      .switch button {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        color: #f3ede1;
+        background: #2a261e;
+        border: 1px solid #3a352b;
+        padding: 7px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .switch button:hover {
+        background: #36302600;
+        border-color: var(--laranja);
+      }
+      .switch button.on {
+        background: var(--laranja);
+        border-color: var(--laranja);
+        color: #fff;
+      }
+
+      /* esconde as direções inativas; !important vence o display:grid das regras de id */
+      .stage:not(.on) {
+        display: none !important;
+      }
+
+      /* ============================================================
+         A — EDITORIAL CALOROSO
+         ============================================================ */
+      #dir-a {
+        background: radial-gradient(120% 120% at 100% 0%, #fdf6ea 0%, #faf3e7 40%, #f5ecdb 100%);
+        min-height: 100vh;
+        color: #33302b;
+      }
+      #dir-a .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 40px 80px;
+      }
+      #dir-a .top {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 28px 0 24px;
+        border-bottom: 2px solid #2a2722;
+      }
+      #dir-a .top img {
+        height: 38px;
+      }
+      #dir-a .top .brand {
+        font-weight: 900;
+        font-size: 19px;
+        letter-spacing: -0.03em;
+      }
+      #dir-a .top .nav {
+        margin-left: auto;
+        display: flex;
+        gap: 26px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      #dir-a .top .nav a {
+        color: #6b6356;
+        text-decoration: none;
+      }
+      #dir-a .top .nav a.active {
+        color: var(--laranja);
+      }
+      #dir-a .kicker {
+        margin-top: 40px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--laranja);
+      }
+      #dir-a h1 {
+        font-size: 56px;
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 0.98;
+        margin-top: 8px;
+      }
+      #dir-a .lede {
+        font-size: 17px;
+        color: #6b6356;
+        margin-top: 14px;
+        max-width: 520px;
+        line-height: 1.5;
+      }
+      #dir-a .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        margin-top: 48px;
+        border-top: 1px solid #d8cdb8;
+        border-bottom: 1px solid #d8cdb8;
+      }
+      #dir-a .kpi {
+        padding: 22px 24px 22px 0;
+        border-right: 1px solid #e3dac8;
+      }
+      #dir-a .kpi:last-child {
+        border-right: 0;
+      }
+      #dir-a .kpi .lbl {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8a8170;
+      }
+      #dir-a .kpi .num {
+        font-size: 46px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        margin-top: 6px;
+      }
+      #dir-a .cols {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 56px;
+        margin-top: 52px;
+      }
+      #dir-a h2 {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #2a2722;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--laranja);
+        display: inline-block;
+      }
+      #dir-a .row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 0;
+        border-bottom: 1px solid #e3dac8;
+      }
+      #dir-a .row .tick {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex: none;
+      }
+      #dir-a .row .name {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      #dir-a .row .unit {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #8a8170;
+      }
+      #dir-a .journey {
+        margin-top: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      #dir-a .step {
+        display: flex;
+        gap: 16px;
+        position: relative;
+        padding-bottom: 26px;
+      }
+      #dir-a .step::before {
+        content: "";
+        position: absolute;
+        left: 13px;
+        top: 28px;
+        bottom: 0;
+        width: 2px;
+        background: #e3dac8;
+      }
+      #dir-a .step:last-child {
+        padding-bottom: 0;
+      }
+      #dir-a .step:last-child::before {
+        display: none;
+      }
+      #dir-a .step .dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        flex: none;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 900;
+        background: #efe6d3;
+        color: #b3a890;
+        z-index: 1;
+      }
+      #dir-a .step.done .dot {
+        background: var(--laranja);
+        color: #fff;
+      }
+      #dir-a .step .st-l {
+        font-weight: 800;
+        font-size: 15px;
+        padding-top: 3px;
+      }
+      #dir-a .step.todo .st-l {
+        color: #b3a890;
+      }
+      #dir-a .btns {
+        margin-top: 30px;
+        display: flex;
+        gap: 12px;
+      }
+      #dir-a .btn-p {
+        background: var(--laranja);
+        color: #fff;
+        border: 0;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 13px 26px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #dir-a .btn-s {
+        background: transparent;
+        color: #2a2722;
+        border: 1.5px solid #2a2722;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 13px 26px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      /* ============================================================
+         B — PAINEL VIVO
+         ============================================================ */
+      #dir-b {
+        min-height: 100vh;
+        background: #f4f5f8;
+        display: grid;
+        grid-template-columns: 244px 1fr;
+        color: #2b3040;
+      }
+      #dir-b .side {
+        background: #fff;
+        border-right: 1px solid #e9ebf0;
+        padding: 24px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      #dir-b .side .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px 22px;
+      }
+      #dir-b .side .logo img {
+        height: 34px;
+      }
+      #dir-b .side .logo b {
+        font-weight: 900;
+        font-size: 16px;
+        letter-spacing: -0.02em;
+      }
+      #dir-b .side a {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 11px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #6b7280;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      #dir-b .side a .ic {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #cbd2dd;
+      }
+      #dir-b .side a.active {
+        background: linear-gradient(90deg, rgba(255, 119, 46, 0.14), rgba(255, 119, 46, 0));
+        color: var(--laranja);
+      }
+      #dir-b .side a.active .ic {
+        background: var(--laranja);
+      }
+      #dir-b .main {
+        padding: 34px 40px 80px;
+      }
+      #dir-b .hd h1 {
+        font-size: 30px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+      }
+      #dir-b .hd p {
+        color: #828b9c;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+      #dir-b .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 26px;
+      }
+      #dir-b .kpi {
+        background: #fff;
+        border-radius: 18px;
+        padding: 18px 20px;
+        box-shadow:
+          0 1px 2px rgba(20, 24, 40, 0.04),
+          0 8px 24px -12px rgba(20, 24, 40, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+      #dir-b .kpi::after {
+        content: "";
+        position: absolute;
+        right: -30px;
+        top: -30px;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        opacity: 0.13;
+        background: var(--c, var(--laranja));
+      }
+      #dir-b .kpi .lbl {
+        font-size: 12px;
+        color: #828b9c;
+        font-weight: 700;
+      }
+      #dir-b .kpi .num {
+        font-size: 34px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-top: 8px;
+      }
+      #dir-b .kpi .d {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--recreativo);
+        margin-top: 4px;
+      }
+      #dir-b .grid2 {
+        display: grid;
+        grid-template-columns: 1.25fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      #dir-b .card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow:
+          0 1px 2px rgba(20, 24, 40, 0.04),
+          0 8px 24px -12px rgba(20, 24, 40, 0.1);
+      }
+      #dir-b .card h2 {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: 14px;
+      }
+      #dir-b .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f2f5;
+      }
+      #dir-b .row:last-child {
+        border-bottom: 0;
+      }
+      #dir-b .row .av {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      #dir-b .row .name {
+        font-weight: 700;
+        font-size: 14px;
+      }
+      #dir-b .row .chip {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #f0f2f5;
+        color: #6b7280;
+      }
+      #dir-b .journey {
+        display: flex;
+        gap: 6px;
+        margin: 4px 0 20px;
+      }
+      #dir-b .jstep {
+        flex: 1;
+        text-align: center;
+      }
+      #dir-b .jstep .bar {
+        height: 6px;
+        border-radius: 999px;
+        background: #e9ebf0;
+      }
+      #dir-b .jstep.done .bar {
+        background: var(--laranja);
+      }
+      #dir-b .jstep .t {
+        font-size: 10px;
+        font-weight: 700;
+        margin-top: 7px;
+        color: #98a0ae;
+      }
+      #dir-b .jstep.done .t {
+        color: #2b3040;
+      }
+      #dir-b .badge {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 999px;
+      }
+      #dir-b .btns {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      #dir-b .btn-p {
+        background: var(--laranja);
+        color: #fff;
+        border: 0;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 12px 22px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 8px 20px -8px rgba(255, 119, 46, 0.6);
+      }
+      #dir-b .btn-s {
+        background: #fff;
+        color: #2b3040;
+        border: 1px solid #dfe3ea;
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 12px 22px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      /* ============================================================
+         C — TINTA & TERRITÓRIO
+         ============================================================ */
+      #dir-c {
+        min-height: 100vh;
+        background: #efe9df;
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        color: #241c16;
+      }
+      #dir-c .side {
+        background: linear-gradient(180deg, #3a1d09, #20100400);
+        background-color: #2c1605;
+        color: #f1e6d6;
+        padding: 26px 20px;
+      }
+      #dir-c .side .logo {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding-bottom: 30px;
+      }
+      #dir-c .side .logo img {
+        height: 40px;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+      }
+      #dir-c .side .logo b {
+        font-weight: 900;
+        font-size: 17px;
+        letter-spacing: -0.02em;
+      }
+      #dir-c .side .grp {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        opacity: 0.45;
+        margin: 18px 0 8px 12px;
+      }
+      #dir-c .side a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #d9cab5;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      #dir-c .side a .ic {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+      }
+      #dir-c .side a.active {
+        background: var(--laranja);
+        color: #fff;
+      }
+      #dir-c .main {
+        padding: 0 0 80px;
+      }
+      #dir-c .hero {
+        background: #241c16;
+        color: #f4ece0;
+        padding: 40px 44px 46px;
+      }
+      #dir-c .hero .kick {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--laranja);
+      }
+      #dir-c .hero h1 {
+        font-size: 44px;
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        margin-top: 8px;
+      }
+      #dir-c .hero p {
+        opacity: 0.6;
+        font-size: 14px;
+        margin-top: 8px;
+      }
+      #dir-c .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: #3a2f24;
+        margin-top: 30px;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      #dir-c .kpi {
+        background: #2c241c;
+        padding: 18px 20px;
+        border-top: 3px solid var(--c, var(--laranja));
+      }
+      #dir-c .kpi .lbl {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        opacity: 0.55;
+      }
+      #dir-c .kpi .num {
+        font-size: 36px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-top: 6px;
+      }
+      #dir-c .body {
+        padding: 34px 44px;
+        display: grid;
+        grid-template-columns: 1.25fr 1fr;
+        gap: 24px;
+      }
+      #dir-c .card {
+        background: #fff;
+        border: 1px solid #e0d6c6;
+        border-radius: 14px;
+        padding: 24px;
+      }
+      #dir-c .card h2 {
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      #dir-c .row {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 13px 0;
+        border-bottom: 1px solid #efe7da;
+      }
+      #dir-c .row:last-child {
+        border-bottom: 0;
+      }
+      #dir-c .row .terr {
+        width: 5px;
+        height: 32px;
+        border-radius: 3px;
+        flex: none;
+      }
+      #dir-c .row .name {
+        font-weight: 800;
+        font-size: 14px;
+      }
+      #dir-c .row .unit {
+        font-size: 11px;
+        color: #9a8d78;
+        font-weight: 700;
+      }
+      #dir-c .row .when {
+        margin-left: auto;
+        font-size: 11px;
+        color: #b6a890;
+      }
+      #dir-c .journey {
+        display: flex;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+      #dir-c .jstep {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      #dir-c .jstep .dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 12px;
+        background: #ece3d4;
+        color: #b0a085;
+      }
+      #dir-c .jstep.done .dot {
+        background: #241c16;
+        color: var(--laranja);
+      }
+      #dir-c .jstep .t {
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #dir-c .jstep.todo .t {
+        color: #b0a085;
+      }
+      #dir-c .jline {
+        flex: 1;
+        height: 2px;
+        background: #ddd2c0;
+        margin: 0 10px;
+      }
+      #dir-c .jline.done {
+        background: #241c16;
+      }
+      #dir-c .badge {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 5px 12px;
+        border-radius: 6px;
+      }
+      #dir-c .btns {
+        display: flex;
+        gap: 11px;
+        margin-top: 20px;
+      }
+      #dir-c .btn-p {
+        background: #241c16;
+        color: var(--laranja);
+        border: 0;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 13px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      #dir-c .btn-s {
+        background: transparent;
+        color: #241c16;
+        border: 1.5px solid #cabfae;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 13px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="switch">
+      <strong>IFP Connect · Preview de design</strong>
+      <small>escolha a direção</small>
+      <button data-go="a" class="on">A · Editorial</button>
+      <button data-go="b">B · Painel Vivo</button>
+      <button data-go="c">C · Tinta &amp; Território</button>
+    </div>
+
+    <!-- ===================== A ===================== -->
+    <section class="stage on" id="dir-a">
+      <div class="wrap">
+        <div class="top anim">
+          <img src="/logo/ifp-symbol.png" alt="IFP" />
+          <span class="brand">IFP Connect</span>
+          <nav class="nav">
+            <a class="active">Visão geral</a><a>Cidadãos</a><a>Triagens</a><a>Unidades</a>
+          </nav>
+        </div>
+        <p class="kicker anim">Serviço Social · Visão geral</p>
+        <h1 class="anim">Olá, Erick.<br />62 famílias atendidas este mês.</h1>
+        <p class="lede anim">
+          Resumo consolidado das quatro unidades do Instituto Família Pôncio — cada número é uma
+          história acompanhada de perto.
+        </p>
+
+        <div class="kpis anim">
+          <div class="kpi">
+            <div class="lbl">Cidadãos</div>
+            <div class="num">892</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Ativos</div>
+            <div class="num">847</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Triagens</div>
+            <div class="num">15</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Famílias</div>
+            <div class="num">62</div>
+          </div>
+        </div>
+
+        <div class="cols anim">
+          <div>
+            <h2>Triagens pendentes</h2>
+            <div class="row">
+              <span class="tick" style="background: var(--medico)"></span>
+              <span class="name">Maria Aparecida da Silva</span><span class="unit">Médico</span>
+            </div>
+            <div class="row">
+              <span class="tick" style="background: var(--capacitacao)"></span>
+              <span class="name">João Pedro Almeida</span><span class="unit">Capacitação</span>
+            </div>
+            <div class="row">
+              <span class="tick" style="background: var(--recreativo)"></span>
+              <span class="name">Família Costa</span><span class="unit">Recreativo</span>
+            </div>
+            <div class="row">
+              <span class="tick" style="background: var(--esportivo)"></span>
+              <span class="name">Lucas Ferreira</span><span class="unit">Esportivo</span>
+            </div>
+          </div>
+          <div>
+            <h2>Triagem · Maria Aparecida</h2>
+            <div class="journey">
+              <div class="step done">
+                <span class="dot">✓</span><span class="st-l">Ficha criada</span>
+              </div>
+              <div class="step done">
+                <span class="dot">✓</span><span class="st-l">Entrevista</span>
+              </div>
+              <div class="step done">
+                <span class="dot">3</span><span class="st-l">Elegibilidade</span>
+              </div>
+              <div class="step todo">
+                <span class="dot">4</span><span class="st-l">Concluída</span>
+              </div>
+            </div>
+            <div class="btns">
+              <button class="btn-p">Concluir triagem</button>
+              <button class="btn-s">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== B ===================== -->
+    <section class="stage" id="dir-b">
+      <aside class="side anim">
+        <div class="logo"><img src="/logo/ifp-symbol.png" alt="IFP" /><b>IFP Connect</b></div>
+        <a class="active"><span class="ic"></span>Visão geral</a>
+        <a><span class="ic"></span>Cidadãos</a>
+        <a><span class="ic"></span>Triagens</a>
+        <a><span class="ic"></span>Serviço Social</a>
+        <a><span class="ic"></span>Unidades</a>
+      </aside>
+      <main class="main">
+        <div class="hd anim">
+          <h1>Olá, Erick</h1>
+          <p>Resumo consolidado das 4 unidades do Instituto Família Pôncio.</p>
+        </div>
+        <div class="kpis anim">
+          <div class="kpi" style="--c: var(--laranja)">
+            <div class="lbl">Total de cidadãos</div>
+            <div class="num">892</div>
+            <div class="d">+34 este mês</div>
+          </div>
+          <div class="kpi" style="--c: var(--medico)">
+            <div class="lbl">Cidadãos ativos</div>
+            <div class="num">847</div>
+            <div class="d">95% da base</div>
+          </div>
+          <div class="kpi" style="--c: var(--capacitacao)">
+            <div class="lbl">Triagens pendentes</div>
+            <div class="num">15</div>
+            <div class="d">esta semana</div>
+          </div>
+          <div class="kpi" style="--c: var(--recreativo)">
+            <div class="lbl">Famílias</div>
+            <div class="num">62</div>
+            <div class="d">+18%</div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="card anim">
+            <h2>Triagens pendentes</h2>
+            <div class="row">
+              <span class="av" style="background: var(--medico)">MA</span>
+              <span class="name">Maria Aparecida da Silva</span><span class="chip">Médico</span>
+            </div>
+            <div class="row">
+              <span class="av" style="background: var(--capacitacao)">JP</span>
+              <span class="name">João Pedro Almeida</span><span class="chip">Capacitação</span>
+            </div>
+            <div class="row">
+              <span class="av" style="background: var(--recreativo)">FC</span>
+              <span class="name">Família Costa</span><span class="chip">Recreativo</span>
+            </div>
+            <div class="row">
+              <span class="av" style="background: var(--esportivo)">LF</span>
+              <span class="name">Lucas Ferreira</span><span class="chip">Esportivo</span>
+            </div>
+          </div>
+          <div class="card anim">
+            <h2>Triagem · Maria Aparecida</h2>
+            <div class="journey">
+              <div class="jstep done">
+                <div class="bar"></div>
+                <div class="t">Aberta</div>
+              </div>
+              <div class="jstep done">
+                <div class="bar"></div>
+                <div class="t">Entrevista</div>
+              </div>
+              <div class="jstep done">
+                <div class="bar"></div>
+                <div class="t">Elegível</div>
+              </div>
+              <div class="jstep">
+                <div class="bar"></div>
+                <div class="t">Concluída</div>
+              </div>
+            </div>
+            <span class="badge" style="background: rgba(16, 194, 187, 0.14); color: #0a8a85"
+              >Centro Médico · aprovado</span
+            >
+            <div class="btns">
+              <button class="btn-p">Concluir triagem</button>
+              <button class="btn-s">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ===================== C ===================== -->
+    <section class="stage" id="dir-c">
+      <aside class="side anim">
+        <div class="logo"><img src="/logo/ifp-symbol.png" alt="IFP" /><b>IFP Connect</b></div>
+        <div class="grp">Plataforma</div>
+        <a class="active"><span class="ic" style="background: var(--laranja)"></span>Visão geral</a>
+        <a><span class="ic" style="background: #6b5b45"></span>Cidadãos</a>
+        <a><span class="ic" style="background: #6b5b45"></span>Triagens</a>
+        <div class="grp">Territórios</div>
+        <a><span class="ic" style="background: var(--medico)"></span>Médico</a>
+        <a><span class="ic" style="background: var(--capacitacao)"></span>Capacitação</a>
+        <a><span class="ic" style="background: var(--esportivo)"></span>Esportivo</a>
+        <a><span class="ic" style="background: var(--recreativo)"></span>Recreativo</a>
+      </aside>
+      <main class="main">
+        <div class="hero anim">
+          <div class="kick">Serviço Social · Visão geral</div>
+          <h1>Olá, Erick</h1>
+          <p>Quatro territórios, uma plataforma. O Instituto Família Pôncio em números.</p>
+          <div class="kpis">
+            <div class="kpi" style="--c: var(--laranja)">
+              <div class="lbl">Cidadãos</div>
+              <div class="num">892</div>
+            </div>
+            <div class="kpi" style="--c: var(--medico)">
+              <div class="lbl">Ativos</div>
+              <div class="num">847</div>
+            </div>
+            <div class="kpi" style="--c: var(--capacitacao)">
+              <div class="lbl">Triagens</div>
+              <div class="num">15</div>
+            </div>
+            <div class="kpi" style="--c: var(--recreativo)">
+              <div class="lbl">Famílias</div>
+              <div class="num">62</div>
+            </div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="card anim">
+            <h2>Triagens pendentes</h2>
+            <div class="row">
+              <span class="terr" style="background: var(--medico)"></span>
+              <div>
+                <div class="name">Maria Aparecida da Silva</div>
+                <div class="unit">Centro Médico</div>
+              </div>
+              <span class="when">aberta 24/05</span>
+            </div>
+            <div class="row">
+              <span class="terr" style="background: var(--capacitacao)"></span>
+              <div>
+                <div class="name">João Pedro Almeida</div>
+                <div class="unit">Capacitação</div>
+              </div>
+              <span class="when">aberta 23/05</span>
+            </div>
+            <div class="row">
+              <span class="terr" style="background: var(--recreativo)"></span>
+              <div>
+                <div class="name">Família Costa</div>
+                <div class="unit">Recreativo</div>
+              </div>
+              <span class="when">aberta 22/05</span>
+            </div>
+          </div>
+          <div class="card anim">
+            <h2>Triagem · Maria Aparecida</h2>
+            <div class="journey">
+              <div class="jstep done"><span class="dot">✓</span><span class="t">Aberta</span></div>
+              <div class="jline done"></div>
+              <div class="jstep done"><span class="dot">✓</span><span class="t">Entrev.</span></div>
+              <div class="jline done"></div>
+              <div class="jstep done"><span class="dot">3</span><span class="t">Elegív.</span></div>
+              <div class="jline"></div>
+              <div class="jstep todo"><span class="dot">4</span><span class="t">Concl.</span></div>
+            </div>
+            <span class="badge" style="background: var(--medico); color: #fff"
+              >Centro Médico · aprovado</span
+            >
+            <div class="btns">
+              <button class="btn-p">Concluir triagem</button>
+              <button class="btn-s">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <script>
+      const stages = document.querySelectorAll(".stage");
+      const btns = document.querySelectorAll(".switch button");
+      const bg = { a: "#f5ecdb", b: "#f4f5f8", c: "#efe9df" };
+      btns.forEach((b) => {
+        b.addEventListener("click", () => {
+          const go = b.dataset.go;
+          btns.forEach((x) => x.classList.toggle("on", x === b));
+          stages.forEach((s) => s.classList.toggle("on", s.id === "dir-" + go));
+          document.body.style.background = bg[go];
+          window.scrollTo({ top: 0 });
+        });
+      });
+    </script>
+  </body>
+</html>
