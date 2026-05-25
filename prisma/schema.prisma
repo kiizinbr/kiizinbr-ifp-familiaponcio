@@ -31,6 +31,10 @@ model User {
   triagensConduzidas      Triagem[]              @relation("TriagemAssistente")
   elegibilidadesDecididas ElegibilidadeUnidade[] @relation("ElegibilidadeDecidida")
 
+  // Funil (Fatia A) — reverse relations
+  vagasCriadas        Vaga[]        @relation("VagaCriadaPor")
+  agendamentosCriados Agendamento[] @relation("AgendamentoCriadoPor")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -226,9 +230,10 @@ model Cidadao {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  enderecos Endereco[]
-  anexos    AnexoCidadao[]
-  triagens  Triagem[]
+  enderecos    Endereco[]
+  anexos       AnexoCidadao[]
+  triagens     Triagem[]
+  agendamentos Agendamento[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -341,4 +346,64 @@ model ElegibilidadeUnidade {
 
   @@unique([triagemId, unidade])
   @@index([unidade, status])
+}
+
+// Funil de captação — Fatia A (agendamento interno)
+// Spec: docs/superpowers/specs/2026-05-25-funnel-agendamento-whatsapp-design.md
+
+enum StatusVaga {
+  aberta
+  pausada
+  encerrada
+}
+
+enum StatusAgendamento {
+  agendado
+  confirmado
+  realizado
+  cancelado
+  faltou
+}
+
+/// Vaga liberada por uma unidade — capacidade (slotsTotais) + janela de divulgação.
+model Vaga {
+  id          String     @id @default(cuid())
+  unidade     String // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo'
+  titulo      String
+  descricao   String?    @db.Text
+  slotsTotais Int        @default(0)
+  abreEm      DateTime?
+  fechaEm     DateTime?
+  status      StatusVaga @default(aberta)
+  criadoPorId String
+  criadoPor   User       @relation("VagaCriadaPor", fields: [criadoPorId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  agendamentos Agendamento[]
+
+  @@index([unidade, status])
+}
+
+/// Agendamento de entrevista de um interessado (pode ainda NÃO ser Cidadao).
+/// `cidadaoId` é setado quando a ficha é criada a partir do agendamento (materialização).
+model Agendamento {
+  id              String            @id @default(cuid())
+  vagaId          String
+  vaga            Vaga              @relation(fields: [vagaId], references: [id], onDelete: Cascade)
+  nomeInteressado String
+  telefone        String
+  horario         DateTime
+  status          StatusAgendamento @default(agendado)
+  consenteContato Boolean           @default(false)
+  observacoes     String?           @db.Text
+  criadoPorId     String?
+  criadoPor       User?             @relation("AgendamentoCriadoPor", fields: [criadoPorId], references: [id])
+  cidadaoId       String?
+  cidadao         Cidadao?          @relation(fields: [cidadaoId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([vagaId, status])
+  @@index([cidadaoId])
 }
