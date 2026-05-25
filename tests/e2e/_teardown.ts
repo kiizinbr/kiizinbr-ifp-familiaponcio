@@ -12,6 +12,8 @@ import { execFileSync } from "node:child_process";
 const SQL = [
   `DELETE FROM "AuditLog" WHERE "rootEntityId" IN (SELECT id FROM "Cidadao" WHERE "nomeCompleto" LIKE 'Teste E2E%' OR "nomeCompleto" LIKE 'Triagem E2E%')`,
   `DELETE FROM "Cidadao" WHERE "nomeCompleto" LIKE 'Teste E2E%' OR "nomeCompleto" LIKE 'Triagem E2E%'`,
+  // Vagas de teste (cascade limpa os Agendamentos)
+  `DELETE FROM "Vaga" WHERE "titulo" LIKE 'Vaga E2E%'`,
 ].join("; ");
 
 export default function globalTeardown() {
