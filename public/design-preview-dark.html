@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IFP Connect — Preview escuro premium</title>
+    <style>
+      @font-face {
+        font-family: "Garet";
+        font-weight: 100 500;
+        src: url("/fonts/garet/Garet-Book.woff") format("woff");
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Garet";
+        font-weight: 600 900;
+        src: url("/fonts/garet/Garet-Heavy.woff") format("woff");
+        font-display: swap;
+      }
+
+      :root {
+        --laranja: 255 119 46;
+        --medico: 16 194 187;
+        --capacitacao: 234 110 40;
+        --esportivo: 196 90 40;
+        --recreativo: 0 168 162;
+        --ink: #f4ece0;
+        --muted: #a89b89;
+        --line: rgba(255, 255, 255, 0.08);
+        --glass: rgba(255, 255, 255, 0.045);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Garet", system-ui, sans-serif;
+        color: var(--ink);
+        background-color: #16120d;
+        background-image:
+          radial-gradient(60% 50% at 100% 0%, rgba(var(--laranja), 0.18), transparent 70%),
+          radial-gradient(55% 55% at 0% 100%, rgba(var(--medico), 0.14), transparent 70%),
+          radial-gradient(45% 45% at 50% 40%, rgba(var(--recreativo), 0.08), transparent 70%);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        position: relative;
+      }
+      /* grão sutil */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.05;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 264px 1fr;
+        min-height: 100vh;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ============== SIDEBAR (dark glass) ============== */
+      .side {
+        padding: 26px 18px;
+        border-right: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 8px 26px;
+      }
+      .brand .halo {
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      .brand .halo::before {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(var(--laranja), 0.55), transparent 70%);
+        filter: blur(8px);
+      }
+      .brand img {
+        height: 38px;
+        position: relative;
+      }
+      .brand b {
+        font-size: 17px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .grp {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #6f6557;
+        margin: 20px 12px 8px;
+      }
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #cdbfab;
+        font-weight: 700;
+        font-size: 14px;
+        transition: 0.18s;
+        border: 1px solid transparent;
+      }
+      .nav a .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #5b5043;
+      }
+      .nav a:hover {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .nav a.on {
+        color: #fff;
+        background: linear-gradient(90deg, rgba(var(--laranja), 0.22), rgba(var(--laranja), 0.04));
+        border-color: rgba(var(--laranja), 0.4);
+        box-shadow: 0 6px 24px -10px rgba(var(--laranja), 0.8);
+      }
+      .nav a.on .dot {
+        background: rgb(var(--laranja));
+        box-shadow: 0 0 10px rgb(var(--laranja));
+      }
+      .u-medico .dot {
+        background: rgb(var(--medico)) !important;
+        box-shadow: 0 0 8px rgba(var(--medico), 0.8);
+      }
+      .u-capacitacao .dot {
+        background: rgb(var(--capacitacao)) !important;
+        box-shadow: 0 0 8px rgba(var(--capacitacao), 0.8);
+      }
+      .u-esportivo .dot {
+        background: rgb(var(--esportivo)) !important;
+        box-shadow: 0 0 8px rgba(var(--esportivo), 0.8);
+      }
+      .u-recreativo .dot {
+        background: rgb(var(--recreativo)) !important;
+        box-shadow: 0 0 8px rgba(var(--recreativo), 0.8);
+      }
+      .side .me {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--line);
+      }
+      .side .me .av {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgb(var(--laranja)), rgb(var(--esportivo)));
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 13px;
+        color: #fff;
+      }
+      .side .me .nm {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .side .me .rl {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      /* ============== MAIN ============== */
+      .main {
+        padding: 40px 46px 80px;
+      }
+      .anim {
+        animation: up 0.6s both cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .anim:nth-child(2) {
+        animation-delay: 0.07s;
+      }
+      .anim:nth-child(3) {
+        animation-delay: 0.14s;
+      }
+      .anim:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+      @keyframes up {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+      }
+
+      .kick {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgb(var(--laranja));
+      }
+      h1 {
+        font-size: 44px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        margin-top: 10px;
+        background: linear-gradient(180deg, #fff, #cfc2ad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 15px;
+        margin-top: 12px;
+      }
+
+      .glass {
+        background: var(--glass);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        backdrop-filter: blur(14px);
+        box-shadow:
+          0 30px 60px -30px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 34px;
+      }
+      .kpi {
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .kpi .orb {
+        position: absolute;
+        right: -24px;
+        top: -24px;
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(var(--c), 0.55), transparent 68%);
+        filter: blur(6px);
+      }
+      .kpi .lbl {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+        position: relative;
+      }
+      .kpi .num {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-top: 8px;
+        position: relative;
+      }
+      .kpi .d {
+        font-size: 12px;
+        font-weight: 700;
+        color: rgb(var(--medico));
+        margin-top: 4px;
+        position: relative;
+      }
+      .kpi.ring {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .ringchart {
+        width: 66px;
+        height: 66px;
+        border-radius: 50%;
+        flex: none;
+        background: conic-gradient(rgb(var(--medico)) 0 95%, rgba(255, 255, 255, 0.08) 95% 100%);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 0 20px -4px rgba(var(--medico), 0.7);
+      }
+      .ringchart::after {
+        content: "95%";
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #1a150f;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .cols {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .card {
+        padding: 24px;
+      }
+      .card h2 {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 18px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .row .av {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 12px;
+        color: #fff;
+      }
+      .row .name {
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .row .unit {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .row .when {
+        margin-left: auto;
+        font-size: 12px;
+        color: #75695a;
+      }
+
+      .journey {
+        display: flex;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+      .jstep {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .jstep .b {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #6f6557;
+      }
+      .jstep.done .b {
+        background: linear-gradient(135deg, rgb(var(--laranja)), rgb(var(--esportivo)));
+        color: #fff;
+        box-shadow: 0 0 16px -2px rgba(var(--laranja), 0.8);
+      }
+      .jstep .t {
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .jstep.todo .t {
+        color: #6f6557;
+      }
+      .jline {
+        flex: 1;
+        height: 2px;
+        margin: 0 8px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .jline.done {
+        background: linear-gradient(90deg, rgb(var(--laranja)), rgba(var(--laranja), 0.2));
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: rgba(var(--medico), 0.14);
+        color: rgb(var(--medico));
+        border: 1px solid rgba(var(--medico), 0.3);
+      }
+      .badge::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgb(var(--medico));
+        box-shadow: 0 0 8px rgb(var(--medico));
+      }
+      .btns {
+        display: flex;
+        gap: 12px;
+        margin-top: 22px;
+      }
+      .btn-p {
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 13px 26px;
+        border-radius: 14px;
+        border: 0;
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(135deg, rgb(var(--laranja)), #ff9a5e);
+        box-shadow:
+          0 10px 34px -8px rgba(var(--laranja), 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transition: 0.18s;
+      }
+      .btn-p:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px -8px rgba(var(--laranja), 0.85);
+      }
+      .btn-s {
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 13px 24px;
+        border-radius: 14px;
+        cursor: pointer;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+      }
+      .tag {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 10;
+        font-size: 11px;
+        color: var(--muted);
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--line);
+        padding: 7px 12px;
+        border-radius: 999px;
+        backdrop-filter: blur(8px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="side">
+        <div class="brand">
+          <span class="halo"><img src="/logo/ifp-symbol.png" alt="IFP" /></span>
+          <b>IFP Connect</b>
+        </div>
+        <div class="grp">Plataforma</div>
+        <nav class="nav">
+          <a class="on"><span class="dot"></span>Visão geral</a>
+          <a><span class="dot"></span>Cidadãos</a>
+          <a><span class="dot"></span>Triagens</a>
+          <a><span class="dot"></span>Serviço Social</a>
+        </nav>
+        <div class="grp">Territórios</div>
+        <nav class="nav">
+          <a class="u-medico"><span class="dot"></span>Centro Médico</a>
+          <a class="u-capacitacao"><span class="dot"></span>Capacitação</a>
+          <a class="u-esportivo"><span class="dot"></span>Esportivo</a>
+          <a class="u-recreativo"><span class="dot"></span>Recreativo</a>
+        </nav>
+        <div class="me">
+          <span class="av">ER</span>
+          <div>
+            <div class="nm">Erick Ramos</div>
+            <div class="rl">Coordenação geral</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="anim">
+          <div class="kick">Serviço Social · Visão geral</div>
+          <h1>Olá, Erick</h1>
+          <p class="sub">
+            Quatro territórios, uma plataforma. O Instituto Família Pôncio em tempo real.
+          </p>
+        </header>
+
+        <section class="kpis anim">
+          <div class="kpi glass" style="--c: var(--laranja)">
+            <span class="orb"></span>
+            <div class="lbl">Total de cidadãos</div>
+            <div class="num">892</div>
+            <div class="d">+34 este mês</div>
+          </div>
+          <div class="kpi glass ring">
+            <div class="ringchart"></div>
+            <div>
+              <div class="lbl">Cidadãos ativos</div>
+              <div class="num" style="font-size: 28px">847</div>
+            </div>
+          </div>
+          <div class="kpi glass" style="--c: var(--capacitacao)">
+            <span class="orb"></span>
+            <div class="lbl">Triagens pendentes</div>
+            <div class="num">15</div>
+            <div class="d" style="color: var(--muted)">esta semana</div>
+          </div>
+          <div class="kpi glass" style="--c: var(--recreativo)">
+            <span class="orb"></span>
+            <div class="lbl">Famílias atendidas</div>
+            <div class="num">62</div>
+            <div class="d">+18%</div>
+          </div>
+        </section>
+
+        <section class="cols">
+          <div class="card glass anim">
+            <h2>Triagens pendentes</h2>
+            <div class="row">
+              <span
+                class="av"
+                style="background: linear-gradient(135deg, rgb(var(--medico)), #0a8a85)"
+                >MA</span
+              >
+              <div>
+                <div class="name">Maria Aparecida da Silva</div>
+                <div class="unit">Centro Médico</div>
+              </div>
+              <span class="when">aberta 24/05</span>
+            </div>
+            <div class="row">
+              <span
+                class="av"
+                style="background: linear-gradient(135deg, rgb(var(--capacitacao)), #8f3a0b)"
+                >JP</span
+              >
+              <div>
+                <div class="name">João Pedro Almeida</div>
+                <div class="unit">Capacitação</div>
+              </div>
+              <span class="when">aberta 23/05</span>
+            </div>
+            <div class="row">
+              <span
+                class="av"
+                style="background: linear-gradient(135deg, rgb(var(--recreativo)), #004f4c)"
+                >FC</span
+              >
+              <div>
+                <div class="name">Família Costa</div>
+                <div class="unit">Recreativo</div>
+              </div>
+              <span class="when">aberta 22/05</span>
+            </div>
+            <div class="row">
+              <span
+                class="av"
+                style="background: linear-gradient(135deg, rgb(var(--esportivo)), #4d1d02)"
+                >LF</span
+              >
+              <div>
+                <div class="name">Lucas Ferreira</div>
+                <div class="unit">Esportivo</div>
+              </div>
+              <span class="when">aberta 21/05</span>
+            </div>
+          </div>
+
+          <div class="card glass anim">
+            <h2>Triagem · Maria Aparecida</h2>
+            <div class="journey">
+              <div class="jstep done"><span class="b">✓</span><span class="t">Aberta</span></div>
+              <div class="jline done"></div>
+              <div class="jstep done"><span class="b">✓</span><span class="t">Entrev.</span></div>
+              <div class="jline done"></div>
+              <div class="jstep done"><span class="b">3</span><span class="t">Elegív.</span></div>
+              <div class="jline"></div>
+              <div class="jstep todo"><span class="b">4</span><span class="t">Concl.</span></div>
+            </div>
+            <span class="badge">Centro Médico · aprovado</span>
+            <div class="btns">
+              <button class="btn-p">Concluir triagem</button>
+              <button class="btn-s">Salvar</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div class="tag">IFP Connect · direção escuro premium</div>
+  </body>
+</html>
