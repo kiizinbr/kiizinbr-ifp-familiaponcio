@@ -65,6 +65,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
     "profissional",
     "recepcao",
   );
+  const podeTriagem = hasAnyRole(session, "super_admin", "gestor_geral", "social");
 
   return (
     <AppShell session={session}>
@@ -270,6 +271,17 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
             <Field label="Cadastrado em" value={formatDate(cidadao.createdAt)} />
             <Field label="Última atualização" value={formatDate(cidadao.updatedAt)} />
           </Section>
+
+          {podeTriagem && (
+            <Section title="Triagem social" hint="Entrevista e elegibilidade por unidade">
+              <Link
+                href={`/app/cidadaos/${cidadao.id}/triagem` as Route}
+                className="text-sm font-medium text-[rgb(var(--ifp-laranja))] hover:underline"
+              >
+                Abrir / ver triagem →
+              </Link>
+            </Section>
+          )}
 
           <Section title="Histórico" hint="Eventos de criação, edição e anexos desta ficha">
             <Link
