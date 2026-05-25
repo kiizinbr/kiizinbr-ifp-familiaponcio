@@ -10,7 +10,21 @@
 
 O Plano 4 do MVP é a **Triagem Social + Fluxo de aprovação multi-unidade** — o workflow da Regina (Serviço Social): entrevista o cidadão, registra parecer socioeconômico, e libera/encaminha pra cada unidade. Hoje o dashboard social (`/app/social`) mostra KPIs **hardcoded** (números fake); não existe nenhuma estrutura de triagem no banco.
 
-O Plano 4 inteiro é grande e parte dele — **as regras de elegibilidade** (que renda/idade qualifica pra cada unidade) — é conhecimento de domínio da Regina, que ainda não foi levantado. Por decisão do Erick (2026-05-24), esta spec cobre só a **fatia estrutural**: o que dá pra construir sem inventar domínio. As regras de elegibilidade (auto-sugestão de unidades) entram numa fatia posterior, quando a Regina passar os critérios.
+### Funil real (contexto do Erick 2026-05-24)
+
+O fluxo de ponta a ponta, como o IFP opera:
+
+1. IFP **libera vagas** numa unidade.
+2. Divulga — **Instagram** principalmente, mas sem regra rígida: o **link é compartilhável** (alguém repassa via WhatsApp pra outro, tudo bem).
+3. Interessado **acessa o link** e **agenda a entrevista** — esse é o **primeiro contato** dele com a assistente social (Regina + equipe).
+4. **Na entrevista**, a assistente social define se a pessoa está **apta ou não** → é a **triagem**.
+5. Marcação de consulta normalmente **presencial + via WhatsApp**, conduzida pelo **time de callcenter** (role `recepcao`/callcenter — ex.: `maria.callcenter`).
+
+Daí a importância do **WhatsApp API** que o Erick citou no início do projeto: link de divulgação, lembrete/confirmação de agendamento, marcação de consulta.
+
+### Recorte desta spec
+
+O Plano 4 inteiro é grande e parte dele depende de coisas que NÃO podem ser decididas/construídas sem o Erick: **WhatsApp API** (provedor + credenciais), **link público + auto-agendamento** (exige app público — só no deploy/Plano 8), e **regras de elegibilidade** (domínio da Regina). Por decisão do Erick (2026-05-24), esta spec cobre a **fatia estrutural construível agora sem essas dependências**: o **núcleo da triagem** = a *entrevista* da Regina sobre uma ficha existente (mesmo que rascunho). O funil upstream (vaga → link → agendamento) e o WhatsApp encaixam por cima depois, sem invalidar este núcleo.
 
 **Resultado esperado:** a Regina consegue abrir uma triagem num cidadão, registrar a entrevista, concluir, e decidir manualmente a elegibilidade por unidade; o gestor da unidade vê as aprovações da sua unidade; tudo aparece na timeline do cidadão (via aggregate root do Plano 3).
 
@@ -119,8 +133,13 @@ Trocar os 4 `KpiCard` hardcoded de `/app/social/page.tsx` por dados reais: conta
 3. Manual: como `regina@familiaponcio.org.br`, abrir triagem num cidadão seedado, concluir, aprovar unidade; confirmar evento na timeline e `statusCadastro=ativo` no psql.
 4. **Push via git nativo do Windows** (wslrelay trava push do WSL — ver [[feedback-wslrelay-postgres]]).
 
-## Aberto / próximas fatias
-- Regras de elegibilidade automáticas (renda/idade/vaga) — **precisa Regina**.
-- Consentimento LGPD (Plano 5).
-- Notificação por e-mail.
-- Recepção cria rascunho mínimo (muda o fluxo de criação atual).
+## Aberto / próximas fatias (precisam de decisão do Erick / domínio / deploy)
+
+Tudo abaixo é o **upstream do funil** e integrações — fora desta fatia estrutural por dependerem de coisas que não dá pra decidir/construir sozinho:
+
+- **WhatsApp API** — escolher provedor (Meta WhatsApp Cloud API / Twilio / Z-API), obter credenciais + número aprovado. Usos: link de divulgação, confirmação/lembrete de agendamento, marcação de consulta (callcenter). Desenhar como um *channel* abstrato (interface `NotificationChannel`) pra plugar sem reescrever.
+- **Link público de vaga + auto-agendamento** — página pública onde o interessado agenda a entrevista. Exige app público (HTTPS/domínio = Plano 8) + decisão de segurança (rate-limit, captcha, dados mínimos coletados).
+- **Modelo `Vaga` + `Agendamento`** — gestão de vagas liberadas por unidade e agendamento de entrevista (com slot/horário). Semântica a fechar com Erick (vaga tem limite? agenda da Regina? quem confirma?). Modelo esboçado quando ele confirmar.
+- **Regras de elegibilidade automáticas** (renda/idade/vaga) — **precisa Regina** passar os critérios.
+- **Consentimento LGPD** versionado (golden path passo 2) — Plano 5.
+- **Recepção cria rascunho mínimo** — muda o fluxo de criação atual; por ora `statusCadastro` default `ativo`.
