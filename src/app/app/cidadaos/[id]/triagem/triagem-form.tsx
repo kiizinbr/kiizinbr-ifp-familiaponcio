@@ -24,10 +24,10 @@ const STATUS_OPS = [
 ];
 
 const STATUS_BADGE: Record<string, string> = {
-  pendente: "bg-slate-100 text-slate-600",
-  aprovado: "bg-emerald-100 text-emerald-700",
-  negado: "bg-red-100 text-red-700",
-  encaminhado: "bg-amber-100 text-amber-700",
+  pendente: "bg-slate-100 text-slate-500 ring-slate-200",
+  aprovado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  negado: "bg-rose-50 text-rose-700 ring-rose-200",
+  encaminhado: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
 export interface TriagemData {
@@ -56,12 +56,53 @@ export function AbrirTriagemButton({ cidadaoId }: { cidadaoId: string }) {
             else setErro(r.error);
           })
         }
-        className="rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--ifp-laranja))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-laranja))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
       >
         {pending ? "Abrindo…" : "Abrir triagem"}
+        <span aria-hidden>→</span>
       </button>
-      {erro && <p className="mt-2 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mt-2 text-sm text-rose-600">{erro}</p>}
     </div>
+  );
+}
+
+/** Jornada da triagem: Aberta → Entrevista → Elegibilidade → Concluída. */
+function Jornada({ triagem }: { triagem: TriagemData }) {
+  const temEntrevista = Boolean(triagem.parecer || triagem.dataEntrevista);
+  const temDecisao = triagem.elegibilidades.some((e) => e.status !== "pendente");
+  const concluida = triagem.status === "concluida";
+
+  const passos = [
+    { label: "Aberta", done: true },
+    { label: "Entrevista", done: temEntrevista },
+    { label: "Elegibilidade", done: temDecisao },
+    { label: "Concluída", done: concluida },
+  ];
+
+  return (
+    <ol className="flex items-center gap-1 text-xs">
+      {passos.map((p, i) => (
+        <li key={p.label} className="flex flex-1 items-center gap-1">
+          <span
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-2 transition ${
+              p.done
+                ? "bg-[rgb(var(--ifp-laranja))] text-white ring-[rgb(var(--ifp-laranja))]"
+                : "bg-white text-slate-400 ring-slate-200"
+            }`}
+          >
+            {p.done ? "✓" : i + 1}
+          </span>
+          <span className={p.done ? "font-medium text-slate-700" : "text-slate-400"}>
+            {p.label}
+          </span>
+          {i < passos.length - 1 && (
+            <span
+              className={`mx-1 h-px flex-1 ${passos[i + 1]?.done ? "bg-[rgb(var(--ifp-laranja))]" : "bg-slate-200"}`}
+            />
+          )}
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -95,25 +136,37 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
     });
   }
 
+  const inputCls =
+    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20 disabled:bg-slate-50 disabled:text-slate-500";
+
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">Entrevista</h2>
+      <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <Jornada triagem={triagem} />
+      </div>
+
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-[rgb(var(--ifp-laranja))]/8 to-transparent px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="h-8 w-1 rounded-full bg-[rgb(var(--ifp-laranja))]" aria-hidden />
+            <h2 className="text-base font-semibold tracking-tight text-slate-900">Entrevista</h2>
+          </div>
           <span
-            className={`rounded px-2 py-0.5 text-xs font-medium ${
-              concluida ? "bg-violet-100 text-violet-700" : "bg-emerald-100 text-emerald-700"
+            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+              concluida
+                ? "bg-violet-50 text-violet-700 ring-violet-200"
+                : "bg-emerald-50 text-emerald-700 ring-emerald-200"
             }`}
           >
             {concluida ? "Concluída" : "Aberta"}
           </span>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-5 px-6 py-6">
           <div className="max-w-xs">
             <label
               htmlFor="data-entrevista"
-              className="mb-1 block text-xs font-medium text-slate-600"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase"
             >
               Data da entrevista
             </label>
@@ -123,11 +176,14 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
               value={dataEntrevista}
               disabled={concluida}
               onChange={(e) => setDataEntrevista(e.target.value)}
-              className="w-full rounded border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+              className={inputCls}
             />
           </div>
           <div>
-            <label htmlFor="parecer" className="mb-1 block text-xs font-medium text-slate-600">
+            <label
+              htmlFor="parecer"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase"
+            >
               Parecer
             </label>
             <textarea
@@ -137,11 +193,14 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
               disabled={concluida}
               onChange={(e) => setParecer(e.target.value)}
               placeholder="Avaliação socioeconômica e parecer da assistente social"
-              className="w-full rounded border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+              className={inputCls}
             />
           </div>
           <div>
-            <label htmlFor="observacoes" className="mb-1 block text-xs font-medium text-slate-600">
+            <label
+              htmlFor="observacoes"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase"
+            >
               Observações
             </label>
             <textarea
@@ -150,30 +209,31 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
               value={observacoes}
               disabled={concluida}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="w-full rounded border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+              className={inputCls}
             />
           </div>
-        </div>
 
-        {!concluida && (
-          <div className="mt-4 flex items-center gap-3">
-            <button
-              onClick={salvar}
-              disabled={saving}
-              className="rounded border border-slate-300 px-4 py-2 text-sm transition hover:bg-slate-50 disabled:opacity-60"
-            >
-              {saving ? "Salvando…" : "Salvar entrevista"}
-            </button>
-            <button
-              onClick={concluir}
-              disabled={closing}
-              className="rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
-            >
-              {closing ? "Concluindo…" : "Concluir triagem"}
-            </button>
-          </div>
-        )}
-        {msg && <p className="mt-3 text-sm text-slate-600">{msg}</p>}
+          {!concluida && (
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                onClick={salvar}
+                disabled={saving}
+                className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {saving ? "Salvando…" : "Salvar entrevista"}
+              </button>
+              <button
+                onClick={concluir}
+                disabled={closing}
+                className="rounded-full bg-[rgb(var(--ifp-laranja))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-laranja))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
+              >
+                {closing ? "Concluindo…" : "Concluir triagem"}
+              </button>
+              {msg && <p className="text-sm text-slate-600">{msg}</p>}
+            </div>
+          )}
+          {concluida && msg && <p className="text-sm text-slate-600">{msg}</p>}
+        </div>
       </section>
 
       <ElegibilidadeGrid triagem={triagem} />
@@ -183,16 +243,16 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
 
 function ElegibilidadeGrid({ triagem }: { triagem: TriagemData }) {
   return (
-    <section className="rounded-lg border bg-white p-6 shadow-sm">
-      <div className="mb-4">
-        <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 px-6 py-4">
+        <h2 className="text-base font-semibold tracking-tight text-slate-900">
           Elegibilidade por unidade
         </h2>
         <p className="mt-1 text-xs text-slate-500">
           Decisão manual da assistente social. Aprovar ao menos uma unidade ativa o cadastro.
         </p>
       </div>
-      <div className="space-y-3">
+      <div className="divide-y divide-slate-100">
         {UNIDADES.map((u) => {
           const atual = triagem.elegibilidades.find((e) => e.unidade === u.value);
           return (
@@ -242,17 +302,29 @@ function ElegibilidadeRow({
   return (
     <div
       data-testid={`eleg-row-${unidadeValue}`}
-      className="flex flex-wrap items-center gap-3 rounded border border-slate-200 p-3"
+      className="relative flex flex-wrap items-center gap-3 px-6 py-4 transition hover:bg-slate-50/60"
     >
-      <span className="w-44 text-sm font-medium text-slate-800">{unidadeLabel}</span>
-      <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[statusInicial]}`}>
+      <span
+        className="absolute top-0 bottom-0 left-0 w-1"
+        style={{ background: `rgb(var(--ifp-${unidadeValue}))` }}
+        aria-hidden
+      />
+      <span
+        className="h-2.5 w-2.5 shrink-0 rounded-full"
+        style={{ background: `rgb(var(--ifp-${unidadeValue}))` }}
+        aria-hidden
+      />
+      <span className="w-40 text-sm font-semibold text-slate-800">{unidadeLabel}</span>
+      <span
+        className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ${STATUS_BADGE[statusInicial]}`}
+      >
         {statusInicial}
       </span>
       <select
         aria-label={`Status ${unidadeLabel}`}
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 outline-none focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20"
       >
         {STATUS_OPS.map((o) => (
           <option key={o.value} value={o.value}>
@@ -265,16 +337,16 @@ function ElegibilidadeRow({
         value={motivo}
         onChange={(e) => setMotivo(e.target.value)}
         placeholder="Motivo (opcional)"
-        className="min-w-[160px] flex-1 rounded border border-slate-300 px-2 py-1.5 text-sm"
+        className="min-w-[160px] flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none placeholder:text-slate-400 focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20"
       />
       <button
         onClick={salvar}
         disabled={pending}
-        className="rounded border border-slate-300 px-3 py-1.5 text-sm transition hover:bg-slate-50 disabled:opacity-60"
+        className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white disabled:opacity-60"
       >
         {pending ? "…" : "Salvar"}
       </button>
-      {erro && <p className="w-full text-xs text-red-600">{erro}</p>}
+      {erro && <p className="w-full pl-4 text-xs text-rose-600">{erro}</p>}
     </div>
   );
 }
