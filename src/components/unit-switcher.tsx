@@ -22,27 +22,10 @@ function buildOptions(roles: RoleAssignment[], currentPath: string): SwitcherOpt
   const hasGlobal = roles.some((r) =>
     ["super_admin", "presidencia", "gestor_geral"].includes(r.name),
   );
-  const hasSocial = roles.some((r) => r.name === "social");
 
   const options: SwitcherOption[] = [];
 
-  if (hasGlobal) {
-    options.push({
-      label: "Visão geral",
-      href: "/app",
-      isActive: currentPath === "/app",
-    });
-  }
-
-  if (hasGlobal || hasSocial) {
-    options.push({
-      label: "Serviço Social",
-      href: "/app/social",
-      isActive: currentPath.startsWith("/app/social"),
-    });
-  }
-
-  // Unidades acessíveis
+  // Switcher é só de UNIDADES — Visão geral / Serviço Social vivem na nav lateral.
   const units: UnitScope[] = hasGlobal
     ? ["medico", "capacitacao", "esportivo", "recreativo"]
     : Array.from(new Set(roles.map((r) => r.unitScope).filter((u): u is UnitScope => Boolean(u))));
