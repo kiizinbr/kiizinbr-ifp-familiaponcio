@@ -101,6 +101,28 @@ container dev usa **5433**. Não tente trocar — Alterdata depende do 9.6.
 Playwright pode reclamar de OS não suportado. Spoofar `/etc/os-release` pra
 `24.04` (LTS noble) durante o `playwright install`, depois restaurar.
 
+### `git push` de dentro do WSL trava
+
+Mesmo `wslrelay` do Postgres: o upload de pack do `git push` (HTTPS) fica preso
+em I/O de rede e não completa, mesmo com `wsl --shutdown`. Um `curl https://github.com`
+funciona (GET simples passa), então "parece" que a rede está ok — mas o push trava.
+
+**Workaround (atual):** pushar pelo git NATIVO do Windows (o repo vive no FS Windows):
+
+```powershell
+git -C "C:\Users\Administrador\ifp-connect" push origin main
+```
+
+**Correção definitiva (recomendada):** configurar uma chave SSH pro GitHub. O SSH
+(porta 22) **conecta normal** pelo relay — só falta a chave registrada na conta.
+Com a chave, troca o remote pra SSH e o `git push` roda direto do WSL:
+
+```bash
+ssh-keygen -t ed25519 -C "ifp-dev"      # gera a chave
+# adicionar a pública em github.com/settings/keys
+git remote set-url origin git@github.com:kiizinbr/kiizinbr-ifp-familiaponcio.git
+```
+
 ## Documentação
 
 - Spec do MVP: `docs/superpowers/specs/2026-05-23-ifp-connect-mvp-design.md`
