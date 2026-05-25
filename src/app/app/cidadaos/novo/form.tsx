@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { TABS, type TabId } from "@/lib/cidadao-schema";
 import type { UnitScope } from "@/lib/rbac-types";
@@ -645,10 +645,14 @@ function Input({
   error?: string[];
   colSpan?: 1 | 2;
 }) {
+  const id = useId();
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-slate-600">
+        {label}
+      </label>
       <input
+        id={id}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -676,10 +680,14 @@ function Textarea({
   onChange: (v: string) => void;
   colSpan?: 1 | 2;
 }) {
+  const id = useId();
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-slate-600">
+        {label}
+      </label>
       <textarea
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
@@ -700,10 +708,14 @@ function Select({
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
 }) {
+  const id = useId();
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-slate-600">
+        {label}
+      </label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
