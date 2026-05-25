@@ -166,3 +166,35 @@ describe("buildHistoryTimeline — redação de campos sensíveis (Refinement B)
     expect(tl.find((x) => x.id === "u1")!.detalhe!.toLowerCase()).not.toContain("renda");
   });
 });
+
+describe("buildHistoryTimeline — eventos de triagem (Plano 4)", () => {
+  it("mapeia triagem_aberta e triagem_concluida como ações conhecidas", () => {
+    const rows = [
+      row({ id: "t1", action: "triagem_aberta", createdAt: new Date("2026-05-25T09:00:00Z") }),
+      row({ id: "t2", action: "triagem_concluida", createdAt: new Date("2026-05-25T10:00:00Z") }),
+    ];
+
+    const tl = buildHistoryTimeline(rows, cidadao, fullCaps);
+
+    expect(tl.find((e) => e.id === "t1")!.action).toBe("triagem_aberta");
+    expect(tl.find((e) => e.id === "t2")!.action).toBe("triagem_concluida");
+  });
+
+  it("elegibilidade_decidida mostra unidade e status no detalhe", () => {
+    const tl = buildHistoryTimeline(
+      [
+        row({
+          id: "e1",
+          action: "elegibilidade_decidida",
+          meta: { unidade: "medico", status: "aprovado" },
+        }),
+      ],
+      cidadao,
+      fullCaps,
+    );
+
+    const e = tl.find((x) => x.id === "e1")!;
+    expect(e.action).toBe("elegibilidade_decidida");
+    expect(e.detalhe!.toLowerCase()).toContain("aprovado");
+  });
+});

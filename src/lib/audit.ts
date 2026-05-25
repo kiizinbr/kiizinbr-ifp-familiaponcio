@@ -11,7 +11,10 @@ export type AuditAction =
   | "ficha_created"
   | "ficha_updated"
   | "anexo_uploaded"
-  | "anexo_removed";
+  | "anexo_removed"
+  | "triagem_aberta"
+  | "triagem_concluida"
+  | "elegibilidade_decidida";
 
 interface LogEventArgs {
   userId?: string | null;

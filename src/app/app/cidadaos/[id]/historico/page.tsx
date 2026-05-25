@@ -21,6 +21,9 @@ const DOT_COLOR: Record<HistoryEventAction, string> = {
   ficha_updated: "bg-sky-500",
   anexo_uploaded: "bg-[rgb(var(--ifp-laranja))]",
   anexo_removed: "bg-red-500",
+  triagem_aberta: "bg-violet-500",
+  triagem_concluida: "bg-violet-700",
+  elegibilidade_decidida: "bg-amber-500",
   outro: "bg-slate-400",
 };
 

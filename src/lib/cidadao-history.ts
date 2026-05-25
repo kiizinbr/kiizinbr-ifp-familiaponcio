@@ -19,6 +19,9 @@ export type HistoryEventAction =
   | "ficha_updated"
   | "anexo_uploaded"
   | "anexo_removed"
+  | "triagem_aberta"
+  | "triagem_concluida"
+  | "elegibilidade_decidida"
   | "outro";
 
 export interface HistoryEvent {
@@ -62,6 +65,9 @@ const ACTION_LABELS: Record<HistoryEventAction, string> = {
   ficha_updated: "Ficha atualizada",
   anexo_uploaded: "Anexo adicionado",
   anexo_removed: "Anexo removido",
+  triagem_aberta: "Triagem aberta",
+  triagem_concluida: "Triagem concluída",
+  elegibilidade_decidida: "Elegibilidade decidida",
   outro: "Evento registrado",
 };
 
@@ -110,7 +116,18 @@ const KNOWN_ACTIONS = new Set<HistoryEventAction>([
   "ficha_updated",
   "anexo_uploaded",
   "anexo_removed",
+  "triagem_aberta",
+  "triagem_concluida",
+  "elegibilidade_decidida",
 ]);
+
+/** Rótulos pt-BR das unidades pra exibição em detalhes de eventos. */
+const UNIDADE_LABELS: Record<string, string> = {
+  medico: "Centro Médico",
+  capacitacao: "Centro de Capacitação",
+  esportivo: "Centro Esportivo",
+  recreativo: "Centro Recreativo",
+};
 
 function normalizeAction(raw: string): HistoryEventAction {
   return KNOWN_ACTIONS.has(raw as HistoryEventAction) ? (raw as HistoryEventAction) : "outro";
@@ -162,6 +179,12 @@ function detalheDe(
       return typeof meta?.fileName === "string" ? meta.fileName : null;
     case "ficha_updated":
       return detalheFichaUpdated(meta, caps);
+    case "elegibilidade_decidida": {
+      const unidade = typeof meta?.unidade === "string" ? meta.unidade : null;
+      const status = typeof meta?.status === "string" ? meta.status : null;
+      if (!unidade || !status) return status;
+      return `${UNIDADE_LABELS[unidade] ?? unidade}: ${status}`;
+    }
     default:
       return null;
   }
