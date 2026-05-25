@@ -27,6 +27,10 @@ model User {
   cidadaosCriados Cidadao[]      @relation("CidadaoCreatedBy")
   anexosEnviados  AnexoCidadao[] @relation("AnexoUploadedBy")
 
+  // Triagem (Plano 4) — reverse relations
+  triagensConduzidas      Triagem[]              @relation("TriagemAssistente")
+  elegibilidadesDecididas ElegibilidadeUnidade[] @relation("ElegibilidadeDecidida")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -215,17 +219,23 @@ model Cidadao {
   deletedAt     DateTime?
   anonimizadoEm DateTime? // NULL = não anonimizado
 
+  /// Ciclo de vida do cadastro (Plano 4): rascunho → ativo quando triagem aprova ≥1 unidade.
+  /// Default 'ativo' pra não quebrar fichas existentes/seedadas (que entraram direto).
+  statusCadastro StatusCadastro @default(ativo)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   enderecos Endereco[]
   anexos    AnexoCidadao[]
+  triagens  Triagem[]
 
   @@index([cpf])
   @@index([nomeCompleto])
   @@index([familiaId])
   @@index([unitIdOrigem])
   @@index([deletedAt])
+  @@index([statusCadastro])
 }
 
 /// Endereços 1:N por Cidadao — §0.3. Auto-preenche via BrasilAPI ao digitar CEP.
@@ -270,4 +280,65 @@ model AnexoCidadao {
 
   @@index([cidadaoId])
   @@index([hashSha256])
+}
+
+// Plano 4 — Núcleo de Triagem Social (fatia estrutural)
+// Spec: docs/superpowers/specs/2026-05-24-plano4-triagem-estrutura-design.md
+
+enum StatusCadastro {
+  rascunho
+  ativo
+  inativo
+}
+
+enum StatusTriagem {
+  aberta
+  concluida
+}
+
+enum StatusElegibilidade {
+  pendente
+  aprovado
+  negado
+  encaminhado
+}
+
+/// Triagem Social = a entrevista da assistente social com o cidadão (1º contato no funil).
+/// Define aptidão e a elegibilidade por unidade. Situação socioeconômica estruturada
+/// continua no Cidadao (fonte única); aqui ficam parecer + observações + extras flexíveis.
+model Triagem {
+  id                 String        @id @default(cuid())
+  cidadaoId          String
+  cidadao            Cidadao       @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
+  assistenteSocialId String
+  assistenteSocial   User          @relation("TriagemAssistente", fields: [assistenteSocialId], references: [id])
+  dataEntrevista     DateTime?
+  parecer            String?       @db.Text
+  observacoes        String?       @db.Text
+  situacaoSocio      Json? // extras flexíveis; estruturado (renda etc.) fica no Cidadao
+  status             StatusTriagem @default(aberta)
+  createdAt          DateTime      @default(now())
+  closedAt           DateTime?
+
+  elegibilidades ElegibilidadeUnidade[]
+
+  @@index([cidadaoId, createdAt])
+  @@index([status, createdAt])
+}
+
+/// Decisão de elegibilidade de uma triagem para uma unidade específica.
+/// Decidida manualmente pela assistente social (regras automáticas = fatia futura, domínio Regina).
+model ElegibilidadeUnidade {
+  id            String              @id @default(cuid())
+  triagemId     String
+  triagem       Triagem             @relation(fields: [triagemId], references: [id], onDelete: Cascade)
+  unidade       String // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo'
+  status        StatusElegibilidade @default(pendente)
+  motivo        String?             @db.Text
+  decididoPorId String?
+  decididoPor   User?               @relation("ElegibilidadeDecidida", fields: [decididoPorId], references: [id])
+  decididoEm    DateTime?
+
+  @@unique([triagemId, unidade])
+  @@index([unidade, status])
 }

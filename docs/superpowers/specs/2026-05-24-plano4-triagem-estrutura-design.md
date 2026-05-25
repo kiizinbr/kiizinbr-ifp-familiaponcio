@@ -24,13 +24,14 @@ Daí a importância do **WhatsApp API** que o Erick citou no início do projeto:
 
 ### Recorte desta spec
 
-O Plano 4 inteiro é grande e parte dele depende de coisas que NÃO podem ser decididas/construídas sem o Erick: **WhatsApp API** (provedor + credenciais), **link público + auto-agendamento** (exige app público — só no deploy/Plano 8), e **regras de elegibilidade** (domínio da Regina). Por decisão do Erick (2026-05-24), esta spec cobre a **fatia estrutural construível agora sem essas dependências**: o **núcleo da triagem** = a *entrevista* da Regina sobre uma ficha existente (mesmo que rascunho). O funil upstream (vaga → link → agendamento) e o WhatsApp encaixam por cima depois, sem invalidar este núcleo.
+O Plano 4 inteiro é grande e parte dele depende de coisas que NÃO podem ser decididas/construídas sem o Erick: **WhatsApp API** (provedor + credenciais), **link público + auto-agendamento** (exige app público — só no deploy/Plano 8), e **regras de elegibilidade** (domínio da Regina). Por decisão do Erick (2026-05-24), esta spec cobre a **fatia estrutural construível agora sem essas dependências**: o **núcleo da triagem** = a _entrevista_ da Regina sobre uma ficha existente (mesmo que rascunho). O funil upstream (vaga → link → agendamento) e o WhatsApp encaixam por cima depois, sem invalidar este núcleo.
 
 **Resultado esperado:** a Regina consegue abrir uma triagem num cidadão, registrar a entrevista, concluir, e decidir manualmente a elegibilidade por unidade; o gestor da unidade vê as aprovações da sua unidade; tudo aparece na timeline do cidadão (via aggregate root do Plano 3).
 
 ## Escopo
 
 ### No escopo (fatia estrutural)
+
 - Models `Triagem` + `ElegibilidadeUnidade`.
 - Campo `statusCadastro` no `Cidadao` (rascunho/ativo/inativo).
 - UI: abrir triagem num cidadão, formulário de entrevista, concluir, decidir elegibilidade por unidade (manual).
@@ -40,6 +41,7 @@ O Plano 4 inteiro é grande e parte dele depende de coisas que NÃO podem ser de
 - Gestor de unidade: lista in-app das elegibilidades aprovadas/encaminhadas da sua unidade.
 
 ### Fora do escopo (fatias/planos seguintes)
+
 - **Regras de elegibilidade automáticas** (renda/faixa etária/vaga) — espera domínio da Regina.
 - **Consentimento LGPD versionado** (golden path passo 2) — é Plano 5.
 - **Notificação por e-mail/push** — sem infra ainda; só in-app por ora.
@@ -49,7 +51,7 @@ O Plano 4 inteiro é grande e parte dele depende de coisas que NÃO podem ser de
 ## Decisões (fechadas com Erick 2026-05-24)
 
 1. **Fatiar estrutura primeiro** — sem chutar domínio da Regina.
-2. **Situação socioeconômica = parecer + observações livres** na triagem; os campos socioeconômicos *estruturados* (renda, pessoas na casa, benefício) continuam no `Cidadao` como fonte única. A triagem NÃO duplica esses campos — guarda o parecer, observações e um `Json?` flexível pra extras futuros. Evita dado divergindo em dois lugares.
+2. **Situação socioeconômica = parecer + observações livres** na triagem; os campos socioeconômicos _estruturados_ (renda, pessoas na casa, benefício) continuam no `Cidadao` como fonte única. A triagem NÃO duplica esses campos — guarda o parecer, observações e um `Json?` flexível pra extras futuros. Evita dado divergindo em dois lugares.
 3. **Notificação in-app** — gestor vê aprovações da sua unidade numa lista/badge no dashboard. E-mail fica pro plano de notificações.
 
 ## Data model (sketch Prisma)
@@ -137,7 +139,7 @@ Trocar os 4 `KpiCard` hardcoded de `/app/social/page.tsx` por dados reais: conta
 
 Tudo abaixo é o **upstream do funil** e integrações — fora desta fatia estrutural por dependerem de coisas que não dá pra decidir/construir sozinho:
 
-- **WhatsApp API** — escolher provedor (Meta WhatsApp Cloud API / Twilio / Z-API), obter credenciais + número aprovado. Usos: link de divulgação, confirmação/lembrete de agendamento, marcação de consulta (callcenter). Desenhar como um *channel* abstrato (interface `NotificationChannel`) pra plugar sem reescrever.
+- **WhatsApp API** — escolher provedor (Meta WhatsApp Cloud API / Twilio / Z-API), obter credenciais + número aprovado. Usos: link de divulgação, confirmação/lembrete de agendamento, marcação de consulta (callcenter). Desenhar como um _channel_ abstrato (interface `NotificationChannel`) pra plugar sem reescrever.
 - **Link público de vaga + auto-agendamento** — página pública onde o interessado agenda a entrevista. Exige app público (HTTPS/domínio = Plano 8) + decisão de segurança (rate-limit, captcha, dados mínimos coletados).
 - **Modelo `Vaga` + `Agendamento`** — gestão de vagas liberadas por unidade e agendamento de entrevista (com slot/horário). Semântica a fechar com Erick (vaga tem limite? agenda da Regina? quem confirma?). Modelo esboçado quando ele confirmar.
 - **Regras de elegibilidade automáticas** (renda/idade/vaga) — **precisa Regina** passar os critérios.
