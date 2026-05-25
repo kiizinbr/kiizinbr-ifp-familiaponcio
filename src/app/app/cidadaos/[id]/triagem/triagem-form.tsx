@@ -24,7 +24,7 @@ const STATUS_OPS = [
 ];
 
 const STATUS_BADGE: Record<string, string> = {
-  pendente: "bg-slate-100 text-slate-500 ring-slate-200",
+  pendente: "bg-slate-100 text-[rgb(var(--ifp-muted))] ring-slate-200",
   aprovado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   negado: "bg-rose-50 text-rose-700 ring-rose-200",
   encaminhado: "bg-amber-50 text-amber-700 ring-amber-200",
@@ -137,7 +137,7 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20 disabled:bg-slate-50 disabled:text-slate-500";
+    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20 disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))]";
 
   return (
     <div className="space-y-6">
@@ -149,7 +149,9 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
         <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-[rgb(var(--ifp-laranja))]/8 to-transparent px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="h-8 w-1 rounded-full bg-[rgb(var(--ifp-laranja))]" aria-hidden />
-            <h2 className="text-base font-semibold tracking-tight text-slate-900">Entrevista</h2>
+            <h2 className="text-base font-semibold tracking-tight text-[rgb(var(--ifp-ink))]">
+              Entrevista
+            </h2>
           </div>
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
@@ -166,7 +168,7 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
           <div className="max-w-xs">
             <label
               htmlFor="data-entrevista"
-              className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase"
             >
               Data da entrevista
             </label>
@@ -182,7 +184,7 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
           <div>
             <label
               htmlFor="parecer"
-              className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase"
             >
               Parecer
             </label>
@@ -199,7 +201,7 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
           <div>
             <label
               htmlFor="observacoes"
-              className="mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase"
+              className="mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase"
             >
               Observações
             </label>
@@ -229,10 +231,10 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
               >
                 {closing ? "Concluindo…" : "Concluir triagem"}
               </button>
-              {msg && <p className="text-sm text-slate-600">{msg}</p>}
+              {msg && <p className="text-sm text-[rgb(var(--ifp-muted))]">{msg}</p>}
             </div>
           )}
-          {concluida && msg && <p className="text-sm text-slate-600">{msg}</p>}
+          {concluida && msg && <p className="text-sm text-[rgb(var(--ifp-muted))]">{msg}</p>}
         </div>
       </section>
 
@@ -245,10 +247,10 @@ function ElegibilidadeGrid({ triagem }: { triagem: TriagemData }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-6 py-4">
-        <h2 className="text-base font-semibold tracking-tight text-slate-900">
+        <h2 className="text-base font-semibold tracking-tight text-[rgb(var(--ifp-ink))]">
           Elegibilidade por unidade
         </h2>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">
           Decisão manual da assistente social. Aprovar ao menos uma unidade ativa o cadastro.
         </p>
       </div>

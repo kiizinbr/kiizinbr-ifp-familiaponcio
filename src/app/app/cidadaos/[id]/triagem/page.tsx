@@ -45,12 +45,12 @@ export default async function TriagemPage({ params }: { params: Promise<{ id: st
       <header className="mb-6">
         <Link
           href={`/app/cidadaos/${cidadao.id}` as Route}
-          className="text-xs text-slate-500 hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
         >
           ← Voltar para a Ficha
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold text-slate-900">Triagem social</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="mt-4 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Triagem social</h1>
+        <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
           Entrevista e elegibilidade de <span className="font-medium">{cidadao.nomeCompleto}</span>.
         </p>
       </header>
@@ -58,8 +58,8 @@ export default async function TriagemPage({ params }: { params: Promise<{ id: st
       {triagem ? (
         <TriagemForm triagem={triagem} />
       ) : (
-        <section className="rounded-lg border bg-white p-6 shadow-sm">
-          <p className="mb-4 text-sm text-slate-600">
+        <section className="ifp-card p-6">
+          <p className="mb-4 text-sm text-[rgb(var(--ifp-muted))]">
             Nenhuma triagem para este cidadão ainda. Abra uma para registrar a entrevista.
           </p>
           <AbrirTriagemButton cidadaoId={cidadao.id} />

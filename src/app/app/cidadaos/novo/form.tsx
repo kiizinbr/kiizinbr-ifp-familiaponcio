@@ -243,7 +243,7 @@ export function NovoCidadaoForm({
               className={`relative px-4 py-2 text-sm font-medium transition ${
                 isActive
                   ? "border-b-2 border-[rgb(var(--ifp-laranja))] text-[rgb(var(--ifp-laranja))]"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-ink))]"
               }`}
             >
               {t.label}
@@ -409,7 +409,7 @@ export function NovoCidadaoForm({
             onBlur={onCepBlur}
             placeholder="00000-000"
           />
-          <div className="text-xs text-slate-500 sm:col-span-1 sm:flex sm:items-end">
+          <div className="text-xs text-[rgb(var(--ifp-muted))] sm:col-span-1 sm:flex sm:items-end">
             {cepLoading && <span>Buscando endereço…</span>}
           </div>
           <Input
@@ -538,7 +538,7 @@ export function NovoCidadaoForm({
 
       {tab === "anexos" && (
         <Panel title="Anexos">
-          <p className="text-sm text-slate-500 sm:col-span-2">
+          <p className="text-sm text-[rgb(var(--ifp-muted))] sm:col-span-2">
             Upload de PDF/JPG/PNG (max 10MB) ficará disponível após o cadastro inicial. Salve a
             Ficha primeiro e use a página de detalhe para anexar documentos.
           </p>
@@ -547,7 +547,7 @@ export function NovoCidadaoForm({
 
       {tab === "familia" && (
         <Panel title="Família">
-          <p className="text-sm text-slate-500 sm:col-span-2">
+          <p className="text-sm text-[rgb(var(--ifp-muted))] sm:col-span-2">
             Vincular a uma família existente ou criar nova família ficará disponível em breve. Por
             ora, salve a Ficha individualmente — a edição posterior permite vincular.
           </p>
@@ -556,7 +556,7 @@ export function NovoCidadaoForm({
 
       {/* Submit bar */}
       <div className="flex items-center justify-between border-t border-slate-200 pt-6">
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-[rgb(var(--ifp-muted))]">
           <span className="text-[rgb(var(--ifp-laranja))]">*</span> Campos obrigatórios em
           Identificação e Contato.
         </div>
@@ -632,10 +632,10 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border bg-white p-6 shadow-sm">
+    <section className="ifp-card p-6">
       <header className="mb-4">
         <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
-        {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+        {hint && <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">{hint}</p>}
       </header>
       <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">{children}</div>
     </section>
@@ -666,7 +666,7 @@ function Input({
   const id = useId();
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-slate-600">
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
         {label}
       </label>
       <input
@@ -677,7 +677,7 @@ function Input({
         onBlur={onBlur}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full rounded border px-3 py-2 text-sm focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 ${
+        className={`w-full rounded border px-3 py-2 text-sm focus:outline-none disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))] ${
           error
             ? "border-red-300 focus:border-red-500"
             : "border-slate-300 focus:border-[rgb(var(--ifp-laranja))]"
@@ -702,7 +702,7 @@ function Textarea({
   const id = useId();
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-slate-600">
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
         {label}
       </label>
       <textarea
@@ -730,7 +730,7 @@ function Select({
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-slate-600">
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
         {label}
       </label>
       <select

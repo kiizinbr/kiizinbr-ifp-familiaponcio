@@ -15,7 +15,7 @@ const TONE_BADGE: Record<StatusTone, string> = {
   red: "bg-red-100 text-red-700",
   amber: "bg-amber-100 text-amber-700",
   emerald: "bg-emerald-100 text-emerald-700",
-  slate: "bg-slate-100 text-slate-600",
+  slate: "bg-slate-100 text-[rgb(var(--ifp-muted))]",
 };
 
 const UNIT_LABELS: Record<UnitScope, string> = {
@@ -79,7 +79,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
       <header className="mb-6">
         <Link
           href={"/app/cidadaos" as Route}
-          className="text-xs text-slate-500 hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
         >
           ← Voltar para Cidadãos
         </Link>
@@ -87,7 +87,9 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-semibold text-slate-900">{cidadao.nomeCompleto}</h1>
+              <h1 className="text-3xl font-semibold text-[rgb(var(--ifp-ink))]">
+                {cidadao.nomeCompleto}
+              </h1>
               <span
                 className={`rounded px-2 py-0.5 text-xs font-medium ${TONE_BADGE[status.tone]}`}
               >
@@ -95,11 +97,11 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
               </span>
             </div>
             {cidadao.nomeSocial && (
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
                 Nome social: <span className="font-medium">{cidadao.nomeSocial}</span>
               </p>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[rgb(var(--ifp-muted))]">
               <span>{idade} anos</span>
               <span>•</span>
               <span className="font-mono">{formatCpf(cidadao.cpf)}</span>
@@ -158,7 +160,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           {/* Endereços */}
           <Section title={`Endereços (${cidadao.enderecos.length})`}>
             {cidadao.enderecos.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum endereço cadastrado.</p>
+              <p className="text-sm text-[rgb(var(--ifp-muted))]">Nenhum endereço cadastrado.</p>
             ) : (
               <div className="space-y-4">
                 {cidadao.enderecos.map((end) => (
@@ -166,7 +168,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
                     key={end.id}
                     className="rounded border border-slate-200 bg-slate-50 p-4 text-sm"
                   >
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-[rgb(var(--ifp-muted))]">
                       <span className="rounded bg-white px-2 py-0.5 capitalize">{end.tipo}</span>
                       {end.isPrincipal && (
                         <span className="rounded bg-[rgb(var(--ifp-laranja))]/10 px-2 py-0.5 text-[rgb(var(--ifp-laranja))]">
@@ -174,16 +176,18 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 font-medium text-slate-900">
+                    <p className="mt-2 font-medium text-[rgb(var(--ifp-ink))]">
                       {end.logradouro}, {end.numero ?? "s/n"}
                       {end.complemento && ` — ${end.complemento}`}
                     </p>
-                    <p className="text-slate-600">
+                    <p className="text-[rgb(var(--ifp-muted))]">
                       {end.bairro && `${end.bairro}, `}
                       {end.cidade} — {end.uf} • CEP {formatCep(end.cep)}
                     </p>
                     {end.pontoReferencia && (
-                      <p className="mt-1 text-xs text-slate-500">Ref: {end.pontoReferencia}</p>
+                      <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">
+                        Ref: {end.pontoReferencia}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -256,9 +260,13 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
         <aside className="space-y-6">
           {cidadao.familia && (
             <Section title="Família">
-              <p className="text-sm font-medium text-slate-900">{cidadao.familia.nomeReferencia}</p>
+              <p className="text-sm font-medium text-[rgb(var(--ifp-ink))]">
+                {cidadao.familia.nomeReferencia}
+              </p>
               {cidadao.familia.observacoes && (
-                <p className="mt-2 text-xs text-slate-600">{cidadao.familia.observacoes}</p>
+                <p className="mt-2 text-xs text-[rgb(var(--ifp-muted))]">
+                  {cidadao.familia.observacoes}
+                </p>
               )}
             </Section>
           )}
@@ -308,10 +316,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border bg-white p-5 shadow-sm">
+    <section className="ifp-card p-6">
       <div className="mb-4">
         <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
-        {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+        {hint && <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">{hint}</p>}
       </div>
       <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">{children}</dl>
     </section>
@@ -329,10 +337,10 @@ function Field({
 }) {
   return (
     <div className={multiline ? "sm:col-span-2" : ""}>
-      <dt className="text-xs tracking-wide text-slate-500 uppercase">{label}</dt>
+      <dt className="text-xs tracking-wide text-[rgb(var(--ifp-muted))] uppercase">{label}</dt>
       <dd
         className={`mt-0.5 text-sm ${
-          value ? "text-slate-900" : "text-slate-400"
+          value ? "text-[rgb(var(--ifp-ink))]" : "text-slate-400"
         } ${multiline ? "whitespace-pre-wrap" : ""}`}
       >
         {value || "—"}

@@ -30,17 +30,19 @@ export default async function AdminUsersPage() {
   return (
     <AppShell session={session}>
       <header className="mb-8">
-        <p className="text-xs tracking-widest text-slate-500 uppercase">Administração</p>
-        <h1 className="mt-1 text-3xl font-semibold text-slate-900">Usuários</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
+          Administração
+        </p>
+        <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Usuários</h1>
+        <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
           {users.length} pessoa{users.length === 1 ? "" : "s"} com acesso ao sistema. Edição ainda
           em desenvolvimento.
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-lg border bg-white shadow-sm">
+      <section className="ifp-card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-xs tracking-wide text-slate-500 uppercase">
+          <thead className="bg-slate-50 text-xs tracking-wide text-[rgb(var(--ifp-muted))] uppercase">
             <tr>
               <th className="px-5 py-3 text-left font-medium">Nome</th>
               <th className="px-5 py-3 text-left font-medium">E-mail</th>
@@ -69,7 +71,7 @@ export default async function AdminUsersPage() {
               return (
                 <tr key={user.id} className="transition hover:bg-slate-50">
                   <td className="px-5 py-3">
-                    <div className="font-medium text-slate-900">
+                    <div className="font-medium text-[rgb(var(--ifp-ink))]">
                       {user.name ?? "—"}
                       {isCurrentUser && (
                         <span className="ml-2 rounded bg-[rgb(var(--ifp-laranja))]/10 px-1.5 py-0.5 text-xs font-medium text-[rgb(var(--ifp-laranja))]">
@@ -78,12 +80,14 @@ export default async function AdminUsersPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-5 py-3 text-slate-600">{user.email}</td>
+                  <td className="px-5 py-3 text-[rgb(var(--ifp-muted))]">{user.email}</td>
                   <td className="px-5 py-3">
                     {primary ? (
                       <div>
                         <div className="font-medium text-slate-700">{primary}</div>
-                        <div className="text-xs text-slate-500">{ROLE_DESCRIPTIONS[primary]}</div>
+                        <div className="text-xs text-[rgb(var(--ifp-muted))]">
+                          {ROLE_DESCRIPTIONS[primary]}
+                        </div>
                       </div>
                     ) : (
                       <span className="text-slate-400">—</span>
@@ -91,7 +95,7 @@ export default async function AdminUsersPage() {
                   </td>
                   <td className="px-5 py-3">
                     {isGlobal && allUnits.length === 0 ? (
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-[rgb(var(--ifp-muted))]">
                         Global
                       </span>
                     ) : (
@@ -122,7 +126,7 @@ export default async function AdminUsersPage() {
         </table>
       </section>
 
-      <p className="mt-6 text-xs text-slate-500">
+      <p className="mt-6 text-xs text-[rgb(var(--ifp-muted))]">
         ★ indica papel primário (landing após login). Multi-role mostra todos badges.
       </p>
     </AppShell>

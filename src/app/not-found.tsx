@@ -10,8 +10,10 @@ export default function NotFound() {
           <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
         </div>
-        <h1 className="text-4xl font-semibold text-slate-900">404</h1>
-        <p className="mt-2 text-slate-600">A página que você procurou não existe ou foi movida.</p>
+        <h1 className="text-4xl font-semibold text-[rgb(var(--ifp-ink))]">404</h1>
+        <p className="mt-2 text-[rgb(var(--ifp-muted))]">
+          A página que você procurou não existe ou foi movida.
+        </p>
         <Link
           href="/app"
           className="mt-6 inline-block rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm text-white transition hover:opacity-90"

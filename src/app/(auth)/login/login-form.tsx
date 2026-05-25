@@ -34,7 +34,9 @@ export function LoginForm({ error }: { error?: string }) {
           <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
           <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
         </div>
-        <p className="mt-3 text-xs tracking-widest text-slate-500 uppercase">IFP Connect</p>
+        <p className="mt-3 text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
+          IFP Connect
+        </p>
       </div>
 
       {error === "invalid" && (

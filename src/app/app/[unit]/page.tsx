@@ -139,9 +139,9 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
   return (
     <AppShell session={session}>
       <header className="mb-8">
-        <p className="text-xs tracking-widest text-slate-500 uppercase">Centro</p>
-        <h1 className="mt-1 text-3xl font-semibold text-slate-900">{data.name}</h1>
-        <p className="mt-2 text-sm text-slate-600">{data.tagline}</p>
+        <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">Centro</p>
+        <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">{data.name}</h1>
+        <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">{data.tagline}</p>
       </header>
 
       <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
@@ -186,7 +186,7 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
       <section className="mt-10">
         <Panel title="Encaminhamentos da triagem" accent={accent}>
           {encaminhamentos.length === 0 ? (
-            <li className="text-sm text-slate-500">
+            <li className="text-sm text-[rgb(var(--ifp-muted))]">
               Nenhum encaminhamento do Serviço Social para esta unidade ainda.
             </li>
           ) : (
@@ -197,7 +197,7 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
               >
                 <Link
                   href={`/app/cidadaos/${e.triagem.cidadao.id}` as Route}
-                  className="text-sm font-medium text-slate-900 hover:text-[rgb(var(--ifp-laranja))]"
+                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
                 >
                   {e.triagem.cidadao.nomeCompleto}
                 </Link>
@@ -229,7 +229,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border bg-white p-5 shadow-sm">
+    <div className="ifp-card p-6">
       <div className="flex items-center gap-2">
         <span
           className="inline-block h-1 w-6 rounded"
@@ -263,7 +263,9 @@ function AgendaItem({
       </span>
       <div className="flex-1">
         <p className="text-sm text-slate-700">{descricao}</p>
-        {status && <p className="mt-0.5 text-xs text-slate-500 capitalize">{status}</p>}
+        {status && (
+          <p className="mt-0.5 text-xs text-[rgb(var(--ifp-muted))] capitalize">{status}</p>
+        )}
       </div>
     </li>
   );
@@ -286,8 +288,8 @@ function HighlightItem({
           style={{ background: `rgb(var(--ifp-${accent}))` }}
         />
         <div>
-          <p className="text-sm font-medium text-slate-900">{titulo}</p>
-          <p className="mt-0.5 text-xs text-slate-500">{detalhe}</p>
+          <p className="text-sm font-medium text-[rgb(var(--ifp-ink))]">{titulo}</p>
+          <p className="mt-0.5 text-xs text-[rgb(var(--ifp-muted))]">{detalhe}</p>
         </div>
       </div>
     </li>

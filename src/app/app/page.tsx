@@ -58,11 +58,13 @@ export default async function GlobalDashboard() {
   return (
     <AppShell session={session}>
       <header className="mb-8">
-        <p className="text-xs tracking-widest text-slate-500 uppercase">Visão geral</p>
-        <h1 className="mt-1 text-3xl font-semibold text-slate-900">
+        <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
+          Visão geral
+        </p>
+        <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">
           Olá, {session.user.name?.split(" ")[0] ?? "Erick"}
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
           Resumo consolidado das 4 unidades do Instituto Família Pôncio.
         </p>
       </header>
@@ -114,7 +116,7 @@ export default async function GlobalDashboard() {
       <section className="mt-10 grid gap-6 lg:grid-cols-2">
         <Panel title="Triagens pendentes">
           {pendentes.length === 0 ? (
-            <li className="text-sm text-slate-500">Nenhuma triagem pendente.</li>
+            <li className="text-sm text-[rgb(var(--ifp-muted))]">Nenhuma triagem pendente.</li>
           ) : (
             pendentes.slice(0, 6).map((t) => (
               <li
@@ -123,11 +125,11 @@ export default async function GlobalDashboard() {
               >
                 <Link
                   href={`/app/cidadaos/${t.cidadao.id}/triagem` as Route}
-                  className="text-sm font-medium text-slate-900 hover:text-[rgb(var(--ifp-laranja))]"
+                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
                 >
                   {t.cidadao.nomeCompleto}
                 </Link>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-[rgb(var(--ifp-muted))]">
                   {UNIT_LABELS[t.cidadao.unitIdOrigem as UnitScope]}
                 </span>
               </li>
@@ -137,7 +139,7 @@ export default async function GlobalDashboard() {
 
         <Panel title="Atividade recente">
           {atividade.length === 0 ? (
-            <li className="text-sm text-slate-500">Sem atividade registrada.</li>
+            <li className="text-sm text-[rgb(var(--ifp-muted))]">Sem atividade registrada.</li>
           ) : (
             atividade.map((a) => (
               <li
@@ -146,11 +148,15 @@ export default async function GlobalDashboard() {
               >
                 <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-[rgb(var(--ifp-laranja))]" />
                 <div className="flex-1 text-sm">
-                  <span className="font-medium text-slate-900">
+                  <span className="font-medium text-[rgb(var(--ifp-ink))]">
                     {a.user?.name ?? a.user?.email ?? "Sistema"}
                   </span>{" "}
-                  <span className="text-slate-600">{ACTIVITY_LABELS[a.action] ?? a.action}</span>
-                  <p className="text-xs text-slate-500">{formatDateTime(a.createdAt)}</p>
+                  <span className="text-[rgb(var(--ifp-muted))]">
+                    {ACTIVITY_LABELS[a.action] ?? a.action}
+                  </span>
+                  <p className="text-xs text-[rgb(var(--ifp-muted))]">
+                    {formatDateTime(a.createdAt)}
+                  </p>
                 </div>
               </li>
             ))
@@ -178,10 +184,10 @@ function UnitSummary({
       className="block rounded-lg border bg-white p-4 transition hover:shadow-md"
     >
       <div className={`h-1 w-8 rounded bg-[rgb(var(--ifp-${color}))]`} />
-      <h3 className="mt-3 text-sm font-medium text-slate-900">{name}</h3>
+      <h3 className="mt-3 text-sm font-medium text-[rgb(var(--ifp-ink))]">{name}</h3>
       <div className="mt-3">
-        <p className="text-xs text-slate-500">Cidadãos ativos</p>
-        <p className="text-lg font-semibold text-slate-900">{ativos}</p>
+        <p className="text-xs text-[rgb(var(--ifp-muted))]">Cidadãos ativos</p>
+        <p className="text-lg font-semibold text-[rgb(var(--ifp-ink))]">{ativos}</p>
       </div>
     </Link>
   );
@@ -189,7 +195,7 @@ function UnitSummary({
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border bg-white p-5 shadow-sm">
+    <div className="ifp-card p-6">
       <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
       <ul className="mt-4 space-y-3">{children}</ul>
     </div>

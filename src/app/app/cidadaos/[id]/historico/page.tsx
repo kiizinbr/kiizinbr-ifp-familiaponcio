@@ -46,20 +46,20 @@ export default async function CidadaoHistoricoPage({
       <header className="mb-6">
         <Link
           href={`/app/cidadaos/${cidadao.id}` as Route}
-          className="text-xs text-slate-500 hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
         >
           ← Voltar para a Ficha
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold text-slate-900">Histórico</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="mt-4 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Histórico</h1>
+        <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
           Linha do tempo de eventos da ficha de{" "}
           <span className="font-medium">{cidadao.nomeCompleto}</span>.
         </p>
       </header>
 
-      <section className="rounded-lg border bg-white p-6 shadow-sm">
+      <section className="ifp-card p-6">
         {timeline.length === 0 ? (
-          <p className="text-sm text-slate-500">Nenhum evento registrado.</p>
+          <p className="text-sm text-[rgb(var(--ifp-muted))]">Nenhum evento registrado.</p>
         ) : (
           <ol className="relative space-y-6 border-l border-slate-200 pl-6">
             {timeline.map((evento) => (
@@ -69,12 +69,14 @@ export default async function CidadaoHistoricoPage({
                   aria-hidden
                 />
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <span className="text-sm font-medium text-slate-900">{evento.label}</span>
+                  <span className="text-sm font-medium text-[rgb(var(--ifp-ink))]">
+                    {evento.label}
+                  </span>
                   {evento.detalhe && (
-                    <span className="text-sm text-slate-600">— {evento.detalhe}</span>
+                    <span className="text-sm text-[rgb(var(--ifp-muted))]">— {evento.detalhe}</span>
                   )}
                 </div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-[rgb(var(--ifp-muted))]">
                   <span>{formatDateTime(evento.data)}</span>
                   <span>•</span>
                   <span>{evento.autor}</span>

@@ -19,7 +19,7 @@ const TONE_BADGE: Record<StatusTone, string> = {
   red: "bg-red-100 text-red-700",
   amber: "bg-amber-100 text-amber-700",
   emerald: "bg-emerald-100 text-emerald-700",
-  slate: "bg-slate-100 text-slate-600",
+  slate: "bg-slate-100 text-[rgb(var(--ifp-muted))]",
 };
 
 type CicloFilter = "rascunho" | "ativo" | "inativo";
@@ -67,9 +67,11 @@ export default async function CidadaosPage({
     <AppShell session={session}>
       <header className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs tracking-widest text-slate-500 uppercase">Pessoas atendidas</p>
-          <h1 className="mt-1 text-3xl font-semibold text-slate-900">Cidadãos</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
+            Pessoas atendidas
+          </p>
+          <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Cidadãos</h1>
+          <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
             {items.length} {items.length === 1 ? "pessoa encontrada" : "pessoas encontradas"}
           </p>
         </div>
@@ -81,10 +83,10 @@ export default async function CidadaosPage({
         </Link>
       </header>
 
-      <section className="mb-4 rounded-lg border bg-white p-4 shadow-sm">
+      <section className="ifp-card mb-4 p-5">
         <form method="get" className="flex flex-wrap items-end gap-3">
           <div className="min-w-[200px] flex-1">
-            <label className="mb-1 block text-xs font-medium text-slate-600">
+            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
               Buscar (nome, CPF, telefone)
             </label>
             <input
@@ -96,7 +98,9 @@ export default async function CidadaosPage({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Unidade</label>
+            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
+              Unidade
+            </label>
             <select
               name="unidade"
               defaultValue={params.unidade ?? ""}
@@ -111,7 +115,9 @@ export default async function CidadaosPage({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Status</label>
+            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
+              Status
+            </label>
             <select
               name="status"
               defaultValue={params.status ?? "ativo"}
@@ -123,7 +129,9 @@ export default async function CidadaosPage({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Ciclo</label>
+            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
+              Ciclo
+            </label>
             <select
               name="ciclo"
               defaultValue={params.ciclo ?? ""}
@@ -144,14 +152,16 @@ export default async function CidadaosPage({
         </form>
       </section>
 
-      <section className="overflow-hidden rounded-lg border bg-white shadow-sm">
+      <section className="ifp-card overflow-hidden">
         {items.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <p className="text-sm text-slate-500">Nenhum cidadão encontrado com esses filtros.</p>
+            <p className="text-sm text-[rgb(var(--ifp-muted))]">
+              Nenhum cidadão encontrado com esses filtros.
+            </p>
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs tracking-wide text-slate-500 uppercase">
+            <thead className="bg-slate-50 text-xs tracking-wide text-[rgb(var(--ifp-muted))] uppercase">
               <tr>
                 <th className="px-5 py-3 text-left font-medium">Nome</th>
                 <th className="px-5 py-3 text-left font-medium">CPF</th>
@@ -171,12 +181,14 @@ export default async function CidadaosPage({
                     <td className="px-5 py-3">
                       <Link
                         href={`/app/cidadaos/${c.id}` as Route}
-                        className="font-medium text-slate-900 hover:text-[rgb(var(--ifp-laranja))]"
+                        className="font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
                       >
                         {c.nomeCompleto}
                       </Link>
                       {c.nomeSocial && (
-                        <p className="text-xs text-slate-500">Social: {c.nomeSocial}</p>
+                        <p className="text-xs text-[rgb(var(--ifp-muted))]">
+                          Social: {c.nomeSocial}
+                        </p>
                       )}
                     </td>
                     <td className="px-5 py-3 font-mono text-xs text-slate-700">
@@ -194,7 +206,7 @@ export default async function CidadaosPage({
                         {UNIT_LABELS[unit]}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-xs text-slate-600">
+                    <td className="px-5 py-3 text-xs text-[rgb(var(--ifp-muted))]">
                       {c.familia?.nomeReferencia ?? "—"}
                     </td>
                     <td className="px-5 py-3">

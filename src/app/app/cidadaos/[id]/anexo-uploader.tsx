@@ -161,7 +161,7 @@ export function AnexoUploader({
           >
             {uploading ? "Enviando…" : "Escolher arquivos"}
           </label>
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-[rgb(var(--ifp-muted))]">
             ou arraste e solte aqui. PDF, JPG, PNG. Máximo 10MB por arquivo.
           </p>
           {uploading && progress > 0 && (
@@ -181,7 +181,7 @@ export function AnexoUploader({
         </div>
       )}
 
-      <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className="flex items-center justify-between text-xs text-[rgb(var(--ifp-muted))]">
         <span>
           {anexos.length} {anexos.length === 1 ? "arquivo" : "arquivos"}
         </span>
@@ -200,8 +200,10 @@ export function AnexoUploader({
               <div className="flex min-w-0 items-center gap-3">
                 <span className="text-2xl">{iconForMime(a.mimeType)}</span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900">{a.fileName}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="truncate text-sm font-medium text-[rgb(var(--ifp-ink))]">
+                    {a.fileName}
+                  </p>
+                  <p className="text-xs text-[rgb(var(--ifp-muted))]">
                     {formatSize(a.sizeBytes)} •{" "}
                     {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(a.createdAt)}
                   </p>
