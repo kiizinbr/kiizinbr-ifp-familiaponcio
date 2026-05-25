@@ -4,6 +4,7 @@ import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
 import { hasAnyRole } from "@/lib/rbac";
+import { podeAgendar } from "@/lib/funil";
 
 interface AppShellProps {
   session: Session;
@@ -24,6 +25,9 @@ export function AppShell({ session, children }: AppShellProps) {
     { label: "Visão geral", href: "/app" },
     { label: "Cidadãos", href: "/app/cidadaos" },
   ];
+  if (podeAgendar(session)) {
+    items.push({ label: "Vagas", href: "/app/vagas" });
+  }
   if (hasAnyRole(session, "super_admin", "gestor_geral", "social")) {
     items.push({ label: "Serviço Social", href: "/app/social" });
   }

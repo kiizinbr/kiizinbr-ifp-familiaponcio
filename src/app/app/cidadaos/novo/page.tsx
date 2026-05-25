@@ -5,9 +5,20 @@ import { hasAnyRole } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 import { NovoCidadaoForm } from "./form";
 
-export default async function NovoCidadaoPage() {
+export default async function NovoCidadaoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ nome?: string; tel?: string }>;
+}) {
   const session = await auth();
   if (!session) redirect("/login");
+
+  // Pré-preenche quando vindo de um agendamento ("Criar ficha do interessado").
+  const sp = await searchParams;
+  const initialValues =
+    sp.nome || sp.tel
+      ? { nomeCompleto: sp.nome ?? "", telefonePrincipal: sp.tel ?? "" }
+      : undefined;
 
   // RBAC: só quem pode criar Ficha vê esta página
   const canCreate = hasAnyRole(
@@ -38,7 +49,11 @@ export default async function NovoCidadaoPage() {
         </p>
       </header>
 
-      <NovoCidadaoForm defaultUnit={defaultUnit} canChooseUnit={canChooseUnit} />
+      <NovoCidadaoForm
+        defaultUnit={defaultUnit}
+        canChooseUnit={canChooseUnit}
+        initialValues={initialValues}
+      />
     </AppShell>
   );
 }
