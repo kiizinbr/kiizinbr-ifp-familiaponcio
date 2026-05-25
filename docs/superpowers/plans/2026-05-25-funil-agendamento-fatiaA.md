@@ -48,3 +48,11 @@
 ## Verificação
 
 Unit (slotsDisponiveis/vagaAceita) + e2e + ritual + build. Manual: como gestor cria vaga, como recepção agenda, capacidade trava, realizar→criar ficha prefilled→vincula→timeline do cidadão mostra o agendamento.
+
+## ✅ Concluído (2026-05-25)
+
+Commits `5a738a0`→`5cfff89` (pushados). T1 schema+migration, T2 audit/timeline, T3 lib (slots puros 7 testes + RBAC), T4 actions (capacidade tx + transições + vincular), T5 UI (vagas/nova/detalhe + painel agendamentos + nav + prefill), T6 e2e (4 cenários). **11 unit + 40 e2e verdes.**
+
+**Limitação conhecida (ponte parcial):** a action `vincularCidadaoAoAgendamento` existe e registra na timeline do cidadão, mas o link "Criar ficha do interessado" só **pré-preenche** o form (nome/telefone via query) — NÃO auto-vincula o cidadão criado de volta ao agendamento (o form não recebe o id do agendamento). Wiring do auto-vínculo = follow rápido (passar `?agendamento=ID` → form chama `vincularCidadaoAoAgendamento` no sucesso).
+
+**Fatia B (deferida, depende de você + deploy):** WhatsApp (Meta Cloud API — confirmar provedor/número), página pública de auto-agendamento (Plano 8), grade fixa de horários, lembretes.
