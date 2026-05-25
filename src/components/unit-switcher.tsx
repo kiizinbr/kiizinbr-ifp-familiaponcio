@@ -77,7 +77,12 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
 
   // Se só uma opção, não mostra switcher (sem necessidade)
   if (options.length <= 1) {
-    return options[0] ? <span className="text-sm text-slate-700">{options[0].label}</span> : null;
+    return options[0] ? (
+      <span className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm font-semibold text-[rgb(var(--ifp-ink))]">
+        <span className="h-[7px] w-[7px] rounded-full bg-[rgb(var(--ifp-laranja))]" />
+        {options[0].label}
+      </span>
+    ) : null;
   }
 
   const activeLabel = options.find((o) => o.isActive)?.label ?? options[0]?.label ?? "Selecionar";
@@ -90,9 +95,12 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50"
+        className="flex w-full items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 text-sm font-semibold text-[#6b6459] transition hover:bg-[#f3f3f5]"
       >
-        <span>{activeLabel}</span>
+        <span className="flex items-center gap-3">
+          <span className="h-[7px] w-[7px] rounded-full bg-[rgb(var(--ifp-laranja))]" />
+          {activeLabel}
+        </span>
         <svg
           className={`h-3 w-3 transition ${open ? "rotate-180" : ""}`}
           viewBox="0 0 12 12"
@@ -107,7 +115,7 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg"
+          className="absolute left-0 z-20 mt-1 w-full overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-xl"
         >
           {options.map((option) => (
             <Link

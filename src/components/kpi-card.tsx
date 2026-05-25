@@ -21,18 +21,19 @@ const ACCENT_VAR: Record<NonNullable<KpiCardProps["accent"]>, string> = {
 export function KpiCard({ label, value, delta, accent = "cinza", hint }: KpiCardProps) {
   const color = ACCENT_VAR[accent];
   return (
-    <div className="rounded-lg border bg-white p-5 shadow-sm">
-      <div className="h-1 w-10 rounded" style={{ background: `rgb(${color})` }} />
-      <p className="mt-3 text-xs font-medium tracking-wide text-slate-500 uppercase">{label}</p>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-3xl font-semibold text-slate-900">{value}</span>
+    <div className="ifp-card ifp-card-hover p-6">
+      <p className="text-sm font-medium text-[rgb(var(--ifp-muted))]">{label}</p>
+      <div className="mt-3 flex items-baseline gap-2.5">
+        <span className="text-[2.6rem] leading-none font-bold tracking-tight text-[rgb(var(--ifp-ink))]">
+          {value}
+        </span>
         {delta && (
-          <span className="text-xs font-medium" style={{ color: `rgb(${color})` }}>
+          <span className="text-sm font-semibold" style={{ color: `rgb(${color})` }}>
             {delta}
           </span>
         )}
       </div>
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-2 text-[13px] text-[rgb(var(--ifp-muted))]">{hint}</p>}
     </div>
   );
 }

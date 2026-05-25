@@ -30,6 +30,31 @@
   --ifp-capacitacao: 194 77 15; /* #C24D0F laranja queimado */
   --ifp-esportivo: 117 44 5; /* #752C05 terracota (ancora monocromatica) */
   --ifp-recreativo: 0 117 113; /* #007571 teal escuro */
+
+  /* Neutros premium — design "Neve" (2026-05-25) */
+  --ifp-ink: 29 29 31; /* #1D1D1F texto principal */
+  --ifp-muted: 134 134 139; /* #86868B texto secundário */
+  --ifp-canvas: 251 251 253; /* #FBFBFD fundo da aplicação */
+  --ifp-surface: 255 255 255; /* superfície dos cards */
+}
+
+/* Superfície premium reutilizável: card branco, borda fina, sombra suave, levanta no hover. */
+.ifp-card {
+  background: rgb(var(--ifp-surface));
+  border: 1px solid rgb(0 0 0 / 0.07);
+  border-radius: 20px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.03),
+    0 16px 36px -26px rgb(40 30 20 / 0.18);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+.ifp-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.04),
+    0 26px 50px -28px rgb(40 30 20 / 0.3);
 }
 
 body {

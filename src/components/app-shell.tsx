@@ -1,9 +1,8 @@
-import type { Route } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import type { Session } from "next-auth";
 import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
+import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
 import { hasAnyRole } from "@/lib/rbac";
 
 interface AppShellProps {
@@ -11,60 +10,61 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  return (first + last).toUpperCase() || "?";
+}
+
 export function AppShell({ session, children }: AppShellProps) {
   const displayName = session.user.name ?? session.user.email ?? "Usuário";
 
-  return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Image src="/logo/ifp-symbol.png" alt="IFP" width={36} height={36} priority />
-            <span className="text-lg font-semibold text-[rgb(var(--ifp-esportivo))]">
-              IFP Connect
-            </span>
-            <div className="flex h-1 w-12 overflow-hidden rounded">
-              <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-capacitacao))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
-              <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
-            </div>
-          </div>
+  const items: NavItem[] = [
+    { label: "Visão geral", href: "/app" },
+    { label: "Cidadãos", href: "/app/cidadaos" },
+  ];
+  if (hasAnyRole(session, "super_admin", "gestor_geral", "social")) {
+    items.push({ label: "Serviço Social", href: "/app/social" });
+  }
+  if (hasAnyRole(session, "super_admin", "gestor_geral")) {
+    items.push({ label: "Admin", href: "/admin/users" });
+  }
 
-          <div className="flex items-center gap-4 text-sm">
-            <UnitSwitcher roles={session.user.roles} />
-            <Link
-              href={"/app/cidadaos" as Route}
-              className="text-slate-600 transition hover:text-[rgb(var(--ifp-laranja))]"
-            >
-              Cidadãos
-            </Link>
-            {hasAnyRole(session, "super_admin", "gestor_geral") && (
-              <Link
-                href={"/admin/users" as Route}
-                className="text-slate-600 transition hover:text-[rgb(var(--ifp-laranja))]"
-              >
-                Admin
-              </Link>
-            )}
-            <span className="text-slate-600">{displayName}</span>
+  return (
+    <div className="flex min-h-screen bg-[rgb(var(--ifp-canvas))] text-[rgb(var(--ifp-ink))]">
+      <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-black/[0.07] bg-white/70 px-4 py-7 backdrop-blur-xl">
+        <div className="flex items-center gap-2.5 px-3 pb-7">
+          <Image src="/logo/ifp-symbol.png" alt="IFP" width={32} height={32} priority />
+          <span className="text-[17px] font-extrabold tracking-tight">IFP Connect</span>
+        </div>
+
+        <SidebarNav items={items} />
+
+        <p className="mt-6 mb-2 px-3 text-[11px] font-bold text-[#b0a99c]">Unidades</p>
+        <UnitSwitcher roles={session.user.roles} />
+
+        <div className="mt-auto flex items-center gap-3 border-t border-black/[0.06] px-2 pt-4">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[rgb(var(--ifp-ink))] text-xs font-bold text-white">
+            {initials(displayName)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{displayName}</p>
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="rounded border border-slate-300 px-3 py-1 text-slate-700 transition hover:bg-slate-100"
+                className="text-xs text-[rgb(var(--ifp-muted))] transition hover:text-[rgb(var(--ifp-laranja))]"
               >
                 Sair
               </button>
             </form>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">{children}</main>
-
-      <footer className="border-t bg-white py-4 text-center text-xs text-slate-500">
-        Instituto Família Pôncio · Uso interno
-      </footer>
+      <main className="min-w-0 flex-1">
+        <div className="mx-auto max-w-[1180px] px-10 py-12 lg:px-14">{children}</div>
+      </main>
     </div>
   );
 }
