@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { listCidadaos, calcularIdade, type CidadaoStatus } from "@/lib/cidadao";
+import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { formatCpf } from "@/lib/cpf";
 import { UNIT_SCOPES, type UnitScope } from "@/lib/rbac-types";
 
@@ -14,12 +15,24 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   recreativo: "Recreativo",
 };
 
+const TONE_BADGE: Record<StatusTone, string> = {
+  red: "bg-red-100 text-red-700",
+  amber: "bg-amber-100 text-amber-700",
+  emerald: "bg-emerald-100 text-emerald-700",
+  slate: "bg-slate-100 text-slate-600",
+};
+
+type CicloFilter = "rascunho" | "ativo" | "inativo";
+
 interface SearchParams {
   q?: string;
   unidade?: string;
   status?: CidadaoStatus;
+  ciclo?: string;
   cursor?: string;
 }
+
+const CICLO_VALUES: CicloFilter[] = ["rascunho", "ativo", "inativo"];
 
 export default async function CidadaosPage({
   searchParams,
@@ -34,11 +47,16 @@ export default async function CidadaosPage({
     ? (params.unidade.split(",").filter((u) => UNIT_SCOPES.includes(u as UnitScope)) as UnitScope[])
     : undefined;
 
+  const ciclo = CICLO_VALUES.includes(params.ciclo as CicloFilter)
+    ? (params.ciclo as CicloFilter)
+    : undefined;
+
   const { items, nextCursor } = await listCidadaos(
     {
       search: params.q,
       unitScopes: selectedUnits,
       status: params.status,
+      statusCadastro: ciclo,
       cursor: params.cursor,
       limit: 50,
     },
@@ -104,6 +122,19 @@ export default async function CidadaosPage({
               <option value="anonimizado">Anonimizados (LGPD)</option>
             </select>
           </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Ciclo</label>
+            <select
+              name="ciclo"
+              defaultValue={params.ciclo ?? ""}
+              className="rounded border px-3 py-2 text-sm"
+            >
+              <option value="">Todos</option>
+              <option value="rascunho">Rascunho</option>
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
           <button
             type="submit"
             className="rounded border border-slate-300 px-4 py-2 text-sm transition hover:bg-slate-50"
@@ -128,11 +159,13 @@ export default async function CidadaosPage({
                 <th className="px-5 py-3 text-left font-medium">Telefone</th>
                 <th className="px-5 py-3 text-left font-medium">Unidade</th>
                 <th className="px-5 py-3 text-left font-medium">Família</th>
+                <th className="px-5 py-3 text-left font-medium">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {items.map((c) => {
                 const unit = c.unitIdOrigem as UnitScope;
+                const status = statusDisplay(c);
                 return (
                   <tr key={c.id} className="transition hover:bg-slate-50">
                     <td className="px-5 py-3">
@@ -163,6 +196,13 @@ export default async function CidadaosPage({
                     </td>
                     <td className="px-5 py-3 text-xs text-slate-600">
                       {c.familia?.nomeReferencia ?? "—"}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`rounded px-2 py-0.5 text-xs font-medium ${TONE_BADGE[status.tone]}`}
+                      >
+                        {status.label}
+                      </span>
                     </td>
                   </tr>
                 );

@@ -8,7 +8,15 @@ import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
 import { hasAnyRole } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
+import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { AnexoUploader } from "./anexo-uploader";
+
+const TONE_BADGE: Record<StatusTone, string> = {
+  red: "bg-red-100 text-red-700",
+  amber: "bg-amber-100 text-amber-700",
+  emerald: "bg-emerald-100 text-emerald-700",
+  slate: "bg-slate-100 text-slate-600",
+};
 
 const UNIT_LABELS: Record<UnitScope, string> = {
   medico: "Centro Médico",
@@ -51,8 +59,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
 
   const unit = cidadao.unitIdOrigem as UnitScope;
   const idade = calcularIdade(cidadao.dataNascimento);
-  const isAnonimizado = cidadao.anonimizadoEm !== null;
-  const isDeletado = cidadao.deletedAt !== null;
+  const status = statusDisplay(cidadao);
 
   // RBAC pra seções sensíveis
   const podeVerSocio = hasAnyRole(session, "super_admin", "gestor_geral", "presidencia", "social");
@@ -81,16 +88,11 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-semibold text-slate-900">{cidadao.nomeCompleto}</h1>
-              {isDeletado && (
-                <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                  Excluído
-                </span>
-              )}
-              {isAnonimizado && (
-                <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                  Anonimizado (LGPD)
-                </span>
-              )}
+              <span
+                className={`rounded px-2 py-0.5 text-xs font-medium ${TONE_BADGE[status.tone]}`}
+              >
+                {status.label}
+              </span>
             </div>
             {cidadao.nomeSocial && (
               <p className="mt-1 text-sm text-slate-600">

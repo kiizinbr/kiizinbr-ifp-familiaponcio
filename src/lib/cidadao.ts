@@ -17,7 +17,10 @@ export type CidadaoStatus = "ativo" | "anonimizado" | "deletado";
 export interface CidadaoListFilters {
   search?: string;
   unitScopes?: UnitScope[];
+  /** Eixo de compliance: ativo (não deletado/anonimizado) | anonimizado | deletado. */
   status?: CidadaoStatus;
+  /** Eixo de ciclo de vida (ortogonal ao status de compliance). */
+  statusCadastro?: "rascunho" | "ativo" | "inativo";
   /** Idade mínima inclusiva. */
   idadeMin?: number;
   /** Idade máxima inclusiva. */
@@ -96,6 +99,7 @@ export async function listCidadaos(filters: CidadaoListFilters, session: Session
     where: {
       ...unitFilter,
       ...statusFilter,
+      ...(filters.statusCadastro ? { statusCadastro: filters.statusCadastro } : {}),
       ...(dataNascimentoFilter && { dataNascimento: dataNascimentoFilter }),
       ...searchFilter,
     },
