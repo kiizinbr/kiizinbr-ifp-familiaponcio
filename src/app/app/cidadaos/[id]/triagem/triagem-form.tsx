@@ -240,7 +240,10 @@ function ElegibilidadeRow({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded border border-slate-200 p-3">
+    <div
+      data-testid={`eleg-row-${unidadeValue}`}
+      className="flex flex-wrap items-center gap-3 rounded border border-slate-200 p-3"
+    >
       <span className="w-44 text-sm font-medium text-slate-800">{unidadeLabel}</span>
       <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[statusInicial]}`}>
         {statusInicial}
