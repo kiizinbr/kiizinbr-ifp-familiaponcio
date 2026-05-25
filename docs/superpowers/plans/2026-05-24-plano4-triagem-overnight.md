@@ -86,16 +86,50 @@ _(vazio)_
 
 ## Log de execução
 
-| Hora     | Commit    | Task                   | Nota |
-| -------- | --------- | ---------------------- | ---- |
-| _início_ | `55ddb07` | spec funil + deferrals | —    |
+| Commit    | Task | Nota                                                      |
+| --------- | ---- | --------------------------------------------------------- |
+| `55ddb07` | spec | funil real + deferrals                                    |
+| `0ff4132` | plan | este doc                                                  |
+| `2f786f7` | T1   | schema Triagem/Elegibilidade + statusCadastro + migration |
+| `7b0e803` | T2   | audit actions + timeline (2 testes)                       |
+| `f156549` | T3   | lib triagem (deveAtivarCidadao 4 testes + leitura RBAC)   |
+| `79e9931` | T4   | server actions abrir/entrevista/concluir/elegibilidade    |
+| `ce7bc26` | T5   | UI triagem (página + form + link no detalhe)              |
+| `597497b` | T8   | e2e (4 cenários) + data-testid · 31/31 e2e verdes         |
+| `74a9646` | T6   | dashboard social com dados reais                          |
+| `0518631` | T7   | gestor da unidade vê encaminhamentos                      |
+| `27a0638` | —    | elevação visual da triagem (frontend-design) PREVIEW      |
 
-## Relatório da manhã (preencher no fim)
+## Relatório da manhã ✅
 
-_(a preencher)_
+**Plano 4 fatia estrutural ENTREGUE e testada.** Tudo no `origin/main` (push via git Windows).
 
-## Próximas perguntas pro Erick (preencher)
+**Funciona de ponta a ponta:** assistente social abre triagem num cidadão → registra entrevista (parecer/observações) → conclui → decide elegibilidade por unidade (manual) → ao aprovar ≥1 unidade o cidadão vira `ativo`. Eventos aparecem na timeline do cidadão. Dashboard social mostra triagens pendentes reais; gestor de unidade vê os encaminhamentos da sua unidade.
 
-1. **WhatsApp API:** qual provedor? (Meta Cloud API / Twilio / Z-API) — precisa credenciais + número.
-2. **Vaga/Agendamento:** vaga tem limite de slots? agenda da Regina é por horário? quem confirma o agendamento?
+**Verificação:** 36 testes unit + 31 e2e verdes; ritual pré-commit (format/typecheck/lint/test) + build OK em cada commit. Zero regressão nos specs antigos.
+
+**Limitações conhecidas (honestas):**
+
+- A transição `statusCadastro` rascunho→ativo está implementada + testada (unit `deveAtivarCidadao`), mas NÃO é observável na UI ainda porque todo cidadão nasce `ativo` por default (criação de rascunho é fatia futura).
+- A **elevação visual (frontend-design) foi só na tela de triagem** — é um PREVIEW da direção. Os dashboards (social/unidade) ainda têm muito placeholder/fake fora dos painéis reais que troquei. Recomendo estender a direção visual a eles (ver recomendações).
+
+## Recomendações (fluxos + design — pra decidirmos juntos)
+
+**Fluxo:**
+
+1. **Funil de vaga → agendamento:** modelar `Vaga` (por unidade, com nº de slots) + `Agendamento` (interessado escolhe horário). O agendamento "vira" uma triagem quando a entrevista acontece. Sugiro começar pela versão INTERNA (callcenter agenda em nome do interessado) antes da página pública.
+2. **WhatsApp:** recomendo **Meta WhatsApp Cloud API** (oficial, grátis até volume alto, templates aprovados) sobre Z-API/Twilio pro caso de vocês (divulgação de link + confirmação de agendamento + lembrete). Desenhar como `NotificationChannel` abstrato → troca de provedor sem reescrever.
+3. **Recepção cria rascunho:** fazer a criação nascer `rascunho` e só virar `ativo` pós-triagem dá sentido real ao ciclo de vida + ao funil.
+4. **Elegibilidade automática:** quando a Regina passar os critérios, vira uma função pura `sugerirUnidades(cidadao)` que pré-preenche os status (ela só confirma) — fácil de plugar.
+
+**Design (preview na triagem aponta a direção):**
+
+5. Estender a linguagem da triagem (cantos 2xl, laranja institucional como fio, cor por unidade, jornada/stepper) aos **dashboards social e de unidade** — hoje são cards genéricos + dados fake. Um passe `frontend-design` neles unificaria o visual.
+6. Badge de `statusCadastro` no detalhe do cidadão (Rascunho/Ativo) quando o ciclo de vida começar a variar.
+
+## Próximas perguntas pro Erick
+
+1. **WhatsApp API:** confirma Meta Cloud API? Tem número/conta Business pra vincular?
+2. **Vaga/Agendamento:** vaga tem limite de slots? agenda da Regina é por horário fixo? quem confirma — callcenter?
 3. **Regras de elegibilidade:** levantar com a Regina os critérios (renda/idade/vaga) por unidade.
+4. **Design:** aprova a direção visual do preview da triagem? Estendo aos dashboards?
