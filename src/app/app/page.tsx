@@ -1,11 +1,59 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import type { Route } from "next";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
 import { KpiCard } from "@/components/kpi-card";
+import { getCidadaoStats } from "@/lib/cidadao";
+import { countTriagensAbertas, listTriagensPendentes } from "@/lib/triagem";
+import type { UnitScope } from "@/lib/rbac-types";
+
+const UNIT_LABELS: Record<UnitScope, string> = {
+  medico: "Centro Médico",
+  capacitacao: "Capacitação",
+  esportivo: "Esportivo",
+  recreativo: "Recreativo",
+};
+
+const ACTIVITY_LABELS: Record<string, string> = {
+  signin_success: "entrou no sistema",
+  signout: "saiu do sistema",
+  ficha_created: "cadastrou uma ficha",
+  ficha_updated: "atualizou uma ficha",
+  anexo_uploaded: "anexou um documento",
+  anexo_removed: "removeu um anexo",
+  triagem_aberta: "abriu uma triagem",
+  triagem_concluida: "concluiu uma triagem",
+  elegibilidade_decidida: "decidiu uma elegibilidade",
+  role_changed: "alterou um papel",
+};
+
+function formatDateTime(date: Date): string {
+  return date.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default async function GlobalDashboard() {
   const session = await auth();
   if (!session) redirect("/login");
+
+  const [stats, triagensAbertas, pendentes, atividade] = await Promise.all([
+    getCidadaoStats(session),
+    countTriagensAbertas(session),
+    listTriagensPendentes(session),
+    db.auditLog.findMany({
+      take: 6,
+      orderBy: { createdAt: "desc" },
+      include: { user: { select: { name: true, email: true } } },
+    }),
+  ]);
+
+  const porUnidade = new Map((stats?.porUnidade ?? []).map((u) => [u.unidade, u.total]));
 
   return (
     <AppShell session={session}>
@@ -21,21 +69,29 @@ export default async function GlobalDashboard() {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label="Atendimentos no mês"
-          value="1.247"
-          delta="+12%"
+          label="Total de cidadãos"
+          value={String(stats?.total ?? 0)}
           accent="laranja"
-          hint="vs mês anterior"
+          hint="cadastros na plataforma"
         />
         <KpiCard
           label="Cidadãos ativos"
-          value="892"
-          delta="+34"
+          value={String(stats?.ativos ?? 0)}
           accent="esportivo"
-          hint="novos este mês"
+          hint="não excluídos / anonimizados"
         />
-        <KpiCard label="Triagens pendentes" value="15" accent="cinza" hint="aguardando aprovação" />
-        <KpiCard label="Profissionais ativos" value="48" accent="cinza" hint="nas 4 unidades" />
+        <KpiCard
+          label="Triagens pendentes"
+          value={String(triagensAbertas)}
+          accent="cinza"
+          hint="entrevistas em aberto"
+        />
+        <KpiCard
+          label="Excluídos"
+          value={String(stats?.deletados ?? 0)}
+          accent="cinza"
+          hint="soft delete (LGPD)"
+        />
       </section>
 
       <section className="mt-10">
@@ -43,63 +99,62 @@ export default async function GlobalDashboard() {
           Unidades
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <UnitSummary
-            color="medico"
-            name="Centro Médico"
-            atendimentos={512}
-            ativos={324}
-            href="/app/medico"
-          />
-          <UnitSummary
-            color="capacitacao"
-            name="Capacitação"
-            atendimentos={184}
-            ativos={180}
-            href="/app/capacitacao"
-          />
-          <UnitSummary
-            color="esportivo"
-            name="Esportivo"
-            atendimentos={278}
-            ativos={240}
-            href="/app/esportivo"
-          />
-          <UnitSummary
-            color="recreativo"
-            name="Recreativo"
-            atendimentos={273}
-            ativos={148}
-            href="/app/recreativo"
-          />
+          {(Object.keys(UNIT_LABELS) as UnitScope[]).map((u) => (
+            <UnitSummary
+              key={u}
+              color={u}
+              name={UNIT_LABELS[u]}
+              ativos={porUnidade.get(u) ?? 0}
+              href={`/app/${u}`}
+            />
+          ))}
         </div>
       </section>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-2">
-        <Panel title="Pendências">
-          <PendingItem label="Aprovação de 3 triagens socioeconômicas" highlight="Hoje" />
-          <PendingItem label="Reunião quinzenal com coordenadoras" highlight="Amanhã 10h" />
-          <PendingItem label="Renovação de convênio Centro Médico" highlight="3 dias" />
+        <Panel title="Triagens pendentes">
+          {pendentes.length === 0 ? (
+            <li className="text-sm text-slate-500">Nenhuma triagem pendente.</li>
+          ) : (
+            pendentes.slice(0, 6).map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+              >
+                <Link
+                  href={`/app/cidadaos/${t.cidadao.id}/triagem` as Route}
+                  className="text-sm font-medium text-slate-900 hover:text-[rgb(var(--ifp-laranja))]"
+                >
+                  {t.cidadao.nomeCompleto}
+                </Link>
+                <span className="text-xs text-slate-500">
+                  {UNIT_LABELS[t.cidadao.unitIdOrigem as UnitScope]}
+                </span>
+              </li>
+            ))
+          )}
         </Panel>
 
         <Panel title="Atividade recente">
-          <ActivityItem
-            who="Luciana"
-            what="cadastrou nova turma de informática básica"
-            when="há 2h"
-            accent="capacitacao"
-          />
-          <ActivityItem
-            who="Regina"
-            what="aprovou triagem da família Almeida"
-            when="há 4h"
-            accent="laranja"
-          />
-          <ActivityItem
-            who="Livia"
-            what="atualizou cronograma de futebol infantil"
-            when="ontem"
-            accent="esportivo"
-          />
+          {atividade.length === 0 ? (
+            <li className="text-sm text-slate-500">Sem atividade registrada.</li>
+          ) : (
+            atividade.map((a) => (
+              <li
+                key={a.id}
+                className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+              >
+                <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-[rgb(var(--ifp-laranja))]" />
+                <div className="flex-1 text-sm">
+                  <span className="font-medium text-slate-900">
+                    {a.user?.name ?? a.user?.email ?? "Sistema"}
+                  </span>{" "}
+                  <span className="text-slate-600">{ACTIVITY_LABELS[a.action] ?? a.action}</span>
+                  <p className="text-xs text-slate-500">{formatDateTime(a.createdAt)}</p>
+                </div>
+              </li>
+            ))
+          )}
         </Panel>
       </section>
     </AppShell>
@@ -109,31 +164,26 @@ export default async function GlobalDashboard() {
 function UnitSummary({
   color,
   name,
-  atendimentos,
   ativos,
   href,
 }: {
-  color: "medico" | "capacitacao" | "esportivo" | "recreativo";
+  color: UnitScope;
   name: string;
-  atendimentos: number;
   ativos: number;
   href: string;
 }) {
   return (
-    <a href={href} className="block rounded-lg border bg-white p-4 transition hover:shadow-md">
+    <Link
+      href={href as Route}
+      className="block rounded-lg border bg-white p-4 transition hover:shadow-md"
+    >
       <div className={`h-1 w-8 rounded bg-[rgb(var(--ifp-${color}))]`} />
       <h3 className="mt-3 text-sm font-medium text-slate-900">{name}</h3>
-      <div className="mt-3 flex items-baseline gap-3">
-        <div>
-          <p className="text-xs text-slate-500">Atendimentos</p>
-          <p className="text-lg font-semibold text-slate-900">{atendimentos}</p>
-        </div>
-        <div>
-          <p className="text-xs text-slate-500">Ativos</p>
-          <p className="text-lg font-semibold text-slate-900">{ativos}</p>
-        </div>
+      <div className="mt-3">
+        <p className="text-xs text-slate-500">Cidadãos ativos</p>
+        <p className="text-lg font-semibold text-slate-900">{ativos}</p>
       </div>
-    </a>
+    </Link>
   );
 }
 
@@ -143,42 +193,5 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
       <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
       <ul className="mt-4 space-y-3">{children}</ul>
     </div>
-  );
-}
-
-function PendingItem({ label, highlight }: { label: string; highlight: string }) {
-  return (
-    <li className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-      <span className="text-sm text-slate-700">{label}</span>
-      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-        {highlight}
-      </span>
-    </li>
-  );
-}
-
-function ActivityItem({
-  who,
-  what,
-  when,
-  accent,
-}: {
-  who: string;
-  what: string;
-  when: string;
-  accent: "medico" | "capacitacao" | "esportivo" | "recreativo" | "laranja";
-}) {
-  return (
-    <li className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-      <span
-        className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full"
-        style={{ background: `rgb(var(--ifp-${accent}))` }}
-      />
-      <div className="flex-1 text-sm">
-        <span className="font-medium text-slate-900">{who}</span>{" "}
-        <span className="text-slate-600">{what}</span>
-        <p className="text-xs text-slate-500">{when}</p>
-      </div>
-    </li>
   );
 }

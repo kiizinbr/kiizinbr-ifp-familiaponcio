@@ -144,6 +144,12 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
         <p className="mt-2 text-sm text-slate-600">{data.tagline}</p>
       </header>
 
+      <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+        KPIs, agenda e destaques abaixo são <strong>dados de exemplo</strong> — a integração com as
+        fontes reais de cada unidade entra numa próxima fase. O painel{" "}
+        <strong>Encaminhamentos da triagem</strong> já usa dados reais.
+      </div>
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {data.kpis.map((kpi, i) => (
           <KpiCard
