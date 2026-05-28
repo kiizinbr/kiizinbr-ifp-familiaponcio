@@ -26,30 +26,30 @@ Essa spec trata da **camada estrutural** dessas mudanças: rotas, login, RBAC, g
 
 Registradas no companion visual `.superpowers/brainstorm/16558-1779984932/`.
 
-| # | Pergunta | Decisão |
-|---|---|---|
-| 1 | Rota por unidade | **Path** (não subdomínio nem domínio próprio) |
-| 2 | Login multi-tenant | **Catch-all `/[unidade]/login`** com config por unidade |
-| 3 | Escopo da presidência | **Só `/poncio`** com drill-down inline; não entra em unidades |
-| 4 | Escopo da Regina (social) | **Path próprio `/social`** (triagem cross-unidade) |
-| 5 | Raquel | Rebaixada a `gestor:medico` (perde `gestor_geral`) |
-| 6 | Role `gestor_geral` | **Removida totalmente** |
-| 7 | Raiz `/` sem path | **Landing institucional pública** |
+| #   | Pergunta                  | Decisão                                                       |
+| --- | ------------------------- | ------------------------------------------------------------- |
+| 1   | Rota por unidade          | **Path** (não subdomínio nem domínio próprio)                 |
+| 2   | Login multi-tenant        | **Catch-all `/[unidade]/login`** com config por unidade       |
+| 3   | Escopo da presidência     | **Só `/poncio`** com drill-down inline; não entra em unidades |
+| 4   | Escopo da Regina (social) | **Path próprio `/social`** (triagem cross-unidade)            |
+| 5   | Raquel                    | Rebaixada a `gestor:medico` (perde `gestor_geral`)            |
+| 6   | Role `gestor_geral`       | **Removida totalmente**                                       |
+| 7   | Raiz `/` sem path         | **Landing institucional pública**                             |
 
 ## 3. Arquitetura
 
 ### 3.1 Mapa de rotas
 
-| Path | Função | Auth | Acesso |
-|---|---|---|---|
-| `/` | Landing institucional pública | — | Público |
-| `/[unidade]/login` | Login catch-all (drone+filtro) | — | Público |
-| `/[unidade]` | Home da unidade | Sim | Roles compatíveis + `super_admin` |
-| `/poncio` | Dashboard executivo agregado | Sim | `presidencia`, `super_admin` |
-| `/social` | Triagem cross-unidade | Sim | `social`, `super_admin` |
-| `/admin/users` | Manutenção users (existente) | Sim | `super_admin`; `presidencia` read-only |
-| `/reset`, `/reset/[token]` | Reset de senha (novo, global) | — | Público |
-| `/api/auth/[...nextauth]` | Auth Next.js (existente) | — | — |
+| Path                       | Função                         | Auth | Acesso                                 |
+| -------------------------- | ------------------------------ | ---- | -------------------------------------- |
+| `/`                        | Landing institucional pública  | —    | Público                                |
+| `/[unidade]/login`         | Login catch-all (drone+filtro) | —    | Público                                |
+| `/[unidade]`               | Home da unidade                | Sim  | Roles compatíveis + `super_admin`      |
+| `/poncio`                  | Dashboard executivo agregado   | Sim  | `presidencia`, `super_admin`           |
+| `/social`                  | Triagem cross-unidade          | Sim  | `social`, `super_admin`                |
+| `/admin/users`             | Manutenção users (existente)   | Sim  | `super_admin`; `presidencia` read-only |
+| `/reset`, `/reset/[token]` | Reset de senha (novo, global)  | —    | Público                                |
+| `/api/auth/[...nextauth]`  | Auth Next.js (existente)       | —    | —                                      |
 
 Slugs válidos de unidade: `medico`, `capacitacao`, `esportivo`, `recreativo`, `poncio`, `social`. Qualquer outro slug em `/[unidade]/*` retorna 404.
 
@@ -97,6 +97,7 @@ Pseudocódigo:
 ```
 
 `canAccessUnidade(role, unidadeSlug)` em `lib/rbac.ts`:
+
 - `role === 'super_admin'` → `true`
 - `role in UNIDADES[unidadeSlug].rolesAceitas` → `true`
 - senão → `false`
@@ -104,6 +105,7 @@ Pseudocódigo:
 ### 3.4 Login — `app/[unidade]/login/page.tsx` (NOVO)
 
 Server component:
+
 - `const unidade = unidadeFromSlug(params.unidade)`; se null → `notFound()`
 - Renderiza `<UnidadeLoginShell unidade={unidade} />`:
   - Background: `<img src={unidade.fotoDronePlaceholder ?? gradient}>` com overlay da cor primária e opacidade ~40%
@@ -112,6 +114,7 @@ Server component:
   - Link "Esqueci senha" → `/reset`
 
 Server action `loginAction(formData, unidadeSlug)`:
+
 1. Valida credenciais via Auth.js → se inválidas, mensagem genérica "Email ou senha incorretos"
 2. Se válidas e `!canAccessUnidade(user.role, unidadeSlug)` → mensagem "Não foi possível acessar essa unidade. [Ir para minhas unidades]" (link → `/`)
 3. Se válidas e pode acessar → cookie de sessão + redirect `/<unidade>`
@@ -119,6 +122,7 @@ Server action `loginAction(formData, unidadeSlug)`:
 ### 3.5 Switcher de unidade
 
 Componente `<UnitSwitcher>` (existente, modificado):
+
 - **Visível só para `super_admin`** (hoje aparece também pra `gestor_geral + gestor_unidade:X` — esse caso some)
 - Dropdown com as 6 unidades + item "Início" → `/`
 - Logout permanece no avatar dropdown (separado)
@@ -126,6 +130,7 @@ Componente `<UnitSwitcher>` (existente, modificado):
 ### 3.6 Landing pública `/` — `app/page.tsx` (REFATOR)
 
 Server component sem auth check:
+
 - Hero: logo IFP + missão da Família Pôncio (copy a ser definida; placeholder OK)
 - 4 cards das unidades públicas (`/medico`, `/capacitacao`, `/esportivo`, `/recreativo`) → cada um leva pro respectivo `/login`
 - Footer com link discreto "Acesso executivo" → `/poncio/login`
@@ -136,49 +141,84 @@ Server component sem auth check:
 
 ### 4.1 Roles antes → depois
 
-| Antes (banco atual) | Depois | Mudança |
-|---|---|---|
-| `super_admin` | `super_admin` | — |
-| `presidencia` | `presidencia` | escopo passa a ser só `/poncio` |
-| `gestor_geral` | **REMOVIDA** | nenhum user fica com ela |
-| `gestor_unidade:medico` | `gestor:medico` | renomeio |
-| `gestor_unidade:capacitacao` | `gestor:capacitacao` | renomeio |
-| `gestor_unidade:esportivo` | `gestor:esportivo` | renomeio |
-| `gestor_unidade:recreativo` | `gestor:recreativo` | renomeio |
-| `social` | `social` | escopo passa a ser `/social` |
-| `recepcao:medico` | `recepcao:medico` | — |
+| Antes (banco atual)          | Depois               | Mudança                         |
+| ---------------------------- | -------------------- | ------------------------------- |
+| `super_admin`                | `super_admin`        | —                               |
+| `presidencia`                | `presidencia`        | escopo passa a ser só `/poncio` |
+| `gestor_geral`               | **REMOVIDA**         | nenhum user fica com ela        |
+| `gestor_unidade:medico`      | `gestor:medico`      | renomeio                        |
+| `gestor_unidade:capacitacao` | `gestor:capacitacao` | renomeio                        |
+| `gestor_unidade:esportivo`   | `gestor:esportivo`   | renomeio                        |
+| `gestor_unidade:recreativo`  | `gestor:recreativo`  | renomeio                        |
+| `social`                     | `social`             | escopo passa a ser `/social`    |
+| `recepcao:medico`            | `recepcao:medico`    | —                               |
 
 ### 4.2 Matriz role × path
 
-| Role | `/` | `/medico` | `/capacitacao` | `/esportivo` | `/recreativo` | `/poncio` | `/social` |
-|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| `super_admin` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `presidencia` | ✓ | — | — | — | — | ✓ | — |
-| `gestor:medico` | ✓ | ✓ | — | — | — | — | — |
-| `gestor:capacitacao` | ✓ | — | ✓ | — | — | — | — |
-| `gestor:esportivo` | ✓ | — | — | ✓ | — | — | — |
-| `gestor:recreativo` | ✓ | — | — | — | ✓ | — | — |
-| `social` | ✓ | — | — | — | — | — | ✓ |
-| `recepcao:medico` | ✓ | ✓ | — | — | — | — | — |
+| Role                 | `/` | `/medico` | `/capacitacao` | `/esportivo` | `/recreativo` | `/poncio` | `/social` |
+| -------------------- | :-: | :-------: | :------------: | :----------: | :-----------: | :-------: | :-------: |
+| `super_admin`        |  ✓  |     ✓     |       ✓        |      ✓       |       ✓       |     ✓     |     ✓     |
+| `presidencia`        |  ✓  |     —     |       —        |      —       |       —       |     ✓     |     —     |
+| `gestor:medico`      |  ✓  |     ✓     |       —        |      —       |       —       |     —     |     —     |
+| `gestor:capacitacao` |  ✓  |     —     |       ✓        |      —       |       —       |     —     |     —     |
+| `gestor:esportivo`   |  ✓  |     —     |       —        |      ✓       |       —       |     —     |     —     |
+| `gestor:recreativo`  |  ✓  |     —     |       —        |      —       |       ✓       |     —     |     —     |
+| `social`             |  ✓  |     —     |       —        |      —       |       —       |     —     |     ✓     |
+| `recepcao:medico`    |  ✓  |     ✓     |       —        |      —       |       —       |     —     |     —     |
 
-### 4.3 Migração
+### 4.3 Capabilities após rebaixamento de `gestor_geral`
 
-**Migration Prisma** (uma migration única):
+Decisões tomadas durante execução (após descoberta de gap — `gestor_geral` aparecia em ~15 arquivos cobrindo capabilities além de roteamento):
+
+| Capability | Antes (`gestor_geral`) | Depois | Nota |
+|---|---|---|---|
+| **Ver Saúde do cidadão da própria unidade** | `gestor_geral` + `profissional` + `super_admin` | adicionar `gestor_unidade` (escopado à sua unidade) | Raquel continua vendo Saúde no Médico |
+| **Ver Socioeconômico do cidadão** | `gestor_geral` + `presidencia` + `social` + `super_admin` | tira `gestor_geral`, mantém os demais | gestores de unidade NÃO veem Socio |
+| **Gerenciar users em `/admin/users` (CRUD)** | `gestor_geral` + `super_admin` | só `super_admin` | Presidência continua read-only (já era) |
+| **Ver Saúde/Socio em `/poncio` agregado** | `gestor_geral` + presidência | `presidencia` agregado | KPIs agregados sim, drill-down até ficha individual NÃO |
+| **`podeGerenciarVaga` (funil)** | `gestor_geral` + `gestor_unidade` + `super_admin` | tira `gestor_geral`, mantém os demais | gestor da unidade gerencia |
+| **`podeAgendar` (funil)** | `gestor_geral` + 4 outros | tira `gestor_geral`, mantém os demais | sem impacto operacional |
+| **`podeFazerTriagem`** | `social` + `super_admin` + `gestor_geral` | só `social` + `super_admin` | Regina + Erick fazem triagem |
+| **Remover anexo do cidadão** | `gestor_geral` + `gestor_unidade` + `super_admin` | tira `gestor_geral`, mantém os demais | gestor da unidade remove |
+| **Criar cidadão / escolher unidade** | `gestor_geral` + `super_admin` podiam escolher qualquer unidade | só `super_admin` pode escolher; outros usam a unidade da sua role | recepção/profissional/gestor_unidade criam só na sua unidade |
+
+Razão das decisões:
+- **Saúde sim, Socio não** para gestor de unidade — a gestora médica precisa do contexto clínico operacional, mas o socioeconômico é trabalho específico da Regina (social), exposição desnecessária pra outros.
+- **`/admin/users` só super_admin** — gestão técnica de users é TI; presidência não opera RBAC.
+- **`/poncio` agregado-only** — KPIs sim, ficha individual completa não. Privacidade do cidadão > visibilidade executiva detalhada.
+
+### 4.4 Migração
+
 1. Renomear strings de role nas tabelas que armazenam atribuições: `gestor_unidade:X` → `gestor:X` (4 ocorrências)
 2. Apagar atribuição `gestor_geral` da Raquel: `DELETE FROM "UserRole" WHERE role = 'gestor_geral'`
 3. Atualizar a definição da enum/CHECK constraint em `schema.prisma` removendo `gestor_geral` e `gestor_unidade:*`, adicionando `gestor:*`
 
-**Código**:
-- `lib/rbac.ts`: remover constante `GESTOR_GERAL`; remover branch dela (se existir); implementar `canAccessUnidade(role, unidadeSlug)`
-- `proxy.ts`: gates path-based via lookup em `UNIDADES`
-- `db/seed.ts`: 
-  - atualizar atribuições dos 9 demos com as novas chaves
-  - Raquel fica só com `gestor:medico`
-  - comentário `TODO operacional: criar user real Sarah Pôncio via /admin/users após deploy`
+**Código** (T4 ampliada — aplicar capabilities da §4.3):
+
+- `lib/rbac-types.ts`: remover `"gestor_geral"` de `ROLE_NAMES`, `GLOBAL_ROLES`, `ROLE_DESCRIPTIONS`, e do `switch` em `getLandingPathFor`.
+- `lib/rbac.ts`: drop branch `gestor_geral` em `getUserUnits`, `can()` (2 lugares). `canAccessUnidade(role, slug)` já implementado em T2.
+- `lib/triagem.ts`: drop `"gestor_geral"` de `podeFazerTriagem`.
+- `lib/funil.ts`: drop `"gestor_geral"` de `podeGerenciarVaga` + `podeAgendar`.
+- `lib/cidadao-history.ts`: drop `"gestor_geral"` de `verSaude` (adicionar `gestor_unidade` escopado) e de `verSocio` (sem substituição).
+- `lib/cidadao.ts`: ajustar comentários.
+- `components/app-shell.tsx`: drop `gestor_geral` dos branches de "global".
+- `components/unit-switcher.tsx`: drop `gestor_geral` (T11 vai mexer mais).
+- `app/admin/users/page.tsx`: gate de CRUD só `super_admin`; manter presidência read-only (lista já é read-only).
+- `app/app/cidadaos/[id]/page.tsx`: ajustar `podeVerSaude` (adicionar `gestor_unidade` escopado), `podeVerSocio` (drop `gestor_geral`), `podeTriagem` (drop).
+- `app/app/cidadaos/[id]/anexo-actions.ts`: drop `gestor_geral` de `allowedRoles`.
+- `app/app/cidadaos/novo/page.tsx` + `actions.ts`: drop `gestor_geral` de `canChooseUnit` (só `super_admin` escolhe unidade).
+- `proxy.ts`: gates path-based via lookup em `UNIDADES` (T10 reescreve o arquivo inteiro — pode arrastar o cleanup pra lá).
+- `prisma/seed.ts`:
+  - Raquel só `(gestor_unidade, 'medico')`; `primaryRoleName='gestor_unidade'`, `primaryUnitScope='medico'`.
+  - Loop de criação de Roles vai pular `gestor_geral` automaticamente após remoção em `ROLE_NAMES`.
+  - Comentário `TODO operacional: criar user real Sarah Pôncio via /admin/users após deploy`.
+- `tests/e2e/cidadao-edit.spec.ts` + `cidadao-crud.spec.ts` + `rbac.spec.ts`: atualizar cenários que usavam Raquel como gestor_geral. Estratégia: usar Erick (super_admin) pros testes "vê tudo"; manter Raquel como gestor_unidade:medico pra testes específicos de capabilities da unidade.
+- `prisma/schema.prisma`: limpar comentários cosméticos referenciando gestor_geral (lines 22, 80, 86, 94).
 
 ## 5. Fluxos
 
 ### 5.1 Login bem-sucedido
+
 1. User abre `/medico/login` (atalho, favorito, Instagram, share)
 2. Vê background drone (ou gradiente placeholder) com overlay cor primária + logo IFP
 3. Insere email+senha → submit
@@ -186,28 +226,34 @@ Server component sem auth check:
 5. `canAccessUnidade('gestor:medico', 'medico')` → true → cookie + redirect `/medico`
 
 ### 5.2 Login negado (credencial válida mas pra outra unidade)
+
 - Mesma tela, mensagem: **"Não foi possível acessar essa unidade. [Ir para minhas unidades]"** (link → `/`)
 - Mensagem genérica de propósito — não revelar pra qual unidade a credencial seria válida (evita enumeração)
 
 ### 5.3 Login negado (credencial inválida)
+
 - Mensagem: **"Email ou senha incorretos"**
 
 ### 5.4 Esqueci senha
+
 - Link em `/<unidade>/login` → `/reset` (sem branding de unidade)
 - `/reset` pede email → envia link (provedor SMTP fica pro Plano 8)
 - Link no email → `/reset/[token]` → nova senha → login automático em `/<unidade-do-user>/login`
 
 ### 5.5 Logout
+
 - Botão "Sair" no avatar dropdown
 - Redirect pra `/<unidade-em-que-estava>/login` (mantém visual contextual); se super_admin vinha de `/` → `/`
 
 ### 5.6 Switcher (só super_admin)
+
 - Erick logado em `/medico` → avatar → "Trocar de unidade" → dropdown 6 opções → escolhe `/capacitacao` → vai direto (sem novo login)
 - Sessão de super_admin é cross-unidade por design
 
 ## 6. Refactor — arquivos afetados
 
 ### Novos
+
 - `lib/unidades.ts`
 - `app/[unidade]/login/page.tsx`
 - `app/[unidade]/login/login-action.ts`
@@ -218,6 +264,7 @@ Server component sem auth check:
 - Migration Prisma `XXXX_rbac_v2_drop_gestor_geral_rename_roles`
 
 ### Modificados
+
 - `proxy.ts` — gates path-based via lookup `UNIDADES`
 - `lib/rbac.ts` — `canAccessUnidade`, drop `gestor_geral`
 - `app/page.tsx` — vira landing pública (era redirect/dashboard)
@@ -226,24 +273,26 @@ Server component sem auth check:
 - `db/seed.ts` — Raquel só `gestor:medico`; renomear roles em demos
 
 ### Removidos
+
 - Rota antiga `/login` global (substituída pelo catch-all); manter como redirect 302 → `/` por 1 release de cortesia
 
 ## 7. Decisões deferidas
 
-| Item | Responsável | Quando |
-|---|---|---|
-| Cores reais por unidade | DS v2 | Próxima spec |
-| Fotos drone das 6 unidades | Erick fornece arquivos | Antes do plano DS v2 |
-| User real Sarah Pôncio | Operacional (Erick via `/admin/users`) | Pós-deploy |
-| Provedor SMTP pro reset | Plano 8 | Deploy |
-| Read-only de presidência nas unidades | Spec futura, se a operação pedir | Indefinido |
-| Conteúdo da landing `/` | DS v2 + Erick (missão, fotos, copy) | DS v2 |
-| RLS Postgres por unidade | Plano 8 | Deploy |
-| WhatsApp Business / login passwordless | Spec futura | Indefinido |
+| Item                                   | Responsável                            | Quando               |
+| -------------------------------------- | -------------------------------------- | -------------------- |
+| Cores reais por unidade                | DS v2                                  | Próxima spec         |
+| Fotos drone das 6 unidades             | Erick fornece arquivos                 | Antes do plano DS v2 |
+| User real Sarah Pôncio                 | Operacional (Erick via `/admin/users`) | Pós-deploy           |
+| Provedor SMTP pro reset                | Plano 8                                | Deploy               |
+| Read-only de presidência nas unidades  | Spec futura, se a operação pedir       | Indefinido           |
+| Conteúdo da landing `/`                | DS v2 + Erick (missão, fotos, copy)    | DS v2                |
+| RLS Postgres por unidade               | Plano 8                                | Deploy               |
+| WhatsApp Business / login passwordless | Spec futura                            | Indefinido           |
 
 ## 8. Critérios de sucesso
 
 ### Funcionais (e2e Playwright)
+
 1. Erick (`super_admin`) loga em qualquer `/<unidade>/login` → entra `/<unidade>` (6 cenários)
 2. Raquel (`gestor:medico`) loga em `/medico/login` → entra; tenta `/capacitacao/login` → erro genérico
 3. Saulo (`presidencia`) loga em `/poncio/login` → entra `/poncio`; tenta `/medico/login` → erro
@@ -256,6 +305,7 @@ Server component sem auth check:
 10. Cada `/<unidade>/login` renderiza background com cor distinta (smoke visual mínimo)
 
 ### Não-funcionais
+
 - Build Next 16 sem warnings
 - `pnpm typecheck && pnpm lint && pnpm test` verdes
 - Migration roda no DB dev sem perda de dados (validar contagem de users antes/depois)
@@ -274,13 +324,13 @@ Server component sem auth check:
 
 ## 10. Riscos e mitigações
 
-| Risco | Mitigação |
-|---|---|
-| Migration drop `gestor_geral` quebra users em produção | Não há produção ainda; dev DB pode ser re-seedado idempotentemente |
-| Catch-all `/[unidade]` colide com rotas existentes | Mover páginas privadas pra `app/(authenticated)/[unidade]/page.tsx`; manter login em `app/(public)/[unidade]/login/page.tsx` |
-| Placeholder de `/poncio` e `/social` confunde diretoria | Banner explícito "Visual provisório — aguardando DS v2" |
-| Sessão de super_admin vaza dados entre unidades | Helper `currentUnidadeFromUrl()` casa com escopo do servidor; testes RBAC por unidade |
-| User pré-spec logado quando migration rodar | Forçar logout/refresh de sessão na primeira request pós-deploy local |
+| Risco                                                   | Mitigação                                                                                                                    |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Migration drop `gestor_geral` quebra users em produção  | Não há produção ainda; dev DB pode ser re-seedado idempotentemente                                                           |
+| Catch-all `/[unidade]` colide com rotas existentes      | Mover páginas privadas pra `app/(authenticated)/[unidade]/page.tsx`; manter login em `app/(public)/[unidade]/login/page.tsx` |
+| Placeholder de `/poncio` e `/social` confunde diretoria | Banner explícito "Visual provisório — aguardando DS v2"                                                                      |
+| Sessão de super_admin vaza dados entre unidades         | Helper `currentUnidadeFromUrl()` casa com escopo do servidor; testes RBAC por unidade                                        |
+| User pré-spec logado quando migration rodar             | Forçar logout/refresh de sessão na primeira request pós-deploy local                                                         |
 
 ## 11. Dependências
 

@@ -5,6 +5,7 @@
 **Goal:** Reestruturar o IFP Connect para acesso multi-tenant por path de unidade (`/medico`, `/capacitacao`, `/esportivo`, `/recreativo`, `/poncio`, `/social`), com login catch-all `/[unidade]/login` (drone+filtro de cor), landing pública institucional em `/`, e RBAC v2 (rebaixar Raquel, remover `gestor_geral`).
 
 **Architecture:**
+
 - Roteamento path-based: 6 paths de unidade no `src/app/[unidade]/`, login catch-all sob `[unidade]/login`, landing pública em `src/app/page.tsx`, gates no `src/proxy.ts` via lookup em `lib/unidades.ts`.
 - RBAC: tabela `Role` perde `gestor_geral` (atribuição da Raquel removida); demais roles preservadas; novo helper `canAccessUnidade(role, slug)` que aproveita o `canAccessUnit` existente; identidade humana "gestor:medico" mapeia pra `(Role.name='gestor_unidade', UserRole.unitScope='medico')` no banco.
 - Sub-rotas internas existentes (`/app/cidadaos`, `/app/vagas`) ficam intactas nesta entrega; aliases `/app/*` continuam respondendo. Migração de sub-rotas pra `/<unidade>/cidadaos` fica pra spec futura de verticalização.
@@ -31,6 +32,7 @@
 ## Task 1: Config canônica das unidades — `lib/unidades.ts`
 
 **Files:**
+
 - Create: `src/lib/unidades.ts`
 - Create: `tests/unit/unidades.test.ts`
 
@@ -299,6 +301,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(unidades): config ca
 Approach: reusar `canAccessUnit` que já existe — adicionar uma versão path-based que recebe slug em vez de UnitScope, suportando os slugs novos (`poncio`, `social`) que não são UnitScope.
 
 **Files:**
+
 - Modify: `src/lib/rbac.ts` (adicionar função)
 - Create/extend: `tests/unit/rbac.test.ts` (criar se não existir; se existir, adicionar describe)
 
@@ -311,9 +314,7 @@ import { describe, expect, it } from "vitest";
 import type { Session } from "next-auth";
 import { canAccessUnidade } from "@/lib/rbac";
 
-function sessionWith(
-  roles: { name: string; unitScope: string | null }[],
-): Session {
+function sessionWith(roles: { name: string; unitScope: string | null }[]): Session {
   return {
     user: {
       id: "u1",
@@ -349,9 +350,7 @@ describe("canAccessUnidade", () => {
   });
 
   it("gestor_unidade:medico só em /medico", () => {
-    const raquel = sessionWith([
-      { name: "gestor_unidade", unitScope: "medico" },
-    ]);
+    const raquel = sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]);
     expect(canAccessUnidade(raquel, "medico")).toBe(true);
     expect(canAccessUnidade(raquel, "capacitacao")).toBe(false);
     expect(canAccessUnidade(raquel, "poncio")).toBe(false);
@@ -408,8 +407,7 @@ export function canAccessUnidade(session: Session | null, slug: string): boolean
 
   return unidade.rolesAceitas.some((aceita) =>
     session.user.roles.some(
-      (userRole) =>
-        userRole.name === aceita.name && userRole.unitScope === aceita.unitScope,
+      (userRole) => userRole.name === aceita.name && userRole.unitScope === aceita.unitScope,
     ),
   );
 }
@@ -438,12 +436,13 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(rbac): canAccessUnid
 Drop a role `gestor_geral` da tabela `Role` E todas as suas atribuições (que hoje só vai existir a da Raquel). Idempotente: se ninguém tiver, ainda funciona.
 
 **Files:**
+
 - Create: `prisma/migrations/<timestamp>_drop_gestor_geral_role/migration.sql` (gerado pelo Prisma)
 
 ### Step 3.1: Verificar atribuições atuais
 
 ```bash
-wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm db:studio &" 
+wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm db:studio &"
 ```
 
 Abre Prisma Studio em http://localhost:5555. Confirmar visualmente que Role `gestor_geral` existe e tem 1 UserRole (Raquel). Fechar Studio (Ctrl+C no terminal WSL) antes de prosseguir — Prisma migrate não roda com Studio aberto.
@@ -512,90 +511,150 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(db): drop role gesto
 
 ---
 
-## Task 4: Atualizar seed — Raquel só `gestor_unidade:medico`
+## Task 4 (AMPLIADA): Limpeza completa de `gestor_geral` + capabilities pós-rebaixamento
 
-O seed precisa refletir o novo estado para que `pnpm db:seed` recreie o mundo correto. Também aproveitar pra adicionar comentário sobre Sarah Pôncio (TODO operacional).
+**AMPLIAÇÃO 2026-05-28:** Durante execução, descoberta de gap: `gestor_geral` aparecia em ~15 arquivos cobrindo capabilities além de identidade. 4 decisões de produto foram fechadas (ver spec §4.3) — gestor_unidade vê Saúde da própria unidade SIM, vê Socio NÃO, gestão de users só super_admin, presidência vê /poncio agregado-only. T4 agora limpa todos os arquivos + aplica capabilities + atualiza testes e2e.
 
-**Files:**
-- Modify: `prisma/seed.ts`
+**Files (~13 arquivos):**
 
-### Step 4.1: Localizar bloco da Raquel no seed
+- Modify: `src/lib/rbac-types.ts` (4 lugares: ROLE_NAMES, GLOBAL_ROLES, ROLE_DESCRIPTIONS, getLandingPathFor)
+- Modify: `src/lib/rbac.ts` (3 lugares em `getUserUnits`, `can()` ficha_cidada branch, `can()` user|role branch)
+- Modify: `src/lib/triagem.ts` (1 lugar: `podeFazerTriagem`)
+- Modify: `src/lib/funil.ts` (2 lugares: `podeGerenciarVaga` + `podeAgendar`)
+- Modify: `src/lib/cidadao-history.ts` (2 lugares: `verSaude` + `verSocio`)
+- Modify: `src/lib/cidadao.ts` (1 comentário)
+- Modify: `src/components/app-shell.tsx` (2 lugares)
+- Modify: `src/components/unit-switcher.tsx` (1 lugar)
+- Modify: `src/app/admin/users/page.tsx` (2 lugares: gate + filtro)
+- Modify: `src/app/app/cidadaos/[id]/page.tsx` (4 lugares: 3 booleans + lista)
+- Modify: `src/app/app/cidadaos/[id]/anexo-actions.ts` (1 lugar)
+- Modify: `src/app/app/cidadaos/novo/page.tsx` (3 lugares incluindo comentário)
+- Modify: `src/app/app/cidadaos/novo/actions.ts` (2 lugares)
+- Modify: `prisma/seed.ts` (Raquel + remover Role row + comentário Sarah)
+- Modify: `prisma/schema.prisma` (4 comentários cosméticos — lines 22, 80, 86, 94)
+- Modify: `tests/e2e/cidadao-edit.spec.ts` (cabeçalho + 3 describes/tests)
+- Modify: `tests/e2e/cidadao-crud.spec.ts` (1 test name + body)
+- Modify: `tests/e2e/rbac.spec.ts` (1 test name + body)
+
+**NÃO TOCAR nesta task:** `src/proxy.ts` (gates antigas referenciam gestor_geral; T10 reescreve o arquivo inteiro).
+
+### Decisões de capability aplicadas
+
+| Função / capability | Antes | Depois |
+|---|---|---|
+| `getUserUnits` "global access" | `super_admin, presidencia, gestor_geral, social` → "all" | `super_admin, presidencia, social` → "all" |
+| `can(ficha_cidada)` branch gestor_geral | retorna `true` pra qualquer action | branch removida |
+| `can(user|role)` | `hasAnyRole(session, "gestor_geral")` | branch removida (só super_admin via earlier check) |
+| `podeFazerTriagem` | `social/super_admin/gestor_geral` | `social/super_admin` |
+| `podeGerenciarVaga` | `super_admin/gestor_geral/gestor_unidade` | `super_admin/gestor_unidade` |
+| `podeAgendar` | `super_admin/gestor_geral/gestor_unidade/social/recepcao` | `super_admin/gestor_unidade/social/recepcao` |
+| `verSaude` | `super_admin/gestor_geral/profissional` | `super_admin/gestor_unidade/profissional` (Saúde sim para gestor da unidade) |
+| `verSocio` | `super_admin/gestor_geral/presidencia/social` | `super_admin/presidencia/social` (Socio NÃO para gestor de unidade) |
+| `podeTriagem` em detalhe de cidadão | `super_admin/gestor_geral/social` | `super_admin/social` |
+| `app-shell` branches "global" | `super_admin/gestor_geral/social` e `super_admin/gestor_geral` | `super_admin/social` e `super_admin` |
+| `unit-switcher` visibilidade | `super_admin/presidencia/gestor_geral` | `super_admin/presidencia` (T11 vai apertar mais — só super_admin) |
+| `/admin/users` gate | `super_admin/gestor_geral` | `super_admin` |
+| `/admin/users` filtro de "global roles" exibido | inclui gestor_geral | sem gestor_geral |
+| `cidadaos/novo canChooseUnit` | `super_admin/gestor_geral` | `super_admin` |
+| `cidadaos/novo` lista de roles que podem criar | inclui gestor_geral | sem gestor_geral |
+| `anexo-actions.allowedRoles` | `super_admin/gestor_geral/gestor_unidade` | `super_admin/gestor_unidade` |
+
+### Estratégia para testes e2e que usavam Raquel como gestor_geral
+
+| Test | Antes | Depois |
+|---|---|---|
+| `cidadao-edit.spec.ts` — "gestor_geral edita telefone" | login Raquel (gestor_geral) | login Erick (super_admin) — mantém intent "alguém autorizado edita" |
+| `cidadao-edit.spec.ts` — "gestor_geral edita Saúde" | login Raquel | login Erick (super_admin) |
+| `cidadao-edit.spec.ts` — "histórico: gestor_geral VÊ campo Saúde" | login Raquel | login Erick (super_admin) — quem vê Saúde redação ON é super_admin/gestor_unidade da unidade/profissional |
+| `cidadao-crud.spec.ts` — "gestor_geral VÊ seções Saúde+Socio" | login Raquel | dividir em 2 testes: (a) "Erick (super_admin) vê Saúde+Socio" e (b) "Raquel (gestor_unidade:medico) vê Saúde mas NÃO Socio" |
+| `rbac.spec.ts` — "Raquel (gestor_geral) cai em /app Global" | login Raquel | Renomear pra "Raquel cai em /app/medico" (landing dela mudou) |
+
+### Steps
+
+> Esta task é grande mas **estritamente mecânica** depois das decisões fechadas. Recomendação: 1 subagent só, instruções claras, commit único.
+
+### Step 4.1 — Smoke pré: confirma gap
 
 ```bash
-wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && grep -n 'raquel' prisma/seed.ts"
+wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && grep -rln 'gestor_geral' src/ prisma/seed.ts tests/e2e/ 2>/dev/null | sort"
 ```
 
-Expected: linhas referenciando "raquel.barros@familiaponcio.org.br" e atribuições `gestor_geral`/`gestor_unidade:medico`.
+Expected: ~13 arquivos listados (os mesmos do `Files` acima).
 
-### Step 4.2: Editar seed
+### Step 4.2 — Aplicar todas as edições do "Decisões de capability aplicadas"
 
-Abrir `prisma/seed.ts`. Encontrar o bloco que cria/atribui roles pra Raquel. Deve parecer:
+Para cada arquivo da tabela:
+1. Abrir arquivo
+2. Localizar a linha com `gestor_geral`
+3. Aplicar a mudança da tabela (remoção pura OU substituição)
+4. Verificar imports e tipos ainda compilam
 
-```ts
-// ANTES (esperado):
-{
-  email: "raquel.barros@familiaponcio.org.br",
-  ...
-  roles: [
-    { name: "gestor_geral", unitScope: null },
-    { name: "gestor_unidade", unitScope: "medico" },
-  ],
-  primaryRoleName: "gestor_geral",
-}
-```
+**`src/lib/rbac-types.ts` — atenção especial:**
+- Remover `"gestor_geral"` do array `ROLE_NAMES` (linha 9)
+- Remover de `GLOBAL_ROLES` (linha 26)
+- Remover a key `gestor_geral: "..."` do `ROLE_DESCRIPTIONS` (linha 47-48)
+- Remover o `case "gestor_geral":` do switch em `getLandingPathFor` (linha 68 — bloco inteiro do case)
 
-Substituir por:
+Após isso, `RoleName` deixa de incluir `"gestor_geral"`. TypeScript vai apontar todos os lugares restantes que referenciam o literal — use isso como guia (rodar `pnpm typecheck` ao longo do caminho).
 
-```ts
-// DEPOIS:
-{
-  email: "raquel.barros@familiaponcio.org.br",
-  ...
-  roles: [
-    // Spec 2026-05-28: rebaixada — perdeu gestor_geral, fica só gestora da unidade Medica.
-    { name: "gestor_unidade", unitScope: "medico" },
-  ],
-  primaryRoleName: "gestor_unidade",
-  primaryUnitScope: "medico",
-}
-```
+**`prisma/seed.ts`:**
+- Localizar bloco da Raquel: trocar roles array + primaryRoleName + adicionar primaryUnitScope
+- Localizar bloco que cria Role `gestor_geral` na lista de roles seedadas → remover essa entry
+- Adicionar no topo (após JSDoc): `// TODO operacional pós-deploy: criar user real para Sarah Pôncio com role presidencia. Spec 2026-05-28 §7.`
 
-Também remover (se houver) o bloco que cria a Role `gestor_geral` no seed:
+**`prisma/schema.prisma`:**
+- Linha 22: comentário com lista de roles → remover `gestor_geral` da lista
+- Linha 80: comentário com lista de chaves → remover `gestor_geral`
+- Linha 86: comentário com lista de globais → remover `gestor_geral`
+- Linha 94: comentário com exemplo da Raquel → atualizar pra refletir nova Raquel (só (gestor_unidade, medico))
 
-```ts
-// REMOVER:
-{ name: "gestor_geral", description: "Coordenação geral dos 4 centros", scope: "global" },
-```
+**Testes e2e** — aplicar a "Estratégia para testes e2e" acima. Verificar com `pnpm test:e2e -- <arquivo>` se você quiser smoke por arquivo, mas suite completa só ao final.
 
-E adicionar comentário no topo do arquivo (após o JSDoc inicial):
-
-```ts
-// TODO operacional pós-deploy: criar user real para Sarah Pôncio com role
-// presidencia. Spec 2026-05-28 §7 (decisões deferidas).
-```
-
-### Step 4.3: Rodar seed
+### Step 4.3 — Re-seed e validar SQL
 
 ```bash
 wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm db:seed"
 ```
 
-Expected: seed completa sem erros. 9 users seedados, 6 roles.
+Expected: seed completa sem erros. 9 users, 6 roles (sem gestor_geral).
 
-### Step 4.4: Verificar Raquel via SQL
-
+Verifica Raquel:
 ```bash
 wsl -d Ubuntu -- bash -c 'docker exec ifp_postgres_dev psql -U ifp -d ifp_connect -c "SELECT u.email, u.\"primaryRoleName\", u.\"primaryUnitScope\", COUNT(ur.id) AS roles FROM \"User\" u LEFT JOIN \"UserRole\" ur ON ur.\"userId\" = u.id WHERE u.email = '\''raquel.barros@familiaponcio.org.br'\'' GROUP BY u.id;"'
 ```
 
 Expected: `raquel.barros@... | gestor_unidade | medico | 1`.
 
-### Step 4.5: Commit
+### Step 4.4 — Pre-commit ritual
 
 ```bash
 wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm format && pnpm typecheck && pnpm lint && pnpm test"
-git -C "C:/Users/Administrador/ifp-connect" add prisma/seed.ts
-git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(seed): Raquel so gestor_unidade:medico + TODO Sarah (T4 multi-tenant)"
+```
+
+Esperado: format/typecheck/lint verde. **Unit tests:** 70/70 (provavelmente — algum pode quebrar se mocka `gestor_geral`; ajustar). **E2e** roda separadamente em Step 4.5.
+
+### Step 4.5 — E2e dos testes ajustados
+
+```bash
+wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm build && pnpm test:e2e -- cidadao-edit cidadao-crud rbac"
+```
+
+Esperado: testes ajustados verdes. Se algum falha, ajustar e re-rodar.
+
+### Step 4.6 — Final grep + commit
+
+```bash
+wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && grep -rn 'gestor_geral' src/ prisma/ tests/ 2>/dev/null | grep -v node_modules | grep -v '.next' | grep -v 'migrations/2026052812'"
+```
+
+Esperado: vazio (proxy.ts é exceção legítima — será reescrito em T10).
+
+> Aliás, se `proxy.ts` ainda aparecer: ok. Documentar no commit message.
+
+Commit:
+```bash
+git -C "C:/Users/Administrador/ifp-connect" add -A
+git -C "C:/Users/Administrador/ifp-connect" commit -m "refactor(rbac): cleanup gestor_geral em 13 arquivos + capabilities pos-rebaixamento (T4 ampliada)"
 ```
 
 ---
@@ -605,6 +664,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(seed): Raquel so ges
 Substituir o redirect atual (que joga pra `/login` ou `/app`) por uma landing pública institucional. Sem auth check. Tom institucional, sem CTA comercial.
 
 **Files:**
+
 - Modify: `src/app/page.tsx`
 
 ### Step 5.1: Reescrever `src/app/page.tsx`
@@ -630,14 +690,9 @@ export default function LandingPage() {
             height={48}
             priority
           />
-          <span className="text-lg font-semibold tracking-tight">
-            Instituto Família Pôncio
-          </span>
+          <span className="text-lg font-semibold tracking-tight">Instituto Família Pôncio</span>
         </div>
-        <Link
-          href="/poncio/login"
-          className="text-sm text-stone-500 hover:text-stone-900"
-        >
+        <Link href="/poncio/login" className="text-sm text-stone-500 hover:text-stone-900">
           Acesso executivo
         </Link>
       </header>
@@ -647,8 +702,8 @@ export default function LandingPage() {
           Quatro unidades. Um propósito.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-stone-600">
-          O Instituto Família Pôncio atende moradores de Duque de Caxias através
-          de quatro frentes: saúde, educação, esporte e recreação infantil.
+          O Instituto Família Pôncio atende moradores de Duque de Caxias através de quatro frentes:
+          saúde, educação, esporte e recreação infantil.
         </p>
       </section>
 
@@ -664,9 +719,7 @@ export default function LandingPage() {
                 style={{ borderTop: `4px solid ${u.corPrimariaPlaceholder}` }}
               >
                 <h2 className="text-xl font-semibold text-stone-900">{u.nome}</h2>
-                <p className="mt-2 text-sm text-stone-500">
-                  Acesso da equipe da unidade
-                </p>
+                <p className="mt-2 text-sm text-stone-500">Acesso da equipe da unidade</p>
                 <span className="mt-4 inline-block text-sm font-medium text-stone-700 group-hover:text-stone-900">
                   Entrar →
                 </span>
@@ -693,6 +746,7 @@ wsl -d Ubuntu -- bash -c "ss -tlnp 2>/dev/null | grep -E ':300[0-9]'"
 ```
 
 Se não tiver `next-server` em 3000, subir conforme `reference_ifp_dev_commands`. Se tiver, abrir http://localhost:3000/ no browser e confirmar:
+
 - Logo do leão aparece
 - 4 cards (Centro Médico / Capacitação / Esportivo / Recreativo)
 - Cada card linka pra `/<slug>/login` (verificar com hover/inspect)
@@ -715,6 +769,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(landing): landing pu
 Cria a tela home pra cada unidade pelo catch-all. Placeholder funcional — só prova que o roteamento + gate funciona. Visual real fica pra DS v2 / verticalização.
 
 **Files:**
+
 - Create: `src/app/[unidade]/page.tsx`
 
 ### Step 6.1: Criar a página
@@ -745,18 +800,11 @@ export default async function UnidadeHomePage({
         className="mx-auto max-w-3xl rounded-2xl border border-stone-200 p-8"
         style={{ borderLeft: `6px solid ${unidade.corPrimariaPlaceholder}` }}
       >
-        <p className="text-xs uppercase tracking-wider text-stone-500">
-          Unidade
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold text-stone-900">
-          {unidade.nome}
-        </h1>
-        <p className="mt-4 text-stone-600">
-          Bem-vindo, {session.user.name ?? session.user.email}.
-        </p>
+        <p className="text-xs uppercase tracking-wider text-stone-500">Unidade</p>
+        <h1 className="mt-2 text-3xl font-semibold text-stone-900">{unidade.nome}</h1>
+        <p className="mt-4 text-stone-600">Bem-vindo, {session.user.name ?? session.user.email}.</p>
         <p className="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Visual provisório — aguardando Design System v2 e verticalização da
-          unidade.
+          Visual provisório — aguardando Design System v2 e verticalização da unidade.
         </p>
       </div>
     </main>
@@ -785,6 +833,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(unidade): home place
 Login catch-all com background drone+filtro de cor, login action que valida `canAccessUnidade` pós-autenticação.
 
 **Files:**
+
 - Create: `src/app/[unidade]/login/page.tsx`
 - Create: `src/app/[unidade]/login/login-action.ts`
 - Create: `src/components/unidade-login-shell.tsx`
@@ -846,16 +895,8 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
 
       <div className="relative z-10 w-full max-w-sm rounded-3xl bg-white/95 p-8 shadow-xl backdrop-blur">
         <div className="flex flex-col items-center">
-          <Image
-            src="/logo/leao.png"
-            alt="IFP"
-            width={56}
-            height={56}
-            priority
-          />
-          <h1 className="mt-4 text-lg font-semibold text-stone-900">
-            {unidade.nome}
-          </h1>
+          <Image src="/logo/leao.png" alt="IFP" width={56} height={56} priority />
+          <h1 className="mt-4 text-lg font-semibold text-stone-900">{unidade.nome}</h1>
           <p className="mt-1 text-xs uppercase tracking-wider text-stone-500">
             Instituto Família Pôncio
           </p>
@@ -884,10 +925,7 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
           </label>
 
           {error && (
-            <p
-              role="alert"
-              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900"
-            >
+            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900">
               {error}
             </p>
           )}
@@ -971,8 +1009,7 @@ export async function unidadeLoginAction(
       meta: { email: session.user.email, unidade: slug },
     });
     return {
-      error:
-        "Não foi possível acessar essa unidade. Verifique se você está no link correto.",
+      error: "Não foi possível acessar essa unidade. Verifique se você está no link correto.",
     };
   }
 
@@ -1010,20 +1047,24 @@ export default async function UnidadeLoginPage({
 ### Step 7.4: Smoke browser
 
 Abrir http://localhost:3000/medico/login — esperado:
+
 - Background com cor azul-marinho (gradiente placeholder)
 - Card branco no centro com logo do leão, "Centro Médico", form de email+senha
 - Link "Esqueci a senha" e "Voltar"
 
 Testar login OK:
+
 - Email: `raquel.barros@familiaponcio.org.br` / senha: `ifp-demo-2026`
 - Esperado: redirect para `/medico` (que mostra a home da T6)
 
 Testar login negado por unidade:
+
 - Acessar http://localhost:3000/capacitacao/login
 - Email: `raquel.barros@familiaponcio.org.br` / senha: `ifp-demo-2026`
 - Esperado: mensagem "Não foi possível acessar essa unidade..." no card
 
 Testar login inválido:
+
 - `wrong@email.com` / qualquer senha
 - Esperado: "E-mail ou senha incorretos."
 
@@ -1042,6 +1083,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(login): catch-all /[
 A página da Regina hoje vive em `src/app/app/social/page.tsx` e responde em `/app/social`. Spec quer ela em `/social`.
 
 **Files:**
+
 - Create: `src/app/social/page.tsx`
 - Delete: `src/app/app/social/page.tsx`
 
@@ -1131,6 +1173,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "refactor(social): move /a
 `src/app/poncio/page.tsx` — placeholder funcional do dashboard executivo da presidência. Apenas prova o gate. KPIs reais e drill-down ficam pra spec dedicada.
 
 **Files:**
+
 - Create: `src/app/poncio/page.tsx`
 
 ### Step 9.1: Criar a página
@@ -1142,12 +1185,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { UNIDADES } from "@/lib/unidades";
 
-const UNIDADES_OPERACIONAIS = [
-  "medico",
-  "capacitacao",
-  "esportivo",
-  "recreativo",
-] as const;
+const UNIDADES_OPERACIONAIS = ["medico", "capacitacao", "esportivo", "recreativo"] as const;
 
 export default async function PoncioDashboardPage() {
   const session = await auth();
@@ -1157,15 +1195,9 @@ export default async function PoncioDashboardPage() {
   return (
     <main className="min-h-screen bg-stone-50 p-12">
       <div className="mx-auto max-w-5xl">
-        <p className="text-xs uppercase tracking-wider text-stone-500">
-          Pôncio Executivo
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold text-stone-900">
-          Visão geral das unidades
-        </h1>
-        <p className="mt-2 text-stone-600">
-          Bem-vindo, {session.user.name ?? session.user.email}.
-        </p>
+        <p className="text-xs uppercase tracking-wider text-stone-500">Pôncio Executivo</p>
+        <h1 className="mt-2 text-3xl font-semibold text-stone-900">Visão geral das unidades</h1>
+        <p className="mt-2 text-stone-600">Bem-vindo, {session.user.name ?? session.user.email}.</p>
 
         <div className="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Visual provisório — aguardando Design System v2 e KPIs reais.
@@ -1181,9 +1213,7 @@ export default async function PoncioDashboardPage() {
                 style={{ borderTop: `4px solid ${u.corPrimariaPlaceholder}` }}
               >
                 <h2 className="font-semibold text-stone-900">{u.nome}</h2>
-                <p className="mt-2 text-sm text-stone-500">
-                  Indicadores serão exibidos aqui.
-                </p>
+                <p className="mt-2 text-sm text-stone-500">Indicadores serão exibidos aqui.</p>
               </div>
             );
           })}
@@ -1215,6 +1245,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(poncio): placeholder
 Reescrever `src/proxy.ts` pra usar `canAccessUnidade` + path-based. Manter aliases `/app/*` por compatibilidade temporária (sub-rotas /cidadaos/vagas continuam ali).
 
 **Files:**
+
 - Modify: `src/proxy.ts`
 
 ### Step 10.1: Reescrever o arquivo
@@ -1330,21 +1361,21 @@ Aguardar ~30s pra Turbopack compilar.
 
 ### Step 10.3: Smoke browser de cenários
 
-| URL | Logado como | Esperado |
-|---|---|---|
-| `/` | — | landing pública renderiza |
-| `/medico` | sem sessão | redirect `/medico/login` |
-| `/medico` | Raquel | renderiza home Médico |
-| `/medico` | Saulo | redirect `/` |
-| `/poncio` | Saulo | renderiza dashboard exec |
-| `/poncio` | Raquel | redirect `/` |
-| `/social` | Regina | renderiza social |
-| `/social` | Maria | redirect `/` |
-| `/app` | Raquel | redirect `/poncio` → Raquel não tem acesso → redirect `/` |
-| `/app/medico` | Raquel | redirect `/medico` → renderiza |
-| `/app/cidadaos` | Raquel | renderiza (sub-rota antiga preservada) |
-| `/admin/users` | Erick | renderiza |
-| `/admin/users` | Raquel | redirect `/` (perdeu gestor_geral) |
+| URL             | Logado como | Esperado                                                  |
+| --------------- | ----------- | --------------------------------------------------------- |
+| `/`             | —           | landing pública renderiza                                 |
+| `/medico`       | sem sessão  | redirect `/medico/login`                                  |
+| `/medico`       | Raquel      | renderiza home Médico                                     |
+| `/medico`       | Saulo       | redirect `/`                                              |
+| `/poncio`       | Saulo       | renderiza dashboard exec                                  |
+| `/poncio`       | Raquel      | redirect `/`                                              |
+| `/social`       | Regina      | renderiza social                                          |
+| `/social`       | Maria       | redirect `/`                                              |
+| `/app`          | Raquel      | redirect `/poncio` → Raquel não tem acesso → redirect `/` |
+| `/app/medico`   | Raquel      | redirect `/medico` → renderiza                            |
+| `/app/cidadaos` | Raquel      | renderiza (sub-rota antiga preservada)                    |
+| `/admin/users`  | Erick       | renderiza                                                 |
+| `/admin/users`  | Raquel      | redirect `/` (perdeu gestor_geral)                        |
 
 Validar manualmente cada um.
 
@@ -1363,6 +1394,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(proxy): gates path-b
 Hoje o switcher aparece pra quem tem múltiplas roles com unitScope OU gestor_geral. Com gestor_geral removida, só super_admin precisa de switcher.
 
 **Files:**
+
 - Modify: `src/components/unit-switcher.tsx`
 
 ### Step 11.1: Localizar a lógica de visibilidade
@@ -1388,11 +1420,13 @@ Substituir as opções do dropdown pelas 6 unidades de `UNIDADE_SLUGS` (em vez d
 import { UNIDADE_SLUGS, UNIDADES } from "@/lib/unidades";
 
 // dentro do componente:
-{UNIDADE_SLUGS.map((slug) => (
-  <Link key={slug} href={`/${slug}` as Route}>
-    {UNIDADES[slug].nome}
-  </Link>
-))}
+{
+  UNIDADE_SLUGS.map((slug) => (
+    <Link key={slug} href={`/${slug}` as Route}>
+      {UNIDADES[slug].nome}
+    </Link>
+  ));
+}
 ```
 
 Adicionar item "Início" no fim do dropdown apontando pra `/`.
@@ -1418,6 +1452,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(switcher): visivel s
 Esqueleto funcional sem envio de email real. Quando o user submete email, mostra mensagem "Se o e-mail estiver cadastrado, você receberá um link" — não revela se existe. Provedor SMTP fica pro Plano 8.
 
 **Files:**
+
 - Create: `src/app/reset/page.tsx`
 
 ### Step 12.1: Criar a página
@@ -1436,22 +1471,13 @@ export default function ResetPage() {
     <main className="flex min-h-screen items-center justify-center bg-stone-50">
       <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center">
-          <Image
-            src="/logo/leao.png"
-            alt="IFP"
-            width={56}
-            height={56}
-            priority
-          />
-          <h1 className="mt-4 text-lg font-semibold text-stone-900">
-            Recuperar senha
-          </h1>
+          <Image src="/logo/leao.png" alt="IFP" width={56} height={56} priority />
+          <h1 className="mt-4 text-lg font-semibold text-stone-900">Recuperar senha</h1>
         </div>
 
         {sent ? (
           <p className="mt-8 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-            Se o e-mail estiver cadastrado, você receberá um link para redefinir
-            a senha.
+            Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.
           </p>
         ) : (
           <form
@@ -1511,6 +1537,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(reset): esqueleto de
 Cobertura dos 10 cenários funcionais da spec §8.
 
 **Files:**
+
 - Create: `tests/e2e/rbac-v2-multitenant.spec.ts`
 
 ### Step 13.1: Build de prod (Playwright usa)
@@ -1593,9 +1620,7 @@ test.describe("Multi-tenant RBAC v2", () => {
     }
   });
 
-  test("alias /app → redireciona pra /poncio (Erick) ou rejeita (Raquel)", async ({
-    page,
-  }) => {
+  test("alias /app → redireciona pra /poncio (Erick) ou rejeita (Raquel)", async ({ page }) => {
     await login(page, "medico", "raquel.barros@familiaponcio.org.br");
     await page.goto("/app");
     await expect(page).toHaveURL("/"); // /app → /poncio → /poncio nega Raquel → /
@@ -1668,6 +1693,7 @@ git -C "C:/Users/Administrador/ifp-connect" push origin main
 ### Step 14.5: Smoke final manual
 
 Abrir http://localhost:3000/ no browser e percorrer:
+
 - Landing → clica "Centro Médico" → vai pra `/medico/login` com fundo azul-marinho
 - Loga como Raquel → vai pra `/medico`
 - Volta pra `/` → clica "Capacitação" → vai pra `/capacitacao/login` com fundo marrom-âmbar
@@ -1680,28 +1706,28 @@ Abrir http://localhost:3000/ no browser e percorrer:
 
 **1. Spec coverage:**
 
-| Seção da spec | Task que cobre |
-|---|---|
-| §1 Motivação | (documentado no header) |
-| §2 Decisões fechadas | Implícita em todas as tasks |
-| §3.1 Mapa de rotas | T5 (raiz), T6 (`/[unidade]`), T7 (`/[unidade]/login`), T8 (`/social`), T9 (`/poncio`), T12 (`/reset`) |
-| §3.2 Config `lib/unidades.ts` | T1 |
-| §3.3 Gates `proxy.ts` | T10 |
-| §3.4 Login | T7 |
-| §3.5 Switcher | T11 |
-| §3.6 Landing | T5 |
-| §4.1 Roles antes→depois | T3 + T4 |
-| §4.2 Matriz role × path | T1 (config), T2 (`canAccessUnidade`), T13 (e2e) |
-| §4.3 Migração | T3 (Prisma) + T4 (seed) |
-| §5.1 Login OK | T7 (Step 7.4) + T13 |
-| §5.2 Login negado outra unidade | T7 (Step 7.4) + T13 |
-| §5.3 Login inválido | T7 (Step 7.4) |
-| §5.4 Esqueci senha | T12 (esqueleto) |
-| §5.5 Logout | NÃO COBERTO — depende do AppShell existente que mantém o botão. Adicionei nota: se Step 10.3 smoke falha em "logout volta pra `/<unidade>/login`", abrir sub-task. |
-| §5.6 Switcher super_admin | T11 + T13 (smoke) |
-| §6 Refactor arquivos | T1-T12 distribuídos |
-| §8 Critérios de sucesso | T13 (e2e) cobre os 10 cenários |
-| §10 Riscos | Riscos 1 (migration prod) → mitigado por T3 idempotente. Risco 2 (collision `[unidade]`) → confirmado que `[unit]` antigo em `src/app/app/[unit]/` é endereço diferente; SEM colisão. Risco 3 (placeholder confunde) → banner adicionado em T6, T8, T9. Risco 4 (vazamento super_admin) → testado em T13. Risco 5 (sessão pré-migration) → migration roda em dev DB, restart sessão necessário. |
+| Seção da spec                   | Task que cobre                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §1 Motivação                    | (documentado no header)                                                                                                                                                                                                                                                                                                                                                                         |
+| §2 Decisões fechadas            | Implícita em todas as tasks                                                                                                                                                                                                                                                                                                                                                                     |
+| §3.1 Mapa de rotas              | T5 (raiz), T6 (`/[unidade]`), T7 (`/[unidade]/login`), T8 (`/social`), T9 (`/poncio`), T12 (`/reset`)                                                                                                                                                                                                                                                                                           |
+| §3.2 Config `lib/unidades.ts`   | T1                                                                                                                                                                                                                                                                                                                                                                                              |
+| §3.3 Gates `proxy.ts`           | T10                                                                                                                                                                                                                                                                                                                                                                                             |
+| §3.4 Login                      | T7                                                                                                                                                                                                                                                                                                                                                                                              |
+| §3.5 Switcher                   | T11                                                                                                                                                                                                                                                                                                                                                                                             |
+| §3.6 Landing                    | T5                                                                                                                                                                                                                                                                                                                                                                                              |
+| §4.1 Roles antes→depois         | T3 + T4                                                                                                                                                                                                                                                                                                                                                                                         |
+| §4.2 Matriz role × path         | T1 (config), T2 (`canAccessUnidade`), T13 (e2e)                                                                                                                                                                                                                                                                                                                                                 |
+| §4.3 Migração                   | T3 (Prisma) + T4 (seed)                                                                                                                                                                                                                                                                                                                                                                         |
+| §5.1 Login OK                   | T7 (Step 7.4) + T13                                                                                                                                                                                                                                                                                                                                                                             |
+| §5.2 Login negado outra unidade | T7 (Step 7.4) + T13                                                                                                                                                                                                                                                                                                                                                                             |
+| §5.3 Login inválido             | T7 (Step 7.4)                                                                                                                                                                                                                                                                                                                                                                                   |
+| §5.4 Esqueci senha              | T12 (esqueleto)                                                                                                                                                                                                                                                                                                                                                                                 |
+| §5.5 Logout                     | NÃO COBERTO — depende do AppShell existente que mantém o botão. Adicionei nota: se Step 10.3 smoke falha em "logout volta pra `/<unidade>/login`", abrir sub-task.                                                                                                                                                                                                                              |
+| §5.6 Switcher super_admin       | T11 + T13 (smoke)                                                                                                                                                                                                                                                                                                                                                                               |
+| §6 Refactor arquivos            | T1-T12 distribuídos                                                                                                                                                                                                                                                                                                                                                                             |
+| §8 Critérios de sucesso         | T13 (e2e) cobre os 10 cenários                                                                                                                                                                                                                                                                                                                                                                  |
+| §10 Riscos                      | Riscos 1 (migration prod) → mitigado por T3 idempotente. Risco 2 (collision `[unidade]`) → confirmado que `[unit]` antigo em `src/app/app/[unit]/` é endereço diferente; SEM colisão. Risco 3 (placeholder confunde) → banner adicionado em T6, T8, T9. Risco 4 (vazamento super_admin) → testado em T13. Risco 5 (sessão pré-migration) → migration roda em dev DB, restart sessão necessário. |
 
 **Logout (§5.5)** — adicionar verificação extra:
 
@@ -1712,6 +1738,7 @@ Logado como Raquel em `/medico`, clicar Logout. Esperado: redirect pra `/medico/
 **2. Placeholder scan:** zero "TBD"/"TODO" não-explicado. Os `TODO operacional: criar Sarah Pôncio` e `TODO Plano 8: SMTP` são pontos legitimamente deferidos com responsável e momento — não são placeholders.
 
 **3. Type consistency:**
+
 - `unidadeFromSlug` definida em T1, usada em T2, T6, T7, T10 ✓
 - `canAccessUnidade` definida em T2, usada em T6, T7, T8, T9, T10 ✓
 - `UNIDADE_SLUGS` em T1, usado em T5, T11, T13 ✓
