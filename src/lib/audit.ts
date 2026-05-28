@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 export type AuditAction =
   | "signin_success"
   | "signin_failed"
+  | "signin_denied_unit"
   | "signout"
   | "role_changed"
   | "data_exported"
