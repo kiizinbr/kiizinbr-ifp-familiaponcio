@@ -1,5 +1,6 @@
 import type { Session } from "next-auth";
 import { type RoleName, type UnitScope, getLandingPathFor } from "@/lib/rbac-types";
+import { unidadeFromSlug } from "@/lib/unidades";
 
 /**
  * Operações de RBAC para uso em Server Components, Server Actions e proxy.ts.
@@ -108,4 +109,24 @@ export function getLandingPath(session: Session | null): string {
   if (!session?.user.primaryRole) return "/login";
   const { name, unitScope } = session.user.primaryRole;
   return getLandingPathFor(name, unitScope);
+}
+
+/**
+ * Path-based access check para a arquitetura multi-tenant (spec 2026-05-28).
+ * Aceita os 6 slugs (medico/capacitacao/esportivo/recreativo/poncio/social).
+ * super_admin bypassa. Demais roles precisam estar em UNIDADES[slug].rolesAceitas.
+ */
+export function canAccessUnidade(session: Session | null, slug: string): boolean {
+  if (!session?.user.roles?.length) return false;
+
+  const unidade = unidadeFromSlug(slug);
+  if (!unidade) return false;
+
+  if (session.user.roles.some((r) => r.name === "super_admin")) return true;
+
+  return unidade.rolesAceitas.some((aceita) =>
+    session.user.roles.some(
+      (userRole) => userRole.name === aceita.name && userRole.unitScope === aceita.unitScope,
+    ),
+  );
 }
