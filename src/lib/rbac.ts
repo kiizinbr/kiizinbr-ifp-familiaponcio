@@ -114,7 +114,11 @@ export function getLandingPath(session: Session | null): string {
 /**
  * Path-based access check para a arquitetura multi-tenant (spec 2026-05-28).
  * Aceita os 6 slugs (medico/capacitacao/esportivo/recreativo/poncio/social).
- * super_admin bypassa. Demais roles precisam estar em UNIDADES[slug].rolesAceitas.
+ *
+ * Ordem: (1) sessão válida com pelo menos 1 role, (2) slug existe em UNIDADES,
+ * (3) super_admin bypassa, (4) match em UNIDADES[slug].rolesAceitas. Slug é
+ * validado ANTES do bypass por segurança — slug inexistente nega acesso mesmo
+ * pra super_admin (evita normalizar URL inválida em comportamento permissivo).
  */
 export function canAccessUnidade(session: Session | null, slug: string): boolean {
   if (!session?.user.roles?.length) return false;

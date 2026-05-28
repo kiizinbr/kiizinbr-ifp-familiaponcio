@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { Session } from "next-auth";
 import { canAccessUnidade } from "@/lib/rbac";
+import type { RoleName, UnitScope } from "@/lib/rbac-types";
 
-function sessionWith(roles: { name: string; unitScope: string | null }[]): Session {
+function sessionWith(roles: { name: RoleName; unitScope: UnitScope | null }[]): Session {
   return {
     user: {
       id: "u1",
       email: "x@y.z",
       name: null,
-      roles: roles as Session["user"]["roles"],
+      roles,
       primaryRole: roles[0] as Session["user"]["primaryRole"],
     },
     expires: "2099-01-01",
@@ -58,5 +59,15 @@ describe("canAccessUnidade", () => {
   it("slug inexistente → falso", () => {
     const erick = sessionWith([{ name: "super_admin", unitScope: null }]);
     expect(canAccessUnidade(erick, "xyz")).toBe(false);
+  });
+
+  it("usuário multi-role acessa as duas unidades", () => {
+    const ana = sessionWith([
+      { name: "gestor_unidade", unitScope: "medico" },
+      { name: "profissional", unitScope: "capacitacao" },
+    ]);
+    expect(canAccessUnidade(ana, "medico")).toBe(true);
+    expect(canAccessUnidade(ana, "capacitacao")).toBe(true);
+    expect(canAccessUnidade(ana, "esportivo")).toBe(false);
   });
 });
