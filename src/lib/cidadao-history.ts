@@ -251,8 +251,8 @@ export async function getCidadaoHistory(cidadaoId: string, session: Session | nu
   if (!cidadao) return null;
 
   const caps: ViewerCaps = {
-    verSaude: hasAnyRole(session, "super_admin", "gestor_geral", "profissional"),
-    verSocio: hasAnyRole(session, "super_admin", "gestor_geral", "presidencia", "social"),
+    verSaude: hasAnyRole(session, "super_admin", "gestor_unidade", "profissional"),
+    verSocio: hasAnyRole(session, "super_admin", "presidencia", "social"),
   };
 
   const rows = await db.auditLog.findMany({

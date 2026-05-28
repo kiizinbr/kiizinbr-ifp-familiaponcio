@@ -28,10 +28,10 @@ export function AppShell({ session, children }: AppShellProps) {
   if (podeAgendar(session)) {
     items.push({ label: "Vagas", href: "/app/vagas" });
   }
-  if (hasAnyRole(session, "super_admin", "gestor_geral", "social")) {
+  if (hasAnyRole(session, "super_admin", "social")) {
     items.push({ label: "Serviço Social", href: "/app/social" });
   }
-  if (hasAnyRole(session, "super_admin", "gestor_geral")) {
+  if (hasAnyRole(session, "super_admin")) {
     items.push({ label: "Admin", href: "/admin/users" });
   }
 

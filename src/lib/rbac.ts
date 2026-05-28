@@ -16,14 +16,14 @@ export interface CanContext {
 
 /**
  * Retorna lista de unidades que o user tem acesso (via roles com unitScope ou roles globais).
- * super_admin, gestor_geral, presidencia → todas. social → todas (cross-unit).
+ * super_admin, presidencia → todas. social → todas (cross-unit).
  */
 export function getUserUnits(session: Session | null): UnitScope[] | "all" {
   if (!session?.user.roles) return [];
   const roles = session.user.roles;
 
   const hasGlobalAccess = roles.some((r) =>
-    ["super_admin", "presidencia", "gestor_geral", "social"].includes(r.name),
+    ["super_admin", "presidencia", "social"].includes(r.name),
   );
   if (hasGlobalAccess) return "all";
 
@@ -66,8 +66,6 @@ export function can(
     case "ficha_cidada": {
       // presidencia: só view
       if (roles.some((r) => r.name === "presidencia")) return action === "view";
-      // gestor_geral: tudo
-      if (roles.some((r) => r.name === "gestor_geral")) return true;
       // social: view/edit cross-unit (triagem socioeconômica)
       if (roles.some((r) => r.name === "social")) {
         return action === "view" || action === "edit";
@@ -84,7 +82,7 @@ export function can(
     }
     case "user":
     case "role":
-      return hasAnyRole(session, "gestor_geral");
+      return false; // só super_admin (já tratado acima)
     case "audit_log":
       return false; // só super_admin (já tratado acima)
   }

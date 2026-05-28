@@ -1,3 +1,4 @@
+// TODO operacional pós-deploy: criar user real para Sarah Pôncio com role presidencia. Spec 2026-05-28 §7 (decisões deferidas).
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { GLOBAL_ROLES, ROLE_DESCRIPTIONS, ROLE_NAMES } from "../src/lib/rbac-types";
@@ -28,12 +29,9 @@ const DEMO_USERS: DemoUserSpec[] = [
     email: "raquel.barros@familiaponcio.org.br",
     name: "Raquel Barros",
     password: DEMO_PASSWORD,
-    primaryRoleName: "gestor_geral",
-    primaryUnitScope: null,
-    roles: [
-      { roleName: "gestor_geral", unitScope: null },
-      { roleName: "gestor_unidade", unitScope: "medico" },
-    ],
+    primaryRoleName: "gestor_unidade",
+    primaryUnitScope: "medico",
+    roles: [{ roleName: "gestor_unidade", unitScope: "medico" }],
   },
   {
     email: "luciana@familiaponcio.org.br",

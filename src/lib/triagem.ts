@@ -11,9 +11,9 @@ import { db } from "@/lib/db";
 import { canAccessUnit, hasAnyRole } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 
-/** Roles que conduzem triagem: assistente social + coordenação geral + super_admin. */
+/** Roles que conduzem triagem: assistente social + super_admin. */
 export function podeFazerTriagem(session: Session | null): boolean {
-  return hasAnyRole(session, "social", "super_admin", "gestor_geral");
+  return hasAnyRole(session, "social", "super_admin");
 }
 
 /**

@@ -29,12 +29,12 @@ export function vagaAceitaAgendamento(
 
 /** Quem cria/edita vagas. */
 export function podeGerenciarVaga(session: Session | null): boolean {
-  return hasAnyRole(session, "super_admin", "gestor_geral", "gestor_unidade");
+  return hasAnyRole(session, "super_admin", "gestor_unidade");
 }
 
 /** Quem agenda entrevistas (callcenter/recepção + social + coordenação). */
 export function podeAgendar(session: Session | null): boolean {
-  return hasAnyRole(session, "super_admin", "gestor_geral", "gestor_unidade", "social", "recepcao");
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "social", "recepcao");
 }
 
 /** Lista vagas respeitando a unidade do usuário (global/social veem todas). */

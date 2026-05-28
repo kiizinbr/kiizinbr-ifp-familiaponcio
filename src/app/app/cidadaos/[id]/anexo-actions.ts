@@ -147,7 +147,7 @@ export async function confirmAnexoUpload(args: {
 
 /**
  * Soft delete de anexo (deletedAt). Remove do MinIO também (não fica órfão).
- * Só super_admin, gestor_geral e gestor_unidade da unidade podem remover.
+ * Só super_admin e gestor_unidade da unidade podem remover.
  */
 export async function removeAnexo(anexoId: string): Promise<AnexoActionResult> {
   const session = await auth();
@@ -159,7 +159,7 @@ export async function removeAnexo(anexoId: string): Promise<AnexoActionResult> {
   });
   if (!anexo) return { ok: false, error: "Anexo não encontrado" };
 
-  const allowedRoles = hasAnyRole(session, "super_admin", "gestor_geral", "gestor_unidade");
+  const allowedRoles = hasAnyRole(session, "super_admin", "gestor_unidade");
   if (!allowedRoles) {
     return { ok: false, error: "Sem permissão para remover anexos" };
   }

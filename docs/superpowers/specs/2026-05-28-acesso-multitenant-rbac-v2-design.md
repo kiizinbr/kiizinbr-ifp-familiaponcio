@@ -170,19 +170,20 @@ Server component sem auth check:
 
 Decisões tomadas durante execução (após descoberta de gap — `gestor_geral` aparecia em ~15 arquivos cobrindo capabilities além de roteamento):
 
-| Capability | Antes (`gestor_geral`) | Depois | Nota |
-|---|---|---|---|
-| **Ver Saúde do cidadão da própria unidade** | `gestor_geral` + `profissional` + `super_admin` | adicionar `gestor_unidade` (escopado à sua unidade) | Raquel continua vendo Saúde no Médico |
-| **Ver Socioeconômico do cidadão** | `gestor_geral` + `presidencia` + `social` + `super_admin` | tira `gestor_geral`, mantém os demais | gestores de unidade NÃO veem Socio |
-| **Gerenciar users em `/admin/users` (CRUD)** | `gestor_geral` + `super_admin` | só `super_admin` | Presidência continua read-only (já era) |
-| **Ver Saúde/Socio em `/poncio` agregado** | `gestor_geral` + presidência | `presidencia` agregado | KPIs agregados sim, drill-down até ficha individual NÃO |
-| **`podeGerenciarVaga` (funil)** | `gestor_geral` + `gestor_unidade` + `super_admin` | tira `gestor_geral`, mantém os demais | gestor da unidade gerencia |
-| **`podeAgendar` (funil)** | `gestor_geral` + 4 outros | tira `gestor_geral`, mantém os demais | sem impacto operacional |
-| **`podeFazerTriagem`** | `social` + `super_admin` + `gestor_geral` | só `social` + `super_admin` | Regina + Erick fazem triagem |
-| **Remover anexo do cidadão** | `gestor_geral` + `gestor_unidade` + `super_admin` | tira `gestor_geral`, mantém os demais | gestor da unidade remove |
-| **Criar cidadão / escolher unidade** | `gestor_geral` + `super_admin` podiam escolher qualquer unidade | só `super_admin` pode escolher; outros usam a unidade da sua role | recepção/profissional/gestor_unidade criam só na sua unidade |
+| Capability                                   | Antes (`gestor_geral`)                                          | Depois                                                            | Nota                                                         |
+| -------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Ver Saúde do cidadão da própria unidade**  | `gestor_geral` + `profissional` + `super_admin`                 | adicionar `gestor_unidade` (escopado à sua unidade)               | Raquel continua vendo Saúde no Médico                        |
+| **Ver Socioeconômico do cidadão**            | `gestor_geral` + `presidencia` + `social` + `super_admin`       | tira `gestor_geral`, mantém os demais                             | gestores de unidade NÃO veem Socio                           |
+| **Gerenciar users em `/admin/users` (CRUD)** | `gestor_geral` + `super_admin`                                  | só `super_admin`                                                  | Presidência continua read-only (já era)                      |
+| **Ver Saúde/Socio em `/poncio` agregado**    | `gestor_geral` + presidência                                    | `presidencia` agregado                                            | KPIs agregados sim, drill-down até ficha individual NÃO      |
+| **`podeGerenciarVaga` (funil)**              | `gestor_geral` + `gestor_unidade` + `super_admin`               | tira `gestor_geral`, mantém os demais                             | gestor da unidade gerencia                                   |
+| **`podeAgendar` (funil)**                    | `gestor_geral` + 4 outros                                       | tira `gestor_geral`, mantém os demais                             | sem impacto operacional                                      |
+| **`podeFazerTriagem`**                       | `social` + `super_admin` + `gestor_geral`                       | só `social` + `super_admin`                                       | Regina + Erick fazem triagem                                 |
+| **Remover anexo do cidadão**                 | `gestor_geral` + `gestor_unidade` + `super_admin`               | tira `gestor_geral`, mantém os demais                             | gestor da unidade remove                                     |
+| **Criar cidadão / escolher unidade**         | `gestor_geral` + `super_admin` podiam escolher qualquer unidade | só `super_admin` pode escolher; outros usam a unidade da sua role | recepção/profissional/gestor_unidade criam só na sua unidade |
 
 Razão das decisões:
+
 - **Saúde sim, Socio não** para gestor de unidade — a gestora médica precisa do contexto clínico operacional, mas o socioeconômico é trabalho específico da Regina (social), exposição desnecessária pra outros.
 - **`/admin/users` só super_admin** — gestão técnica de users é TI; presidência não opera RBAC.
 - **`/poncio` agregado-only** — KPIs sim, ficha individual completa não. Privacidade do cidadão > visibilidade executiva detalhada.

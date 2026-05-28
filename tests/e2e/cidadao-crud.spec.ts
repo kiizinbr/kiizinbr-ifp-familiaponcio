@@ -11,6 +11,7 @@ import { test, expect, type Page } from "@playwright/test";
  */
 
 const DEMO_PASSWORD = "ifp-demo-2026";
+const ERICK_PASSWORD = "ifp-dev-2026";
 
 async function loginAs(page: Page, email: string, password: string) {
   await page.context().clearCookies();
@@ -82,12 +83,21 @@ test.describe.serial("Ficha Cidadã — CRUD + RBAC", () => {
     await expect(page.getByRole("heading", { name: "Socioeconômico" })).toHaveCount(0);
   });
 
-  test("gestor_geral VÊ seções Saúde e Socioeconômico no detalhe", async ({ page }) => {
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+  test("Erick (super_admin) VÊ seções Saúde e Socioeconômico no detalhe", async ({ page }) => {
+    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
     await page.goto(urlCriada);
 
     await expect(page.getByRole("heading", { name: "Saúde" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Socioeconômico" })).toBeVisible();
+  });
+
+  test("Raquel (gestor_unidade:medico) VÊ Saúde mas NÃO vê Socio", async ({ page }) => {
+    // Após T4: gestor_unidade ganha verSaude (decisão 1), perde verSocio (decisão 2).
+    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+    await page.goto(urlCriada);
+
+    await expect(page.getByRole("heading", { name: "Saúde" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Socioeconômico" })).toHaveCount(0);
   });
 
   test("gestor de outra unidade recebe 404 ao acessar ficha do Centro Médico", async ({ page }) => {

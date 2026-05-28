@@ -103,7 +103,7 @@ describe("logEvent", () => {
       action: "role_changed",
       entityType: "user",
       entityId: "target-user-1",
-      meta: { from: "social", to: "gestor_geral" },
+      meta: { from: "social", to: "gestor_unidade" },
     });
 
     expect(createMock).toHaveBeenCalledWith({
@@ -114,7 +114,7 @@ describe("logEvent", () => {
         entityId: "target-user-1",
         rootEntityType: null,
         rootEntityId: null,
-        meta: { from: "social", to: "gestor_geral" },
+        meta: { from: "social", to: "gestor_unidade" },
         ipAddress: null,
         userAgent: null,
       },

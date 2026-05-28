@@ -31,10 +31,9 @@ test.describe("Role-based landing", () => {
     await expect(page.locator("h1")).toContainText(/Olá, Erick/);
   });
 
-  test("Raquel (gestor_geral) cai em /app Global", async ({ page }) => {
+  test("Raquel (gestor_unidade:medico) cai em /app/medico", async ({ page }) => {
     await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
-    await expect(page).toHaveURL(/\/app$/);
-    await expect(page.locator("h1")).toContainText(/Olá, Raquel/);
+    await expect(page).toHaveURL(/\/app\/medico$/);
   });
 
   test("Saulo (presidencia) cai em /app Global", async ({ page }) => {
@@ -117,9 +116,10 @@ test.describe("Bypass prevention (proxy gates)", () => {
 });
 
 test.describe("UnitSwitcher visibility", () => {
-  test("Raquel (multi-role) vê switcher no header", async ({ page }) => {
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
-    // Switcher aparece como botão com aria-haspopup=menu
+  // Após T4 (rebaixamento da Raquel a mono-role gestor_unidade:medico), só roles globais
+  // (super_admin/presidencia) veem o switcher. Erick e Saulo são os que veem.
+  test("Erick (super_admin) vê switcher no header", async ({ page }) => {
+    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
     const switcher = page.locator('[data-testid="unit-switcher"]');
     await expect(switcher).toBeVisible();
   });
@@ -130,8 +130,15 @@ test.describe("UnitSwitcher visibility", () => {
     await expect(switcher).toHaveCount(0);
   });
 
-  test("Raquel troca de /app pra /app/medico via switcher", async ({ page }) => {
+  test("Raquel (gestor_unidade:medico após T4) NÃO vê switcher", async ({ page }) => {
+    // Raquel agora é mono-role como Luciana — não tem switcher.
     await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+    const switcher = page.locator('[data-testid="unit-switcher"]');
+    await expect(switcher).toHaveCount(0);
+  });
+
+  test("Erick (super_admin) troca de /app pra /app/medico via switcher", async ({ page }) => {
+    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
     await expect(page).toHaveURL(/\/app$/);
 
     await page.click('[data-testid="unit-switcher"]');

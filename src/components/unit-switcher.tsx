@@ -19,9 +19,7 @@ const UNIT_LABELS: Record<UnitScope, string> = {
 };
 
 function buildOptions(roles: RoleAssignment[], currentPath: string): SwitcherOption[] {
-  const hasGlobal = roles.some((r) =>
-    ["super_admin", "presidencia", "gestor_geral"].includes(r.name),
-  );
+  const hasGlobal = roles.some((r) => ["super_admin", "presidencia"].includes(r.name));
 
   const options: SwitcherOption[] = [];
 

@@ -24,7 +24,6 @@ export default async function NovoCidadaoPage({
   const canCreate = hasAnyRole(
     session,
     "super_admin",
-    "gestor_geral",
     "gestor_unidade",
     "profissional",
     "recepcao",
@@ -32,11 +31,11 @@ export default async function NovoCidadaoPage({
   if (!canCreate) redirect("/app/cidadaos");
 
   // Default da unidade = primaryUnitScope do user (recepção/profissional/gestor_unidade
-  // tem 1 unidade), ou "medico" como fallback pra super/gestor_geral
+  // tem 1 unidade), ou "medico" como fallback pra super_admin
   const defaultUnit: UnitScope = (session.user.primaryRole?.unitScope as UnitScope) ?? "medico";
 
-  // Super_admin + gestor_geral podem escolher qualquer unidade
-  const canChooseUnit = hasAnyRole(session, "super_admin", "gestor_geral");
+  // Super_admin pode escolher qualquer unidade
+  const canChooseUnit = hasAnyRole(session, "super_admin");
 
   return (
     <AppShell session={session}>

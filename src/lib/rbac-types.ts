@@ -6,7 +6,6 @@
 export const ROLE_NAMES = [
   "super_admin",
   "presidencia",
-  "gestor_geral",
   "gestor_unidade",
   "social",
   "profissional",
@@ -20,12 +19,7 @@ export const UNIT_SCOPES = ["medico", "capacitacao", "esportivo", "recreativo"] 
 export type UnitScope = (typeof UNIT_SCOPES)[number];
 
 /** Roles sem unit_scope (global). */
-export const GLOBAL_ROLES: readonly RoleName[] = [
-  "super_admin",
-  "presidencia",
-  "gestor_geral",
-  "social",
-] as const;
+export const GLOBAL_ROLES: readonly RoleName[] = ["super_admin", "presidencia", "social"] as const;
 
 /** Roles que exigem unit_scope. */
 export const UNIT_ROLES: readonly RoleName[] = [
@@ -45,7 +39,6 @@ export interface RoleAssignment {
 export const ROLE_DESCRIPTIONS: Record<RoleName, string> = {
   super_admin: "Acesso irrestrito — TI / sistema",
   presidencia: "Diretoria — visão global read-only",
-  gestor_geral: "Coordenação geral dos 4 centros",
   gestor_unidade: "Coordenação de uma unidade específica",
   social: "Equipe de Serviço Social — cross-unidade",
   profissional: "Profissional que atende em uma unidade",
@@ -65,7 +58,6 @@ export function getLandingPathFor(
   switch (primaryRoleName) {
     case "super_admin":
     case "presidencia":
-    case "gestor_geral":
       return "/app";
     case "social":
       return "/app/social";

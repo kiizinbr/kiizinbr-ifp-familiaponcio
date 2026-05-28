@@ -2,14 +2,15 @@ import { test, expect, type Page } from "@playwright/test";
 
 /**
  * e2e da edição de Ficha (melhorias Task 2) + redação de campo sensível na timeline.
- * - gestor_geral edita telefone → detalhe reflete.
- * - gestor_geral edita campo de Saúde → no histórico, recepção NÃO vê o nome do
- *   campo (redação Refinement B), gestor_geral vê.
+ * - Erick (super_admin) edita telefone → detalhe reflete.
+ * - Erick (super_admin) edita campo de Saúde → no histórico, recepção NÃO vê o nome
+ *   do campo (redação Refinement B), Erick vê.
  *
  * Pré-requisito: `pnpm db:seed`.
  */
 
 const DEMO_PASSWORD = "ifp-demo-2026";
+const ERICK_PASSWORD = "ifp-dev-2026";
 
 async function loginAs(page: Page, email: string, password: string) {
   await page.context().clearCookies();
@@ -57,8 +58,8 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
     cidadaoUrl = page.url();
   });
 
-  test("gestor_geral edita o telefone e o detalhe reflete", async ({ page }) => {
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+  test("Erick (super_admin) edita o telefone e o detalhe reflete", async ({ page }) => {
+    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
     await page.goto(`${cidadaoUrl}/editar`);
     await page.getByRole("button", { name: /Contato/ }).click();
     await page.getByLabel(/Telefone principal/).fill(novoTelefone);
@@ -70,8 +71,8 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
     await expect(page.getByText(novoTelefone)).toBeVisible();
   });
 
-  test("gestor_geral edita um campo de Saúde", async ({ page }) => {
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+  test("Erick (super_admin) edita um campo de Saúde", async ({ page }) => {
+    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
     await page.goto(`${cidadaoUrl}/editar`);
     await page.getByRole("button", { name: /Saúde/ }).click();
     await page.getByLabel(/Alergias/).fill("Dipirona");
@@ -81,8 +82,8 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
     });
   });
 
-  test("histórico: gestor_geral VÊ o campo de saúde alterado", async ({ page }) => {
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+  test("histórico: Erick (super_admin) VÊ o campo de saúde alterado", async ({ page }) => {
+    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
     await page.goto(`${cidadaoUrl}/historico`);
     await expect(page.getByText("Ficha atualizada").first()).toBeVisible();
     await expect(page.getByText(/Alergias/).first()).toBeVisible();

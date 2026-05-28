@@ -19,7 +19,7 @@ model User {
 
   // RBAC (Plano 2)
   userRoles        UserRole[]
-  primaryRoleName  String?    // 'super_admin' | 'gestor_geral' | 'gestor_unidade' | ...
+  primaryRoleName  String?    // 'super_admin' | 'presidencia' | 'gestor_unidade' | ...
   primaryUnitScope String?    // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo' | null
   auditLogs        AuditLog[]
 
@@ -76,14 +76,14 @@ model VerificationToken {
 
 // RBAC tables (Plano 2)
 
-/// Os 7 roles definidos no §0.1 do Plano 2 RBAC.
-/// Nome é a chave estável: super_admin, presidencia, gestor_geral,
-/// gestor_unidade, social, profissional, recepcao.
+/// Os 6 roles vigentes (gestor_geral removido em 2026-05-28 — T3/T4 RBAC v2).
+/// Nome é a chave estável: super_admin, presidencia, gestor_unidade,
+/// social, profissional, recepcao.
 model Role {
   id          String     @id @default(cuid())
   name        String     @unique
   description String?
-  /// 'global' = role sem unit_scope (super_admin, presidencia, gestor_geral, social)
+  /// 'global' = role sem unit_scope (super_admin, presidencia, social)
   /// 'unit' = role exige unit_scope (gestor_unidade, profissional, recepcao)
   scope       String     @default("global")
   userRoles   UserRole[]
@@ -91,7 +91,7 @@ model Role {
 }
 
 /// Associação many-to-many User↔Role com unit_scope opcional.
-/// Ex: Raquel tem 2 entries — (gestor_geral, null) + (gestor_unidade, 'medico').
+/// Ex: Raquel tem 1 entry — (gestor_unidade, 'medico').
 /// Regina tem 1 entry — (social, null).
 /// Maria callcenter tem 1 entry — (recepcao, 'medico').
 model UserRole {

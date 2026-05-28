@@ -62,17 +62,16 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
   const status = statusDisplay(cidadao);
 
   // RBAC pra seções sensíveis
-  const podeVerSocio = hasAnyRole(session, "super_admin", "gestor_geral", "presidencia", "social");
-  const podeVerSaude = hasAnyRole(session, "super_admin", "gestor_geral", "profissional");
+  const podeVerSocio = hasAnyRole(session, "super_admin", "presidencia", "social");
+  const podeVerSaude = hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
   const podeEditar = hasAnyRole(
     session,
     "super_admin",
-    "gestor_geral",
     "gestor_unidade",
     "profissional",
     "recepcao",
   );
-  const podeTriagem = hasAnyRole(session, "super_admin", "gestor_geral", "social");
+  const podeTriagem = hasAnyRole(session, "super_admin", "social");
 
   return (
     <AppShell session={session}>

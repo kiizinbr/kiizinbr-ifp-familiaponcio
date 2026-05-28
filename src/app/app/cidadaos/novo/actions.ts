@@ -17,7 +17,7 @@ export type CreateCidadaoResult =
 /**
  * Server Action de criação de Ficha Cidadã.
  * - Valida payload com zod
- * - Checa RBAC (recepcao/profissional/gestor_unidade/gestor_geral/super_admin podem criar)
+ * - Checa RBAC (recepcao/profissional/gestor_unidade/super_admin podem criar)
  * - Verifica CPF duplicado
  * - Cria Cidadao + endereços em uma transaction
  * - Loga evento de auditoria
@@ -26,14 +26,7 @@ export async function createCidadaoAction(input: CidadaoCreateInput): Promise<Cr
   const session = await auth();
   if (!session) return { ok: false, errors: {}, message: "Sessão expirada" };
 
-  const allowed = hasAnyRole(
-    session,
-    "super_admin",
-    "gestor_geral",
-    "gestor_unidade",
-    "profissional",
-    "recepcao",
-  );
+  const allowed = hasAnyRole(session, "super_admin", "gestor_unidade", "profissional", "recepcao");
   if (!allowed) {
     return { ok: false, errors: {}, message: "Sem permissão para criar Ficha" };
   }

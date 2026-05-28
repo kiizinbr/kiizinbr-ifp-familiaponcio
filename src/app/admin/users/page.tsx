@@ -16,7 +16,7 @@ export default async function AdminUsersPage() {
   const session = await auth();
   if (!session) redirect("/login");
   // Proxy ja gateia mas defense-in-depth
-  if (!hasAnyRole(session, "super_admin", "gestor_geral")) redirect("/");
+  if (!hasAnyRole(session, "super_admin")) redirect("/");
 
   const users = await db.user.findMany({
     include: {
@@ -65,7 +65,7 @@ export default async function AdminUsersPage() {
                 ),
               );
               const isGlobal = user.userRoles.some((ur) =>
-                ["super_admin", "presidencia", "gestor_geral", "social"].includes(ur.role.name),
+                ["super_admin", "presidencia", "social"].includes(ur.role.name),
               );
 
               return (

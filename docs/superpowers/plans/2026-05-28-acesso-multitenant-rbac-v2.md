@@ -540,34 +540,34 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(db): drop role gesto
 
 ### Decisões de capability aplicadas
 
-| Função / capability | Antes | Depois |
-|---|---|---|
-| `getUserUnits` "global access" | `super_admin, presidencia, gestor_geral, social` → "all" | `super_admin, presidencia, social` → "all" |
-| `can(ficha_cidada)` branch gestor_geral | retorna `true` pra qualquer action | branch removida |
-| `can(user|role)` | `hasAnyRole(session, "gestor_geral")` | branch removida (só super_admin via earlier check) |
-| `podeFazerTriagem` | `social/super_admin/gestor_geral` | `social/super_admin` |
-| `podeGerenciarVaga` | `super_admin/gestor_geral/gestor_unidade` | `super_admin/gestor_unidade` |
-| `podeAgendar` | `super_admin/gestor_geral/gestor_unidade/social/recepcao` | `super_admin/gestor_unidade/social/recepcao` |
-| `verSaude` | `super_admin/gestor_geral/profissional` | `super_admin/gestor_unidade/profissional` (Saúde sim para gestor da unidade) |
-| `verSocio` | `super_admin/gestor_geral/presidencia/social` | `super_admin/presidencia/social` (Socio NÃO para gestor de unidade) |
-| `podeTriagem` em detalhe de cidadão | `super_admin/gestor_geral/social` | `super_admin/social` |
-| `app-shell` branches "global" | `super_admin/gestor_geral/social` e `super_admin/gestor_geral` | `super_admin/social` e `super_admin` |
-| `unit-switcher` visibilidade | `super_admin/presidencia/gestor_geral` | `super_admin/presidencia` (T11 vai apertar mais — só super_admin) |
-| `/admin/users` gate | `super_admin/gestor_geral` | `super_admin` |
-| `/admin/users` filtro de "global roles" exibido | inclui gestor_geral | sem gestor_geral |
-| `cidadaos/novo canChooseUnit` | `super_admin/gestor_geral` | `super_admin` |
-| `cidadaos/novo` lista de roles que podem criar | inclui gestor_geral | sem gestor_geral |
-| `anexo-actions.allowedRoles` | `super_admin/gestor_geral/gestor_unidade` | `super_admin/gestor_unidade` |
+| Função / capability                             | Antes                                                          | Depois                                                                       |
+| ----------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------- |
+| `getUserUnits` "global access"                  | `super_admin, presidencia, gestor_geral, social` → "all"       | `super_admin, presidencia, social` → "all"                                   |
+| `can(ficha_cidada)` branch gestor_geral         | retorna `true` pra qualquer action                             | branch removida                                                              |
+| `can(user                                       | role)`                                                         | `hasAnyRole(session, "gestor_geral")`                                        | branch removida (só super_admin via earlier check) |
+| `podeFazerTriagem`                              | `social/super_admin/gestor_geral`                              | `social/super_admin`                                                         |
+| `podeGerenciarVaga`                             | `super_admin/gestor_geral/gestor_unidade`                      | `super_admin/gestor_unidade`                                                 |
+| `podeAgendar`                                   | `super_admin/gestor_geral/gestor_unidade/social/recepcao`      | `super_admin/gestor_unidade/social/recepcao`                                 |
+| `verSaude`                                      | `super_admin/gestor_geral/profissional`                        | `super_admin/gestor_unidade/profissional` (Saúde sim para gestor da unidade) |
+| `verSocio`                                      | `super_admin/gestor_geral/presidencia/social`                  | `super_admin/presidencia/social` (Socio NÃO para gestor de unidade)          |
+| `podeTriagem` em detalhe de cidadão             | `super_admin/gestor_geral/social`                              | `super_admin/social`                                                         |
+| `app-shell` branches "global"                   | `super_admin/gestor_geral/social` e `super_admin/gestor_geral` | `super_admin/social` e `super_admin`                                         |
+| `unit-switcher` visibilidade                    | `super_admin/presidencia/gestor_geral`                         | `super_admin/presidencia` (T11 vai apertar mais — só super_admin)            |
+| `/admin/users` gate                             | `super_admin/gestor_geral`                                     | `super_admin`                                                                |
+| `/admin/users` filtro de "global roles" exibido | inclui gestor_geral                                            | sem gestor_geral                                                             |
+| `cidadaos/novo canChooseUnit`                   | `super_admin/gestor_geral`                                     | `super_admin`                                                                |
+| `cidadaos/novo` lista de roles que podem criar  | inclui gestor_geral                                            | sem gestor_geral                                                             |
+| `anexo-actions.allowedRoles`                    | `super_admin/gestor_geral/gestor_unidade`                      | `super_admin/gestor_unidade`                                                 |
 
 ### Estratégia para testes e2e que usavam Raquel como gestor_geral
 
-| Test | Antes | Depois |
-|---|---|---|
-| `cidadao-edit.spec.ts` — "gestor_geral edita telefone" | login Raquel (gestor_geral) | login Erick (super_admin) — mantém intent "alguém autorizado edita" |
-| `cidadao-edit.spec.ts` — "gestor_geral edita Saúde" | login Raquel | login Erick (super_admin) |
-| `cidadao-edit.spec.ts` — "histórico: gestor_geral VÊ campo Saúde" | login Raquel | login Erick (super_admin) — quem vê Saúde redação ON é super_admin/gestor_unidade da unidade/profissional |
-| `cidadao-crud.spec.ts` — "gestor_geral VÊ seções Saúde+Socio" | login Raquel | dividir em 2 testes: (a) "Erick (super_admin) vê Saúde+Socio" e (b) "Raquel (gestor_unidade:medico) vê Saúde mas NÃO Socio" |
-| `rbac.spec.ts` — "Raquel (gestor_geral) cai em /app Global" | login Raquel | Renomear pra "Raquel cai em /app/medico" (landing dela mudou) |
+| Test                                                              | Antes                       | Depois                                                                                                                      |
+| ----------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `cidadao-edit.spec.ts` — "gestor_geral edita telefone"            | login Raquel (gestor_geral) | login Erick (super_admin) — mantém intent "alguém autorizado edita"                                                         |
+| `cidadao-edit.spec.ts` — "gestor_geral edita Saúde"               | login Raquel                | login Erick (super_admin)                                                                                                   |
+| `cidadao-edit.spec.ts` — "histórico: gestor_geral VÊ campo Saúde" | login Raquel                | login Erick (super_admin) — quem vê Saúde redação ON é super_admin/gestor_unidade da unidade/profissional                   |
+| `cidadao-crud.spec.ts` — "gestor_geral VÊ seções Saúde+Socio"     | login Raquel                | dividir em 2 testes: (a) "Erick (super_admin) vê Saúde+Socio" e (b) "Raquel (gestor_unidade:medico) vê Saúde mas NÃO Socio" |
+| `rbac.spec.ts` — "Raquel (gestor_geral) cai em /app Global"       | login Raquel                | Renomear pra "Raquel cai em /app/medico" (landing dela mudou)                                                               |
 
 ### Steps
 
@@ -584,12 +584,14 @@ Expected: ~13 arquivos listados (os mesmos do `Files` acima).
 ### Step 4.2 — Aplicar todas as edições do "Decisões de capability aplicadas"
 
 Para cada arquivo da tabela:
+
 1. Abrir arquivo
 2. Localizar a linha com `gestor_geral`
 3. Aplicar a mudança da tabela (remoção pura OU substituição)
 4. Verificar imports e tipos ainda compilam
 
 **`src/lib/rbac-types.ts` — atenção especial:**
+
 - Remover `"gestor_geral"` do array `ROLE_NAMES` (linha 9)
 - Remover de `GLOBAL_ROLES` (linha 26)
 - Remover a key `gestor_geral: "..."` do `ROLE_DESCRIPTIONS` (linha 47-48)
@@ -598,11 +600,13 @@ Para cada arquivo da tabela:
 Após isso, `RoleName` deixa de incluir `"gestor_geral"`. TypeScript vai apontar todos os lugares restantes que referenciam o literal — use isso como guia (rodar `pnpm typecheck` ao longo do caminho).
 
 **`prisma/seed.ts`:**
+
 - Localizar bloco da Raquel: trocar roles array + primaryRoleName + adicionar primaryUnitScope
 - Localizar bloco que cria Role `gestor_geral` na lista de roles seedadas → remover essa entry
 - Adicionar no topo (após JSDoc): `// TODO operacional pós-deploy: criar user real para Sarah Pôncio com role presidencia. Spec 2026-05-28 §7.`
 
 **`prisma/schema.prisma`:**
+
 - Linha 22: comentário com lista de roles → remover `gestor_geral` da lista
 - Linha 80: comentário com lista de chaves → remover `gestor_geral`
 - Linha 86: comentário com lista de globais → remover `gestor_geral`
@@ -619,6 +623,7 @@ wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm db:s
 Expected: seed completa sem erros. 9 users, 6 roles (sem gestor_geral).
 
 Verifica Raquel:
+
 ```bash
 wsl -d Ubuntu -- bash -c 'docker exec ifp_postgres_dev psql -U ifp -d ifp_connect -c "SELECT u.email, u.\"primaryRoleName\", u.\"primaryUnitScope\", COUNT(ur.id) AS roles FROM \"User\" u LEFT JOIN \"UserRole\" ur ON ur.\"userId\" = u.id WHERE u.email = '\''raquel.barros@familiaponcio.org.br'\'' GROUP BY u.id;"'
 ```
@@ -652,6 +657,7 @@ Esperado: vazio (proxy.ts é exceção legítima — será reescrito em T10).
 > Aliás, se `proxy.ts` ainda aparecer: ok. Documentar no commit message.
 
 Commit:
+
 ```bash
 git -C "C:/Users/Administrador/ifp-connect" add -A
 git -C "C:/Users/Administrador/ifp-connect" commit -m "refactor(rbac): cleanup gestor_geral em 13 arquivos + capabilities pos-rebaixamento (T4 ampliada)"

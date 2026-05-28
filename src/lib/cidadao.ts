@@ -31,7 +31,7 @@ export interface CidadaoListFilters {
 
 /**
  * Lista cidadãos respeitando RBAC do session.
- * - super_admin/gestor_geral/presidencia/social: vê todos
+ * - super_admin/presidencia/social: vê todos
  * - gestor_unidade/profissional/recepcao: filtra por unitIdOrigem in user_units
  *
  * Search usa trigram (similarity > 0.3) em nomeCompleto + nomeSocial + cpf + telefonePrincipal.
