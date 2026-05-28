@@ -60,7 +60,7 @@ export function getLandingPathFor(
     case "presidencia":
       return "/app";
     case "social":
-      return "/app/social";
+      return "/social";
     case "gestor_unidade":
     case "profissional":
     case "recepcao":

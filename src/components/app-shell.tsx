@@ -29,7 +29,7 @@ export function AppShell({ session, children }: AppShellProps) {
     items.push({ label: "Vagas", href: "/app/vagas" });
   }
   if (hasAnyRole(session, "super_admin", "social")) {
-    items.push({ label: "Serviço Social", href: "/app/social" });
+    items.push({ label: "Serviço Social", href: "/social" });
   }
   if (hasAnyRole(session, "super_admin")) {
     items.push({ label: "Admin", href: "/admin/users" });

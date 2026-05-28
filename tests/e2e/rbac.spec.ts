@@ -59,9 +59,9 @@ test.describe("Role-based landing", () => {
     await expect(page.locator("h1")).toContainText("Centro Recreativo");
   });
 
-  test("Regina (social) cai em /app/social", async ({ page }) => {
+  test("Regina (social) cai em /social", async ({ page }) => {
     await loginAs(page, "regina@familiaponcio.org.br", DEMO_PASSWORD);
-    await expect(page).toHaveURL(/\/app\/social$/);
+    await expect(page).toHaveURL(/\/social$/);
     await expect(page.locator("h1")).toContainText(/Triagens/);
   });
 
@@ -92,16 +92,16 @@ test.describe("Bypass prevention (proxy gates)", () => {
     await expect(page).toHaveURL(/\/app\/capacitacao$/);
   });
 
-  test("Luciana capacitacao não acessa /app/social", async ({ page }) => {
+  test("Luciana capacitacao não acessa /social", async ({ page }) => {
     await loginAs(page, "luciana@familiaponcio.org.br", DEMO_PASSWORD);
-    await page.goto("/app/social");
+    await page.goto("/social");
     await expect(page).toHaveURL(/\/app\/capacitacao$/);
   });
 
   test("Regina social não acessa /app raiz", async ({ page }) => {
     await loginAs(page, "regina@familiaponcio.org.br", DEMO_PASSWORD);
     await page.goto("/app");
-    await expect(page).toHaveURL(/\/app\/social$/);
+    await expect(page).toHaveURL(/\/social$/);
   });
 
   test("Sem sessão tentando /app redireciona pro /login", async ({ page }) => {

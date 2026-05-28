@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
+import { canAccessUnidade } from "@/lib/rbac";
 import { AppShell } from "@/components/app-shell";
 import { KpiCard } from "@/components/kpi-card";
 import { getCidadaoStats } from "@/lib/cidadao";
@@ -21,7 +22,8 @@ function formatDate(date: Date): string {
 
 export default async function SocialDashboard() {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session) redirect("/social/login" as Route);
+  if (!canAccessUnidade(session, "social")) redirect("/" as Route);
 
   const [triagensAbertas, pendentes, stats] = await Promise.all([
     countTriagensAbertas(session),
@@ -44,6 +46,10 @@ export default async function SocialDashboard() {
           Painel da equipe socioeconômica — Regina e equipe atendem casos das 4 unidades.
         </p>
       </header>
+
+      <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        Visual provisório — aguardando Design System v2.
+      </div>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
