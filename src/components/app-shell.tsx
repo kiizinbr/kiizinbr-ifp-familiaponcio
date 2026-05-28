@@ -45,8 +45,12 @@ export function AppShell({ session, children }: AppShellProps) {
 
         <SidebarNav items={items} />
 
-        <p className="mt-6 mb-2 px-3 text-[11px] font-bold text-[#b0a99c]">Unidades</p>
-        <UnitSwitcher roles={session.user.roles} />
+        {session.user.roles.some((r) => r.name === "super_admin") && (
+          <>
+            <p className="mt-6 mb-2 px-3 text-[11px] font-bold text-[#b0a99c]">Unidades</p>
+            <UnitSwitcher roles={session.user.roles} />
+          </>
+        )}
 
         <div className="mt-auto flex items-center gap-3 border-t border-black/[0.06] px-2 pt-4">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[rgb(var(--ifp-ink))] text-xs font-bold text-white">
