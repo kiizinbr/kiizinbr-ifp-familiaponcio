@@ -1,50 +1,18 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { RoleAssignment, UnitScope } from "@/lib/rbac-types";
-
-interface SwitcherOption {
-  label: string;
-  href: string;
-  isActive: boolean;
-}
-
-const UNIT_LABELS: Record<UnitScope, string> = {
-  medico: "Centro Médico",
-  capacitacao: "Centro de Capacitação",
-  esportivo: "Centro Esportivo",
-  recreativo: "Centro Recreativo",
-};
-
-function buildOptions(roles: RoleAssignment[], currentPath: string): SwitcherOption[] {
-  const hasGlobal = roles.some((r) => ["super_admin", "presidencia"].includes(r.name));
-
-  const options: SwitcherOption[] = [];
-
-  // Switcher é só de UNIDADES — Visão geral / Serviço Social vivem na nav lateral.
-  const units: UnitScope[] = hasGlobal
-    ? ["medico", "capacitacao", "esportivo", "recreativo"]
-    : Array.from(new Set(roles.map((r) => r.unitScope).filter((u): u is UnitScope => Boolean(u))));
-
-  for (const unit of units) {
-    options.push({
-      label: UNIT_LABELS[unit],
-      href: `/app/${unit}`,
-      isActive: currentPath.startsWith(`/app/${unit}`),
-    });
-  }
-
-  return options;
-}
+import type { RoleAssignment } from "@/lib/rbac-types";
+import { UNIDADE_SLUGS, UNIDADES } from "@/lib/unidades";
 
 export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
-  const pathname = usePathname() ?? "/app";
+  const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const options = buildOptions(roles, pathname);
+  const isSuperAdmin = roles.some((r) => r.name === "super_admin");
 
   // Fecha ao clicar fora
   useEffect(() => {
@@ -56,17 +24,10 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // Se só uma opção, não mostra switcher (sem necessidade)
-  if (options.length <= 1) {
-    return options[0] ? (
-      <span className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm font-semibold text-[rgb(var(--ifp-ink))]">
-        <span className="h-[7px] w-[7px] rounded-full bg-[rgb(var(--ifp-laranja))]" />
-        {options[0].label}
-      </span>
-    ) : null;
-  }
+  if (!isSuperAdmin) return null;
 
-  const activeLabel = options.find((o) => o.isActive)?.label ?? options[0]?.label ?? "Selecionar";
+  const activeSlug = UNIDADE_SLUGS.find((slug) => pathname.startsWith(`/${slug}`));
+  const activeLabel = activeSlug ? UNIDADES[activeSlug].nome : "Início";
 
   return (
     <div ref={containerRef} className="relative">
@@ -98,21 +59,36 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
           role="menu"
           className="absolute left-0 z-20 mt-1 w-full overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-xl"
         >
-          {options.map((option) => (
-            <Link
-              key={option.href}
-              href={option.href as never}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className={`block px-3 py-2 text-sm transition ${
-                option.isActive
-                  ? "bg-[rgb(var(--ifp-laranja))]/10 font-medium text-[rgb(var(--ifp-laranja))]"
-                  : "text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              {option.label}
-            </Link>
-          ))}
+          {UNIDADE_SLUGS.map((slug) => {
+            const isActive = activeSlug === slug;
+            return (
+              <Link
+                key={slug}
+                href={`/${slug}` as Route}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className={`block px-3 py-2 text-sm transition ${
+                  isActive
+                    ? "bg-[rgb(var(--ifp-laranja))]/10 font-medium text-[rgb(var(--ifp-laranja))]"
+                    : "text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {UNIDADES[slug].nome}
+              </Link>
+            );
+          })}
+          <Link
+            href={"/" as Route}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className={`block px-3 py-2 text-sm transition ${
+              !activeSlug
+                ? "bg-[rgb(var(--ifp-laranja))]/10 font-medium text-[rgb(var(--ifp-laranja))]"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Início
+          </Link>
         </div>
       )}
     </div>
