@@ -1,4 +1,4 @@
-import type { RoleName, UnitScope } from "@/lib/rbac-types";
+import type { RoleAssignment } from "@/lib/rbac-types";
 
 export const UNIDADE_SLUGS = [
   "medico",
@@ -11,18 +11,13 @@ export const UNIDADE_SLUGS = [
 
 export type UnidadeSlug = (typeof UNIDADE_SLUGS)[number];
 
-export interface RoleAceita {
-  name: RoleName;
-  unitScope: UnitScope | null;
-}
-
 export interface UnidadeConfig {
   slug: UnidadeSlug;
   nome: string;
   corPrimariaPlaceholder: string;
   fotoDronePlaceholder: string | null;
   gradientePlaceholder: string;
-  rolesAceitas: readonly RoleAceita[];
+  rolesAceitas: readonly RoleAssignment[];
   cidadaoScope: "self" | "all";
 }
 
@@ -112,9 +107,7 @@ export function unidadeFromSlug(slug: string): UnidadeConfig | null {
  * Slugs de unidades em que essas roles conseguem entrar.
  * super_admin → todas.
  */
-export function unidadesAcessiveis(
-  roles: readonly { name: RoleName; unitScope: UnitScope | null }[],
-): UnidadeSlug[] {
+export function unidadesAcessiveis(roles: readonly RoleAssignment[]): UnidadeSlug[] {
   if (roles.some((r) => r.name === "super_admin")) {
     return [...UNIDADE_SLUGS];
   }

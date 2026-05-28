@@ -84,4 +84,13 @@ describe("unidadesAcessiveis", () => {
   it("social acessa só /social", () => {
     expect(unidadesAcessiveis(reginaRoles)).toEqual(["social"]);
   });
+
+  it("gestor_unidade:esportivo NÃO inclui /medico (apenas /esportivo)", () => {
+    const roles = [{ name: "gestor_unidade" as const, unitScope: "esportivo" as const }];
+    expect(unidadesAcessiveis(roles)).toEqual(["esportivo"]);
+  });
+
+  it("array de roles vazio retorna []", () => {
+    expect(unidadesAcessiveis([])).toEqual([]);
+  });
 });
