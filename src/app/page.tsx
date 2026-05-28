@@ -11,7 +11,7 @@ export default function LandingPage() {
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-8">
         <div className="flex items-center gap-3">
           <Image
-            src="/logo/leao.png"
+            src="/logo/ifp-symbol.png"
             alt="Instituto Família Pôncio"
             width={48}
             height={48}
