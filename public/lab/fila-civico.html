@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fila do dia · Centro Médico — IFP Connect · Cívico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Pareamento tipográfico:
+     DISPLAY/ANCORAS  → Archivo Black + Archivo Narrow (mantém o brutalismo de cartaz)
+     CORPO/LEITURA    → Spline Sans (grotesca humanista, contraste real, escaneável o dia todo) -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:wght@500;600;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     IFP CONNECT — FILA DO DIA
+     Direção: CÍVICO — Brutalismo Institucional
+     Cartaz suíço + Gov.uk com personalidade + Bloomberg terminal.
+     Bordas grossas, display condensada gigante, blocos sólidos,
+     flat (sem sombra macia, só offsets duros), tarjas de status.
+
+     REFINO (diretor de arte):
+     1. Pareamento display+corpo: Archivo Black/Narrow nas âncoras,
+        Spline Sans (humanista) no corpo — quebra o monopólio Archivo.
+     2. Marrom #752C05 = EXCLUSIVO do estado AGORA. "Confirmada"
+        virou outline marrom sobre branco (sem colisão semântica).
+     3. Linha .meta deixou de repetir a especialidade → agora traz
+        info que a recepção usa de relance (sala / fone / espera).
+     4. Carga tipográfica suavizada: nome a 700 (não 800), uppercase
+        só em headlines/tarjas, letter-spacing secundário reduzido.
+     ============================================================ */
+
+  :root{
+    --laranja:      #FF772E;
+    --laranja-esc:  #C24D0F;
+    --marrom:       #752C05;
+    --teal-esc:     #007571;
+    --teal-claro:   #10C2BB;
+    --cinza:        #4A4A49;
+    --branco:       #FFFFFF;
+    --psico:        #6B6B6B;
+
+    --papel:    #F4F0E9;
+    --papel-2:  #ECE6DB;
+    --tinta:    #1A1714;
+    --linha:    #1A1714;
+
+    --borda: 3px;
+    --borda-grossa: 5px;
+
+    /* corpo de leitura — humanista, não Archivo */
+    --corpo: 'Spline Sans', sans-serif;
+    /* âncoras/labels — condensada de cartaz */
+    --label: 'Archivo Narrow', sans-serif;
+    /* display brutalista */
+    --display: 'Archivo Black', sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ -webkit-text-size-adjust:100%; }
+
+  body{
+    font-family:var(--corpo);
+    background:
+      linear-gradient(var(--papel-2) 1px, transparent 1px) 0 0 / 100% 28px,
+      linear-gradient(90deg, var(--papel-2) 1px, transparent 1px) 0 0 / 28px 100%,
+      var(--papel);
+    color:var(--tinta);
+    min-height:100vh;
+    padding-top:34px;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- BARRA FIXA DO LAB ---------- */
+  .labbar{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    height:34px;
+    background:var(--tinta);
+    color:var(--papel);
+    display:flex; align-items:center; gap:14px;
+    padding:0 16px;
+    font-family:var(--label);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    border-bottom:var(--borda) solid var(--laranja);
+  }
+  .labbar .dot{ width:10px; height:10px; background:var(--laranja); border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(255,119,46,.25); }
+  .labbar .sep{ opacity:.35; }
+  .labbar .tag{ color:var(--teal-claro); }
+  .labbar .right{ margin-left:auto; opacity:.55; letter-spacing:.2em; }
+
+  /* ---------- SHELL ---------- */
+  .shell{ max-width:1240px; margin:0 auto; padding:30px 28px 70px; }
+
+  /* ===================== CABEÇALHO ===================== */
+  .head{
+    border:var(--borda-grossa) solid var(--tinta);
+    background:var(--branco);
+    display:grid;
+    grid-template-columns: 1fr auto;
+    position:relative;
+    box-shadow:14px 14px 0 var(--tinta);
+  }
+  .head__main{ padding:26px 30px 24px; border-right:var(--borda) solid var(--tinta); }
+
+  .kicker{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--teal-esc); color:var(--branco);
+    font-family:var(--label);
+    font-weight:700; font-size:13px; letter-spacing:.22em; text-transform:uppercase;
+    padding:6px 12px 5px;
+    margin-bottom:14px;
+  }
+  .kicker .lion{ font-size:15px; line-height:1; }
+
+  .title{
+    font-family:var(--display);
+    font-weight:900; text-transform:uppercase;
+    line-height:.84; letter-spacing:-.02em;
+    font-size: clamp(58px, 9vw, 132px);
+    color:var(--tinta); margin:2px 0 0;
+  }
+  .title .b2{ display:block; color:var(--laranja); }
+  .title .b1{ display:block; }
+
+  .date{
+    margin-top:18px; display:inline-block;
+    border-top:var(--borda) solid var(--tinta);
+    padding-top:10px;
+    font-family:var(--label);
+    font-weight:700; font-size:17px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--cinza);
+  }
+  .date b{ color:var(--tinta); }
+
+  .head__side{ display:flex; flex-direction:column; min-width:230px; }
+  .clock{
+    background:var(--tinta); color:var(--papel);
+    padding:22px 24px 18px; flex:1;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .clock__lbl{
+    font-family:var(--label); font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase; font-size:11px;
+    color:var(--teal-claro); margin-bottom:4px;
+  }
+  .clock__time{
+    font-family:var(--display);
+    font-size:46px; line-height:.9; letter-spacing:-.01em;
+    font-variant-numeric:tabular-nums;
+  }
+  .clock__time .sec{ color:var(--laranja); }
+  .brand{
+    background:var(--laranja); color:var(--marrom);
+    padding:13px 24px;
+    font-family:var(--display);
+    text-transform:uppercase; letter-spacing:.04em; font-size:19px;
+    display:flex; align-items:center; gap:9px;
+    border-top:var(--borda) solid var(--tinta);
+  }
+  .brand .lion{ font-size:22px; }
+  .brand small{ font-family:var(--label); font-weight:700; font-size:11px; letter-spacing:.18em; color:var(--branco); }
+
+  /* ===================== KPIs ===================== */
+  .kpis{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap:0;
+    margin-top:20px; border:var(--borda-grossa) solid var(--tinta);
+  }
+  .kpi{ padding:22px 24px 20px; border-right:var(--borda) solid var(--tinta); position:relative; overflow:hidden; }
+  .kpi:last-child{ border-right:0; }
+  .kpi__num{
+    font-family:var(--display);
+    font-size: clamp(56px, 7vw, 92px); line-height:.8; letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;
+  }
+  .kpi__lbl{
+    margin-top:12px; font-family:var(--label); font-weight:700;
+    text-transform:uppercase; letter-spacing:.16em; font-size:14px;
+  }
+  .kpi__mark{
+    position:absolute; right:-8px; top:-18px;
+    font-family:var(--display); font-size:120px; line-height:1; opacity:.10; pointer-events:none;
+  }
+  .kpi--fila{ background:var(--laranja); color:var(--branco); }
+  .kpi--fila .kpi__mark{ color:var(--marrom); opacity:.22; }
+  .kpi--feito{ background:var(--teal-esc); color:var(--branco); }
+  .kpi--feito .kpi__mark{ color:#003d3b; }
+  .kpi--livre{ background:var(--branco); color:var(--tinta); }
+  .kpi--livre .kpi__lbl{ color:var(--cinza); }
+  .kpi--livre .kpi__mark{ color:var(--tinta); }
+
+  /* ===================== SEÇÃO FILA ===================== */
+  .section-bar{
+    margin-top:26px; display:flex; align-items:stretch;
+    border:var(--borda-grossa) solid var(--tinta); border-bottom:0;
+    background:var(--tinta); color:var(--papel);
+  }
+  .section-bar h2{
+    font-family:var(--display); text-transform:uppercase;
+    font-size:22px; letter-spacing:.02em; padding:13px 22px 11px; flex:1;
+  }
+  .section-bar .legend{ display:flex; align-items:center; border-left:var(--borda) solid var(--papel); }
+  .leg{
+    display:flex; align-items:center; gap:7px; padding:0 14px;
+    font-family:var(--label); font-weight:700;
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    border-left:1px solid rgba(244,240,233,.18);
+  }
+  .leg:first-child{ border-left:0; }
+  .leg .sw{ width:13px; height:13px; flex:none; border:2px solid var(--papel); }
+
+  .queue{
+    border:var(--borda-grossa) solid var(--tinta); background:var(--branco);
+    box-shadow:14px 14px 0 var(--tinta);
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns: 116px 1.5fr 1.15fr 1fr 168px;
+    align-items:stretch;
+    border-bottom:var(--borda) solid var(--tinta);
+    position:relative; background:var(--branco);
+    transition:background .12s linear;
+  }
+  .row:last-child{ border-bottom:0; }
+  .row:hover{ background:var(--papel); }
+
+  .c-time{
+    background:var(--papel-2); border-right:var(--borda) solid var(--tinta);
+    padding:16px 16px 14px 20px;
+    display:flex; flex-direction:column; gap:8px; justify-content:center;
+    position:relative;
+  }
+  .c-time .hh{
+    font-family:var(--display);
+    font-size:30px; line-height:.85; letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .c-time .node{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--label); font-weight:700;
+    font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--cinza);
+  }
+  .c-time .node .knot{ width:14px; height:14px; flex:none; border:3px solid var(--tinta); }
+
+  .c-pac{ padding:16px 20px 14px; display:flex; flex-direction:column; gap:5px; justify-content:center; }
+  /* nome: humanista, peso 700 (era Archivo 800) — respiro pro scan diário, sem uppercase */
+  .c-pac .name{ font-family:var(--corpo); font-weight:700; font-size:20px; line-height:1.08; letter-spacing:-.005em; }
+  /* meta: info operacional real (sala/fone/espera), não repete a especialidade; spacing reduzido */
+  .c-pac .meta{
+    display:flex; align-items:center; flex-wrap:wrap; gap:6px 12px;
+    font-family:var(--label); font-weight:600; font-size:12px; letter-spacing:.04em; color:var(--cinza);
+  }
+  .c-pac .meta b{ color:var(--tinta); font-weight:700; }
+  .c-pac .meta .pin{ color:var(--teal-esc); }
+  .c-pac .meta .dotsep{ width:3px; height:3px; background:var(--cinza); border-radius:50%; opacity:.55; }
+  .c-pac .meta .wait{ color:var(--laranja-esc); font-weight:700; }
+
+  .c-esp{ padding:16px 20px; display:flex; align-items:center; }
+  .chip{
+    display:inline-block;
+    font-family:var(--label); font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em; font-size:13px; color:var(--branco);
+    padding:7px 13px 6px;
+    border:var(--borda) solid var(--tinta);
+    box-shadow:4px 4px 0 var(--tinta);
+  }
+
+  .c-prof{ padding:16px 20px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
+  /* profissional: humanista, peso 600 — pareia com o nome do paciente sem competir */
+  .c-prof .pro{ font-family:var(--corpo); font-weight:600; font-size:15px; line-height:1.12; letter-spacing:-.005em; }
+  .c-prof .role{ font-family:var(--label); font-weight:600; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--cinza); }
+
+  .c-stat{ border-left:var(--borda) solid var(--tinta); display:flex; align-items:center; justify-content:center; padding:10px 12px; }
+  .tarja{
+    width:100%; text-align:center;
+    font-family:var(--display); text-transform:uppercase;
+    font-size:14px; letter-spacing:.04em; line-height:1.05;
+    padding:11px 8px; border:var(--borda) solid var(--tinta);
+  }
+  .tarja small{ display:block; font-family:var(--label); font-weight:700; font-size:9px; letter-spacing:.16em; opacity:.85; margin-top:3px; }
+
+  .st-realizada{ background:var(--teal-esc); color:var(--branco); }
+  /* CONFIRMADA → outline marrom sobre branco. Libera o marrom SÓLIDO p/ o estado AGORA. */
+  .st-confirmada{ background:var(--branco); color:var(--marrom); border-color:var(--marrom); border-width:var(--borda); }
+  .st-confirmada small{ opacity:1; }
+  .st-agendada{ background:var(--papel-2); color:var(--tinta); }
+
+  /* ---------- LINHA "AGORA" ---------- */
+  .row--agora{
+    background:var(--laranja); color:var(--branco); z-index:2;
+    box-shadow:0 0 0 var(--borda-grossa) var(--tinta);
+    animation:agoraPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes agoraPulse{
+    0%,100%{ box-shadow:0 0 0 var(--borda-grossa) var(--tinta), 0 0 0 0 rgba(255,119,46,.0); }
+    50%    { box-shadow:0 0 0 var(--borda-grossa) var(--tinta), 0 0 0 11px rgba(255,119,46,.32); }
+  }
+  .row--agora:hover{ background:var(--laranja); }
+  /* marrom sólido = território exclusivo do AGORA */
+  .row--agora .c-time{ background:var(--marrom); border-right-color:var(--branco); color:var(--branco); }
+  .row--agora .c-time .hh{ color:var(--branco); }
+  .row--agora .c-time .node{ color:rgba(255,255,255,.85); }
+  .row--agora .c-time .node .knot{ border-color:var(--branco); }
+  .row--agora .c-pac .name{ color:var(--branco); }
+  .row--agora .c-pac .meta{ color:rgba(255,255,255,.85); }
+  .row--agora .c-pac .meta b{ color:var(--branco); }
+  .row--agora .c-pac .meta .pin{ color:var(--branco); }
+  .row--agora .c-pac .meta .dotsep{ background:rgba(255,255,255,.7); }
+  .row--agora .c-pac .meta .wait{ color:var(--branco); }
+  .row--agora .c-prof .pro{ color:var(--branco); }
+  .row--agora .c-prof .role{ color:rgba(255,255,255,.85); }
+  .row--agora .c-stat{ border-left-color:var(--branco); }
+  .row--agora .chip{ border-color:var(--branco); box-shadow:4px 4px 0 var(--marrom); }
+  .row--agora .tarja{ background:var(--branco); color:var(--marrom); border-color:var(--branco); position:relative; }
+  .row--agora .tarja .live{ display:inline-flex; align-items:center; gap:6px; justify-content:center; }
+  .row--agora .tarja .blip{ width:9px; height:9px; background:var(--laranja); border-radius:50%; animation:blip .9s steps(1) infinite; }
+  @keyframes blip{ 0%,50%{ opacity:1 } 51%,100%{ opacity:.15 } }
+
+  .now-tab{
+    position:absolute; top:-2px; left:-2px;
+    background:var(--tinta); color:var(--laranja);
+    font-family:var(--display); font-size:11px; letter-spacing:.18em;
+    padding:3px 9px 2px; z-index:3;
+  }
+
+  /* ---------- linha SLOT LIVRE ---------- */
+  .row--livre{
+    grid-template-columns: 116px 1fr 168px;
+    background:
+      repeating-linear-gradient(45deg, transparent 0 12px, rgba(26,23,20,.045) 12px 24px),
+      var(--branco);
+  }
+  .row--livre .c-time{ background:transparent; }
+  .row--livre .c-time .hh{ color:var(--cinza); }
+  .livre-mid{
+    display:flex; align-items:center; gap:14px; padding:16px 20px;
+    font-family:var(--label); font-weight:700;
+    text-transform:uppercase; letter-spacing:.14em; font-size:13px; color:var(--cinza);
+  }
+  .livre-mid .ln{ flex:1; height:0; border-top:var(--borda) dashed var(--cinza); }
+  .tarja.st-livre{ background:var(--branco); color:var(--cinza); border-style:dashed; }
+
+  /* ---------- RODAPÉ ---------- */
+  .foot{
+    margin-top:24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    border-top:var(--borda) solid var(--tinta); padding-top:14px;
+    font-family:var(--label); font-weight:600;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--cinza);
+  }
+  .foot .lion{ font-size:18px; }
+  .foot b{ color:var(--tinta); }
+  .foot .push{ margin-left:auto; }
+
+  /* ---------- entrada em cascata ---------- */
+  .head, .kpis, .section-bar, .queue, .foot{ opacity:0; transform:translateY(14px); animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards; }
+  .kpis{ animation-delay:.08s; }
+  .section-bar{ animation-delay:.16s; }
+  .queue{ animation-delay:.22s; }
+  .foot{ animation-delay:.30s; }
+  .kpi, .row{ opacity:0; animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards; }
+  .kpi:nth-child(1){ animation-delay:.12s } .kpi:nth-child(2){ animation-delay:.18s } .kpi:nth-child(3){ animation-delay:.24s }
+  .queue .row:nth-child(1){ animation-delay:.30s }
+  .queue .row:nth-child(2){ animation-delay:.36s }
+  .queue .row:nth-child(3){ animation-delay:.42s }
+  .queue .row:nth-child(4){ animation-delay:.48s }
+  .queue .row:nth-child(5){ animation-delay:.54s }
+  .queue .row:nth-child(6){ animation-delay:.60s }
+  .queue .row:nth-child(7){ animation-delay:.66s }
+  @keyframes rise{ to{ opacity:1; transform:none } }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; }
+    .head,.kpis,.section-bar,.queue,.foot,.kpi,.row{ opacity:1; transform:none; }
+  }
+
+  /* ---------- responsivo ---------- */
+  @media (max-width:1080px){
+    .row{ grid-template-columns:100px 1.4fr 1fr 150px; }
+    .c-prof{ display:none; }
+    .row--livre{ grid-template-columns:100px 1fr 150px; }
+  }
+  @media (max-width:720px){
+    .head{ grid-template-columns:1fr; box-shadow:8px 8px 0 var(--tinta); }
+    .head__main{ border-right:0; border-bottom:var(--borda) solid var(--tinta); }
+    .head__side{ flex-direction:row; }
+    .clock{ flex:1; } .brand{ border-top:0; border-left:var(--borda) solid var(--tinta); }
+    .kpis{ grid-template-columns:1fr; }
+    .kpi{ border-right:0; border-bottom:var(--borda) solid var(--tinta); }
+    .kpi:last-child{ border-bottom:0; }
+    .row{ grid-template-columns:84px 1fr 120px; }
+    .c-esp{ display:none; }
+    .queue{ box-shadow:8px 8px 0 var(--tinta); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="labbar">
+    <span class="dot"></span>
+    <span>IFP Lab</span>
+    <span class="sep">·</span>
+    <span class="tag">Cívico — Brutalismo Institucional</span>
+    <span class="right">Fila do dia / v2</span>
+  </div>
+
+  <main class="shell">
+
+    <!-- CABEÇALHO -->
+    <header class="head">
+      <div class="head__main">
+        <span class="kicker"><span class="lion">🦁</span> Centro Médico · IFP Connect</span>
+        <h1 class="title">
+          <span class="b1">Fila</span>
+          <span class="b2">do dia</span>
+        </h1>
+        <span class="date">Quinta-feira · <b>29 de maio de 2026</b></span>
+      </div>
+      <div class="head__side">
+        <div class="clock">
+          <span class="clock__lbl">Agora · Duque de Caxias</span>
+          <span class="clock__time"><span id="clock-hm">09:12</span><span class="sec" id="clock-sec">:04</span></span>
+        </div>
+        <div class="brand">
+          <span class="lion">🦁</span>
+          IFP
+          <small>Instituto<br>Família Pôncio</small>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPIs -->
+    <section class="kpis" aria-label="Resumo do dia">
+      <div class="kpi kpi--fila">
+        <span class="kpi__mark">04</span>
+        <div class="kpi__num">4</div>
+        <div class="kpi__lbl">Na fila</div>
+      </div>
+      <div class="kpi kpi--feito">
+        <span class="kpi__mark">02</span>
+        <div class="kpi__num">2</div>
+        <div class="kpi__lbl">Realizadas hoje</div>
+      </div>
+      <div class="kpi kpi--livre">
+        <span class="kpi__mark">06</span>
+        <div class="kpi__num">6</div>
+        <div class="kpi__lbl">Slots livres</div>
+      </div>
+    </section>
+
+    <!-- BARRA DA SEÇÃO + LEGENDA -->
+    <div class="section-bar">
+      <h2>Agenda — 6 horários</h2>
+      <div class="legend">
+        <span class="leg"><span class="sw" style="background:#007571"></span>Clínico</span>
+        <span class="leg"><span class="sw" style="background:#C24D0F"></span>Gineco</span>
+        <span class="leg"><span class="sw" style="background:#FF772E"></span>Pediatria</span>
+        <span class="leg"><span class="sw" style="background:#6B6B6B"></span>Psico</span>
+      </div>
+    </div>
+
+    <!-- FILA -->
+    <section class="queue" aria-label="Consultas do dia">
+
+      <div class="row">
+        <div class="c-time">
+          <span class="hh">08:00</span>
+          <span class="node"><span class="knot" style="background:#007571"></span>Clínico Geral</span>
+        </div>
+        <div class="c-pac">
+          <span class="name">Maria das Graças Almeida</span>
+          <span class="meta"><span class="pin">📍</span> Sala 1 <span class="dotsep"></span> Concluída <b>08:34</b></span>
+        </div>
+        <div class="c-esp"><span class="chip" style="background:#007571">Clínico Geral</span></div>
+        <div class="c-prof"><span class="pro">Dr. João Silva</span><span class="role">Médico</span></div>
+        <div class="c-stat"><div class="tarja st-realizada">Realizada<small>Concluída</small></div></div>
+      </div>
+
+      <div class="row">
+        <div class="c-time">
+          <span class="hh">08:30</span>
+          <span class="node"><span class="knot" style="background:#007571"></span>Clínico Geral</span>
+        </div>
+        <div class="c-pac">
+          <span class="name">José Roberto Almeida</span>
+          <span class="meta"><span class="pin">📍</span> Sala 1 <span class="dotsep"></span> Concluída <b>09:05</b></span>
+        </div>
+        <div class="c-esp"><span class="chip" style="background:#007571">Clínico Geral</span></div>
+        <div class="c-prof"><span class="pro">Dr. João Silva</span><span class="role">Médico</span></div>
+        <div class="c-stat"><div class="tarja st-realizada">Realizada<small>Concluída</small></div></div>
+      </div>
+
+      <div class="row row--agora">
+        <div class="c-time">
+          <span class="now-tab">▶ AGORA</span>
+          <span class="hh">09:00</span>
+          <span class="node"><span class="knot" style="background:#007571"></span>Clínico Geral</span>
+        </div>
+        <div class="c-pac">
+          <span class="name">Antônia Pereira</span>
+          <span class="meta"><span class="pin">📍</span> Sala 2 <span class="dotsep"></span> <span class="wait">há 14 min</span></span>
+        </div>
+        <div class="c-esp"><span class="chip" style="background:#007571">Clínico Geral</span></div>
+        <div class="c-prof"><span class="pro">Dr. João Silva</span><span class="role">Médico</span></div>
+        <div class="c-stat"><div class="tarja"><span class="live"><span class="blip"></span>Em atend.</span><small>Acontecendo</small></div></div>
+      </div>
+
+      <div class="row">
+        <div class="c-time">
+          <span class="hh">09:30</span>
+          <span class="node"><span class="knot" style="background:#C24D0F"></span>Ginecologia</span>
+        </div>
+        <div class="c-pac">
+          <span class="name">Joana D'Arc Santos</span>
+          <span class="meta"><span class="pin">📍</span> Sala 3 <span class="dotsep"></span> Já na recepção <span class="dotsep"></span> (21) 99812-4471</span>
+        </div>
+        <div class="c-esp"><span class="chip" style="background:#C24D0F">Ginecologia</span></div>
+        <div class="c-prof"><span class="pro">Dra. Maria Souza</span><span class="role">Médica</span></div>
+        <div class="c-stat"><div class="tarja st-confirmada">Confirmada<small>Aguardando</small></div></div>
+      </div>
+
+      <div class="row row--livre">
+        <div class="c-time">
+          <span class="hh">10:00</span>
+          <span class="node"><span class="knot" style="border-color:var(--cinza)"></span>Vago</span>
+        </div>
+        <div class="livre-mid"><span>Slot livre</span><span class="ln"></span><span>disponível para encaixe</span></div>
+        <div class="c-stat"><div class="tarja st-livre">Livre</div></div>
+      </div>
+
+      <div class="row">
+        <div class="c-time">
+          <span class="hh">10:30</span>
+          <span class="node"><span class="knot" style="background:#FF772E"></span>Pediatria</span>
+        </div>
+        <div class="c-pac">
+          <span class="name">Pedro Henrique Costa</span>
+          <span class="meta"><span class="pin">📍</span> Sala 4 <span class="dotsep"></span> (21) 99745-1130</span>
+        </div>
+        <div class="c-esp"><span class="chip" style="background:#FF772E; color:#fff">Pediatria</span></div>
+        <div class="c-prof"><span class="pro">Dr. João Silva</span><span class="role">Médico</span></div>
+        <div class="c-stat"><div class="tarja st-agendada">Agendada<small>Pendente</small></div></div>
+      </div>
+
+      <div class="row">
+        <div class="c-time">
+          <span class="hh">14:00</span>
+          <span class="node"><span class="knot" style="background:#6B6B6B"></span>Psicologia</span>
+        </div>
+        <div class="c-pac">
+          <span class="name">Luiza Fernanda Souza</span>
+          <span class="meta"><span class="pin">📍</span> Sala 5 <span class="dotsep"></span> (21) 99203-8856</span>
+        </div>
+        <div class="c-esp"><span class="chip" style="background:#6B6B6B">Psicologia</span></div>
+        <div class="c-prof"><span class="pro">Psic. Ana Lima</span><span class="role">Psicóloga</span></div>
+        <div class="c-stat"><div class="tarja st-agendada">Agendada<small>Pendente</small></div></div>
+      </div>
+
+    </section>
+
+    <!-- RODAPÉ -->
+    <footer class="foot">
+      <span class="lion">🦁</span>
+      <span>IFP Connect · <b>Centro Médico</b></span>
+      <span>Atualização <b>em tempo real</b></span>
+      <span class="push">Instituto Família Pôncio · Duque de Caxias / RJ</span>
+    </footer>
+
+  </main>
+
+<script>
+  // Micro-interação única: relógio institucional ao vivo no cabeçalho.
+  // Usa textContent (não innerHTML) — zero superfície de XSS, conteúdo só numérico.
+  (function(){
+    var hm  = document.getElementById('clock-hm');
+    var sec = document.getElementById('clock-sec');
+    function p(n){ return String(n).padStart(2,'0'); }
+    function tick(){
+      var d = new Date();
+      hm.textContent  = p(d.getHours()) + ':' + p(d.getMinutes());
+      sec.textContent = ':' + p(d.getSeconds());
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>

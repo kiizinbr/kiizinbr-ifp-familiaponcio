@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IFP Connect · Centro Médico · Fila do dia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     IFP Connect — Direção "Orgânico · Cuidado que Respira"
+     Refino do diretor de arte (4 top-fixes aplicados):
+       1. Cores de especialidade redistribuídas p/ distinção real
+       2. Chip da spec com presença (fundo ~20%, texto 700, cor cheia)
+       3. Contraste de leitura o dia todo (tinta escura + cards firmes)
+       4. Movimento ambiente domado (pulso só no AGORA; resto calmo)
+     Fontes: Fraunces (display, expressiva) + Hanken Grotesk (corpo).
+     ============================================================ */
+
+  :root {
+    /* ---- Paleta IFP (brandbook) ---- */
+    --laranja:        #FF772E;   /* ação primária / Pediatria */
+    --laranja-esc:    #C24D0F;
+    --marrom:         #752C05;   /* headlines · mascote · Ginecologia */
+    --teal-esc:       #007571;   /* saúde · Clínico Geral */
+    --teal-claro:     #10C2BB;   /* Psicologia */
+    --cinza-inst:     #4A4A49;
+    --branco:         #FFFFFF;
+
+    /* ---- Neutros derivados (terrosos, "orgânicos") ---- */
+    --creme:          #F6F0E7;
+    --creme-fundo:    #EFE6D8;
+    --areia:          #E7DBC8;
+    --tinta:          #3A2A1E;   /* corpo principal (FIX 3) */
+    --tinta-media:    #5C4A3C;   /* meta / labels (FIX 3) */
+    --tinta-suave:    #7A6A5C;   /* reservado p/ texto decorativo grande */
+
+    /* ---- Cards mais firmes (FIX 3: translucidez .78 -> .92) ---- */
+    --card-bg:        rgba(255, 252, 246, 0.92);
+    --card-bg-2:      rgba(255, 250, 240, 0.96);
+    --hair:           rgba(117, 44, 5, 0.12);
+    --hair-forte:     rgba(117, 44, 5, 0.20);
+
+    --sombra-card:    0 1px 2px rgba(58,42,30,.06),
+                      0 12px 30px -18px rgba(58,42,30,.30);
+    --sombra-flut:    0 2px 4px rgba(58,42,30,.08),
+                      0 30px 60px -28px rgba(117,44,5,.34);
+
+    --raio:           20px;
+    --raio-sm:        13px;
+    --pulso:          1; /* desligado por reduced-motion */
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Hanken Grotesk", "Segoe UI", sans-serif;
+    color: var(--tinta);
+    background: var(--creme-fundo);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ============================================================
+     ATMOSFERA — "respira" (FIX 4: domado)
+     Blobs estáticos por padrão; só um respiro lentíssimo (28s)
+     que entra após o load. Sem drift caótico. O rio NÃO flui.
+     ============================================================ */
+  .atmosfera {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .42;
+    will-change: transform;
+  }
+  .blob.b1 {
+    width: 540px; height: 540px;
+    top: -160px; left: -120px;
+    background: radial-gradient(circle at 35% 35%, rgba(16,194,187,.55), rgba(0,117,113,.10) 70%);
+  }
+  .blob.b2 {
+    width: 480px; height: 480px;
+    bottom: -180px; right: -100px;
+    background: radial-gradient(circle at 60% 40%, rgba(255,119,46,.42), rgba(194,77,15,.06) 72%);
+  }
+  .blob.b3 {
+    width: 360px; height: 360px;
+    top: 38%; right: 22%;
+    background: radial-gradient(circle at 50% 50%, rgba(117,44,5,.20), rgba(117,44,5,0) 70%);
+    opacity: .30;
+  }
+  /* grão sutil pra textura (não é gradiente liso = anti-template) */
+  .atmosfera::after {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: .045;
+    mix-blend-mode: multiply;
+  }
+
+  /* respiro único, lento e quase imperceptível — só após carregar */
+  @media (prefers-reduced-motion: no-preference) {
+    .blob.b1 { animation: respira 30s ease-in-out 1.2s infinite; }
+    .blob.b2 { animation: respira 34s ease-in-out 2.0s infinite reverse; }
+  }
+  @keyframes respira {
+    0%, 100% { transform: scale(1)    translateY(0); }
+    50%      { transform: scale(1.06) translateY(10px); }
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 46px 32px 80px;
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  .topo {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 30px;
+  }
+  .marca {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .selo {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    display: grid; place-items: center;
+    font-size: 27px; line-height: 1;
+    background:
+      radial-gradient(120% 120% at 30% 20%, #8a3a0c 0%, var(--marrom) 60%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18),
+                0 10px 22px -12px rgba(117,44,5,.7);
+    flex-shrink: 0;
+  }
+  .marca .kicker {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--teal-esc);
+    margin: 0 0 1px;
+  }
+  .marca h1 {
+    font-family: "Fraunces", serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: .98;
+    letter-spacing: -.015em;
+    color: var(--marrom);
+    margin: 0;
+  }
+  .marca h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--laranja-esc);
+  }
+  .data {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .data .dia {
+    font-family: "Fraunces", serif;
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--tinta);
+    text-transform: capitalize;
+  }
+  .data .sub {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tinta-media);
+    letter-spacing: .02em;
+    margin-top: 2px;
+  }
+  .data .relogio {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 9px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--card-bg);
+    border: 1px solid var(--hair);
+    box-shadow: var(--sombra-card);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--teal-esc);
+  }
+  .relogio .ponto {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal-claro);
+    box-shadow: 0 0 0 0 rgba(16,194,187,.6);
+    animation: bip 2.4s ease-out infinite;
+  }
+  @keyframes bip {
+    0%   { box-shadow: 0 0 0 0 rgba(16,194,187,.55); }
+    70%  { box-shadow: 0 0 0 7px rgba(16,194,187,0); }
+    100% { box-shadow: 0 0 0 0 rgba(16,194,187,0); }
+  }
+
+  /* ---------- KPIs ---------- */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 38px;
+  }
+  .kpi {
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--hair);
+    border-radius: var(--raio);
+    padding: 20px 22px 18px;
+    box-shadow: var(--sombra-card);
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+  }
+  .kpi::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--acc, var(--teal-esc));
+    opacity: .9;
+  }
+  .kpi .n {
+    font-family: "Fraunces", serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 46px;
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--acc, var(--teal-esc));
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi .lbl {
+    margin-top: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--tinta-media);
+    letter-spacing: .01em;
+  }
+  .kpi .ico {
+    position: absolute;
+    top: 16px; right: 18px;
+    font-size: 19px;
+    opacity: .55;
+  }
+  .kpi.fila   { --acc: var(--teal-esc); }
+  .kpi.feita  { --acc: var(--laranja-esc); }
+  .kpi.livre  { --acc: var(--marrom); }
+
+  /* ---------- Seção fila ---------- */
+  .secao-cab {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 4px 18px;
+  }
+  .secao-cab h2 {
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: 24px;
+    letter-spacing: -.01em;
+    color: var(--marrom);
+    margin: 0;
+  }
+  .secao-cab .leg {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tinta-media);
+  }
+  .leg .item { display: inline-flex; align-items: center; gap: 6px; }
+  .leg .bead {
+    width: 10px; height: 10px; border-radius: 50%;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.55);
+  }
+
+  /* ---------- Rio / timeline (FIX 4: NÃO flui) ---------- */
+  .rio {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding-left: 30px;
+  }
+  /* leito do rio: linha vertical estática */
+  .rio::before {
+    content: "";
+    position: absolute;
+    left: 11px; top: 8px; bottom: 8px;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(180deg,
+      rgba(0,117,113,.30),
+      rgba(117,44,5,.18) 55%,
+      rgba(16,194,187,.30));
+  }
+
+  /* ---------- Card de consulta ---------- */
+  .consulta {
+    position: relative;
+    display: grid;
+    grid-template-columns: 78px 1fr auto;
+    align-items: center;
+    gap: 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--hair);
+    border-radius: var(--raio);
+    padding: 16px 22px;
+    box-shadow: var(--sombra-card);
+    backdrop-filter: blur(6px);
+    transition: transform .28s cubic-bezier(.22,1,.36,1),
+                box-shadow .28s ease,
+                border-color .28s ease;
+  }
+  /* nó na timeline — recebe a COR DA ESPECIALIDADE (linguagem visual) */
+  .consulta::before {
+    content: "";
+    position: absolute;
+    left: -23px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: var(--spec, var(--teal-esc));
+    border: 3px solid var(--creme);
+    box-shadow: 0 0 0 1px var(--spec, var(--teal-esc));
+  }
+  .consulta:hover {
+    transform: translateX(4px);
+    box-shadow: var(--sombra-flut);
+    border-color: var(--hair-forte);
+  }
+
+  /* horário */
+  .hora {
+    font-family: "Fraunces", serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 21px;
+    letter-spacing: -.01em;
+    color: var(--tinta);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .hora small {
+    display: block;
+    font-family: "Hanken Grotesk", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--tinta-media);
+    margin-top: 4px;
+  }
+
+  /* miolo */
+  .info { min-width: 0; }
+  .paciente {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--tinta);
+    letter-spacing: -.005em;
+    margin-bottom: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .linha2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* CHIP de especialidade (FIX 1 + FIX 2: presença real) */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px 5px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;                 /* FIX 2: peso 700 */
+    letter-spacing: .005em;
+    color: var(--spec);               /* FIX 2: cor cheia no texto */
+    /* FIX 2: fundo ~20% (não 12%) p/ "cravar" no creme/glass */
+    background: color-mix(in srgb, var(--spec) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--spec) 38%, transparent);
+    white-space: nowrap;
+  }
+  .chip .pt {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--spec);
+    flex-shrink: 0;
+  }
+  .prof {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--tinta-media);        /* FIX 3: era --tinta-suave */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .prof .av {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--branco);
+    background: var(--marrom);
+    flex-shrink: 0;
+  }
+
+  /* status */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .status .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .st-realizada {
+    background: rgba(0,117,113,.12);
+    color: var(--teal-esc);
+    border: 1px solid rgba(0,117,113,.24);
+  }
+  .st-realizada .dot { background: var(--teal-esc); }
+
+  .st-confirmada {
+    background: rgba(16,194,187,.14);
+    color: #06807c;
+    border: 1px solid rgba(16,194,187,.32);
+  }
+  .st-confirmada .dot { background: var(--teal-claro); }
+
+  .st-agendada {
+    background: rgba(117,44,5,.08);
+    color: var(--marrom);
+    border: 1px solid rgba(117,44,5,.18);
+  }
+  .st-agendada .dot { background: var(--marrom); opacity: .7; }
+
+  /* estados "passados" — leve recuo visual sem perder leitura */
+  .consulta.passada { opacity: .82; }
+  .consulta.passada .hora { color: var(--tinta-media); }
+
+  /* ============================================================
+     CARD "AGORA" — único elemento com pulso/glow (FIX 4)
+     É o sinal útil: o que está acontecendo neste instante.
+     ============================================================ */
+  .consulta.agora {
+    grid-template-columns: 78px 1fr auto;
+    background: linear-gradient(108deg,
+      rgba(255,247,238,.97),
+      rgba(255,242,230,.97));
+    border: 1.5px solid rgba(255,119,46,.55);
+    box-shadow:
+      var(--sombra-flut),
+      0 0 0 4px rgba(255,119,46,.12);
+    transform: translateX(2px);
+    z-index: 2;
+  }
+  .consulta.agora::before {
+    width: 17px; height: 17px;
+    background: var(--laranja);
+    border-color: var(--creme);
+    box-shadow:
+      0 0 0 1px var(--laranja),
+      0 0 0 6px rgba(255,119,46,calc(.22 * var(--pulso)));
+    animation: nopulso 2s ease-out infinite;
+  }
+  @keyframes nopulso {
+    0%   { box-shadow: 0 0 0 1px var(--laranja), 0 0 0 0   rgba(255,119,46,.55); }
+    70%  { box-shadow: 0 0 0 1px var(--laranja), 0 0 0 13px rgba(255,119,46,0); }
+    100% { box-shadow: 0 0 0 1px var(--laranja), 0 0 0 0   rgba(255,119,46,0); }
+  }
+  .consulta.agora .hora { color: var(--laranja-esc); }
+  .selo-agora {
+    position: absolute;
+    top: -11px; left: 64px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--laranja);
+    color: var(--branco);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 16px -6px rgba(255,119,46,.8);
+  }
+  .selo-agora .ondas {
+    display: inline-flex; align-items: flex-end; gap: 2px; height: 11px;
+  }
+  .selo-agora .ondas i {
+    width: 2.5px; border-radius: 2px; background: var(--branco);
+    animation: eq 1s ease-in-out infinite;
+  }
+  .selo-agora .ondas i:nth-child(1){ height: 5px;  animation-delay: 0s;   }
+  .selo-agora .ondas i:nth-child(2){ height: 11px; animation-delay: .18s; }
+  .selo-agora .ondas i:nth-child(3){ height: 7px;  animation-delay: .36s; }
+  @keyframes eq {
+    0%,100% { transform: scaleY(.55); }
+    50%     { transform: scaleY(1);   }
+  }
+  .status.st-agora {
+    background: var(--laranja);
+    color: var(--branco);
+    border: 1px solid transparent;
+    box-shadow: 0 8px 18px -8px rgba(255,119,46,.85);
+  }
+  .status.st-agora .dot { background: var(--branco); }
+
+  /* ---------- Slot livre ---------- */
+  .slot-livre {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 22px;
+    border-radius: var(--raio);
+    border: 1.5px dashed rgba(117,44,5,.22);
+    background: rgba(255,252,246,.45);
+    color: var(--tinta-media);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .slot-livre::before {
+    content: "";
+    position: absolute;
+    left: -23px; top: 50%; transform: translateY(-50%);
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--creme);
+    border: 2.5px dashed rgba(117,44,5,.35);
+  }
+  .slot-livre .h { font-family: "Fraunces", serif; font-weight: 600; color: var(--tinta-media); font-variant-numeric: tabular-nums; }
+  .slot-livre .cta {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--laranja-esc);
+  }
+
+  /* ---------- rodapé ---------- */
+  .rodape {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--tinta-media);
+    letter-spacing: .02em;
+  }
+  .rodape em { font-family: "Fraunces", serif; font-style: italic; color: var(--marrom); }
+
+  /* ============================================================
+     CARGA ORQUESTRADA — stagger único no load (FIX 4 ok:
+     é one-shot, não loop ambiente)
+     ============================================================ */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(14px); animation: sobe .6s cubic-bezier(.22,1,.36,1) forwards; }
+    .d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}
+    .d4{animation-delay:.26s}.d5{animation-delay:.33s}.d6{animation-delay:.40s}
+    .d7{animation-delay:.47s}.d8{animation-delay:.54s}.d9{animation-delay:.61s}
+  }
+  @keyframes sobe { to { opacity: 1; transform: none; } }
+
+  /* ============================================================
+     REDUCED MOTION (FIX 4: reforçado) — congela tudo,
+     mantém só o estado final + chip/cores intactos
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    :root { --pulso: 0; }
+    * { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .consulta.agora { border-color: var(--laranja); }
+  }
+
+  /* ---------- responsivo ---------- */
+  @media (max-width: 720px) {
+    .wrap { padding: 30px 18px 60px; }
+    .topo { flex-direction: column; align-items: flex-start; }
+    .data { text-align: left; }
+    .kpis { grid-template-columns: 1fr; }
+    .consulta { grid-template-columns: 60px 1fr; }
+    .consulta .status { grid-column: 2; justify-self: start; }
+    .selo-agora { left: 50px; }
+  }
+</style>
+</head>
+<body>
+  <div class="atmosfera" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+  </div>
+
+  <main class="wrap">
+    <!-- ===== Cabeçalho ===== -->
+    <header class="topo reveal d1">
+      <div class="marca">
+        <div class="selo" aria-hidden="true">🦁</div>
+        <div>
+          <p class="kicker">IFP Connect · Centro Médico</p>
+          <h1>Fila <em>do dia</em></h1>
+        </div>
+      </div>
+      <div class="data">
+        <div class="dia">quinta-feira, 29 de maio de 2026</div>
+        <div class="sub">Instituto Família Pôncio · Duque de Caxias/RJ</div>
+        <span class="relogio"><span class="ponto"></span>Atendendo agora · 09:00</span>
+      </div>
+    </header>
+
+    <!-- ===== KPIs ===== -->
+    <section class="kpis" aria-label="Resumo do dia">
+      <div class="kpi fila reveal d2">
+        <span class="ico" aria-hidden="true">⏳</span>
+        <div class="n">4</div>
+        <div class="lbl">na fila</div>
+      </div>
+      <div class="kpi feita reveal d3">
+        <span class="ico" aria-hidden="true">✓</span>
+        <div class="n">2</div>
+        <div class="lbl">realizadas hoje</div>
+      </div>
+      <div class="kpi livre reveal d4">
+        <span class="ico" aria-hidden="true">◷</span>
+        <div class="n">6</div>
+        <div class="lbl">slots livres</div>
+      </div>
+    </section>
+
+    <!-- ===== Fila ===== -->
+    <div class="secao-cab reveal d4">
+      <h2>Agenda de hoje</h2>
+      <div class="leg" aria-hidden="true">
+        <span class="item"><span class="bead" style="background:#007571"></span>Clínico</span>
+        <span class="item"><span class="bead" style="background:#752C05"></span>Ginecologia</span>
+        <span class="item"><span class="bead" style="background:#FF772E"></span>Pediatria</span>
+        <span class="item"><span class="bead" style="background:#10C2BB"></span>Psicologia</span>
+      </div>
+    </div>
+
+    <section class="rio" aria-label="Consultas do dia">
+
+      <!-- 08:00 — Realizada -->
+      <article class="consulta passada reveal d5" style="--spec:#007571">
+        <div class="hora">08:00<small>CONCLUÍDA</small></div>
+        <div class="info">
+          <div class="paciente">Maria das Graças Almeida</div>
+          <div class="linha2">
+            <span class="chip"><span class="pt"></span>Clínico Geral</span>
+            <span class="prof"><span class="av">JS</span>Dr. João Silva</span>
+          </div>
+        </div>
+        <span class="status st-realizada"><span class="dot"></span>Realizada</span>
+      </article>
+
+      <!-- 08:30 — Realizada -->
+      <article class="consulta passada reveal d5" style="--spec:#007571">
+        <div class="hora">08:30<small>CONCLUÍDA</small></div>
+        <div class="info">
+          <div class="paciente">José Roberto Almeida</div>
+          <div class="linha2">
+            <span class="chip"><span class="pt"></span>Clínico Geral</span>
+            <span class="prof"><span class="av">JS</span>Dr. João Silva</span>
+          </div>
+        </div>
+        <span class="status st-realizada"><span class="dot"></span>Realizada</span>
+      </article>
+
+      <!-- 09:00 — AGORA (em atendimento) -->
+      <article class="consulta agora reveal d6" style="--spec:#007571">
+        <span class="selo-agora">
+          <span class="ondas" aria-hidden="true"><i></i><i></i><i></i></span>
+          em atendimento
+        </span>
+        <div class="hora">09:00<small>AGORA</small></div>
+        <div class="info">
+          <div class="paciente">Antônia Pereira</div>
+          <div class="linha2">
+            <span class="chip"><span class="pt"></span>Clínico Geral</span>
+            <span class="prof"><span class="av">JS</span>Dr. João Silva</span>
+          </div>
+        </div>
+        <span class="status st-agora"><span class="dot"></span>Agora</span>
+      </article>
+
+      <!-- 09:30 — Confirmada · Ginecologia (marrom, FIX 1) -->
+      <article class="consulta reveal d7" style="--spec:#752C05">
+        <div class="hora">09:30<small>PRÓXIMA</small></div>
+        <div class="info">
+          <div class="paciente">Joana D'Arc Santos</div>
+          <div class="linha2">
+            <span class="chip"><span class="pt"></span>Ginecologia</span>
+            <span class="prof"><span class="av" style="background:#752C05">MS</span>Dra. Maria Souza</span>
+          </div>
+        </div>
+        <span class="status st-confirmada"><span class="dot"></span>Confirmada</span>
+      </article>
+
+      <!-- 10:00 — Slot livre -->
+      <div class="slot-livre reveal d7">
+        <span class="h">10:00</span>
+        <span>Horário vago</span>
+        <span class="cta">+ Encaixar paciente</span>
+      </div>
+
+      <!-- 10:30 — Agendada · Pediatria (laranja, FIX 1) -->
+      <article class="consulta reveal d8" style="--spec:#FF772E">
+        <div class="hora">10:30<small>AGENDADA</small></div>
+        <div class="info">
+          <div class="paciente">Pedro Henrique Costa</div>
+          <div class="linha2">
+            <span class="chip"><span class="pt"></span>Pediatria</span>
+            <span class="prof"><span class="av">JS</span>Dr. João Silva</span>
+          </div>
+        </div>
+        <span class="status st-agendada"><span class="dot"></span>Agendada</span>
+      </article>
+
+      <!-- 14:00 — Agendada · Psicologia (teal-claro, FIX 1) -->
+      <article class="consulta reveal d9" style="--spec:#10C2BB">
+        <div class="hora">14:00<small>TARDE</small></div>
+        <div class="info">
+          <div class="paciente">Luiza Fernanda Souza</div>
+          <div class="linha2">
+            <span class="chip"><span class="pt"></span>Psicologia</span>
+            <span class="prof"><span class="av" style="background:#06807c">AL</span>Psic. Ana Lima</span>
+          </div>
+        </div>
+        <span class="status st-agendada"><span class="dot"></span>Agendada</span>
+      </article>
+
+    </section>
+
+    <p class="rodape reveal d9">
+      <em>Cuidado que respira.</em> &nbsp;·&nbsp; IFP Connect mantém a fila viva em tempo real.
+    </p>
+  </main>
+
+  <script>
+    /* Micro-interação única: relógio do cabeçalho vivo (tabular).
+       Sinal útil, não enfeite. Respeita reduced-motion (sem efeito ambiente). */
+    (function () {
+      var el = document.querySelector('.relogio');
+      if (!el) return;
+      function tick() {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        el.lastChild.textContent = 'Atendendo agora · ' + hh + ':' + mm;
+      }
+      tick();
+      setInterval(tick, 30000);
+    })();
+  </script>
+</body>
+</html>

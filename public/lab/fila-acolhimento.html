@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fila do dia · Centro Médico · IFP Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* paleta IFP */
+    --orange:#FF772E;
+    --orange-dark:#C24D0F;
+    --brown:#752C05;
+    --teal:#007571;
+    --teal-light:#10C2BB;
+    --gray:#4A4A49;
+    --white:#FFFFFF;
+    --psi:#6B6B6B;
+
+    /* neutros quentes derivados (creme) */
+    --cream-0:#FFFBF5;
+    --cream-1:#FDF4E8;
+    --cream-2:#F8E9D6;
+    --cream-3:#F2DCC2;
+    --ink:#3A2415;          /* texto marrom-tinta, mais quente que preto */
+    --ink-soft:#7A604B;
+    --line:#EFD9BE;
+
+    /* neutro-quente p/ avatar do AGORA (não compete com o teal do sinal) */
+    --warm-neutral-1:#C9A07A;
+    --warm-neutral-2:#9A6F47;
+
+    --r-xl:30px;
+    --r-lg:24px;
+    --r-md:18px;
+    --r-sm:13px;
+
+    --shadow-soft:0 18px 40px -22px rgba(117,44,5,.30), 0 4px 12px -6px rgba(117,44,5,.15);
+    --shadow-card:0 26px 60px -30px rgba(117,44,5,.40), 0 6px 16px -10px rgba(117,44,5,.20);
+    --shadow-lift:0 34px 70px -28px rgba(194,77,15,.45);
+    --shadow-orange:0 24px 50px -24px rgba(255,119,46,.55), 0 8px 18px -10px rgba(194,77,15,.40);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    font-family:"Nunito",-apple-system,sans-serif;
+    color:var(--ink);
+    background:var(--cream-1);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* fundo: aquarela quente em camadas + grão sutil — laranja puxa pra frente */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    background:
+      radial-gradient(62% 52% at 8% -4%, rgba(255,119,46,.26), transparent 60%),
+      radial-gradient(48% 40% at 102% 6%, rgba(0,117,113,.12), transparent 58%),
+      radial-gradient(72% 60% at 50% 122%, rgba(255,168,99,.22), transparent 60%),
+      linear-gradient(180deg,var(--cream-0),var(--cream-1) 45%,var(--cream-2));
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    opacity:.4;
+    pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  }
+
+  /* barra fina de lab */
+  .labbar{
+    position:fixed;
+    top:0;left:0;right:0;
+    height:34px;
+    z-index:50;
+    display:flex;align-items:center;gap:10px;
+    padding:0 18px;
+    background:rgba(58,36,21,.92);
+    backdrop-filter:blur(8px);
+    color:#FCE9D2;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.02em;
+  }
+  .labbar .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,119,46,.25);}
+  .labbar b{color:#fff;font-weight:800;}
+  .labbar .muted{color:#C9A98D;font-weight:500;}
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:74px 32px 80px;
+  }
+
+  /* glifos SVG inline consistentes (KPI + meta) */
+  .glyph{display:inline-block;vertical-align:middle;}
+  .glyph svg{display:block;width:100%;height:100%;}
+
+  /* ============ CABEÇALHO ============ */
+  .hero{
+    position:relative;
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:end;
+    gap:28px;
+    margin-bottom:30px;
+    opacity:0;
+    animation:rise .7s cubic-bezier(.2,.7,.25,1) forwards;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;
+    background:rgba(0,117,113,.10);
+    color:var(--teal);
+    font-weight:800;
+    font-size:13px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:7px 15px;
+    border-radius:100px;
+    margin-bottom:14px;
+  }
+  .eyebrow .glyph{width:15px;height:15px;color:var(--teal);}
+  .greeting{
+    font-family:"Nunito";
+    font-weight:700;
+    color:var(--orange-dark);
+    font-size:15px;
+    margin-bottom:8px;
+    letter-spacing:.01em;
+  }
+  /* HEADLINE — soco editorial: Fraunces 700, maior, com acento real */
+  h1{
+    font-family:"Fraunces",serif;
+    font-weight:700;
+    font-size:clamp(48px,5.5vw,68px);
+    line-height:.94;
+    letter-spacing:-.025em;
+    color:var(--brown);
+  }
+  h1 .sub{
+    display:block;
+    position:relative;
+    font-family:"Fraunces",serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:clamp(23px,2.9vw,34px);
+    line-height:1.12;
+    color:var(--orange-dark);
+    margin-top:16px;
+    padding-left:20px;
+    letter-spacing:-.012em;
+    max-width:30ch;
+  }
+  /* régua de acento laranja: dá peso visual real ao subtitle itálico */
+  h1 .sub::before{
+    content:"";
+    position:absolute;
+    left:0;top:.18em;bottom:.18em;
+    width:5px;border-radius:5px;
+    background:linear-gradient(180deg,var(--orange),var(--orange-dark));
+  }
+  h1 .sub em{font-style:italic;color:var(--orange);font-weight:600;}
+
+  .datepill{
+    align-self:end;
+    background:var(--white);
+    border:2px solid var(--line);
+    border-radius:var(--r-lg);
+    padding:16px 22px;
+    box-shadow:var(--shadow-soft);
+    text-align:right;
+  }
+  .datepill .dow{font-family:"Fraunces";font-weight:600;font-size:20px;color:var(--brown);text-transform:capitalize;}
+  .datepill .day{font-size:13px;color:var(--ink-soft);font-weight:600;margin-top:2px;}
+  .datepill .live{
+    margin-top:9px;
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:12px;font-weight:800;color:var(--teal);
+    letter-spacing:.03em;
+  }
+  .datepill .live .beat{width:8px;height:8px;border-radius:50%;background:var(--teal-light);box-shadow:0 0 0 0 rgba(16,194,187,.6);animation:beat 1.8s ease-out infinite;}
+
+  /* ============ KPIs ============ */
+  .kpis{
+    display:grid;
+    grid-template-columns:1.25fr 1fr 1fr;
+    gap:18px;
+    margin-bottom:38px;
+  }
+  .kpi{
+    position:relative;
+    background:var(--white);
+    border-radius:var(--r-lg);
+    padding:22px 24px;
+    box-shadow:var(--shadow-soft);
+    border:1px solid rgba(255,255,255,.7);
+    overflow:hidden;
+    opacity:0;
+    animation:rise .65s cubic-bezier(.2,.7,.25,1) forwards;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
+  }
+  .kpi:hover{transform:translateY(-5px);box-shadow:var(--shadow-card);}
+  .kpi::after{
+    content:"";
+    position:absolute;
+    right:-30px;bottom:-30px;
+    width:120px;height:120px;
+    border-radius:50%;
+    opacity:.10;
+    background:currentColor;
+  }
+  .kpi .icon{
+    width:46px;height:46px;
+    border-radius:15px;
+    display:grid;place-items:center;
+    margin-bottom:16px;
+    color:#fff;
+  }
+  .kpi .icon .glyph{width:24px;height:24px;color:#fff;}
+  .kpi .num{font-family:"Fraunces";font-weight:700;font-size:46px;line-height:1;letter-spacing:-.02em;}
+  .kpi .lbl{font-weight:700;font-size:14px;color:var(--ink-soft);margin-top:6px;}
+
+  /* ---- KPI DOMINANTE: "na fila" em laranja institucional sólido (protagonista) ---- */
+  .kpi.fila{
+    color:#fff;
+    background:linear-gradient(140deg,var(--orange) 0%,var(--orange-dark) 100%);
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:var(--shadow-orange);
+  }
+  .kpi.fila::after{background:#fff;opacity:.12;}
+  .kpi.fila::before{
+    content:"";position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.5'/%3E%3C/svg%3E");
+    opacity:.06;mix-blend-mode:overlay;pointer-events:none;
+  }
+  .kpi.fila .icon{background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);}
+  .kpi.fila .num{color:#fff;font-size:52px;}
+  .kpi.fila .lbl{color:rgba(255,255,255,.92);font-weight:800;}
+  .kpi.fila .tagline{
+    position:relative;z-index:1;
+    margin-top:10px;font-size:12.5px;font-weight:700;
+    color:rgba(255,255,255,.78);letter-spacing:.01em;
+    display:flex;align-items:center;gap:7px;
+  }
+  .kpi.fila .tagline .glyph{width:13px;height:13px;color:rgba(255,255,255,.9);}
+  .kpi.fila:hover{box-shadow:0 30px 60px -22px rgba(255,119,46,.65), 0 10px 22px -10px rgba(194,77,15,.5);}
+
+  /* teal vira ACENTO de cuidado (não protagonista) */
+  .kpi.feita{color:var(--teal);}
+  .kpi.feita .icon{background:linear-gradient(140deg,var(--teal-light),var(--teal));}
+  .kpi.feita .num{color:var(--teal);}
+  /* livre: neutro quieto */
+  .kpi.livre{color:var(--gray);}
+  .kpi.livre .icon{background:linear-gradient(140deg,#b6a18b,var(--gray));}
+  .kpi.livre .num{color:var(--gray);}
+
+  .kpi:nth-child(1){animation-delay:.10s;}
+  .kpi:nth-child(2){animation-delay:.18s;}
+  .kpi:nth-child(3){animation-delay:.26s;}
+
+  /* ============ FILA / TIMELINE ============ */
+  .queue-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin-bottom:18px;
+    opacity:0;animation:rise .6s ease forwards;animation-delay:.30s;
+  }
+  .queue-head h2{
+    font-family:"Fraunces";font-weight:700;font-size:30px;color:var(--brown);letter-spacing:-.02em;
+  }
+  .queue-head .legend{display:flex;gap:16px;flex-wrap:wrap;}
+  .queue-head .legend span{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink-soft);}
+  .queue-head .legend i{width:11px;height:11px;border-radius:50%;display:inline-block;}
+
+  .timeline{
+    position:relative;
+    display:flex;flex-direction:column;
+    gap:14px;
+  }
+  /* trilho vertical */
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:74px;top:18px;bottom:18px;
+    width:3px;
+    border-radius:3px;
+    background:linear-gradient(180deg,var(--line),rgba(239,217,190,.3));
+  }
+
+  .appt{
+    position:relative;
+    display:grid;
+    grid-template-columns:74px 1fr;
+    align-items:center;
+    gap:0;
+    opacity:0;
+    animation:rise .55s cubic-bezier(.2,.7,.25,1) forwards;
+  }
+  .appt .time{
+    font-family:"Fraunces";
+    font-weight:600;
+    font-size:17px;
+    color:var(--ink-soft);
+    text-align:left;
+    padding-right:18px;
+    white-space:nowrap;
+  }
+  /* nó da timeline */
+  .node{
+    position:absolute;
+    left:74px;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--white);
+    border:3px solid var(--line);
+    z-index:2;
+  }
+
+  .card{
+    position:relative;
+    margin-left:26px;
+    background:var(--white);
+    border-radius:var(--r-lg);
+    padding:16px 22px;
+    box-shadow:var(--shadow-soft);
+    border:1px solid rgba(255,255,255,.8);
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    gap:18px;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
+  }
+  .card:hover{transform:translateX(4px);box-shadow:var(--shadow-card);}
+  /* faixinha de cor da especialidade na borda esquerda */
+  .card::before{
+    content:"";
+    position:absolute;
+    left:0;top:14px;bottom:14px;
+    width:5px;
+    border-radius:5px;
+    background:var(--spec,var(--orange));
+  }
+
+  /* avatar grande amigável com iniciais */
+  .avatar{
+    width:54px;height:54px;
+    border-radius:50%;
+    display:grid;place-items:center;
+    font-family:"Nunito";
+    font-weight:800;
+    font-size:19px;
+    color:#fff;
+    letter-spacing:.01em;
+    box-shadow:inset 0 -3px 8px rgba(0,0,0,.12);
+    flex-shrink:0;
+  }
+  .who{min-width:0;}
+  .who .name{
+    font-weight:800;
+    font-size:18px;
+    color:var(--ink);
+    line-height:1.15;
+    letter-spacing:-.01em;
+  }
+  .who .meta{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin-top:6px;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;font-weight:800;
+    padding:4px 11px;
+    border-radius:100px;
+    color:var(--spec,var(--orange));
+    background:color-mix(in srgb, var(--spec,var(--orange)) 13%, transparent);
+  }
+  .chip i{width:8px;height:8px;border-radius:50%;background:var(--spec,var(--orange));}
+  .prof{font-size:13.5px;font-weight:700;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px;}
+  .prof::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--line);}
+
+  /* status */
+  .status{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:800;
+    padding:8px 14px;
+    border-radius:100px;
+    white-space:nowrap;
+    letter-spacing:.01em;
+  }
+  .status .s-dot{width:8px;height:8px;border-radius:50%;}
+  .s-realizada{background:rgba(0,117,113,.10);color:var(--teal);}
+  .s-realizada .s-dot{background:var(--teal);}
+  .s-confirmada{background:rgba(255,119,46,.14);color:var(--orange-dark);}
+  .s-confirmada .s-dot{background:var(--orange);}
+  .s-agendada{background:rgba(74,74,73,.10);color:var(--gray);}
+  .s-agendada .s-dot{background:#9a8c7e;}
+
+  .card.done{opacity:.78;}
+  .card.done .name{color:var(--ink-soft);}
+  .card.done .avatar{filter:grayscale(.25) saturate(.8);}
+
+  /* ===== consulta AGORA — destaque forte (teal = sinal de "acontecendo agora") ===== */
+  .appt.now .node{
+    width:22px;height:22px;
+    border-color:var(--teal);
+    background:var(--teal-light);
+    box-shadow:0 0 0 0 rgba(16,194,187,.55);
+    animation:pulse 1.9s ease-out infinite;
+  }
+  .appt.now .time{color:var(--teal);font-weight:700;}
+  .card.now{
+    background:linear-gradient(135deg,#fff,#FFF6EF);
+    border:2px solid var(--teal-light);
+    box-shadow:0 0 0 5px rgba(16,194,187,.14), var(--shadow-lift);
+    transform:scale(1.012);
+  }
+  .card.now::before{background:var(--teal);width:6px;}
+  /* avatar do AGORA em NEUTRO-QUENTE: a cor da especialidade não compete com o sinal teal */
+  .card.now .avatar{
+    background:linear-gradient(140deg,var(--warm-neutral-1),var(--warm-neutral-2));
+    box-shadow:0 0 0 4px rgba(16,194,187,.30), inset 0 -3px 8px rgba(0,0,0,.14);
+  }
+  .now-tag{
+    position:absolute;
+    top:-13px;right:22px;
+    display:inline-flex;align-items:center;gap:7px;
+    background:linear-gradient(135deg,var(--teal),#005f5c);
+    color:#fff;
+    font-size:11.5px;font-weight:900;
+    letter-spacing:.10em;
+    padding:6px 14px;
+    border-radius:100px;
+    box-shadow:0 8px 18px -6px rgba(0,117,113,.6);
+  }
+  .now-tag .live-dot{width:7px;height:7px;border-radius:50%;background:#9ffcf7;animation:blink 1.1s steps(1) infinite;}
+  .status.s-agora{background:var(--teal);color:#fff;}
+  .status.s-agora .s-dot{background:#9ffcf7;animation:blink 1.1s steps(1) infinite;}
+
+  /* slot livre */
+  .appt.free .node{background:var(--cream-2);border-color:var(--line);border-style:dashed;}
+  .slot{
+    margin-left:26px;
+    border:2px dashed var(--line);
+    border-radius:var(--r-lg);
+    padding:14px 22px;
+    display:flex;align-items:center;gap:12px;
+    color:var(--ink-soft);
+    font-weight:700;
+    font-size:14.5px;
+    background:rgba(255,251,245,.5);
+    transition:border-color .3s,background .3s,color .3s;
+    cursor:pointer;
+  }
+  .slot:hover{border-color:var(--orange);color:var(--orange-dark);background:rgba(255,119,46,.06);}
+  .slot .plus{
+    width:32px;height:32px;border-radius:50%;
+    display:grid;place-items:center;
+    background:var(--cream-2);color:var(--orange);
+    transition:background .3s,color .3s,transform .3s;
+  }
+  .slot .plus .glyph{width:15px;height:15px;color:currentColor;}
+  .slot:hover .plus{background:var(--orange);color:#fff;transform:rotate(90deg);}
+
+  /* stagger entrada da fila */
+  .appt:nth-of-type(1){animation-delay:.36s;}
+  .appt:nth-of-type(2){animation-delay:.43s;}
+  .appt:nth-of-type(3){animation-delay:.50s;}
+  .appt:nth-of-type(4){animation-delay:.57s;}
+  .appt:nth-of-type(5){animation-delay:.64s;}
+  .appt:nth-of-type(6){animation-delay:.71s;}
+  .appt:nth-of-type(7){animation-delay:.78s;}
+
+  /* rodapé acolhedor — único lugar com o leão (assinatura) */
+  .footnote{
+    margin-top:42px;text-align:center;
+    font-size:13.5px;color:var(--ink-soft);font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    opacity:0;animation:rise .6s ease forwards;animation-delay:.85s;
+  }
+  .footnote .lion{font-size:16px;line-height:1;filter:saturate(.95);}
+  .footnote b{color:var(--brown);font-family:"Fraunces";font-weight:600;}
+
+  /* ===== keyframes ===== */
+  @keyframes rise{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,194,187,.55);}70%{box-shadow:0 0 0 16px rgba(16,194,187,0);}100%{box-shadow:0 0 0 0 rgba(16,194,187,0);}}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(16,194,187,.6);}70%{box-shadow:0 0 0 9px rgba(16,194,187,0);}100%{box-shadow:0 0 0 0 rgba(16,194,187,0);}}
+  @keyframes blink{50%{opacity:.25;}}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+    .hero,.kpi,.queue-head,.appt,.footnote{opacity:1!important;}
+  }
+
+  @media (max-width:760px){
+    .wrap{padding:64px 18px 60px;}
+    .hero{grid-template-columns:1fr;}
+    .datepill{justify-self:start;text-align:left;}
+    .kpis{grid-template-columns:1fr;}
+    .timeline::before{left:0;}
+    .appt{grid-template-columns:1fr;}
+    .appt .time{padding:0 0 6px 28px;}
+    .node{left:0;top:11px;transform:translate(-50%,0);}
+    .card,.slot{margin-left:18px;grid-template-columns:auto 1fr;}
+    .card .status{grid-column:1/-1;justify-self:start;}
+  }
+</style>
+</head>
+<body>
+  <div class="labbar">
+    <span class="dot"></span>
+    <span>IFP Lab · <b>Acolhimento</b> — Caloroso e Humano</span>
+    <span class="muted">direção visual em avaliação</span>
+  </div>
+
+  <main class="wrap">
+
+    <!-- ============ CABEÇALHO ============ -->
+    <header class="hero">
+      <div>
+        <span class="eyebrow">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.8a4.4 4.4 0 0 1 7.5 3.1C19.5 16.4 12 21 12 21Z" fill="currentColor"/></svg></span>
+          Centro Médico
+        </span>
+        <p class="greeting">Bom dia, equipe.</p>
+        <h1>Fila do dia
+          <span class="sub">cada nome aqui é alguém que <em>confiou</em> na gente.</span>
+        </h1>
+      </div>
+      <div class="datepill">
+        <div class="dow">quinta-feira</div>
+        <div class="day">29 de maio de 2026</div>
+        <div class="live"><span class="beat"></span> atualizado agora</div>
+      </div>
+    </header>
+
+    <!-- ============ KPIs ============ -->
+    <section class="kpis" aria-label="Resumo do dia">
+      <!-- DOMINANTE: laranja institucional sólido -->
+      <div class="kpi fila">
+        <div class="icon">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7.5" r="3.4" fill="currentColor"/><path d="M5 20c0-3.6 3.1-6.2 7-6.2s7 2.6 7 6.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="num">4</div>
+        <div class="lbl">na fila aguardando</div>
+        <div class="tagline">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          prioridade da recepção agora
+        </div>
+      </div>
+
+      <div class="kpi feita">
+        <div class="icon">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2.1"/><path d="M8 12.3l2.6 2.6L16 9.4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="num">2</div>
+        <div class="lbl">realizadas hoje</div>
+      </div>
+
+      <div class="kpi livre">
+        <div class="icon">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2.4" stroke="currentColor" stroke-width="2.1"/><path d="M8 3.5v3.4M16 3.5v3.4M4 10h16" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="num">6</div>
+        <div class="lbl">slots livres</div>
+      </div>
+    </section>
+
+    <!-- ============ FILA ============ -->
+    <div class="queue-head">
+      <h2>Agenda de hoje</h2>
+      <div class="legend">
+        <span><i style="background:#007571"></i> Clínico Geral</span>
+        <span><i style="background:#C24D0F"></i> Ginecologia</span>
+        <span><i style="background:#FF772E"></i> Pediatria</span>
+        <span><i style="background:#6B6B6B"></i> Psicologia</span>
+      </div>
+    </div>
+
+    <section class="timeline" aria-label="Consultas do dia">
+
+      <!-- 08:00 REALIZADA -->
+      <article class="appt" style="--spec:#007571">
+        <div class="time">08:00</div>
+        <span class="node" style="border-color:#007571"></span>
+        <div class="card done">
+          <div class="avatar" style="background:linear-gradient(140deg,#10C2BB,#007571)">MG</div>
+          <div class="who">
+            <div class="name">Maria das Graças Almeida</div>
+            <div class="meta">
+              <span class="chip"><i></i> Clínico Geral</span>
+              <span class="prof">Dr. João Silva</span>
+            </div>
+          </div>
+          <span class="status s-realizada"><span class="s-dot"></span> Realizada</span>
+        </div>
+      </article>
+
+      <!-- 08:30 REALIZADA -->
+      <article class="appt" style="--spec:#007571">
+        <div class="time">08:30</div>
+        <span class="node" style="border-color:#007571"></span>
+        <div class="card done">
+          <div class="avatar" style="background:linear-gradient(140deg,#10C2BB,#007571)">JR</div>
+          <div class="who">
+            <div class="name">José Roberto Almeida</div>
+            <div class="meta">
+              <span class="chip"><i></i> Clínico Geral</span>
+              <span class="prof">Dr. João Silva</span>
+            </div>
+          </div>
+          <span class="status s-realizada"><span class="s-dot"></span> Realizada</span>
+        </div>
+      </article>
+
+      <!-- 09:00 EM ATENDIMENTO / AGORA -->
+      <article class="appt now" style="--spec:#007571">
+        <div class="time">09:00</div>
+        <span class="node"></span>
+        <div class="card now">
+          <span class="now-tag"><span class="live-dot"></span> ACONTECENDO AGORA</span>
+          <div class="avatar">AP</div>
+          <div class="who">
+            <div class="name">Antônia Pereira</div>
+            <div class="meta">
+              <span class="chip"><i></i> Clínico Geral</span>
+              <span class="prof">Dr. João Silva</span>
+            </div>
+          </div>
+          <span class="status s-agora"><span class="s-dot"></span> Em atendimento</span>
+        </div>
+      </article>
+
+      <!-- 09:30 CONFIRMADA -->
+      <article class="appt" style="--spec:#C24D0F">
+        <div class="time">09:30</div>
+        <span class="node" style="border-color:#C24D0F"></span>
+        <div class="card">
+          <div class="avatar" style="background:linear-gradient(140deg,#FF9A5C,#C24D0F)">JD</div>
+          <div class="who">
+            <div class="name">Joana D'Arc Santos</div>
+            <div class="meta">
+              <span class="chip"><i></i> Ginecologia</span>
+              <span class="prof">Dra. Maria Souza</span>
+            </div>
+          </div>
+          <span class="status s-confirmada"><span class="s-dot"></span> Confirmada</span>
+        </div>
+      </article>
+
+      <!-- 10:00 slot livre -->
+      <article class="appt free">
+        <div class="time">10:00</div>
+        <span class="node"></span>
+        <div class="slot">
+          <span class="plus"><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></span></span>
+          <span>Horário livre — encaixar paciente</span>
+        </div>
+      </article>
+
+      <!-- 10:30 AGENDADA -->
+      <article class="appt" style="--spec:#FF772E">
+        <div class="time">10:30</div>
+        <span class="node" style="border-color:#FF772E"></span>
+        <div class="card">
+          <div class="avatar" style="background:linear-gradient(140deg,#FFB07A,#FF772E)">PH</div>
+          <div class="who">
+            <div class="name">Pedro Henrique Costa</div>
+            <div class="meta">
+              <span class="chip"><i></i> Pediatria</span>
+              <span class="prof">Dr. João Silva</span>
+            </div>
+          </div>
+          <span class="status s-agendada"><span class="s-dot"></span> Agendada</span>
+        </div>
+      </article>
+
+      <!-- 14:00 AGENDADA -->
+      <article class="appt" style="--spec:#6B6B6B">
+        <div class="time">14:00</div>
+        <span class="node" style="border-color:#6B6B6B"></span>
+        <div class="card">
+          <div class="avatar" style="background:linear-gradient(140deg,#9a9a98,#6B6B6B)">LF</div>
+          <div class="who">
+            <div class="name">Luiza Fernanda Souza</div>
+            <div class="meta">
+              <span class="chip"><i></i> Psicologia</span>
+              <span class="prof">Psic. Ana Lima</span>
+            </div>
+          </div>
+          <span class="status s-agendada"><span class="s-dot"></span> Agendada</span>
+        </div>
+      </article>
+
+    </section>
+
+    <p class="footnote"><span class="lion" aria-hidden="true">🦁</span> Feito com cuidado pelo <b>Instituto Família Pôncio</b> · Duque de Caxias, RJ</p>
+
+  </main>
+
+  <script>
+    // micro-interação única: o cartão "AGORA" reage ao toque/clique com um leve "respiro"
+    (function(){
+      var now = document.querySelector('.card.now');
+      if(!now) return;
+      now.addEventListener('click', function(){
+        now.animate(
+          [{transform:'scale(1.012)'},{transform:'scale(1.03)'},{transform:'scale(1.012)'}],
+          {duration:480, easing:'cubic-bezier(.34,1.56,.64,1)'}
+        );
+      });
+    })();
+  </script>
+</body>
+</html>
