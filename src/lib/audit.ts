@@ -21,7 +21,25 @@ export type AuditAction =
   | "agendamento_confirmado"
   | "agendamento_realizado"
   | "agendamento_cancelado"
-  | "agendamento_faltou";
+  | "agendamento_faltou"
+  // Centro Médico (F1.B.1)
+  | "especialidade_criada"
+  | "especialidade_atualizada"
+  | "especialidade_desativada"
+  | "especialidade_reativada"
+  | "profissional_cadastrado"
+  | "profissional_atualizado"
+  | "profissional_desativado"
+  | "template_criado"
+  | "template_atualizado"
+  | "slot_bloqueado"
+  | "slot_desbloqueado"
+  | "consulta_agendada"
+  | "consulta_confirmada"
+  | "consulta_iniciada"
+  | "consulta_realizada"
+  | "consulta_faltou"
+  | "consulta_cancelada";
 
 interface LogEventArgs {
   userId?: string | null;

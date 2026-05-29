@@ -9,6 +9,12 @@ import { podeAgendar } from "@/lib/funil";
 interface AppShellProps {
   session: Session;
   children: React.ReactNode;
+  /** Override opcional da navegação (ex.: contexto da unidade médica). */
+  items?: NavItem[];
+  /** Rótulo da seção mostrado acima da nav (ex.: "Centro Médico"). */
+  sectionLabel?: string;
+  /** Cor de accent da seção (hex) — pinta o título da seção. */
+  sectionColor?: string;
 }
 
 function initials(name: string): string {
@@ -18,9 +24,8 @@ function initials(name: string): string {
   return (first + last).toUpperCase() || "?";
 }
 
-export function AppShell({ session, children }: AppShellProps) {
-  const displayName = session.user.name ?? session.user.email ?? "Usuário";
-
+/** Navegação padrão do app (visão cross-unidade). */
+function defaultItems(session: Session): NavItem[] {
   const items: NavItem[] = [
     { label: "Visão geral", href: "/app" },
     { label: "Cidadãos", href: "/app/cidadaos" },
@@ -34,6 +39,19 @@ export function AppShell({ session, children }: AppShellProps) {
   if (hasAnyRole(session, "super_admin")) {
     items.push({ label: "Admin", href: "/admin/users" });
   }
+  return items;
+}
+
+export function AppShell({
+  session,
+  children,
+  items: itemsOverride,
+  sectionLabel,
+  sectionColor,
+}: AppShellProps) {
+  const displayName = session.user.name ?? session.user.email ?? "Usuário";
+
+  const items: NavItem[] = itemsOverride ?? defaultItems(session);
 
   return (
     <div className="flex min-h-screen bg-[rgb(var(--ifp-canvas))] text-[rgb(var(--ifp-ink))]">
@@ -45,6 +63,15 @@ export function AppShell({ session, children }: AppShellProps) {
           <Image src="/logo/ifp-symbol.png" alt="IFP" width={32} height={32} priority />
           <span className="text-[17px] font-extrabold tracking-tight">IFP Connect</span>
         </div>
+
+        {sectionLabel && (
+          <p
+            className="mb-2 px-3 text-[11px] font-bold tracking-wider uppercase"
+            style={{ color: sectionColor ?? "rgb(var(--ifp-muted))" }}
+          >
+            {sectionLabel}
+          </p>
+        )}
 
         <SidebarNav items={items} />
 
