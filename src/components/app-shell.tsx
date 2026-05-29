@@ -37,7 +37,10 @@ export function AppShell({ session, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen bg-[rgb(var(--ifp-canvas))] text-[rgb(var(--ifp-ink))]">
-      <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-black/[0.07] bg-white/70 px-4 py-7 backdrop-blur-xl">
+      <aside
+        className="sticky top-0 flex h-screen w-64 shrink-0 flex-col bg-white/85 px-4 py-7 backdrop-blur-xl"
+        style={{ borderRight: "1px solid rgb(var(--ifp-surface-200))" }}
+      >
         <div className="flex items-center gap-2.5 px-3 pb-7">
           <Image src="/logo/ifp-symbol.png" alt="IFP" width={32} height={32} priority />
           <span className="text-[17px] font-extrabold tracking-tight">IFP Connect</span>
@@ -47,12 +50,20 @@ export function AppShell({ session, children }: AppShellProps) {
 
         {session.user.roles.some((r) => r.name === "super_admin") && (
           <>
-            <p className="mt-6 mb-2 px-3 text-[11px] font-bold text-[#b0a99c]">Unidades</p>
+            <p
+              className="mt-6 mb-2 px-3 text-[11px] font-bold tracking-wider uppercase"
+              style={{ color: "rgb(var(--ifp-muted))" }}
+            >
+              Unidades
+            </p>
             <UnitSwitcher roles={session.user.roles} />
           </>
         )}
 
-        <div className="mt-auto flex items-center gap-3 border-t border-black/[0.06] px-2 pt-4">
+        <div
+          className="mt-auto flex items-center gap-3 px-2 pt-4"
+          style={{ borderTop: "1px solid rgb(var(--ifp-surface-200))" }}
+        >
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[rgb(var(--ifp-ink))] text-xs font-bold text-white">
             {initials(displayName)}
           </span>
@@ -61,7 +72,7 @@ export function AppShell({ session, children }: AppShellProps) {
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="text-xs text-[rgb(var(--ifp-muted))] transition hover:text-[rgb(var(--ifp-laranja))]"
+                className="text-xs text-[rgb(var(--ifp-muted))] transition hover:text-[rgb(var(--ifp-orange-500))]"
               >
                 Sair
               </button>
