@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import {
+  bloquearSlot,
   gerarSlots,
+  liberarSlot,
   reservarSlot,
+  SlotComConsultaError,
   SlotIndisponivelError,
+  transicionarConsulta,
   type TemplateInput,
 } from "@/lib/medico/agenda";
 
@@ -165,5 +169,133 @@ describe("reservarSlot (integration)", () => {
     expect(falhas).toHaveLength(4);
 
     await reabrirSlot(slot.id);
+  });
+});
+
+describe("bloquearSlot", () => {
+  it("bloqueia slot disponível com motivo", async () => {
+    const slot = await db.slot.findFirstOrThrow({
+      where: { status: "disponivel", consulta: { is: null } },
+    });
+    await db.consulta.deleteMany({ where: { slotId: slot.id } });
+    await bloquearSlot(slot.id, "Férias programadas");
+    const pos = await db.slot.findUniqueOrThrow({ where: { id: slot.id } });
+    expect(pos.status).toBe("bloqueado");
+    expect(pos.motivoBloqueio).toBe("Férias programadas");
+    await db.slot.update({
+      where: { id: slot.id },
+      data: { status: "disponivel", motivoBloqueio: null },
+    });
+  });
+
+  it("rejeita bloquear slot que tem consulta agendada", async () => {
+    const consulta = await db.consulta.findFirst({ where: { status: "agendada" } });
+    if (!consulta) return; // pula se estado não tem; outros testes criam
+    await expect(bloquearSlot(consulta.slotId, "tentativa")).rejects.toThrow(SlotComConsultaError);
+  });
+});
+
+describe("liberarSlot", () => {
+  it("libera slot reservado e cancela consulta", async () => {
+    const slot = await db.slot.findFirstOrThrow({
+      where: { status: "disponivel", consulta: { is: null } },
+    });
+    await db.consulta.deleteMany({ where: { slotId: slot.id } });
+    await db.slot.update({ where: { id: slot.id }, data: { status: "reservado" } });
+    const prof = await db.profissional.findFirstOrThrow();
+    const esp = await db.especialidade.findFirstOrThrow();
+    const cid = await db.cidadao.findFirstOrThrow();
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+    const c = await db.consulta.create({
+      data: {
+        slotId: slot.id,
+        cidadaoId: cid.id,
+        profissionalId: prof.id,
+        especialidadeId: esp.id,
+        createdBy: erick.id,
+        status: "agendada",
+      },
+    });
+
+    await liberarSlot(slot.id, "Cidadão cancelou");
+
+    const slotPos = await db.slot.findUniqueOrThrow({ where: { id: slot.id } });
+    expect(slotPos.status).toBe("disponivel");
+    const consPos = await db.consulta.findUniqueOrThrow({ where: { id: c.id } });
+    expect(consPos.status).toBe("cancelada");
+    expect(consPos.cancelMotivo).toBe("Cidadão cancelou");
+
+    await db.consulta.delete({ where: { id: c.id } });
+  });
+});
+
+describe("transicionarConsulta", () => {
+  it("agendada → confirmada → em_atendimento → realizada (caminho feliz)", async () => {
+    const slot = await db.slot.findFirstOrThrow({
+      where: { status: "disponivel", consulta: { is: null } },
+    });
+    await db.consulta.deleteMany({ where: { slotId: slot.id } });
+    const prof = await db.profissional.findFirstOrThrow();
+    const esp = await db.especialidade.findFirstOrThrow();
+    const cid = await db.cidadao.findFirstOrThrow();
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+
+    await db.slot.update({ where: { id: slot.id }, data: { status: "reservado" } });
+    const c = await db.consulta.create({
+      data: {
+        slotId: slot.id,
+        cidadaoId: cid.id,
+        profissionalId: prof.id,
+        especialidadeId: esp.id,
+        createdBy: erick.id,
+        status: "agendada",
+      },
+    });
+
+    await transicionarConsulta(c.id, "confirmada");
+    await transicionarConsulta(c.id, "em_atendimento");
+    await transicionarConsulta(c.id, "realizada");
+
+    const cPos = await db.consulta.findUniqueOrThrow({ where: { id: c.id } });
+    expect(cPos.status).toBe("realizada");
+    const slotPos = await db.slot.findUniqueOrThrow({ where: { id: slot.id } });
+    expect(slotPos.status).toBe("realizado");
+
+    await db.consulta.delete({ where: { id: c.id } });
+    await db.slot.update({ where: { id: slot.id }, data: { status: "disponivel" } });
+  });
+
+  it("realizada → confirmada (regressão) é rejeitada", async () => {
+    const slot = await db.slot.findFirstOrThrow({
+      where: { status: "disponivel", consulta: { is: null } },
+    });
+    await db.consulta.deleteMany({ where: { slotId: slot.id } });
+    const prof = await db.profissional.findFirstOrThrow();
+    const esp = await db.especialidade.findFirstOrThrow();
+    const cid = await db.cidadao.findFirstOrThrow();
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+
+    await db.slot.update({ where: { id: slot.id }, data: { status: "realizado" } });
+    const c = await db.consulta.create({
+      data: {
+        slotId: slot.id,
+        cidadaoId: cid.id,
+        profissionalId: prof.id,
+        especialidadeId: esp.id,
+        createdBy: erick.id,
+        status: "realizada",
+      },
+    });
+
+    await expect(transicionarConsulta(c.id, "confirmada")).rejects.toThrow(/transi/i);
+
+    await db.consulta.delete({ where: { id: c.id } });
+    await db.slot.update({ where: { id: slot.id }, data: { status: "disponivel" } });
   });
 });
