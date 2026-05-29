@@ -10,12 +10,12 @@ interface KpiCardProps {
 }
 
 const ACCENT_VAR: Record<NonNullable<KpiCardProps["accent"]>, string> = {
-  medico: "var(--ifp-medico)",
-  capacitacao: "var(--ifp-capacitacao)",
-  esportivo: "var(--ifp-esportivo)",
-  recreativo: "var(--ifp-recreativo)",
-  laranja: "var(--ifp-laranja)",
-  cinza: "var(--ifp-cinza)",
+  medico: "var(--ifp-filter-medico)",
+  capacitacao: "var(--ifp-filter-capacitacao)",
+  esportivo: "var(--ifp-filter-esportivo)",
+  recreativo: "var(--ifp-filter-recreativo)",
+  laranja: "var(--ifp-orange-500)",
+  cinza: "var(--ifp-ink)",
 };
 
 export function KpiCard({ label, value, delta, accent = "cinza", hint }: KpiCardProps) {

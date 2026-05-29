@@ -23,13 +23,13 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
             href={it.href as Route}
             className={`flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm font-semibold transition ${
               active
-                ? "bg-[#f3f3f5] text-[rgb(var(--ifp-ink))]"
-                : "text-[#6b6459] hover:bg-[#f3f3f5]"
+                ? "bg-[rgb(var(--ifp-surface-100))] text-[rgb(var(--ifp-ink))]"
+                : "text-[rgb(var(--ifp-muted))] hover:bg-[rgb(var(--ifp-surface-100))]"
             }`}
           >
             <span
               className={`h-[7px] w-[7px] rounded-full ${
-                active ? "bg-[rgb(var(--ifp-laranja))]" : "bg-[#c7c2b8]"
+                active ? "bg-[rgb(var(--ifp-orange-500))]" : "bg-[rgb(var(--ifp-surface-200))]"
               }`}
             />
             {it.label}
