@@ -47,10 +47,6 @@ export default async function SocialDashboard() {
         </p>
       </header>
 
-      <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        Visual provisório — aguardando Design System v2.
-      </div>
-
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
           label="Triagens pendentes"

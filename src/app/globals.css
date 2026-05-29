@@ -83,6 +83,16 @@
   --ifp-transition-fast: 120ms ease-out;
   --ifp-transition-base: 200ms ease-out;
   --ifp-transition-slow: 320ms ease-out;
+
+  /* ---- Aliases de compatibilidade (Neve → DS v2) ---- */
+  /* Permitem que arquivos legacy ainda compilem. Migrar quando tocar cada um. */
+  --ifp-laranja: var(--ifp-orange-500);
+  --ifp-cinza: var(--ifp-ink);
+  --ifp-medico: var(--ifp-filter-medico);
+  --ifp-capacitacao: var(--ifp-filter-capacitacao);
+  --ifp-esportivo: var(--ifp-filter-esportivo);
+  --ifp-recreativo: var(--ifp-filter-recreativo);
+  --ifp-surface: var(--ifp-canvas);
 }
 
 /* Card canônico: branco, borda fina cinza, sombra suave, levanta no hover */
