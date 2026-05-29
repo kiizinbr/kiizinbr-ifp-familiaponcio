@@ -44,44 +44,79 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
         className="absolute inset-0"
         style={{
           background: unidade.corFiltroLogin,
-          opacity: 0.55,
+          opacity: "var(--ifp-filter-opacity)",
         }}
         aria-hidden
       />
 
-      <div className="relative z-10 w-full max-w-sm rounded-3xl bg-white/95 p-8 shadow-xl backdrop-blur">
+      <div
+        className="relative z-10 w-full max-w-sm bg-white/95 p-8 backdrop-blur"
+        style={{
+          borderRadius: "var(--ifp-radius-xl)",
+          boxShadow: "var(--ifp-shadow-xl)",
+        }}
+      >
         <div className="flex flex-col items-center">
           <Image src="/logo/ifp-symbol.png" alt="IFP" width={56} height={56} priority />
-          <h1 className="mt-4 text-lg font-semibold text-stone-900">{unidade.nome}</h1>
-          <p className="mt-1 text-xs tracking-wider text-stone-500 uppercase">
+          <h1 className="mt-4 text-lg font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
+            {unidade.nome}
+          </h1>
+          <p
+            className="mt-1 text-xs tracking-wider uppercase"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             Instituto Família Pôncio
           </p>
         </div>
 
         <form action={onSubmit} className="mt-8 space-y-4">
           <label className="block">
-            <span className="text-xs text-stone-600">E-mail</span>
+            <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+              E-mail
+            </span>
             <input
               required
               name="email"
               type="email"
               autoComplete="email"
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none"
+              className="mt-1 w-full px-3 py-2 text-sm focus:outline-none"
+              style={{
+                backgroundColor: "rgb(var(--ifp-canvas))",
+                border: "1px solid rgb(var(--ifp-surface-200))",
+                borderRadius: "var(--ifp-radius-sm)",
+                color: "rgb(var(--ifp-ink))",
+              }}
             />
           </label>
           <label className="block">
-            <span className="text-xs text-stone-600">Senha</span>
+            <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+              Senha
+            </span>
             <input
               required
               name="password"
               type="password"
               autoComplete="current-password"
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none"
+              className="mt-1 w-full px-3 py-2 text-sm focus:outline-none"
+              style={{
+                backgroundColor: "rgb(var(--ifp-canvas))",
+                border: "1px solid rgb(var(--ifp-surface-200))",
+                borderRadius: "var(--ifp-radius-sm)",
+                color: "rgb(var(--ifp-ink))",
+              }}
             />
           </label>
 
           {error && (
-            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900">
+            <p
+              role="alert"
+              className="px-3 py-2 text-sm"
+              style={{
+                backgroundColor: "rgb(var(--ifp-danger) / 0.08)",
+                color: "rgb(var(--ifp-danger))",
+                borderRadius: "var(--ifp-radius-sm)",
+              }}
+            >
               {error}
             </p>
           )}
@@ -89,17 +124,32 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-stone-900 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="w-full py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{
+              backgroundColor: "rgb(var(--ifp-orange-500))",
+              borderRadius: "var(--ifp-radius-md)",
+            }}
           >
             {pending ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
-        <div className="mt-6 flex items-center justify-between text-xs text-stone-500">
-          <Link href={"/reset" as Route} className="hover:text-stone-900">
+        <div
+          className="mt-6 flex items-center justify-between text-xs"
+          style={{ color: "rgb(var(--ifp-muted))" }}
+        >
+          <Link
+            href={"/reset" as Route}
+            className="hover:opacity-70"
+            style={{ transition: "opacity var(--ifp-transition-fast)" }}
+          >
             Esqueci a senha
           </Link>
-          <Link href={"/" as Route} className="hover:text-stone-900">
+          <Link
+            href={"/" as Route}
+            className="hover:opacity-70"
+            style={{ transition: "opacity var(--ifp-transition-fast)" }}
+          >
             ← Voltar
           </Link>
         </div>
