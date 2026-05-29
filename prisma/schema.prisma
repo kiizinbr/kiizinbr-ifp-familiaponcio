@@ -35,6 +35,9 @@ model User {
   vagasCriadas        Vaga[]        @relation("VagaCriadaPor")
   agendamentosCriados Agendamento[] @relation("AgendamentoCriadoPor")
 
+  // Médico (F1.B.1) — reverse relation
+  profissional Profissional?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -234,6 +237,7 @@ model Cidadao {
   anexos       AnexoCidadao[]
   triagens     Triagem[]
   agendamentos Agendamento[]
+  consultas    Consulta[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -406,4 +410,133 @@ model Agendamento {
 
   @@index([vagaId, status])
   @@index([cidadaoId])
+}
+
+// ============================================================================
+// F1.B.1 — Centro Médico: agenda + fila do dia
+// Spec: docs/superpowers/specs/2026-05-28-medico-agenda-fila-design.md
+// ============================================================================
+
+model Especialidade {
+  id               String                       @id @default(cuid())
+  nome             String                       @unique
+  duracaoPadraoMin Int
+  corDestaque      String // hex do brandbook, ex: "#007571"
+  ativa            Boolean                      @default(true)
+  profissionais    ProfissionalEspecialidade[]
+  slots            Slot[]
+  consultas        Consulta[]
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+}
+
+model Profissional {
+  id             String                       @id @default(cuid())
+  userId         String                       @unique
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  nomeExibicao   String
+  conselho       String
+  nroConselho    String
+  bio            String?
+  fotoUrl        String?
+  ativo          Boolean                      @default(true)
+  especialidades ProfissionalEspecialidade[]
+  templates      AgendaTemplate[]
+  slots          Slot[]
+  consultas      Consulta[]
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+}
+
+model ProfissionalEspecialidade {
+  profissionalId  String
+  especialidadeId String
+  profissional    Profissional  @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  especialidade   Especialidade @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
+  createdAt       DateTime      @default(now())
+
+  @@id([profissionalId, especialidadeId])
+}
+
+model AgendaTemplate {
+  id              String       @id @default(cuid())
+  profissionalId  String
+  especialidadeId String
+  profissional    Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  // diasSemana: 0=domingo, 1=segunda, ..., 6=sábado. Array de Int[].
+  diasSemana      Int[]
+  faixaInicio     String // "HH:mm" formato 24h
+  faixaFim        String // "HH:mm"
+  duracaoSlotMin  Int
+  validoDe        DateTime
+  validoAte       DateTime?
+  observacoes     String?
+  ativo           Boolean      @default(true)
+  slots           Slot[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([profissionalId, ativo])
+}
+
+enum StatusSlot {
+  disponivel
+  reservado
+  bloqueado
+  realizado
+  faltou
+  cancelado
+}
+
+model Slot {
+  id              String          @id @default(cuid())
+  profissionalId  String
+  especialidadeId String
+  templateId      String?
+  dataHoraInicio  DateTime
+  duracaoMin      Int
+  status          StatusSlot      @default(disponivel)
+  motivoBloqueio  String?
+  profissional    Profissional    @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  especialidade   Especialidade   @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
+  template        AgendaTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  consulta        Consulta?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([profissionalId, dataHoraInicio])
+  @@index([status, dataHoraInicio])
+  @@index([especialidadeId, status, dataHoraInicio])
+}
+
+enum StatusConsulta {
+  agendada
+  confirmada
+  em_atendimento
+  realizada
+  faltou
+  cancelada
+}
+
+model Consulta {
+  id                     String         @id @default(cuid())
+  slotId                 String         @unique
+  cidadaoId              String
+  profissionalId         String
+  especialidadeId        String
+  status                 StatusConsulta @default(agendada)
+  observacoesAgendamento String?
+  origemTriagemId        String?
+  cancelMotivo           String?
+  createdBy              String // userId
+  slot                   Slot           @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  cidadao                Cidadao        @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
+  profissional           Profissional   @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  especialidade          Especialidade  @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  @@index([profissionalId, status])
+  @@index([cidadaoId])
+  @@index([status, createdAt])
 }
