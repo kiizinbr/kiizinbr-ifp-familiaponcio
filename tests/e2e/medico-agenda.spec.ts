@@ -58,7 +58,10 @@ test.describe("F1.B.1 Centro Médico — Agenda + Fila", () => {
     // Passo 1: buscar cidadão
     await page.getByPlaceholder(/Buscar por nome/).fill("Almeida");
     await page.getByRole("button", { name: "Buscar" }).click();
-    await page.getByRole("link", { name: /Almeida/ }).first().click();
+    await page
+      .getByRole("link", { name: /Almeida/ })
+      .first()
+      .click();
 
     // Passo 2: especialidade — "Clínico Geral" tem slots (1ª especialidade do Dr. João no seed)
     await page.getByRole("link", { name: /Clínico Geral/ }).click();
@@ -71,7 +74,9 @@ test.describe("F1.B.1 Centro Médico — Agenda + Fila", () => {
     await expect(page.getByText("Paciente")).toBeVisible();
   });
 
-  test("Profissional NÃO-médico (recepção) cai no estado vazio de Minha agenda", async ({ page }) => {
+  test("Profissional NÃO-médico (recepção) cai no estado vazio de Minha agenda", async ({
+    page,
+  }) => {
     await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto("/medico/minha-agenda");
     await expect(page.getByText("Você não tem agenda própria")).toBeVisible();
