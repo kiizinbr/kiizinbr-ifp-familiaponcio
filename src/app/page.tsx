@@ -46,7 +46,7 @@ export default function LandingPage() {
                 key={slug}
                 href={`/${slug}/login` as Route}
                 className="group rounded-2xl border border-stone-200 p-6 transition-all hover:border-stone-400 hover:shadow-sm"
-                style={{ borderTop: `4px solid ${u.corPrimariaPlaceholder}` }}
+                style={{ borderTop: `4px solid ${u.corFiltroLogin}` }}
               >
                 <h2 className="text-xl font-semibold text-stone-900">{u.nome}</h2>
                 <p className="mt-2 text-sm text-stone-500">Acesso da equipe da unidade</p>

@@ -14,25 +14,29 @@ export type UnidadeSlug = (typeof UNIDADE_SLUGS)[number];
 export interface UnidadeConfig {
   slug: UnidadeSlug;
   nome: string;
-  corPrimariaPlaceholder: string;
-  fotoDronePlaceholder: string | null;
-  gradientePlaceholder: string;
+  /** Hex do filtro temático aplicado como overlay sobre a foto de fundo do login. */
+  corFiltroLogin: string;
+  /** Path em /public da foto de fundo (drone ou institucional). null = usa gradiente. */
+  fotoFundoLogin: string | null;
+  /** Gradiente CSS fallback quando fotoFundoLogin é null. */
+  gradienteFallback: string;
   rolesAceitas: readonly RoleAssignment[];
   cidadaoScope: "self" | "all";
 }
 
 /**
- * Config canônica das unidades. Cores/fotos são placeholders — DS v2 substitui.
- * `rolesAceitas` espelha a matriz role × path da spec (§4.2). super_admin é
- * tratado fora dessa lista (bypassa em unidadesAcessiveis e canAccessUnidade).
+ * Config canônica das unidades. Cores extraídas do Brandbook IFP oficial
+ * (2026-05-28). Mapeamento temático aprovado: cada unidade recebe um tom
+ * da paleta institucional como filtro de login (overlay sobre a foto).
+ * super_admin é tratado fora de rolesAceitas (bypassa em canAccessUnidade).
  */
 export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   medico: {
     slug: "medico",
     nome: "Centro Médico",
-    corPrimariaPlaceholder: "#1e3a8a",
-    fotoDronePlaceholder: null,
-    gradientePlaceholder: "linear-gradient(135deg, #1e3a8a, #0f766e)",
+    corFiltroLogin: "#007571", // teal escuro — saúde/cuidado
+    fotoFundoLogin: null,
+    gradienteFallback: "linear-gradient(135deg, #007571, #10C2BB)",
     rolesAceitas: [
       { name: "gestor_unidade", unitScope: "medico" },
       { name: "profissional", unitScope: "medico" },
@@ -43,9 +47,9 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   capacitacao: {
     slug: "capacitacao",
     nome: "Capacitação",
-    corPrimariaPlaceholder: "#7c2d12",
-    fotoDronePlaceholder: null,
-    gradientePlaceholder: "linear-gradient(135deg, #7c2d12, #a16207)",
+    corFiltroLogin: "#FF772E", // laranja vibrante — aprendizado/energia
+    fotoFundoLogin: null,
+    gradienteFallback: "linear-gradient(135deg, #FF772E, #C24D0F)",
     rolesAceitas: [
       { name: "gestor_unidade", unitScope: "capacitacao" },
       { name: "profissional", unitScope: "capacitacao" },
@@ -56,9 +60,9 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   esportivo: {
     slug: "esportivo",
     nome: "Esportivo",
-    corPrimariaPlaceholder: "#14532d",
-    fotoDronePlaceholder: null,
-    gradientePlaceholder: "linear-gradient(135deg, #14532d, #b45309)",
+    corFiltroLogin: "#C24D0F", // laranja escuro — movimento
+    fotoFundoLogin: null,
+    gradienteFallback: "linear-gradient(135deg, #C24D0F, #752C05)",
     rolesAceitas: [
       { name: "gestor_unidade", unitScope: "esportivo" },
       { name: "profissional", unitScope: "esportivo" },
@@ -69,9 +73,9 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   recreativo: {
     slug: "recreativo",
     nome: "Recreativo",
-    corPrimariaPlaceholder: "#5b21b6",
-    fotoDronePlaceholder: null,
-    gradientePlaceholder: "linear-gradient(135deg, #5b21b6, #c2410c)",
+    corFiltroLogin: "#10C2BB", // teal claro — alegria/leveza
+    fotoFundoLogin: null,
+    gradienteFallback: "linear-gradient(135deg, #10C2BB, #007571)",
     rolesAceitas: [
       { name: "gestor_unidade", unitScope: "recreativo" },
       { name: "profissional", unitScope: "recreativo" },
@@ -82,18 +86,18 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   poncio: {
     slug: "poncio",
     nome: "Pôncio Executivo",
-    corPrimariaPlaceholder: "#3f1d0a",
-    fotoDronePlaceholder: null,
-    gradientePlaceholder: "linear-gradient(135deg, #3f1d0a, #92400e)",
+    corFiltroLogin: "#752C05", // marrom — sobriedade executiva
+    fotoFundoLogin: null,
+    gradienteFallback: "linear-gradient(135deg, #752C05, #4A4A49)",
     rolesAceitas: [{ name: "presidencia", unitScope: null }],
     cidadaoScope: "all",
   },
   social: {
     slug: "social",
     nome: "Serviço Social",
-    corPrimariaPlaceholder: "#6d28d9",
-    fotoDronePlaceholder: null,
-    gradientePlaceholder: "linear-gradient(135deg, #6d28d9, #db2777)",
+    corFiltroLogin: "#4A4A49", // cinza — transversal
+    fotoFundoLogin: null,
+    gradienteFallback: "linear-gradient(135deg, #4A4A49, #6B6B6B)",
     rolesAceitas: [{ name: "social", unitScope: null }],
     cidadaoScope: "all",
   },

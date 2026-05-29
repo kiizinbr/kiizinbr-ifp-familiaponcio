@@ -25,9 +25,9 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
     });
   }
 
-  const background = unidade.fotoDronePlaceholder
-    ? `url(${unidade.fotoDronePlaceholder})`
-    : unidade.gradientePlaceholder;
+  const background = unidade.fotoFundoLogin
+    ? `url(${unidade.fotoFundoLogin})`
+    : unidade.gradienteFallback;
 
   return (
     <main className="relative flex min-h-screen items-center justify-center">
@@ -43,7 +43,7 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
       <div
         className="absolute inset-0"
         style={{
-          background: unidade.corPrimariaPlaceholder,
+          background: unidade.corFiltroLogin,
           opacity: 0.55,
         }}
         aria-hidden

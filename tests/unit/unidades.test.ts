@@ -24,10 +24,19 @@ describe("unidades — config canônica", () => {
       const u = UNIDADES[slug];
       expect(u.slug).toBe(slug);
       expect(u.nome).toBeTruthy();
-      expect(u.corPrimariaPlaceholder).toMatch(/^#[0-9a-f]{6}$/i);
-      expect(u.gradientePlaceholder).toMatch(/linear-gradient/);
+      expect(u.corFiltroLogin).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(u.gradienteFallback).toMatch(/linear-gradient/);
       expect(Array.isArray(u.rolesAceitas)).toBe(true);
     }
+  });
+
+  it("filtros temáticos seguem mapeamento canônico do brandbook", () => {
+    expect(UNIDADES.medico.corFiltroLogin).toBe("#007571");
+    expect(UNIDADES.capacitacao.corFiltroLogin).toBe("#FF772E");
+    expect(UNIDADES.esportivo.corFiltroLogin).toBe("#C24D0F");
+    expect(UNIDADES.recreativo.corFiltroLogin).toBe("#10C2BB");
+    expect(UNIDADES.poncio.corFiltroLogin).toBe("#752C05");
+    expect(UNIDADES.social.corFiltroLogin).toBe("#4A4A49");
   });
 
   it("rolesAceitas reflete a matriz da spec", () => {

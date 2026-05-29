@@ -29,7 +29,7 @@ export default async function PoncioDashboardPage() {
               <div
                 key={slug}
                 className="rounded-xl border border-stone-200 bg-white p-6"
-                style={{ borderTop: `4px solid ${u.corPrimariaPlaceholder}` }}
+                style={{ borderTop: `4px solid ${u.corFiltroLogin}` }}
               >
                 <h2 className="font-semibold text-stone-900">{u.nome}</h2>
                 <p className="mt-2 text-sm text-stone-500">Indicadores serão exibidos aqui.</p>

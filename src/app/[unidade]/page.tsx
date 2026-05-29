@@ -21,7 +21,7 @@ export default async function UnidadeHomePage({
     <main className="min-h-screen bg-white p-12">
       <div
         className="mx-auto max-w-3xl rounded-2xl border border-stone-200 p-8"
-        style={{ borderLeft: `6px solid ${unidade.corPrimariaPlaceholder}` }}
+        style={{ borderLeft: `6px solid ${unidade.corFiltroLogin}` }}
       >
         <p className="text-xs tracking-wider text-stone-500 uppercase">Unidade</p>
         <h1 className="mt-2 text-3xl font-semibold text-stone-900">{unidade.nome}</h1>
