@@ -424,6 +424,7 @@ model Especialidade {
   corDestaque      String // hex do brandbook, ex: "#007571"
   ativa            Boolean                      @default(true)
   profissionais    ProfissionalEspecialidade[]
+  templates        AgendaTemplate[]
   slots            Slot[]
   consultas        Consulta[]
   createdAt        DateTime                     @default(now())
@@ -459,10 +460,11 @@ model ProfissionalEspecialidade {
 }
 
 model AgendaTemplate {
-  id              String       @id @default(cuid())
+  id              String        @id @default(cuid())
   profissionalId  String
   especialidadeId String
-  profissional    Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  profissional    Profissional  @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  especialidade   Especialidade @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
   // diasSemana: 0=domingo, 1=segunda, ..., 6=sábado. Array de Int[].
   diasSemana      Int[]
   faixaInicio     String // "HH:mm" formato 24h
