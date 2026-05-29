@@ -256,7 +256,9 @@ async function seedMedico() {
       const espId = especialidadeByNome.get(espNome);
       if (!espId) continue;
       await db.profissionalEspecialidade.upsert({
-        where: { profissionalId_especialidadeId: { profissionalId: prof.id, especialidadeId: espId } },
+        where: {
+          profissionalId_especialidadeId: { profissionalId: prof.id, especialidadeId: espId },
+        },
         update: {},
         create: { profissionalId: prof.id, especialidadeId: espId },
       });
