@@ -242,12 +242,12 @@ export function NovoCidadaoForm({
               onClick={() => setTab(t.id)}
               className={`relative px-4 py-2 text-sm font-medium transition ${
                 isActive
-                  ? "border-b-2 border-[rgb(var(--ifp-laranja))] text-[rgb(var(--ifp-laranja))]"
+                  ? "border-b-2 border-[rgb(var(--ifp-orange-500))] text-[rgb(var(--ifp-orange-500))]"
                   : "text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-ink))]"
               }`}
             >
               {t.label}
-              {t.required && <span className="ml-1 text-[rgb(var(--ifp-laranja))]">*</span>}
+              {t.required && <span className="ml-1 text-[rgb(var(--ifp-orange-500))]">*</span>}
               {hasError && (
                 <span className="absolute top-1 right-1 inline-block h-1.5 w-1.5 rounded-full bg-red-500" />
               )}
@@ -557,7 +557,7 @@ export function NovoCidadaoForm({
       {/* Submit bar */}
       <div className="flex items-center justify-between border-t border-slate-200 pt-6">
         <div className="text-xs text-[rgb(var(--ifp-muted))]">
-          <span className="text-[rgb(var(--ifp-laranja))]">*</span> Campos obrigatórios em
+          <span className="text-[rgb(var(--ifp-orange-500))]">*</span> Campos obrigatórios em
           Identificação e Contato.
         </div>
         <div className="flex items-center gap-3">
@@ -571,7 +571,7 @@ export function NovoCidadaoForm({
           <button
             type="submit"
             disabled={isPending}
-            className="rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+            className="rounded bg-[rgb(var(--ifp-orange-500))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
           >
             {isPending ? "Salvando…" : isEdit ? "Salvar alterações" : "Salvar Ficha"}
           </button>
@@ -680,7 +680,7 @@ function Input({
         className={`w-full rounded border px-3 py-2 text-sm focus:outline-none disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))] ${
           error
             ? "border-red-300 focus:border-red-500"
-            : "border-slate-300 focus:border-[rgb(var(--ifp-laranja))]"
+            : "border-slate-300 focus:border-[rgb(var(--ifp-orange-500))]"
         }`}
       />
       {error && <p className="mt-1 text-xs text-red-600">{error[0]}</p>}
@@ -710,7 +710,7 @@ function Textarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
+        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
       />
     </div>
   );
@@ -737,7 +737,7 @@ function Select({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
+        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
       >
         <option value="">— Selecione —</option>
         {options.map((o) => (

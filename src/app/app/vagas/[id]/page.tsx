@@ -45,7 +45,7 @@ export default async function VagaDetalhePage({ params }: { params: Promise<{ id
       <header className="mb-8">
         <Link
           href={"/app/vagas" as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
         >
           ← Voltar para Vagas
         </Link>
@@ -60,7 +60,7 @@ export default async function VagaDetalhePage({ params }: { params: Promise<{ id
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[rgb(var(--ifp-muted))]">
           <span
             className="rounded px-2 py-0.5 text-xs font-medium text-white"
-            style={{ background: `rgb(var(--ifp-${vaga.unidade}))` }}
+            style={{ background: `rgb(var(--ifp-filter-${vaga.unidade}))` }}
           >
             {UNIT_LABELS[vaga.unidade as UnitScope]}
           </span>

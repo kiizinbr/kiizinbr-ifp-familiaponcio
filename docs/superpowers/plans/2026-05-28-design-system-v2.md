@@ -5,6 +5,7 @@
 **Goal:** Substituir o "Neve provisório" pela identidade visual oficial do Brandbook IFP — tokens canônicos em CSS variables, componentes universais reutilizáveis (Button/Input/Card/Badge/EmptyState), filtros temáticos canônicos por unidade no login, mascote do leão em momentos cerimoniais.
 
 **Architecture:**
+
 - Tokens canônicos vivem em `src/app/globals.css` como CSS custom properties (formato RGB triplet pra compatibilidade Tailwind 4: `var(--ifp-X)` consumido em utility classes via `[bg-[rgb(var(--ifp-X))]/55]`).
 - Componentes universais nascem em `src/components/ui/` — `button.tsx`, `input.tsx`, `card.tsx`, `badge.tsx`, `empty-state.tsx`. Cada um com 1 responsabilidade, props tipadas, sem dependências entre eles.
 - `lib/unidades.ts` recebe os hex canônicos do brandbook (substituindo os placeholders inventados em T1 da spec anterior). Campos renomeados: `corPrimariaPlaceholder → corFiltroLogin`, `fotoDronePlaceholder → fotoFundoLogin`.
@@ -34,6 +35,7 @@
 Substituir o mapeamento provisório "Neve" pelos tokens do brandbook (spec §4). Inclui paleta institucional completa, filtros temáticos por unidade (mapeamento aprovado), spacing/radius/shadows/transitions canônicos. Mantém `@font-face` Garet existente e `.ifp-card` (atualizada).
 
 **Files:**
+
 - Modify: `src/app/globals.css`
 
 ### Step 1.1: Substituir o bloco `:root` inteiro
@@ -46,33 +48,33 @@ Abrir `src/app/globals.css`. Substituir o bloco `:root { ... }` (linhas 22-39 do
 
   /* Laranja institucional (accent principal) */
   --ifp-orange-500: 255 119 46; /* #FF772E primary action */
-  --ifp-orange-700: 194 77 15;  /* #C24D0F primary hover/strong */
-  --ifp-orange-900: 117 44 5;   /* #752C05 text headlines, mascote */
+  --ifp-orange-700: 194 77 15; /* #C24D0F primary hover/strong */
+  --ifp-orange-900: 117 44 5; /* #752C05 text headlines, mascote */
 
   /* Teal institucional (success/cuidado/info) */
-  --ifp-teal-500: 16 194 187;   /* #10C2BB success state */
-  --ifp-teal-700: 0 117 113;    /* #007571 success strong */
+  --ifp-teal-500: 16 194 187; /* #10C2BB success state */
+  --ifp-teal-700: 0 117 113; /* #007571 success strong */
 
   /* Neutros (brandbook + complementos) */
-  --ifp-ink: 74 74 73;          /* #4A4A49 body text (cinza institucional) */
-  --ifp-canvas: 255 255 255;    /* #FFFFFF surface branco */
-  --ifp-muted: 107 107 107;     /* #6B6B6B secondary text */
-  --ifp-surface-50: 250 250 249;  /* #FAFAF9 page bg */
+  --ifp-ink: 74 74 73; /* #4A4A49 body text (cinza institucional) */
+  --ifp-canvas: 255 255 255; /* #FFFFFF surface branco */
+  --ifp-muted: 107 107 107; /* #6B6B6B secondary text */
+  --ifp-surface-50: 250 250 249; /* #FAFAF9 page bg */
   --ifp-surface-100: 244 244 242; /* #F4F4F2 card bg sutil */
   --ifp-surface-200: 229 228 225; /* #E5E4E1 borders/dividers */
 
   /* Estados especiais (não-brandbook) */
-  --ifp-danger: 186 26 26;      /* #BA1A1A erros */
-  --ifp-warning: 180 83 9;      /* #B45309 alertas */
+  --ifp-danger: 186 26 26; /* #BA1A1A erros */
+  --ifp-warning: 180 83 9; /* #B45309 alertas */
 
   /* ---- Filtros temáticos por unidade (overlay do login) ---- */
   /* Todos derivados do brandbook; mapeamento aprovado em 2026-05-28 */
-  --ifp-filter-medico: 0 117 113;       /* #007571 teal escuro — saúde */
+  --ifp-filter-medico: 0 117 113; /* #007571 teal escuro — saúde */
   --ifp-filter-capacitacao: 255 119 46; /* #FF772E laranja vibrante — aprendizado */
-  --ifp-filter-esportivo: 194 77 15;    /* #C24D0F laranja escuro — movimento */
-  --ifp-filter-recreativo: 16 194 187;  /* #10C2BB teal claro — alegria */
-  --ifp-filter-poncio: 117 44 5;        /* #752C05 marrom — sobriedade executiva */
-  --ifp-filter-social: 74 74 73;        /* #4A4A49 cinza — transversal */
+  --ifp-filter-esportivo: 194 77 15; /* #C24D0F laranja escuro — movimento */
+  --ifp-filter-recreativo: 16 194 187; /* #10C2BB teal claro — alegria */
+  --ifp-filter-poncio: 117 44 5; /* #752C05 marrom — sobriedade executiva */
+  --ifp-filter-social: 74 74 73; /* #4A4A49 cinza — transversal */
 
   /* Opacidade do overlay temático sobre a foto */
   --ifp-filter-opacity: 0.55;
@@ -138,9 +140,11 @@ wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm form
 Expected: tudo verde. 70/70 unit tests (não testamos CSS, só Tailwind+TS).
 
 Smoke browser (dev server precisa estar up):
+
 ```bash
 wsl -d Ubuntu -- bash -c "curl -s http://localhost:3000/ | grep -E '\\bIFP|Família Pôncio' | head -2"
 ```
+
 Expected: HTML com "Instituto Família Pôncio" — landing renderiza (visual ainda usa hex hardcoded; vai mudar em T10).
 
 ### Step 1.4: Commit
@@ -157,6 +161,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(tokens): paleta bran
 Substituir os hex placeholders que Claude inventou na T1 da spec anterior pelos canônicos do brandbook. Renomear `corPrimariaPlaceholder → corFiltroLogin` (genérico, sem o sufixo "placeholder") e `fotoDronePlaceholder → fotoFundoLogin` (já que pode ser foto drone OU foto institucional).
 
 **Files:**
+
 - Modify: `src/lib/unidades.ts`
 - Modify: `tests/unit/unidades.test.ts`
 
@@ -263,6 +268,7 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
 O teste atual valida `corPrimariaPlaceholder` e `gradientePlaceholder`. Atualizar os nomes:
 
 Localizar o bloco:
+
 ```ts
 it("UNIDADES tem entrada para cada slug com campos obrigatórios", () => {
   for (const slug of UNIDADE_SLUGS) {
@@ -277,6 +283,7 @@ it("UNIDADES tem entrada para cada slug com campos obrigatórios", () => {
 ```
 
 Substituir por:
+
 ```ts
 it("UNIDADES tem entrada para cada slug com campos obrigatórios", () => {
   for (const slug of UNIDADE_SLUGS) {
@@ -291,6 +298,7 @@ it("UNIDADES tem entrada para cada slug com campos obrigatórios", () => {
 ```
 
 Adicionar 1 teste novo confirmando o mapeamento canônico:
+
 ```ts
 it("filtros temáticos seguem mapeamento canônico do brandbook", () => {
   expect(UNIDADES.medico.corFiltroLogin).toBe("#007571");
@@ -332,12 +340,14 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(unidades): hex canon
 ## Task 3: `UnidadeLoginShell` — filtros canônicos + tokens
 
 Atualizar o shell de login pra usar:
+
 - Overlay com `corFiltroLogin` da unidade @ 55% opacidade
 - Card central com tokens (`--ifp-radius-xl`, `--ifp-shadow-xl`)
 - Nome da unidade em `Garet Bold` cor `--ifp-orange-900`
 - Mascote já está usando `/logo/ifp-symbol.png` (mantém)
 
 **Files:**
+
 - Modify: `src/components/unidade-login-shell.tsx`
 
 ### Step 3.1: Reescrever o componente
@@ -405,10 +415,7 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
       >
         <div className="flex flex-col items-center">
           <Image src="/logo/ifp-symbol.png" alt="IFP" width={56} height={56} priority />
-          <h1
-            className="mt-4 text-lg font-bold"
-            style={{ color: "rgb(var(--ifp-orange-900))" }}
-          >
+          <h1 className="mt-4 text-lg font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
             {unidade.nome}
           </h1>
           <p
@@ -512,6 +519,7 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
 ### Step 3.2: Smoke browser
 
 Dev server up:
+
 ```bash
 wsl -d Ubuntu -- bash -c "ss -tlnp 2>/dev/null | grep -E ':300[0-9]' || (cd /mnt/c/Users/Administrador/ifp-connect && nohup pnpm dev > /tmp/next-dev.log 2>&1 &)"
 sleep 30
@@ -541,6 +549,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(login-shell): tokens
 Componente Button reutilizável com 4 variants (primary/secondary/ghost/danger) e 3 sizes (sm/md/lg).
 
 **Files:**
+
 - Create: `src/components/ui/button.tsx`
 - Create: `tests/unit/button.test.tsx`
 
@@ -592,9 +601,11 @@ describe("Button", () => {
 ```
 
 > **Atenção:** se `@testing-library/react` não estiver instalado, instalar agora antes de continuar:
+>
 > ```bash
 > wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm add -D @testing-library/react @testing-library/jest-dom jsdom"
 > ```
+>
 > Adicionar `test: { environment: 'jsdom' }` em `vitest.config.ts` se ainda não tiver. Se a stack atual usar outro driver de teste de componente (ou nenhum), reportar `NEEDS_CONTEXT` em vez de instalar (controller decide).
 
 ### Step 4.2: Verify it fails
@@ -663,12 +674,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   };
 
   return (
-    <button
-      ref={ref}
-      style={composedStyle}
-      className={`font-bold ${className}`}
-      {...rest}
-    >
+    <button ref={ref} style={composedStyle} className={`font-bold ${className}`} {...rest}>
       {children}
     </button>
   );
@@ -698,6 +704,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(ui): Button universa
 Componente Input com label opcional, error state, useId pra acessibilidade.
 
 **Files:**
+
 - Create: `src/components/ui/input.tsx`
 - Create: `tests/unit/input.test.tsx`
 
@@ -773,9 +780,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(function Input(
     fontSize: "14px",
     color: "rgb(var(--ifp-ink))",
     backgroundColor: "rgb(var(--ifp-canvas))",
-    border: error
-      ? "1px solid rgb(var(--ifp-danger))"
-      : "1px solid rgb(var(--ifp-surface-200))",
+    border: error ? "1px solid rgb(var(--ifp-danger))" : "1px solid rgb(var(--ifp-surface-200))",
     borderRadius: "var(--ifp-radius-sm)",
     outline: "none",
     transition: "border-color var(--ifp-transition-fast)",
@@ -785,11 +790,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(function Input(
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label
-          htmlFor={id}
-          className="text-sm"
-          style={{ color: "rgb(var(--ifp-muted))" }}
-        >
+        <label htmlFor={id} className="text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
           {label}
         </label>
       )}
@@ -802,11 +803,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(function Input(
         {...rest}
       />
       {error && (
-        <span
-          role="alert"
-          className="text-xs"
-          style={{ color: "rgb(var(--ifp-danger))" }}
-        >
+        <span role="alert" className="text-xs" style={{ color: "rgb(var(--ifp-danger))" }}>
           {error}
         </span>
       )}
@@ -838,6 +835,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(ui): Input universal
 Card reutilizável com variant default e outline-accent (border-top colorida).
 
 **Files:**
+
 - Create: `src/components/ui/card.tsx`
 - Create: `tests/unit/card.test.tsx`
 
@@ -902,9 +900,7 @@ export function Card({ accent, hoverable, style, className = "", children, ...re
     boxShadow: "var(--ifp-shadow-sm)",
     padding: "var(--ifp-space-6)",
     transition: "box-shadow var(--ifp-transition-base), transform var(--ifp-transition-base)",
-    ...(accent
-      ? { borderTop: `4px solid rgb(var(--ifp-filter-${accent}))` }
-      : {}),
+    ...(accent ? { borderTop: `4px solid rgb(var(--ifp-filter-${accent}))` } : {}),
     ...style,
   };
 
@@ -941,6 +937,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(ui): Card universal 
 Badge com 5 variants (default/success/warning/danger/info).
 
 **Files:**
+
 - Create: `src/components/ui/badge.tsx`
 - Create: `tests/unit/badge.test.tsx`
 
@@ -1063,6 +1060,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(ui): Badge universal
 EmptyState com mascote, título, descrição, CTA opcional.
 
 **Files:**
+
 - Create: `src/components/ui/empty-state.tsx`
 - Create: `tests/unit/empty-state.test.tsx`
 
@@ -1086,13 +1084,7 @@ describe("EmptyState", () => {
   });
 
   it("renderiza CTA quando fornecido", () => {
-    render(
-      <EmptyState
-        titulo="x"
-        descricao="y"
-        cta={<button type="button">Ação</button>}
-      />,
-    );
+    render(<EmptyState titulo="x" descricao="y" cta={<button type="button">Ação</button>} />);
     expect(screen.getByRole("button", { name: "Ação" })).toBeInTheDocument();
   });
 });
@@ -1122,23 +1114,11 @@ export function EmptyState({ titulo, descricao, cta }: Props) {
       className="flex flex-col items-center justify-center text-center"
       style={{ padding: "var(--ifp-space-12) var(--ifp-space-4)" }}
     >
-      <Image
-        src="/logo/ifp-symbol.png"
-        alt="IFP"
-        width={96}
-        height={96}
-        style={{ opacity: 0.3 }}
-      />
-      <h3
-        className="mt-6 text-lg font-bold"
-        style={{ color: "rgb(var(--ifp-ink))" }}
-      >
+      <Image src="/logo/ifp-symbol.png" alt="IFP" width={96} height={96} style={{ opacity: 0.3 }} />
+      <h3 className="mt-6 text-lg font-bold" style={{ color: "rgb(var(--ifp-ink))" }}>
         {titulo}
       </h3>
-      <p
-        className="mt-2 max-w-xs text-sm"
-        style={{ color: "rgb(var(--ifp-muted))" }}
-      >
+      <p className="mt-2 max-w-xs text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
         {descricao}
       </p>
       {cta && <div style={{ marginTop: "var(--ifp-space-6)" }}>{cta}</div>}
@@ -1170,6 +1150,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(ui): EmptyState univ
 Atualizar `src/components/app-shell.tsx` pra usar os novos tokens (paleta brandbook + radius + shadow + Garet pesos). Substituir cores hex hardcoded.
 
 **Files:**
+
 - Modify: `src/components/app-shell.tsx`
 
 ### Step 9.1: Localizar usos de hex hardcoded
@@ -1179,6 +1160,7 @@ wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && grep -nE 
 ```
 
 Pontos a trocar:
+
 - `#b0a99c` (label "Unidades") → `var(--ifp-muted)`
 - `--ifp-ink` direto via Tailwind arbitrary → manter ✓
 - Sidebar bg `bg-white/70` → `bg-white/85` + `backdrop-blur-xl` (manter pattern, fica)
@@ -1242,6 +1224,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "refactor(app-shell): usar
 Atualizar `src/app/page.tsx` pra consumir tokens canônicos. Mascote 48×48 já está; manter. Substituir cores Tailwind genéricas (`text-stone-900`, `border-stone-200`) por tokens onde fizer sentido pro brand.
 
 **Files:**
+
 - Modify: `src/app/page.tsx`
 
 ### Step 10.1: Reescrever os pontos visuais
@@ -1369,6 +1352,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "refactor(landing): aplica
 Aplicar tokens nas 3 telas-placeholder e **remover o banner amarelo "visual provisório"** de todas.
 
 **Files:**
+
 - Modify: `src/app/[unidade]/page.tsx`
 - Modify: `src/app/social/page.tsx`
 - Modify: `src/app/poncio/page.tsx`
@@ -1397,16 +1381,10 @@ return (
         padding: "var(--ifp-space-8)",
       }}
     >
-      <p
-        className="text-xs uppercase tracking-wider"
-        style={{ color: "rgb(var(--ifp-muted))" }}
-      >
+      <p className="text-xs uppercase tracking-wider" style={{ color: "rgb(var(--ifp-muted))" }}>
         Unidade
       </p>
-      <h1
-        className="mt-2 text-3xl font-bold"
-        style={{ color: "rgb(var(--ifp-orange-900))" }}
-      >
+      <h1 className="mt-2 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
         {unidade.nome}
       </h1>
       <p className="mt-4" style={{ color: "rgb(var(--ifp-ink))" }}>
@@ -1422,6 +1400,7 @@ return (
 ### Step 11.2: `/social/page.tsx`
 
 Abrir. **Remover** o bloco do banner amarelo:
+
 ```tsx
 // REMOVER:
 <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -1445,25 +1424,17 @@ return (
     }}
   >
     <div className="mx-auto max-w-5xl">
-      <p
-        className="text-xs uppercase tracking-wider"
-        style={{ color: "rgb(var(--ifp-muted))" }}
-      >
+      <p className="text-xs uppercase tracking-wider" style={{ color: "rgb(var(--ifp-muted))" }}>
         Pôncio Executivo
       </p>
-      <h1
-        className="mt-2 text-3xl font-bold"
-        style={{ color: "rgb(var(--ifp-orange-900))" }}
-      >
+      <h1 className="mt-2 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
         Visão geral das unidades
       </h1>
       <p className="mt-2" style={{ color: "rgb(var(--ifp-ink))" }}>
         Bem-vindo, {session.user.name ?? session.user.email}.
       </p>
 
-      <div
-        className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2"
-      >
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {UNIDADES_OPERACIONAIS.map((slug) => {
           const u = UNIDADES[slug];
           return (
@@ -1481,10 +1452,7 @@ return (
               <h2 className="font-bold" style={{ color: "rgb(var(--ifp-ink))" }}>
                 {u.nome}
               </h2>
-              <p
-                className="mt-2 text-sm"
-                style={{ color: "rgb(var(--ifp-muted))" }}
-              >
+              <p className="mt-2 text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
                 Indicadores serão exibidos aqui.
               </p>
             </div>
@@ -1557,6 +1525,7 @@ wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm form
 Expected: tudo verde. ~80+ unit tests (era 70; T2 adicionou 1; T4-T8 adicionaram ~22 testes de componentes).
 
 E2e:
+
 ```bash
 wsl -d Ubuntu -- bash -c "pkill -f 'next dev' 2>/dev/null; pkill -f 'next-server' 2>/dev/null; sleep 2"
 wsl -d Ubuntu -- bash -c "cd /mnt/c/Users/Administrador/ifp-connect && pnpm build && pnpm test:e2e -- rbac-v2-multitenant"
@@ -1590,31 +1559,32 @@ Expected: working tree clean, branch in sync com origin/main.
 
 **1. Spec coverage:**
 
-| Seção da spec | Task que cobre |
-|---|---|
-| §1 Motivação | (header do plano) |
-| §2 Decisões fechadas | implícito em todas |
-| §3 Mapeamento filtros | T2 (lib/unidades.ts) + T1 (globals filter vars) |
-| §4.1 Paleta institucional | T1 |
-| §4.2 Filtros temáticos | T1 + T2 |
-| §4.3 Tipografia Garet | T1 (font-face existente) + Step 9.2 (Garet Heavy no AppShell) |
-| §4.4 Spacing | T1 |
-| §4.5 Radius | T1 |
-| §4.6 Shadows | T1 |
-| §4.7 Transitions | T1 |
-| §5.1 Botão variants | T4 |
-| §5.2 Input/Select/Textarea | T5 (Input). Select/Textarea ficam de fora desta entrega — adicionar no roadmap futuro. |
-| §5.3 Card | T6 |
-| §5.4 Badge | T7 |
-| §5.5 AppShell | T9 |
-| §5.6 UnidadeLoginShell | T3 |
-| §5.7 EmptyState | T8 |
+| Seção da spec                | Task que cobre                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| §1 Motivação                 | (header do plano)                                                                                                               |
+| §2 Decisões fechadas         | implícito em todas                                                                                                              |
+| §3 Mapeamento filtros        | T2 (lib/unidades.ts) + T1 (globals filter vars)                                                                                 |
+| §4.1 Paleta institucional    | T1                                                                                                                              |
+| §4.2 Filtros temáticos       | T1 + T2                                                                                                                         |
+| §4.3 Tipografia Garet        | T1 (font-face existente) + Step 9.2 (Garet Heavy no AppShell)                                                                   |
+| §4.4 Spacing                 | T1                                                                                                                              |
+| §4.5 Radius                  | T1                                                                                                                              |
+| §4.6 Shadows                 | T1                                                                                                                              |
+| §4.7 Transitions             | T1                                                                                                                              |
+| §5.1 Botão variants          | T4                                                                                                                              |
+| §5.2 Input/Select/Textarea   | T5 (Input). Select/Textarea ficam de fora desta entrega — adicionar no roadmap futuro.                                          |
+| §5.3 Card                    | T6                                                                                                                              |
+| §5.4 Badge                   | T7                                                                                                                              |
+| §5.5 AppShell                | T9                                                                                                                              |
+| §5.6 UnidadeLoginShell       | T3                                                                                                                              |
+| §5.7 EmptyState              | T8                                                                                                                              |
 | §6 Mascote (usos permitidos) | T8 (EmptyState), Step 10.1 (landing), T3 (login). Telas 404/500 + certificado ficam pra spec futura — listadas em §9 deferidas. |
-| §7 Verticalização | Esta spec NÃO entrega (§7 explícito). Sem task. |
-| §8 Telas que migram | T1, T2, T3, T9, T10, T11 |
-| §10 Critérios sucesso | T12 final + cada task individual |
+| §7 Verticalização            | Esta spec NÃO entrega (§7 explícito). Sem task.                                                                                 |
+| §8 Telas que migram          | T1, T2, T3, T9, T10, T11                                                                                                        |
+| §10 Critérios sucesso        | T12 final + cada task individual                                                                                                |
 
 **Gaps assumidos como aceitáveis:**
+
 - Select/Textarea components não criados (Input cobre 80% dos casos)
 - Página 404/500 com mascote — fora desta entrega
 - Certificado cerimonial com mascote — fora desta entrega (depende de Plano Capacitação)
@@ -1622,6 +1592,7 @@ Expected: working tree clean, branch in sync com origin/main.
 **2. Placeholder scan:** Não há "TBD", "TODO", "implementar depois". Os comentários `// TODO operacional` na spec/seed são pra Erick (pegar fontes Garet, fotos drone) — operacionais, não plan failures.
 
 **3. Type consistency:**
+
 - `corFiltroLogin` consistente em T2, T3, T10, T11 ✓
 - `fotoFundoLogin` consistente em T2, T3 ✓
 - `gradienteFallback` consistente em T2, T3 ✓

@@ -77,7 +77,7 @@ export default async function CidadaosPage({
         </div>
         <Link
           href={"/app/cidadaos/novo" as Route}
-          className="rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          className="rounded bg-[rgb(var(--ifp-orange-500))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
         >
           + Novo cidadão
         </Link>
@@ -94,7 +94,7 @@ export default async function CidadaosPage({
               name="q"
               defaultValue={params.q ?? ""}
               placeholder="Ex: Maria Silva ou 123.456.789-09"
-              className="w-full rounded border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
+              className="w-full rounded border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
             />
           </div>
           <div>
@@ -181,7 +181,7 @@ export default async function CidadaosPage({
                     <td className="px-5 py-3">
                       <Link
                         href={`/app/cidadaos/${c.id}` as Route}
-                        className="font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
+                        className="font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
                       >
                         {c.nomeCompleto}
                       </Link>
@@ -201,7 +201,7 @@ export default async function CidadaosPage({
                     <td className="px-5 py-3">
                       <span
                         className="rounded px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ background: `rgb(var(--ifp-${unit}))` }}
+                        style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
                       >
                         {UNIT_LABELS[unit]}
                       </span>

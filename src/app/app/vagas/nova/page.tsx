@@ -29,7 +29,7 @@ export default async function NovaVagaPage() {
       <header className="mb-6">
         <Link
           href={"/app/vagas" as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
         >
           ← Voltar para Vagas
         </Link>

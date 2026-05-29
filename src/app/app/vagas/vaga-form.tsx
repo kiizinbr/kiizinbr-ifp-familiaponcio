@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { criarVagaAndRedirect } from "./actions";
 
 const INPUT =
-  "w-full rounded-lg border border-black/10 px-3.5 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20";
+  "w-full rounded-lg border border-black/10 px-3.5 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20";
 const LABEL =
   "mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase";
 
@@ -127,7 +127,7 @@ export function VagaForm({ unidades }: { unidades: { value: string; label: strin
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-[rgb(var(--ifp-laranja))] px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
+        className="rounded-full bg-[rgb(var(--ifp-orange-500))] px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
       >
         {pending ? "Criando…" : "Criar vaga"}
       </button>

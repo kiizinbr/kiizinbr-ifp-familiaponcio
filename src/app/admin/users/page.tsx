@@ -74,7 +74,7 @@ export default async function AdminUsersPage() {
                     <div className="font-medium text-[rgb(var(--ifp-ink))]">
                       {user.name ?? "—"}
                       {isCurrentUser && (
-                        <span className="ml-2 rounded bg-[rgb(var(--ifp-laranja))]/10 px-1.5 py-0.5 text-xs font-medium text-[rgb(var(--ifp-laranja))]">
+                        <span className="ml-2 rounded bg-[rgb(var(--ifp-orange-500))]/10 px-1.5 py-0.5 text-xs font-medium text-[rgb(var(--ifp-orange-500))]">
                           você
                         </span>
                       )}
@@ -104,7 +104,7 @@ export default async function AdminUsersPage() {
                           <span
                             key={unit}
                             className={`rounded px-2 py-0.5 text-xs font-medium text-white`}
-                            style={{ background: `rgb(var(--ifp-${unit}))` }}
+                            style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
                           >
                             {UNIT_LABELS[unit]}
                             {primaryScope === unit && " ★"}

@@ -19,7 +19,7 @@ function formatDateTime(date: Date): string {
 const DOT_COLOR: Record<HistoryEventAction, string> = {
   ficha_created: "bg-emerald-500",
   ficha_updated: "bg-sky-500",
-  anexo_uploaded: "bg-[rgb(var(--ifp-laranja))]",
+  anexo_uploaded: "bg-[rgb(var(--ifp-orange-500))]",
   anexo_removed: "bg-red-500",
   triagem_aberta: "bg-violet-500",
   triagem_concluida: "bg-violet-700",
@@ -48,7 +48,7 @@ export default async function CidadaoHistoricoPage({
       <header className="mb-6">
         <Link
           href={`/app/cidadaos/${cidadao.id}` as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
         >
           ← Voltar para a Ficha
         </Link>

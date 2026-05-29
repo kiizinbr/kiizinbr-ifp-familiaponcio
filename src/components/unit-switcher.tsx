@@ -40,7 +40,7 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
         className="flex w-full items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 text-sm font-semibold text-[#6b6459] transition hover:bg-[#f3f3f5]"
       >
         <span className="flex items-center gap-3">
-          <span className="h-[7px] w-[7px] rounded-full bg-[rgb(var(--ifp-laranja))]" />
+          <span className="h-[7px] w-[7px] rounded-full bg-[rgb(var(--ifp-orange-500))]" />
           {activeLabel}
         </span>
         <svg
@@ -69,7 +69,7 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
                 onClick={() => setOpen(false)}
                 className={`block px-3 py-2 text-sm transition ${
                   isActive
-                    ? "bg-[rgb(var(--ifp-laranja))]/10 font-medium text-[rgb(var(--ifp-laranja))]"
+                    ? "bg-[rgb(var(--ifp-orange-500))]/10 font-medium text-[rgb(var(--ifp-orange-500))]"
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
@@ -83,7 +83,7 @@ export function UnitSwitcher({ roles }: { roles: RoleAssignment[] }) {
             onClick={() => setOpen(false)}
             className={`block px-3 py-2 text-sm transition ${
               !activeSlug
-                ? "bg-[rgb(var(--ifp-laranja))]/10 font-medium text-[rgb(var(--ifp-laranja))]"
+                ? "bg-[rgb(var(--ifp-orange-500))]/10 font-medium text-[rgb(var(--ifp-orange-500))]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >

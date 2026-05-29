@@ -129,13 +129,13 @@ function TriagemItem({
     <li className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
       <span
         className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full"
-        style={{ background: `rgb(var(--ifp-${unit}))` }}
+        style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
       />
       <div className="flex-1">
         <div className="flex items-center justify-between gap-2">
           <Link
             href={`/app/cidadaos/${cidadaoId}/triagem` as Route}
-            className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
+            className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
           >
             {nome}
           </Link>
@@ -167,7 +167,7 @@ function UnitDistribution({
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded bg-slate-100">
         <div
           className="h-full rounded"
-          style={{ width: `${percent}%`, background: `rgb(var(--ifp-${unit}))` }}
+          style={{ width: `${percent}%`, background: `rgb(var(--ifp-filter-${unit}))` }}
         />
       </div>
     </li>

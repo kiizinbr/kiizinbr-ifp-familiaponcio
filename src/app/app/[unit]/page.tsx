@@ -197,7 +197,7 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
               >
                 <Link
                   href={`/app/cidadaos/${e.triagem.cidadao.id}` as Route}
-                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
+                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
                 >
                   {e.triagem.cidadao.nomeCompleto}
                 </Link>
@@ -233,7 +233,7 @@ function Panel({
       <div className="flex items-center gap-2">
         <span
           className="inline-block h-1 w-6 rounded"
-          style={{ background: `rgb(var(--ifp-${accent}))` }}
+          style={{ background: `rgb(var(--ifp-filter-${accent}))` }}
         />
         <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
       </div>
@@ -257,7 +257,7 @@ function AgendaItem({
     <li className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
       <span
         className="rounded px-2 py-0.5 text-xs font-medium text-white tabular-nums"
-        style={{ background: `rgb(var(--ifp-${accent}))` }}
+        style={{ background: `rgb(var(--ifp-filter-${accent}))` }}
       >
         {hora}
       </span>
@@ -285,7 +285,7 @@ function HighlightItem({
       <div className="flex items-start gap-2">
         <span
           className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full"
-          style={{ background: `rgb(var(--ifp-${accent}))` }}
+          style={{ background: `rgb(var(--ifp-filter-${accent}))` }}
         />
         <div>
           <p className="text-sm font-medium text-[rgb(var(--ifp-ink))]">{titulo}</p>

@@ -10,7 +10,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded bg-[rgb(var(--ifp-laranja))] py-2 text-white transition disabled:opacity-60"
+      className="w-full rounded bg-[rgb(var(--ifp-orange-500))] py-2 text-white transition disabled:opacity-60"
     >
       {pending ? "Entrando..." : "Entrar"}
     </button>
@@ -29,10 +29,10 @@ export function LoginForm({ error }: { error?: string }) {
           priority
         />
         <div className="mt-4 flex h-1 w-20 overflow-hidden rounded">
-          <span className="flex-1 bg-[rgb(var(--ifp-medico))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-capacitacao))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-esportivo))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-recreativo))]" />
+          <span className="flex-1 bg-[rgb(var(--ifp-filter-medico))]" />
+          <span className="flex-1 bg-[rgb(var(--ifp-filter-capacitacao))]" />
+          <span className="flex-1 bg-[rgb(var(--ifp-filter-esportivo))]" />
+          <span className="flex-1 bg-[rgb(var(--ifp-filter-recreativo))]" />
         </div>
         <p className="mt-3 text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
           IFP Connect
@@ -55,7 +55,7 @@ export function LoginForm({ error }: { error?: string }) {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
+          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
         />
       </label>
       <label className="mb-6 block">
@@ -65,7 +65,7 @@ export function LoginForm({ error }: { error?: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-laranja))] focus:outline-none"
+          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
         />
       </label>
 

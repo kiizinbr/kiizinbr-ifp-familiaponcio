@@ -78,7 +78,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
       <header className="mb-6">
         <Link
           href={"/app/cidadaos" as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
         >
           ← Voltar para Cidadãos
         </Link>
@@ -107,7 +107,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
               <span>•</span>
               <span
                 className="rounded px-2 py-0.5 text-xs font-medium text-white"
-                style={{ background: `rgb(var(--ifp-${unit}))` }}
+                style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
               >
                 {UNIT_LABELS[unit]}
               </span>
@@ -170,7 +170,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
                     <div className="flex items-center gap-2 text-xs text-[rgb(var(--ifp-muted))]">
                       <span className="rounded bg-white px-2 py-0.5 capitalize">{end.tipo}</span>
                       {end.isPrincipal && (
-                        <span className="rounded bg-[rgb(var(--ifp-laranja))]/10 px-2 py-0.5 text-[rgb(var(--ifp-laranja))]">
+                        <span className="rounded bg-[rgb(var(--ifp-orange-500))]/10 px-2 py-0.5 text-[rgb(var(--ifp-orange-500))]">
                           Principal
                         </span>
                       )}
@@ -284,7 +284,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
             <Section title="Triagem social" hint="Entrevista e elegibilidade por unidade">
               <Link
                 href={`/app/cidadaos/${cidadao.id}/triagem` as Route}
-                className="text-sm font-medium text-[rgb(var(--ifp-laranja))] hover:underline"
+                className="text-sm font-medium text-[rgb(var(--ifp-orange-500))] hover:underline"
               >
                 Abrir / ver triagem →
               </Link>
@@ -294,7 +294,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           <Section title="Histórico" hint="Eventos de criação, edição e anexos desta ficha">
             <Link
               href={`/app/cidadaos/${cidadao.id}/historico` as Route}
-              className="text-sm font-medium text-[rgb(var(--ifp-laranja))] hover:underline"
+              className="text-sm font-medium text-[rgb(var(--ifp-orange-500))] hover:underline"
             >
               Ver histórico completo →
             </Link>

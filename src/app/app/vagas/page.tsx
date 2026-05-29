@@ -41,7 +41,7 @@ export default async function VagasPage() {
         {podeCriar && (
           <Link
             href={"/app/vagas/nova" as Route}
-            className="rounded-full bg-[rgb(var(--ifp-laranja))] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+            className="rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
           >
             + Nova vaga
           </Link>
@@ -65,7 +65,7 @@ export default async function VagasPage() {
                 <div className="flex items-center justify-between gap-2">
                   <span
                     className="h-2 w-8 rounded"
-                    style={{ background: `rgb(var(--ifp-${v.unidade}))` }}
+                    style={{ background: `rgb(var(--ifp-filter-${v.unidade}))` }}
                   />
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[v.status]}`}

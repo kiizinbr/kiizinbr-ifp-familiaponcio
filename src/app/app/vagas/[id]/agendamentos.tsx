@@ -24,7 +24,7 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const INPUT =
-  "w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none transition focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20";
+  "w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none transition focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20";
 
 function formatHorario(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -112,7 +112,7 @@ function AgendamentoRow({ ag, podeAgendar }: { ag: AgendamentoView; podeAgendar:
       {ag.cidadao ? (
         <Link
           href={`/app/cidadaos/${ag.cidadao.id}` as Route}
-          className="text-xs font-semibold text-[rgb(var(--ifp-laranja))] hover:underline"
+          className="text-xs font-semibold text-[rgb(var(--ifp-orange-500))] hover:underline"
         >
           Ver ficha →
         </Link>
@@ -122,7 +122,7 @@ function AgendamentoRow({ ag, podeAgendar }: { ag: AgendamentoView; podeAgendar:
             href={
               `/app/cidadaos/novo?nome=${encodeURIComponent(ag.nomeInteressado)}&tel=${encodeURIComponent(ag.telefone)}` as Route
             }
-            className="text-xs font-semibold text-[rgb(var(--ifp-laranja))] hover:underline"
+            className="text-xs font-semibold text-[rgb(var(--ifp-orange-500))] hover:underline"
           >
             Criar ficha →
           </Link>
@@ -150,7 +150,7 @@ function ActionBtn({
       disabled={pending}
       className={`rounded-full px-3 py-1 text-xs font-semibold transition disabled:opacity-50 ${
         primary
-          ? "bg-[rgb(var(--ifp-laranja))] text-white hover:-translate-y-0.5"
+          ? "bg-[rgb(var(--ifp-orange-500))] text-white hover:-translate-y-0.5"
           : "border border-black/10 text-[rgb(var(--ifp-ink))] hover:bg-[#f3f3f5]"
       }`}
     >
@@ -231,7 +231,7 @@ function NovoAgendamentoForm({ vagaId }: { vagaId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-[rgb(var(--ifp-laranja))] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
+        className="w-full rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
       >
         {pending ? "Agendando…" : "Agendar entrevista"}
       </button>

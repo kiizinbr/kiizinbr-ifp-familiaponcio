@@ -45,7 +45,7 @@ export default async function TriagemPage({ params }: { params: Promise<{ id: st
       <header className="mb-6">
         <Link
           href={`/app/cidadaos/${cidadao.id}` as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-laranja))]"
+          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
         >
           ← Voltar para a Ficha
         </Link>

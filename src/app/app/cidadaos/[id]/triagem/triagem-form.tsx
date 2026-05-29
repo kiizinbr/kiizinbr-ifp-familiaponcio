@@ -56,7 +56,7 @@ export function AbrirTriagemButton({ cidadaoId }: { cidadaoId: string }) {
             else setErro(r.error);
           })
         }
-        className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--ifp-laranja))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-laranja))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-orange-500))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
       >
         {pending ? "Abrindo…" : "Abrir triagem"}
         <span aria-hidden>→</span>
@@ -86,7 +86,7 @@ function Jornada({ triagem }: { triagem: TriagemData }) {
           <span
             className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-2 transition ${
               p.done
-                ? "bg-[rgb(var(--ifp-laranja))] text-white ring-[rgb(var(--ifp-laranja))]"
+                ? "bg-[rgb(var(--ifp-orange-500))] text-white ring-[rgb(var(--ifp-orange-500))]"
                 : "bg-white text-slate-400 ring-slate-200"
             }`}
           >
@@ -97,7 +97,7 @@ function Jornada({ triagem }: { triagem: TriagemData }) {
           </span>
           {i < passos.length - 1 && (
             <span
-              className={`mx-1 h-px flex-1 ${passos[i + 1]?.done ? "bg-[rgb(var(--ifp-laranja))]" : "bg-slate-200"}`}
+              className={`mx-1 h-px flex-1 ${passos[i + 1]?.done ? "bg-[rgb(var(--ifp-orange-500))]" : "bg-slate-200"}`}
             />
           )}
         </li>
@@ -137,7 +137,7 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20 disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))]";
+    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20 disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))]";
 
   return (
     <div className="space-y-6">
@@ -146,9 +146,9 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-[rgb(var(--ifp-laranja))]/8 to-transparent px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-[rgb(var(--ifp-orange-500))]/8 to-transparent px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="h-8 w-1 rounded-full bg-[rgb(var(--ifp-laranja))]" aria-hidden />
+            <span className="h-8 w-1 rounded-full bg-[rgb(var(--ifp-orange-500))]" aria-hidden />
             <h2 className="text-base font-semibold tracking-tight text-[rgb(var(--ifp-ink))]">
               Entrevista
             </h2>
@@ -227,7 +227,7 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
               <button
                 onClick={concluir}
                 disabled={closing}
-                className="rounded-full bg-[rgb(var(--ifp-laranja))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-laranja))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
+                className="rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-orange-500))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
               >
                 {closing ? "Concluindo…" : "Concluir triagem"}
               </button>
@@ -308,12 +308,12 @@ function ElegibilidadeRow({
     >
       <span
         className="absolute top-0 bottom-0 left-0 w-1"
-        style={{ background: `rgb(var(--ifp-${unidadeValue}))` }}
+        style={{ background: `rgb(var(--ifp-filter-${unidadeValue}))` }}
         aria-hidden
       />
       <span
         className="h-2.5 w-2.5 shrink-0 rounded-full"
-        style={{ background: `rgb(var(--ifp-${unidadeValue}))` }}
+        style={{ background: `rgb(var(--ifp-filter-${unidadeValue}))` }}
         aria-hidden
       />
       <span className="w-40 text-sm font-semibold text-slate-800">{unidadeLabel}</span>
@@ -326,7 +326,7 @@ function ElegibilidadeRow({
         aria-label={`Status ${unidadeLabel}`}
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 outline-none focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20"
+        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 outline-none focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20"
       >
         {STATUS_OPS.map((o) => (
           <option key={o.value} value={o.value}>
@@ -339,7 +339,7 @@ function ElegibilidadeRow({
         value={motivo}
         onChange={(e) => setMotivo(e.target.value)}
         placeholder="Motivo (opcional)"
-        className="min-w-[160px] flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none placeholder:text-slate-400 focus:border-[rgb(var(--ifp-laranja))] focus:ring-2 focus:ring-[rgb(var(--ifp-laranja))]/20"
+        className="min-w-[160px] flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none placeholder:text-slate-400 focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20"
       />
       <button
         onClick={salvar}

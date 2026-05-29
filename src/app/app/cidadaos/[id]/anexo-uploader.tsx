@@ -133,7 +133,7 @@ export function AnexoUploader({
     <div className="space-y-4">
       {podeEditar && (
         <div
-          className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-[rgb(var(--ifp-laranja))]"
+          className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-[rgb(var(--ifp-orange-500))]"
           onDragOver={(e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = "copy";
@@ -155,7 +155,7 @@ export function AnexoUploader({
           />
           <label
             htmlFor="anexo-input"
-            className={`inline-block cursor-pointer rounded bg-[rgb(var(--ifp-laranja))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 ${
+            className={`inline-block cursor-pointer rounded bg-[rgb(var(--ifp-orange-500))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 ${
               uploading ? "pointer-events-none opacity-60" : ""
             }`}
           >
@@ -167,7 +167,7 @@ export function AnexoUploader({
           {uploading && progress > 0 && (
             <div className="mt-3 h-1.5 w-full overflow-hidden rounded bg-slate-200">
               <div
-                className="h-full rounded bg-[rgb(var(--ifp-laranja))] transition-all"
+                className="h-full rounded bg-[rgb(var(--ifp-orange-500))] transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>

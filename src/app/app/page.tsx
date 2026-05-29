@@ -125,7 +125,7 @@ export default async function GlobalDashboard() {
               >
                 <Link
                   href={`/app/cidadaos/${t.cidadao.id}/triagem` as Route}
-                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-laranja))]"
+                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
                 >
                   {t.cidadao.nomeCompleto}
                 </Link>
@@ -146,7 +146,7 @@ export default async function GlobalDashboard() {
                 key={a.id}
                 className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
               >
-                <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-[rgb(var(--ifp-laranja))]" />
+                <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-[rgb(var(--ifp-orange-500))]" />
                 <div className="flex-1 text-sm">
                   <span className="font-medium text-[rgb(var(--ifp-ink))]">
                     {a.user?.name ?? a.user?.email ?? "Sistema"}
@@ -183,7 +183,7 @@ function UnitSummary({
       href={href as Route}
       className="block rounded-lg border bg-white p-4 transition hover:shadow-md"
     >
-      <div className={`h-1 w-8 rounded bg-[rgb(var(--ifp-${color}))]`} />
+      <div className={`h-1 w-8 rounded bg-[rgb(var(--ifp-filter-${color}))]`} />
       <h3 className="mt-3 text-sm font-medium text-[rgb(var(--ifp-ink))]">{name}</h3>
       <div className="mt-3">
         <p className="text-xs text-[rgb(var(--ifp-muted))]">Cidadãos ativos</p>
