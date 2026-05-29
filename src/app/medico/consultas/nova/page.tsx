@@ -68,14 +68,17 @@ export default async function NovaConsultaPage({
 
   // ---- Step 1: buscar cidadão ----
   if (!sp.cidadaoId) {
+    // CPF só entra no OR se a query tiver dígitos: senão `contains: ""` vira
+    // LIKE '%%' e casa TODOS os registros, quebrando a busca por nome.
+    const digits = sp.q?.replace(/\D/g, "") ?? "";
     const matches = sp.q
       ? await db.cidadao.findMany({
           where: {
             deletedAt: null, // soft-delete real (NÃO existe status "deletado")
             OR: [
               { nomeCompleto: { contains: sp.q, mode: "insensitive" } },
-              { cpf: { contains: sp.q.replace(/\D/g, "") } },
               { telefonePrincipal: { contains: sp.q } },
+              ...(digits ? [{ cpf: { contains: digits } }] : []),
             ],
           },
           take: 8,
