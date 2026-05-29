@@ -1,3 +1,5 @@
+import { db } from "@/lib/db";
+
 export interface TemplateInput {
   profissionalId: string;
   especialidadeId: string;
@@ -77,4 +79,54 @@ export function gerarSlots(tmpl: TemplateInput, opts: GerarSlotsOpts = {}): Slot
   }
 
   return slots;
+}
+
+// ============================================================================
+// Reserva transacional anti-overbooking (F1.B.1 T4)
+// ============================================================================
+
+export class SlotIndisponivelError extends Error {
+  constructor(public readonly slotId: string) {
+    super(`Slot ${slotId} não está mais disponível`);
+    this.name = "SlotIndisponivelError";
+  }
+}
+
+export interface ReservarSlotInput {
+  slotId: string;
+  cidadaoId: string;
+  profissionalId: string;
+  especialidadeId: string;
+  createdBy: string;
+  observacoesAgendamento?: string;
+  origemTriagemId?: string;
+}
+
+/**
+ * Reserva um slot atomicamente. Usa updateMany com filtro de status pra evitar
+ * race condition: só atualiza se ainda estava "disponivel". Se 0 linhas → outro
+ * já pegou → lança SlotIndisponivelError.
+ */
+export async function reservarSlot(input: ReservarSlotInput) {
+  return db.$transaction(async (tx) => {
+    const upd = await tx.slot.updateMany({
+      where: { id: input.slotId, status: "disponivel" },
+      data: { status: "reservado" },
+    });
+    if (upd.count === 0) {
+      throw new SlotIndisponivelError(input.slotId);
+    }
+    return tx.consulta.create({
+      data: {
+        slotId: input.slotId,
+        cidadaoId: input.cidadaoId,
+        profissionalId: input.profissionalId,
+        especialidadeId: input.especialidadeId,
+        createdBy: input.createdBy,
+        observacoesAgendamento: input.observacoesAgendamento,
+        origemTriagemId: input.origemTriagemId,
+        status: "agendada",
+      },
+    });
+  });
 }

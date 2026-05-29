@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { gerarSlots, type TemplateInput } from "@/lib/medico/agenda";
+import { db } from "@/lib/db";
+import {
+  gerarSlots,
+  reservarSlot,
+  SlotIndisponivelError,
+  type TemplateInput,
+} from "@/lib/medico/agenda";
 
 const baseDate = new Date("2026-06-01T00:00:00Z"); // segunda-feira
 
@@ -72,5 +78,92 @@ describe("gerarSlots", () => {
     const slots = gerarSlots(tmpl, { limiteSuperior: limite });
     expect(slots.every((s) => s.dataHoraInicio.getTime() < limite.getTime())).toBe(true);
     expect(slots.length).toBeGreaterThan(0);
+  });
+});
+
+describe("reservarSlot (integration)", () => {
+  async function fixtures() {
+    const prof = await db.profissional.findFirstOrThrow({
+      where: { nomeExibicao: "Dr. João Silva" },
+    });
+    const esp = await db.especialidade.findUniqueOrThrow({ where: { nome: "Clínico Geral" } });
+    const cid = await db.cidadao.findFirstOrThrow({ where: { unitIdOrigem: "medico" } });
+    const slot = await db.slot.findFirstOrThrow({
+      where: { profissionalId: prof.id, status: "disponivel" },
+      orderBy: { dataHoraInicio: "asc" },
+    });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+    return { prof, esp, cid, slot, erick };
+  }
+
+  async function reabrirSlot(slotId: string) {
+    await db.consulta.deleteMany({ where: { slotId } });
+    await db.slot.update({ where: { id: slotId }, data: { status: "disponivel" } });
+  }
+
+  it("reserva slot disponível, cria Consulta e marca slot.status=reservado", async () => {
+    const { prof, esp, cid, slot, erick } = await fixtures();
+    await reabrirSlot(slot.id);
+
+    const consulta = await reservarSlot({
+      slotId: slot.id,
+      cidadaoId: cid.id,
+      profissionalId: prof.id,
+      especialidadeId: esp.id,
+      createdBy: erick.id,
+    });
+
+    expect(consulta.status).toBe("agendada");
+    const slotPos = await db.slot.findUniqueOrThrow({ where: { id: slot.id } });
+    expect(slotPos.status).toBe("reservado");
+
+    await reabrirSlot(slot.id);
+  });
+
+  it("lança SlotIndisponivelError quando outro processo já reservou", async () => {
+    const { prof, esp, cid, slot, erick } = await fixtures();
+    await reabrirSlot(slot.id);
+    await db.slot.update({ where: { id: slot.id }, data: { status: "reservado" } });
+
+    await expect(
+      reservarSlot({
+        slotId: slot.id,
+        cidadaoId: cid.id,
+        profissionalId: prof.id,
+        especialidadeId: esp.id,
+        createdBy: erick.id,
+      }),
+    ).rejects.toThrow(SlotIndisponivelError);
+
+    await reabrirSlot(slot.id);
+  });
+
+  it("é seguro contra concorrência (race condition simulada)", async () => {
+    const { prof, esp, cid, slot, erick } = await fixtures();
+    await reabrirSlot(slot.id);
+
+    const args = {
+      slotId: slot.id,
+      cidadaoId: cid.id,
+      profissionalId: prof.id,
+      especialidadeId: esp.id,
+      createdBy: erick.id,
+    };
+
+    const results = await Promise.allSettled([
+      reservarSlot(args),
+      reservarSlot(args),
+      reservarSlot(args),
+      reservarSlot(args),
+      reservarSlot(args),
+    ]);
+    const sucessos = results.filter((r) => r.status === "fulfilled");
+    const falhas = results.filter((r) => r.status === "rejected");
+    expect(sucessos).toHaveLength(1);
+    expect(falhas).toHaveLength(4);
+
+    await reabrirSlot(slot.id);
   });
 });
