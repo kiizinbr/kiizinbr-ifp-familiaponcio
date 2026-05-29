@@ -16,28 +16,28 @@ F1.B.1 é o **primeiro sub-módulo** do vertical Médico: a infraestrutura de **
 
 ## 2. Decisões fechadas no brainstorm
 
-| # | Pergunta | Decisão |
-|---|---|---|
-| 1 | Quantos profissionais? | **Multi-especialidade** |
-| 2 | Especialidades hardcoded ou cadastráveis? | **Cadastráveis** por super_admin (lista pode crescer: clínico/enfermagem/pediatria/ginecologia/odonto/psicologia/fisio/fono/endo/neuro + futuras) |
-| 3 | Profissional = User? | **Sim** — faz login, vê própria agenda, vai atender (F1.B.2 prontuário) |
-| 4 | Quem configura agenda do profissional? | **Self-service**: profissional configura template recorrente próprio; gestor (Raquel) e super_admin auditam |
-| 5 | Duração da consulta | Profissional define no setup do template (30/45/50/60min) |
-| 6 | Modelo de dados | **Novos modelos** (Especialidade, Profissional, AgendaTemplate, Slot, Consulta) — Vaga/Agendamento social legacy intactos |
+| #   | Pergunta                                  | Decisão                                                                                                                                           |
+| --- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Quantos profissionais?                    | **Multi-especialidade**                                                                                                                           |
+| 2   | Especialidades hardcoded ou cadastráveis? | **Cadastráveis** por super_admin (lista pode crescer: clínico/enfermagem/pediatria/ginecologia/odonto/psicologia/fisio/fono/endo/neuro + futuras) |
+| 3   | Profissional = User?                      | **Sim** — faz login, vê própria agenda, vai atender (F1.B.2 prontuário)                                                                           |
+| 4   | Quem configura agenda do profissional?    | **Self-service**: profissional configura template recorrente próprio; gestor (Raquel) e super_admin auditam                                       |
+| 5   | Duração da consulta                       | Profissional define no setup do template (30/45/50/60min)                                                                                         |
+| 6   | Modelo de dados                           | **Novos modelos** (Especialidade, Profissional, AgendaTemplate, Slot, Consulta) — Vaga/Agendamento social legacy intactos                         |
 
 ## 3. Defaults assumidos pras decisões secundárias
 
 Documentados aqui pra ficar explícito; podem ser refinados sem mudar a spec:
 
-| Item | Default |
-|---|---|
-| Quem marca primeira consulta? | Callcenter Maria (`recepcao:medico`) via `/medico/consultas/nova` |
-| Quem marca follow-up? | Profissional ao fim da consulta (F1.B.2 entrega isso); por ora também pela Maria |
-| Página pública de auto-agendamento | Fora do escopo — Fase 2 do roadmap (Funil) |
-| Confirmação automática WhatsApp | Fora do escopo — Fase 3 (depende WhatsApp Business API) |
-| Encaixe/emergência | Profissional bloqueia/desbloqueia slot manualmente; sem reserva especial |
-| Cancelamento | Libera slot imediatamente; sem regra de tempo mínimo no MVP |
-| Telemedicina | Fora do escopo — sempre presencial |
+| Item                               | Default                                                                          |
+| ---------------------------------- | -------------------------------------------------------------------------------- |
+| Quem marca primeira consulta?      | Callcenter Maria (`recepcao:medico`) via `/medico/consultas/nova`                |
+| Quem marca follow-up?              | Profissional ao fim da consulta (F1.B.2 entrega isso); por ora também pela Maria |
+| Página pública de auto-agendamento | Fora do escopo — Fase 2 do roadmap (Funil)                                       |
+| Confirmação automática WhatsApp    | Fora do escopo — Fase 3 (depende WhatsApp Business API)                          |
+| Encaixe/emergência                 | Profissional bloqueia/desbloqueia slot manualmente; sem reserva especial         |
+| Cancelamento                       | Libera slot imediatamente; sem regra de tempo mínimo no MVP                      |
+| Telemedicina                       | Fora do escopo — sempre presencial                                               |
 
 ## 4. Arquitetura de dados
 
@@ -165,6 +165,7 @@ model Consulta {
 ### 4.2 Geração de slots
 
 `gerarSlots(template, ate)` em `lib/medico/agenda.ts`:
+
 - Pega o template
 - Pra cada dia entre `template.validoDe` e `ate`:
   - Se `template.diasSemana.includes(dayOfWeek)`:
@@ -173,30 +174,33 @@ model Consulta {
 - Idempotente: não cria slot que já existe no mesmo `(profissionalId, dataHoraInicio)`
 
 `reservarSlot(slotId, cidadaoId, ctx)` em transação:
+
 ```sql
 UPDATE "Slot" SET status='reservado' WHERE id=$1 AND status='disponivel' RETURNING *;
 INSERT INTO "Consulta" (slotId, cidadaoId, ...) VALUES (...);
 ```
+
 Se UPDATE retorna 0 linhas → slot foi pego por outro, lança `SlotIndisponivelError`.
 
 `liberarSlot(slotId)`:
+
 - Atualiza `slot.status='disponivel'` (vindo de `reservado` ou `bloqueado`)
 - Se havia consulta vinculada → marca `consulta.status='cancelada'`
 
 ### 4.3 RBAC
 
-| Capability | super_admin | gestor:medico | profissional | recepcao:medico | social |
-|---|:-:|:-:|:-:|:-:|:-:|
-| Ver lista profissionais | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Cadastrar profissional | ✓ | ✓ | — | — | — |
-| Editar profissional | ✓ | ✓ | ✓ próprio | — | — |
-| Ver agenda da unidade | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Configurar AgendaTemplate | ✓ qualquer | ✓ qualquer | ✓ próprio | — | — |
-| Bloquear/desbloquear slot | ✓ qualquer | ✓ qualquer | ✓ próprio | — | — |
-| Marcar consulta | ✓ | ✓ | — | ✓ | ✓ via encaminhamento |
-| Transicionar status consulta | ✓ | ✓ | ✓ próprio | ✓ (check-in / falhou) | — |
-| Ver consultas | ✓ todas | ✓ todas | ✓ próprias | ✓ todas | ✓ encaminhadas por ela |
-| Cadastrar/editar especialidade | ✓ | ✓ | — | — | — |
+| Capability                     | super_admin | gestor:medico | profissional |    recepcao:medico    |         social         |
+| ------------------------------ | :---------: | :-----------: | :----------: | :-------------------: | :--------------------: |
+| Ver lista profissionais        |      ✓      |       ✓       |      ✓       |           ✓           |           ✓            |
+| Cadastrar profissional         |      ✓      |       ✓       |      —       |           —           |           —            |
+| Editar profissional            |      ✓      |       ✓       |  ✓ próprio   |           —           |           —            |
+| Ver agenda da unidade          |      ✓      |       ✓       |      ✓       |           ✓           |           ✓            |
+| Configurar AgendaTemplate      | ✓ qualquer  |  ✓ qualquer   |  ✓ próprio   |           —           |           —            |
+| Bloquear/desbloquear slot      | ✓ qualquer  |  ✓ qualquer   |  ✓ próprio   |           —           |           —            |
+| Marcar consulta                |      ✓      |       ✓       |      —       |           ✓           |  ✓ via encaminhamento  |
+| Transicionar status consulta   |      ✓      |       ✓       |  ✓ próprio   | ✓ (check-in / falhou) |           —            |
+| Ver consultas                  |   ✓ todas   |    ✓ todas    |  ✓ próprias  |        ✓ todas        | ✓ encaminhadas por ela |
+| Cadastrar/editar especialidade |      ✓      |       ✓       |      —       |           —           |           —            |
 
 ## 5. Rotas / Telas
 
@@ -222,6 +226,7 @@ src/app/medico/actions.ts          # server actions (criar template, reservar sl
 ### 5.2 Resumo por tela
 
 **`/medico` (home)** — substitui placeholder atual. Mostra:
+
 - Header: data + saudação (`Olá, Maria — terça-feira, 28 de maio`)
 - KpiCards: consultas hoje / pendentes esta semana / próximas 24h
 - **Fila do dia** (componente principal): tabela ordenada por hora — coluna profissional, especialidade, cidadão, status, ações (check-in, marcar realizada, marcar faltou)
@@ -229,6 +234,7 @@ src/app/medico/actions.ts          # server actions (criar template, reservar sl
 - Link "Ver agenda semanal" → `/medico/agenda`
 
 **`/medico/agenda`** — grid semanal:
+
 - 7 dias × faixa 7h-22h
 - Slots desenhados na grid com cor da especialidade (`Especialidade.corDestaque`)
 - Slot reservado = nome curto do cidadão dentro
@@ -237,12 +243,14 @@ src/app/medico/actions.ts          # server actions (criar template, reservar sl
 - Filtros: especialidade (multi) + profissional (single)
 
 **`/medico/minha-agenda`** (profissional):
+
 - "Meu template ativo": dia+horário+duração+especialidade
 - "Criar novo template" (form)
 - "Próximos slots gerados" (lista cronológica)
 - Botão por slot disponível: "Bloquear" (modal: motivo)
 
 **`/medico/consultas/nova`** (Maria, Regina, Raquel, Erick):
+
 - Step 1: buscar cidadão (reutiliza componente atual de busca)
 - Step 2: escolher especialidade
 - Step 3: ver slots disponíveis nos próximos 30 dias filtrados por especialidade (lista cronológica com nome do profissional + dia/hora)
@@ -250,35 +258,42 @@ src/app/medico/actions.ts          # server actions (criar template, reservar sl
 - Submit → `reservarSlot` action → redirect pra `/medico/consultas/[id]`
 
 **`/medico/consultas/[id]`** — detalhe + ações:
+
 - Cidadão + Profissional + Slot + Status
 - Botões contextuais: Confirmar / Em atendimento / Realizada / Faltou / Cancelar
 - Espaço reservado pra prontuário (F1.B.2)
 - Histórico de transições (audit log)
 
 **`/medico/profissionais`** — lista:
+
 - Tabela: foto + nome + conselho + especialidades + ativo
 
 **`/medico/profissionais/novo`** + `/medico/profissionais/[id]`:
+
 - Form vincula User existente (busca) ou cria User novo + dados extras (conselho, especialidades many-to-many, bio)
 
 **`/medico/especialidades`** — CRUD super_admin/gestor:
+
 - Lista + criar + editar + ativar/desativar
 
 ## 6. Fluxos principais
 
 ### Fluxo A: Erick cadastra profissional voluntário
+
 1. `/admin/users` → criar User (Dr. João, role `profissional`, unitScope `medico`)
 2. `/medico/profissionais/novo` → busca por email → vincula → preenche `conselho=CRM-RJ`, `nroConselho=12345`, escolhe `[Clínico Geral, Pediatria]`
 3. Dr. João recebe credenciais (email manual por ora; reset password automático = Plano 8)
 4. Primeiro login → cai em `/medico/minha-agenda`
 
 ### Fluxo B: Profissional configura agenda
+
 1. Dr. João em `/medico/minha-agenda` → "Criar template"
 2. Form: dias=[ter, qui], inicio=14h, fim=18h, duração=30min, especialidade=Pediatria, válidoDe=2026-06-01, válidoAté=∞
 3. Submit → `gerarSlots` cria slots dos próximos 90 dias
 4. Slots aparecem na lista
 
 ### Fluxo C: Maria marca consulta
+
 1. Maria em `/medico` vê fila do dia + botão "Marcar nova consulta"
 2. Busca cidadão "João Almeida" → seleciona
 3. Especialidade: "Pediatria"
@@ -288,6 +303,7 @@ src/app/medico/actions.ts          # server actions (criar template, reservar sl
 7. Redirect `/medico/consultas/[id]` mostrando agendamento confirmado
 
 ### Fluxo D: Dia da consulta
+
 1. 03/jun, 14:00 — Maria abre `/medico` → fila do dia mostra João Almeida 14:30 Dr. João Pediatria
 2. 14:25 — Cidadão chega na recepção; Maria clica "Confirmar / Check-in" → status=`em_atendimento`
 3. Dr. João abre `/medico/consultas/[id]` (será o prontuário no F1.B.2; por ora vê detalhe)
@@ -295,6 +311,7 @@ src/app/medico/actions.ts          # server actions (criar template, reservar sl
 5. Audit log registra todas as transições
 
 ### Fluxo E: Profissional bloqueia slot (férias / atestado)
+
 1. Dr. João em `/medico/minha-agenda` → próximos slots
 2. Seleciona 10/jun 14:30-18:00 → "Bloquear" → motivo="Férias programadas"
 3. Cada slot vira `status=bloqueado` + `motivoBloqueio="Férias programadas"`
@@ -333,14 +350,14 @@ Não detalho aqui — vai pro plano de implementação. Lista alto nível:
 
 ## 9. Riscos e mitigações
 
-| Risco | Mitigação |
-|---|---|
+| Risco                                                                | Mitigação                                                                                                                |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Geração de slots fica lenta com muitos profissionais × longo período | Geração incremental (90 dias por padrão); job de "estender agenda" mensal; índices em `(profissionalId, dataHoraInicio)` |
-| Overbooking concorrente | Transação `UPDATE...WHERE status='disponivel'` com checagem de linhas afetadas |
-| Especialidade deletada com slots/consultas vinculadas | `onDelete: Restrict` no Prisma + soft-delete (`ativa=false`) |
-| Profissional saí mas tem consultas futuras | Soft-delete (`ativo=false`); UI bloqueia novos agendamentos; consultas existentes preservadas pra histórico |
-| Conflito com Vaga/Agendamento legacy | Modelos novos não tocam Vaga; rotas `/medico/consultas/*` distintas de `/app/vagas/*` |
-| Profissional bloqueia slot que já tem consulta | Validar `slot.consulta == null` antes de bloquear; se tem consulta, oferecer "cancelar consulta + bloquear" |
+| Overbooking concorrente                                              | Transação `UPDATE...WHERE status='disponivel'` com checagem de linhas afetadas                                           |
+| Especialidade deletada com slots/consultas vinculadas                | `onDelete: Restrict` no Prisma + soft-delete (`ativa=false`)                                                             |
+| Profissional saí mas tem consultas futuras                           | Soft-delete (`ativo=false`); UI bloqueia novos agendamentos; consultas existentes preservadas pra histórico              |
+| Conflito com Vaga/Agendamento legacy                                 | Modelos novos não tocam Vaga; rotas `/medico/consultas/*` distintas de `/app/vagas/*`                                    |
+| Profissional bloqueia slot que já tem consulta                       | Validar `slot.consulta == null` antes de bloquear; se tem consulta, oferecer "cancelar consulta + bloquear"              |
 
 ## 10. Critérios de sucesso
 

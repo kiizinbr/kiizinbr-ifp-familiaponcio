@@ -11,12 +11,12 @@
 
 A pesquisa de SaaS de referência por vertical define o que cada unidade do IFP **pode parecer** quando o produto amadurecer:
 
-| Unidade | Referência principal | Tela-âncora | Sensação |
-|---|---|---|---|
-| **Centro Médico** | Doctolib + Elation Health | Agenda semanal + fila do dia + prontuário 3 colunas | Clínica acolhedora, eficiente |
-| **Capacitação** | Disco + Hotmart Club | Trilha do aluno + grade de turmas + presença mobile | Trilha curta com fim claro, cerimonial no certificado |
-| **Recreativo** | Brightwheel + ClassDojo + ClassApp | Daily report 5s + check-in + mensagem família | Instituto sério que cuida com afeto |
-| **Esportivo** | TeamSnap + Heja + Tecnofit | Calendário treinos + evolução radar + galeria | Esporte social motivador, transparente pra família |
+| Unidade           | Referência principal               | Tela-âncora                                         | Sensação                                              |
+| ----------------- | ---------------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| **Centro Médico** | Doctolib + Elation Health          | Agenda semanal + fila do dia + prontuário 3 colunas | Clínica acolhedora, eficiente                         |
+| **Capacitação**   | Disco + Hotmart Club               | Trilha do aluno + grade de turmas + presença mobile | Trilha curta com fim claro, cerimonial no certificado |
+| **Recreativo**    | Brightwheel + ClassDojo + ClassApp | Daily report 5s + check-in + mensagem família       | Instituto sério que cuida com afeto                   |
+| **Esportivo**     | TeamSnap + Heja + Tecnofit         | Calendário treinos + evolução radar + galeria       | Esporte social motivador, transparente pra família    |
 
 A camada estrutural (rotas, RBAC, login multi-tenant) e a camada visual (DS v2 com paleta brandbook) **já estão entregues**. O que falta é dar ALMA OPERACIONAL a cada vertical.
 
@@ -25,6 +25,7 @@ A camada estrutural (rotas, RBAC, login multi-tenant) e a camada visual (DS v2 c
 Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 
 ### 2.1 Centro Médico
+
 - ✅ Ficha cidadã (compartilhada)
 - ⏳ **Agenda semanal do consultório** (grid semanal, drag-to-create, profissional × dia)
 - ⏳ **Fila do dia** (próximos atendimentos + presença/falta + check-in)
@@ -35,6 +36,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - 🔮 (Plano 8) Integração Memed (prescrição digital nacional)
 
 ### 2.2 Capacitação
+
 - ✅ Ficha cidadã (compartilhada)
 - ⏳ **Catálogo de cursos / trilhas** (grade de cards com thumb + nome + vagas + horário)
 - ⏳ **Turma / Cohort** (data início+fim + sala + professor + lista de alunos)
@@ -46,6 +48,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - ⏳ **Histórico do aluno** (cursos passados, certificados emitidos)
 
 ### 2.3 Recreativo
+
 - ⏳ **Ficha da criança** (subset da cidadã + responsáveis múltiplos + autorizações granulares)
 - ⏳ **Autorização de imagem** (granular: interno OK / redes sim ou não / imprensa sim ou não, revogável, assinada digital)
 - ⏳ **Lista de quem pode retirar** (responsáveis autorizados + foto)
@@ -57,6 +60,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - 🔮 (futuro) App mobile do responsável (PWA simples ou nativo)
 
 ### 2.4 Esportivo
+
 - ⏳ **Modalidades + Turmas** (futebol, vôlei, etc.; horário, vaga, professor)
 - ⏳ **Matrícula aluno-atleta** (wizard 3 passos: dados do menor → responsável → modalidade)
 - ⏳ **Calendário de treinos** (vista semanal + filtro por modalidade)
@@ -67,6 +71,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - ⏳ **Portal família** (presença + próximo treino + evolução em linguagem clara)
 
 ### 2.5 Funil de entrada (cross-unidade, alimenta todas as 4)
+
 - ✅ Vaga (modelo + status, fatia A) com horário livre
 - ⏳ **Vaga com SLOTS materializados** (refactor da fatia A: cada slot = linha no banco com status disponível/reservado/bloqueado)
 - ⏳ **Template de agenda recorrente** (gera slots do período num clique)
@@ -78,6 +83,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - ⏳ **Encaminhamento entre unidades** (cidadão chega no /medico, vai pra /capacitacao, etc.)
 
 ### 2.6 Serviço Social (Regina)
+
 - ✅ Painel cross-unidade
 - ✅ Triagens pendentes
 - ⏳ **Plano de ação por cidadão** (visit / follow-up / observações longitudinais)
@@ -85,6 +91,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - ⏳ **Relatórios socioeconômicos** (exportação CSV/PDF pro governo)
 
 ### 2.7 Dashboard executivo /poncio (Saulo / Simone / Sarah)
+
 - ⏳ **KPIs reais agregados** (cidadãos ativos por unidade, triagens pendentes, taxa conclusão de capacitação, presença média esportivo, etc.)
 - ⏳ **Visão financeira / orçamentária** (se o IFP tiver alguma)
 - ⏳ **Mapa de impacto social** (geolocalização das famílias, indicadores territoriais)
@@ -92,6 +99,7 @@ Cada item abaixo vira módulo aprovável. Os ✅ marcam o que já existe.
 - ⏳ **Drill-down inline** (clica num KPI → ver detalhe sem sair de /poncio)
 
 ### 2.8 Cross-cutting (transversais)
+
 - ⏳ **LGPD operacional** (consentimento versionado, ROPA, direito ao esquecimento — anonimização já parcial)
 - ⏳ **WhatsApp Business** integração geral (lembretes, comunicação família, reset senha)
 - ⏳ **Sistema de notificações** (toast in-app, email, WhatsApp)
@@ -128,6 +136,7 @@ FASE 4 — Executivo & Deploy
 **Fase 1 antes de tudo** porque a parte funcional é o que a equipe usa todo dia e o que a diretoria vai julgar. Sem isso, o resto perde escala.
 
 **Capacitação como F1.A** (e não Médico como instinto sugeriria):
+
 - Menor escopo (turmas + presença + certificado < agenda + prontuário + prescrição)
 - Valida o padrão "tela-âncora vertical" em ~3 dias antes de atacar o caro
 - Luciana (gestora capacitação) é construção parceira; entrega pequena que dá tração emocional
@@ -135,12 +144,14 @@ FASE 4 — Executivo & Deploy
 - Se algo der errado no padrão, descobrimos em escala pequena
 
 **Médico como F1.B** logo depois:
+
 - Doctolib é a referência mais "WOW" da pesquisa — tela impressionante pra apresentar
 - Atende Raquel (a que criticou "muito simples") — grande win de PR interno
 - Hoje usam Amplimed externo; trazer pra IFP Connect = ganho operacional real
 - Já testou o padrão F1.A, sabe o que esperar
 
 **Recreativo por último na Fase 1**:
+
 - O mais complexo (LGPD criança + autorização imagem + app responsável + ficha criança ≠ cidadã)
 - Daniel (gestora) precisa de mais discovery
 - LGPD aqui é módulo transversal (F3.A) — melhor decidir LGPD antes (Fase 3)
@@ -154,21 +165,25 @@ FASE 4 — Executivo & Deploy
 Cada vertical, quando aprovada, vai brainstormar 6–10 decisões abertas. Aqui só o esqueleto:
 
 ### F1.A — Capacitação (3 sub-módulos, ~3 dias)
+
 - **F1.A.1 Catálogo + Turma + Matrícula** (CRUD básico)
 - **F1.A.2 Presença mobile-first** (lista da turma com toggle 1 toque + offline-tolerante)
 - **F1.A.3 Trilha do aluno + Certificado** (progressão visual + PDF QR + share)
 
 ### F1.B — Médico (3 sub-módulos, ~4 dias)
+
 - **F1.B.1 Agenda + fila do dia** (semanal Doctolib-like + painel lateral)
 - **F1.B.2 Prontuário 3 colunas** (histórico ≤ evolução ≤ ações)
 - **F1.B.3 Prescrição + encaminhamento** (PDF; sem Memed por ora)
 
 ### F1.C — Esportivo (3 sub-módulos, ~3 dias)
+
 - **F1.C.1 Modalidades + Turmas + Matrícula** (similar capacitação, com responsável)
 - **F1.C.2 Presença + calendário treinos** (reusa muito da F1.A.2)
 - **F1.C.3 Evolução do atleta** (radar/barras + portal família)
 
 ### F1.D — Recreativo (5 sub-módulos, ~5 dias)
+
 - **F1.D.1 Ficha da criança + responsáveis + autorizações** (mais complexa)
 - **F1.D.2 Daily report** (captura rápida 5–10s; foto + tags + nota)
 - **F1.D.3 Feed do responsável** (timeline)
@@ -195,6 +210,7 @@ Cada vertical, quando aprovada, vai brainstormar 6–10 decisões abertas. Aqui 
 ## 7. Próximo passo
 
 Aprovar a primeira fatia. Eu recomendo **F1.A — Capacitação** começando pelo sub-módulo **F1.A.1 (Catálogo + Turma + Matrícula)**, mas você pode escolher diferente baseado em:
+
 - Qual gestora você quer atender primeiro
 - Qual unidade tem demo iminente
 - Qual módulo te parece mais arriscado e quer derrubar primeiro

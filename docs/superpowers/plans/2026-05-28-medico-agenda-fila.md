@@ -5,6 +5,7 @@
 **Goal:** Construir a infraestrutura multi-profissional do Centro Médico do IFP — agenda Doctolib-like, fila do dia, marcação de consulta via callcenter, transições de status — em ~15 tasks TDD bite-sized.
 
 **Architecture:**
+
 - 5 modelos Prisma novos (`Especialidade`, `Profissional`, `ProfissionalEspecialidade`, `AgendaTemplate`, `Slot`, `Consulta`) isolados dos modelos sociais existentes (`Vaga`/`Agendamento` intactos).
 - Lógica pura em `src/lib/medico/` (`agenda.ts` para geração de slots, reserva concorrente-segura, transições; `rbac.ts` para capabilities). Testes Vitest cobrem ramos com ~15 unit tests.
 - Rotas novas sob `src/app/medico/` — literal segment ganha do catch-all `[unidade]/page.tsx` (Next 16). 8 telas (home/agenda/profissionais/minha-agenda/consultas-wizard/consulta-detalhe/especialidades/...).
@@ -35,6 +36,7 @@
 Adicionar os modelos do domínio médico em `prisma/schema.prisma`. Gerar migration. Não toca dados nem outros modelos.
 
 **Files:**
+
 - Modify: `prisma/schema.prisma` (append at end)
 - Create: `prisma/migrations/<timestamp>_medico_schema/migration.sql` (gerado por Prisma)
 
@@ -235,6 +237,7 @@ DO NOT push.
 Estender `prisma/seed.ts` para popular o domínio médico de forma idempotente. Inclui: lista canônica de especialidades, 3 profissionais demo vinculados a Users existentes (criados ou criados-se-faltar), 1 template para cada profissional, geração de slots para os próximos 30 dias.
 
 **Files:**
+
 - Modify: `prisma/seed.ts`
 
 ### Step 2.1 — Adicionar bloco de seed médico
@@ -292,7 +295,12 @@ async function seedMedico() {
     const e = await prisma.especialidade.upsert({
       where: { nome: esp.nome },
       update: { duracaoPadraoMin: esp.duracaoPadraoMin, corDestaque: esp.corDestaque, ativa: true },
-      create: { nome: esp.nome, duracaoPadraoMin: esp.duracaoPadraoMin, corDestaque: esp.corDestaque, ativa: true },
+      create: {
+        nome: esp.nome,
+        duracaoPadraoMin: esp.duracaoPadraoMin,
+        corDestaque: esp.corDestaque,
+        ativa: true,
+      },
     });
     especialidadeByNome.set(esp.nome, e.id);
   }
@@ -301,7 +309,11 @@ async function seedMedico() {
   const roleProfissional = await prisma.role.upsert({
     where: { name: "profissional" },
     update: {},
-    create: { name: "profissional", description: "Profissional de saúde da unidade", scope: "unit" },
+    create: {
+      name: "profissional",
+      description: "Profissional de saúde da unidade",
+      scope: "unit",
+    },
   });
 
   // 3. Criar/atualizar Users dos profissionais demo + vincular role medico
@@ -327,7 +339,11 @@ async function seedMedico() {
     // Atribuição UserRole (profissional, medico)
     await prisma.userRole.upsert({
       where: {
-        userId_roleId_unitScope: { userId: user.id, roleId: roleProfissional.id, unitScope: "medico" },
+        userId_roleId_unitScope: {
+          userId: user.id,
+          roleId: roleProfissional.id,
+          unitScope: "medico",
+        },
       },
       update: {},
       create: { userId: user.id, roleId: roleProfissional.id, unitScope: "medico" },
@@ -356,7 +372,9 @@ async function seedMedico() {
       const espId = especialidadeByNome.get(espNome);
       if (!espId) continue;
       await prisma.profissionalEspecialidade.upsert({
-        where: { profissionalId_especialidadeId: { profissionalId: prof.id, especialidadeId: espId } },
+        where: {
+          profissionalId_especialidadeId: { profissionalId: prof.id, especialidadeId: espId },
+        },
         update: {},
         create: { profissionalId: prof.id, especialidadeId: espId },
       });
@@ -411,7 +429,10 @@ async function seedMedico() {
         while (addMinutes(slotInicio, template.duracaoSlotMin) <= fimDia) {
           await prisma.slot.upsert({
             where: {
-              profissionalId_dataHoraInicio: { profissionalId: prof.id, dataHoraInicio: slotInicio },
+              profissionalId_dataHoraInicio: {
+                profissionalId: prof.id,
+                dataHoraInicio: slotInicio,
+              },
             },
             update: {},
             create: {
@@ -430,7 +451,9 @@ async function seedMedico() {
     }
   }
 
-  console.log(`[seed] medico ok: ${ESPECIALIDADES_SEED.length} especialidades, ${PROFISSIONAIS_DEMO.length} profissionais, slots 30 dias`);
+  console.log(
+    `[seed] medico ok: ${ESPECIALIDADES_SEED.length} especialidades, ${PROFISSIONAIS_DEMO.length} profissionais, slots 30 dias`,
+  );
 }
 ```
 
@@ -443,7 +466,7 @@ async function seedMedico() {
 No `main()` de `prisma/seed.ts`, depois das chamadas existentes (`await seedUsersRolesEtc()`, `await seedCidadaos()`, etc.), inserir:
 
 ```ts
-  await seedMedico();
+await seedMedico();
 ```
 
 ### Step 2.3 — Rodar seed
@@ -477,6 +500,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(seed): especialidade
 Lib pura, sem I/O direto. Funções determinísticas testáveis com fakes de input. A geração de slots a partir do template é a primeira função; `slotsDisponiveis` filtra do banco mas tem versão pura usada nos testes.
 
 **Files:**
+
 - Create: `src/lib/medico/agenda.ts`
 - Create: `tests/unit/medico-agenda.test.ts`
 
@@ -506,7 +530,9 @@ describe("gerarSlots", () => {
     const slots = gerarSlots(tmplPadrao);
     // 2026-06-01 é segunda-feira (dow=1) — não deve gerar.
     // 2026-06-02 é terça (dow=2), 2026-06-04 é quinta (dow=4), etc.
-    const datasGeradas = [...new Set(slots.map((s) => s.dataHoraInicio.toISOString().slice(0, 10)))];
+    const datasGeradas = [
+      ...new Set(slots.map((s) => s.dataHoraInicio.toISOString().slice(0, 10))),
+    ];
     expect(datasGeradas).toContain("2026-06-02");
     expect(datasGeradas).toContain("2026-06-04");
     expect(datasGeradas).not.toContain("2026-06-01");
@@ -514,7 +540,9 @@ describe("gerarSlots", () => {
   });
 
   it("respeita faixa horária e duração", () => {
-    const slots = gerarSlots(tmplPadrao).filter((s) => s.dataHoraInicio.toISOString().startsWith("2026-06-02"));
+    const slots = gerarSlots(tmplPadrao).filter((s) =>
+      s.dataHoraInicio.toISOString().startsWith("2026-06-02"),
+    );
     // 14:00–16:00 com 30min = 4 slots: 14:00, 14:30, 15:00, 15:30
     expect(slots).toHaveLength(4);
     expect(slots[0].dataHoraInicio.toISOString().slice(11, 16)).toBe("14:00");
@@ -553,7 +581,9 @@ describe("gerarSlots", () => {
   it("validoAte nulo respeita limiteSuperior do parâmetro", () => {
     const tmpl: TemplateInput = { ...tmplPadrao, validoAte: null };
     const slots = gerarSlots(tmpl, { limiteSuperior: new Date("2026-06-10T00:00:00Z") });
-    expect(slots.every((s) => s.dataHoraInicio.getTime() < new Date("2026-06-10T00:00:00Z").getTime())).toBe(true);
+    expect(
+      slots.every((s) => s.dataHoraInicio.getTime() < new Date("2026-06-10T00:00:00Z").getTime()),
+    ).toBe(true);
     expect(slots.length).toBeGreaterThan(0);
   });
 });
@@ -677,6 +707,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): gerarSlots 
 Função que toca banco — usa `prisma.$transaction` com `updateMany` retornando count. Se count=0, slot já não está disponível → lança erro. Teste integração contra DB real.
 
 **Files:**
+
 - Modify: `src/lib/medico/agenda.ts`
 - Modify: `tests/unit/medico-agenda.test.ts`
 
@@ -691,14 +722,18 @@ import { reservarSlot, SlotIndisponivelError } from "@/lib/medico/agenda";
 describe("reservarSlot (integration)", () => {
   // Helpers — depende do seed e dos demos
   async function fixtures() {
-    const prof = await db.profissional.findFirstOrThrow({ where: { nomeExibicao: "Dr. João Silva" } });
+    const prof = await db.profissional.findFirstOrThrow({
+      where: { nomeExibicao: "Dr. João Silva" },
+    });
     const esp = await db.especialidade.findUniqueOrThrow({ where: { nome: "Clínico Geral" } });
     const cid = await db.cidadao.findFirstOrThrow({ where: { unitIdOrigem: "medico" } });
     const slot = await db.slot.findFirstOrThrow({
       where: { profissionalId: prof.id, status: "disponivel" },
       orderBy: { dataHoraInicio: "asc" },
     });
-    const erick = await db.user.findUniqueOrThrow({ where: { email: "erick.ramos@familiaponcio.org.br" } });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
     return { prof, esp, cid, slot, erick };
   }
 
@@ -864,6 +899,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): reservarSlo
 Funções de manutenção. Lógica simples mas com edge cases (não permite bloquear slot que já tem consulta agendada).
 
 **Files:**
+
 - Modify: `src/lib/medico/agenda.ts`
 - Modify: `tests/unit/medico-agenda.test.ts`
 
@@ -872,7 +908,12 @@ Funções de manutenção. Lógica simples mas com edge cases (não permite bloq
 Append em `tests/unit/medico-agenda.test.ts`:
 
 ```ts
-import { liberarSlot, bloquearSlot, transicionarConsulta, SlotComConsultaError } from "@/lib/medico/agenda";
+import {
+  liberarSlot,
+  bloquearSlot,
+  transicionarConsulta,
+  SlotComConsultaError,
+} from "@/lib/medico/agenda";
 
 describe("bloquearSlot", () => {
   it("bloqueia slot disponível com motivo", async () => {
@@ -881,7 +922,10 @@ describe("bloquearSlot", () => {
     const pos = await db.slot.findUniqueOrThrow({ where: { id: slot.id } });
     expect(pos.status).toBe("bloqueado");
     expect(pos.motivoBloqueio).toBe("Férias programadas");
-    await db.slot.update({ where: { id: slot.id }, data: { status: "disponivel", motivoBloqueio: null } });
+    await db.slot.update({
+      where: { id: slot.id },
+      data: { status: "disponivel", motivoBloqueio: null },
+    });
   });
 
   it("rejeita bloquear slot que tem consulta agendada", async () => {
@@ -902,7 +946,9 @@ describe("liberarSlot", () => {
     const prof = await db.profissional.findFirstOrThrow();
     const esp = await db.especialidade.findFirstOrThrow();
     const cid = await db.cidadao.findFirstOrThrow();
-    const erick = await db.user.findUniqueOrThrow({ where: { email: "erick.ramos@familiaponcio.org.br" } });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
     const c = await db.consulta.create({
       data: {
         slotId: slot.id,
@@ -930,7 +976,9 @@ describe("transicionarConsulta", () => {
     const prof = await db.profissional.findFirstOrThrow();
     const esp = await db.especialidade.findFirstOrThrow();
     const cid = await db.cidadao.findFirstOrThrow();
-    const erick = await db.user.findUniqueOrThrow({ where: { email: "erick.ramos@familiaponcio.org.br" } });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
 
     await db.slot.update({ where: { id: slot.id }, data: { status: "reservado" } });
     const c = await db.consulta.create({
@@ -963,7 +1011,9 @@ describe("transicionarConsulta", () => {
     const prof = await db.profissional.findFirstOrThrow();
     const esp = await db.especialidade.findFirstOrThrow();
     const cid = await db.cidadao.findFirstOrThrow();
-    const erick = await db.user.findUniqueOrThrow({ where: { email: "erick.ramos@familiaponcio.org.br" } });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
 
     await db.slot.update({ where: { id: slot.id }, data: { status: "realizado" } });
     const c = await db.consulta.create({
@@ -1008,7 +1058,10 @@ export class SlotComConsultaError extends Error {
 }
 
 export class TransicaoInvalidaError extends Error {
-  constructor(public readonly de: StatusConsulta, public readonly para: StatusConsulta) {
+  constructor(
+    public readonly de: StatusConsulta,
+    public readonly para: StatusConsulta,
+  ) {
     super(`Transição inválida de ${de} para ${para}`);
     this.name = "TransicaoInvalidaError";
   }
@@ -1023,7 +1076,10 @@ const TRANSICOES: Record<StatusConsulta, ReadonlySet<StatusConsulta>> = {
   cancelada: new Set(),
 };
 
-const STATUS_SLOT_DERIVADO: Record<StatusConsulta, "reservado" | "realizado" | "faltou" | "disponivel"> = {
+const STATUS_SLOT_DERIVADO: Record<
+  StatusConsulta,
+  "reservado" | "realizado" | "faltou" | "disponivel"
+> = {
   agendada: "reservado",
   confirmada: "reservado",
   em_atendimento: "reservado",
@@ -1033,7 +1089,10 @@ const STATUS_SLOT_DERIVADO: Record<StatusConsulta, "reservado" | "realizado" | "
 };
 
 export async function bloquearSlot(slotId: string, motivo: string) {
-  const slot = await db.slot.findUniqueOrThrow({ where: { id: slotId }, include: { consulta: true } });
+  const slot = await db.slot.findUniqueOrThrow({
+    where: { id: slotId },
+    include: { consulta: true },
+  });
   if (slot.consulta && slot.consulta.status !== "cancelada") {
     throw new SlotComConsultaError(slotId);
   }
@@ -1093,6 +1152,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): liberar/blo
 Capabilities especificas pra unidade médica. Reusa `lib/rbac.ts` existente.
 
 **Files:**
+
 - Create: `src/lib/medico/rbac.ts`
 - Create: `tests/unit/medico-rbac.test.ts`
 
@@ -1112,7 +1172,10 @@ import {
   podeGerenciarEspecialidade,
 } from "@/lib/medico/rbac";
 
-function sessionWith(roles: { name: RoleName; unitScope: UnitScope | null }[], userId = "u1"): Session {
+function sessionWith(
+  roles: { name: RoleName; unitScope: UnitScope | null }[],
+  userId = "u1",
+): Session {
   return {
     user: { id: userId, email: "x@y.z", name: null, roles, primaryRole: roles[0] },
     expires: "2099-01-01",
@@ -1182,9 +1245,15 @@ describe("podeTransicionarConsulta", () => {
 
 describe("podeGerenciarEspecialidade", () => {
   it("super_admin sim, gestor sim, recepcao não", () => {
-    expect(podeGerenciarEspecialidade(sessionWith([{ name: "super_admin", unitScope: null }]))).toBe(true);
-    expect(podeGerenciarEspecialidade(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]))).toBe(true);
-    expect(podeGerenciarEspecialidade(sessionWith([{ name: "recepcao", unitScope: "medico" }]))).toBe(false);
+    expect(
+      podeGerenciarEspecialidade(sessionWith([{ name: "super_admin", unitScope: null }])),
+    ).toBe(true);
+    expect(
+      podeGerenciarEspecialidade(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }])),
+    ).toBe(true);
+    expect(
+      podeGerenciarEspecialidade(sessionWith([{ name: "recepcao", unitScope: "medico" }])),
+    ).toBe(false);
   });
 });
 ```
@@ -1239,7 +1308,12 @@ export function podeTransicionarConsulta(
 
   // recepção pode check-in (em_atendimento) e faltou + cancelada
   if (hasAnyRole(session, "recepcao")) {
-    return para === "em_atendimento" || para === "faltou" || para === "cancelada" || para === "confirmada";
+    return (
+      para === "em_atendimento" ||
+      para === "faltou" ||
+      para === "cancelada" ||
+      para === "confirmada"
+    );
   }
 
   // profissional só transiciona consulta DELE
@@ -1279,6 +1353,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): capabilitie
 Lista, criar, editar, ativar/desativar. Server actions + page server component.
 
 **Files:**
+
 - Create: `src/app/medico/especialidades/page.tsx`
 - Create: `src/app/medico/especialidades/actions.ts`
 
@@ -1296,7 +1371,11 @@ import { db } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { criarEspecialidadeAction, atualizarEspecialidadeAction, toggleEspecialidadeAction } from "./actions";
+import {
+  criarEspecialidadeAction,
+  atualizarEspecialidadeAction,
+  toggleEspecialidadeAction,
+} from "./actions";
 
 export default async function EspecialidadesPage() {
   const session = await auth();
@@ -1309,7 +1388,7 @@ export default async function EspecialidadesPage() {
   return (
     <AppShell session={session}>
       <header className="mb-6">
-        <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+        <p className="text-xs uppercase tracking-wider" style={{ color: "rgb(var(--ifp-muted))" }}>
           Centro Médico — Configuração
         </p>
         <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
@@ -1347,7 +1426,7 @@ export default async function EspecialidadesPage() {
             required
             pattern="^#[0-9A-Fa-f]{6}$"
             defaultValue="#007571"
-            className="rounded border px-3 py-2 text-sm font-mono"
+            className="rounded border px-3 py-2 font-mono text-sm"
             style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
           />
           <button
@@ -1362,7 +1441,10 @@ export default async function EspecialidadesPage() {
 
       <Card>
         <table className="w-full text-sm">
-          <thead className="text-xs tracking-wide uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <thead
+            className="text-xs uppercase tracking-wide"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             <tr>
               <th className="py-2 text-left">Nome</th>
               <th className="py-2 text-left">Duração padrão</th>
@@ -1373,7 +1455,11 @@ export default async function EspecialidadesPage() {
           </thead>
           <tbody>
             {lista.map((esp) => (
-              <tr key={esp.id} className="border-t" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+              <tr
+                key={esp.id}
+                className="border-t"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              >
                 <td className="py-3 font-medium" style={{ color: "rgb(var(--ifp-ink))" }}>
                   {esp.nome}
                 </td>
@@ -1383,14 +1469,22 @@ export default async function EspecialidadesPage() {
                 <td className="py-3">
                   <span
                     className="inline-block h-4 w-4 rounded"
-                    style={{ background: esp.corDestaque, border: "1px solid rgb(var(--ifp-surface-200))" }}
+                    style={{
+                      background: esp.corDestaque,
+                      border: "1px solid rgb(var(--ifp-surface-200))",
+                    }}
                   />
-                  <span className="ml-2 font-mono text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                  <span
+                    className="ml-2 font-mono text-xs"
+                    style={{ color: "rgb(var(--ifp-muted))" }}
+                  >
                     {esp.corDestaque}
                   </span>
                 </td>
                 <td className="py-3">
-                  <Badge variant={esp.ativa ? "success" : "default"}>{esp.ativa ? "Ativa" : "Inativa"}</Badge>
+                  <Badge variant={esp.ativa ? "success" : "default"}>
+                    {esp.ativa ? "Ativa" : "Inativa"}
+                  </Badge>
                 </td>
                 <td className="py-3 text-right">
                   <form action={toggleEspecialidadeAction} className="inline">
@@ -1525,6 +1619,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): CRUD /medic
 3 telas + actions. Vincula User existente, especialidades many-to-many.
 
 **Files:**
+
 - Create: `src/app/medico/profissionais/page.tsx` (lista)
 - Create: `src/app/medico/profissionais/novo/page.tsx`
 - Create: `src/app/medico/profissionais/[id]/page.tsx` (detalhe + edit)
@@ -1562,7 +1657,10 @@ export default async function ProfissionaisPage() {
     <AppShell session={session}>
       <header className="mb-6 flex items-end justify-between">
         <div>
-          <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p
+            className="text-xs uppercase tracking-wider"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             Centro Médico
           </p>
           <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
@@ -1582,7 +1680,10 @@ export default async function ProfissionaisPage() {
 
       <Card>
         <table className="w-full text-sm">
-          <thead className="text-xs tracking-wide uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <thead
+            className="text-xs uppercase tracking-wide"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             <tr>
               <th className="py-2 text-left">Nome</th>
               <th className="py-2 text-left">Conselho</th>
@@ -1592,7 +1693,11 @@ export default async function ProfissionaisPage() {
           </thead>
           <tbody>
             {profs.map((p) => (
-              <tr key={p.id} className="border-t" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+              <tr
+                key={p.id}
+                className="border-t"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              >
                 <td className="py-3">
                   <Link
                     href={`/medico/profissionais/${p.id}` as Route}
@@ -1602,7 +1707,7 @@ export default async function ProfissionaisPage() {
                     {p.nomeExibicao}
                   </Link>
                 </td>
-                <td className="py-3 text-xs font-mono" style={{ color: "rgb(var(--ifp-muted))" }}>
+                <td className="py-3 font-mono text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
                   {p.conselho} {p.nroConselho}
                 </td>
                 <td className="py-3 text-xs">
@@ -1610,14 +1715,19 @@ export default async function ProfissionaisPage() {
                     <span
                       key={pe.especialidadeId}
                       className="mr-1 inline-block rounded px-2 py-0.5 text-xs"
-                      style={{ background: pe.especialidade.corDestaque + "22", color: pe.especialidade.corDestaque }}
+                      style={{
+                        background: pe.especialidade.corDestaque + "22",
+                        color: pe.especialidade.corDestaque,
+                      }}
                     >
                       {pe.especialidade.nome}
                     </span>
                   ))}
                 </td>
                 <td className="py-3">
-                  <Badge variant={p.ativo ? "success" : "default"}>{p.ativo ? "Ativo" : "Inativo"}</Badge>
+                  <Badge variant={p.ativo ? "success" : "default"}>
+                    {p.ativo ? "Ativo" : "Inativo"}
+                  </Badge>
                 </td>
               </tr>
             ))}
@@ -1665,7 +1775,10 @@ export default async function NovoProfissionalPage() {
     orderBy: { name: "asc" },
   });
 
-  const especialidades = await db.especialidade.findMany({ where: { ativa: true }, orderBy: { nome: "asc" } });
+  const especialidades = await db.especialidade.findMany({
+    where: { ativa: true },
+    orderBy: { nome: "asc" },
+  });
 
   return (
     <AppShell session={session}>
@@ -1806,24 +1919,32 @@ export default async function ProfissionalDetalhePage({
   if (!prof) notFound();
 
   const podeEditar = podeGerenciarProfissional(session) || session.user.id === prof.userId;
-  const especialidades = await db.especialidade.findMany({ where: { ativa: true }, orderBy: { nome: "asc" } });
+  const especialidades = await db.especialidade.findMany({
+    where: { ativa: true },
+    orderBy: { nome: "asc" },
+  });
   const especialidadesSel = new Set(prof.especialidades.map((pe) => pe.especialidadeId));
 
   return (
     <AppShell session={session}>
       <header className="mb-6 flex items-end justify-between">
         <div>
-          <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p
+            className="text-xs uppercase tracking-wider"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             Profissional
           </p>
           <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
             {prof.nomeExibicao}
           </h1>
-          <p className="mt-1 text-sm font-mono" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p className="mt-1 font-mono text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
             {prof.conselho} {prof.nroConselho}
           </p>
         </div>
-        <Badge variant={prof.ativo ? "success" : "default"}>{prof.ativo ? "Ativo" : "Inativo"}</Badge>
+        <Badge variant={prof.ativo ? "success" : "default"}>
+          {prof.ativo ? "Ativo" : "Inativo"}
+        </Badge>
       </header>
 
       {podeEditar ? (
@@ -1938,7 +2059,10 @@ import { podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
 function parseEspecialidades(formData: FormData): string[] {
-  return formData.getAll("especialidadeIds").map((v) => String(v)).filter(Boolean);
+  return formData
+    .getAll("especialidadeIds")
+    .map((v) => String(v))
+    .filter(Boolean);
 }
 
 export async function criarProfissionalAction(formData: FormData) {
@@ -2025,6 +2149,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): /medico/pro
 Profissional vê próprio template + lista de slots gerados + bloqueia slots. Quem não é profissional → 404 amigável ("você não tem agenda própria").
 
 **Files:**
+
 - Create: `src/app/medico/minha-agenda/page.tsx`
 - Create: `src/app/medico/minha-agenda/actions.ts`
 
@@ -2051,7 +2176,10 @@ export default async function MinhaAgendaPage() {
     return (
       <AppShell session={session}>
         <Card>
-          <p>Você não tem agenda própria. Acesse <a href="/medico/agenda">/medico/agenda</a> pra ver agendas dos profissionais.</p>
+          <p>
+            Você não tem agenda própria. Acesse <a href="/medico/agenda">/medico/agenda</a> pra ver
+            agendas dos profissionais.
+          </p>
         </Card>
       </AppShell>
     );
@@ -2068,7 +2196,9 @@ export default async function MinhaAgendaPage() {
     return (
       <AppShell session={session}>
         <Card>
-          <p>Seu User não está vinculado a um Profissional cadastrado. Peça à gestão pra cadastrar.</p>
+          <p>
+            Seu User não está vinculado a um Profissional cadastrado. Peça à gestão pra cadastrar.
+          </p>
         </Card>
       </AppShell>
     );
@@ -2084,7 +2214,7 @@ export default async function MinhaAgendaPage() {
   return (
     <AppShell session={session}>
       <header className="mb-6">
-        <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+        <p className="text-xs uppercase tracking-wider" style={{ color: "rgb(var(--ifp-muted))" }}>
           Minha agenda
         </p>
         <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
@@ -2102,9 +2232,17 @@ export default async function MinhaAgendaPage() {
           </p>
         )}
         {prof.templates.map((t) => (
-          <div key={t.id} className="mb-2 rounded border p-3 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
-            <strong>Dias:</strong> {t.diasSemana.map(d => ["dom","seg","ter","qua","qui","sex","sáb"][d]).join(", ")} ·{" "}
-            <strong>Horário:</strong> {t.faixaInicio}–{t.faixaFim} · <strong>Duração:</strong> {t.duracaoSlotMin}min
+          <div
+            key={t.id}
+            className="mb-2 rounded border p-3 text-sm"
+            style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+          >
+            <strong>Dias:</strong>{" "}
+            {t.diasSemana
+              .map((d) => ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"][d])
+              .join(", ")}{" "}
+            · <strong>Horário:</strong> {t.faixaInicio}–{t.faixaFim} · <strong>Duração:</strong>{" "}
+            {t.duracaoSlotMin}min
           </div>
         ))}
       </Card>
@@ -2115,9 +2253,11 @@ export default async function MinhaAgendaPage() {
         </h2>
         <form action={criarTemplateAction} className="space-y-3">
           <fieldset>
-            <legend className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Dias da semana</legend>
+            <legend className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+              Dias da semana
+            </legend>
             <div className="mt-1 flex flex-wrap gap-3">
-              {["dom","seg","ter","qua","qui","sex","sáb"].map((label, idx) => (
+              {["dom", "seg", "ter", "qua", "qui", "sex", "sáb"].map((label, idx) => (
                 <label key={idx} className="text-sm">
                   <input type="checkbox" name="diasSemana" value={idx} className="mr-1" />
                   {label}
@@ -2127,21 +2267,57 @@ export default async function MinhaAgendaPage() {
           </fieldset>
           <div className="grid grid-cols-3 gap-3">
             <label>
-              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Início</span>
-              <input name="faixaInicio" type="time" required defaultValue="14:00" className="mt-1 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }} />
+              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                Início
+              </span>
+              <input
+                name="faixaInicio"
+                type="time"
+                required
+                defaultValue="14:00"
+                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              />
             </label>
             <label>
-              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Fim</span>
-              <input name="faixaFim" type="time" required defaultValue="18:00" className="mt-1 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }} />
+              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                Fim
+              </span>
+              <input
+                name="faixaFim"
+                type="time"
+                required
+                defaultValue="18:00"
+                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              />
             </label>
             <label>
-              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Duração (min)</span>
-              <input name="duracaoSlotMin" type="number" min={10} step={5} required defaultValue={30} className="mt-1 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }} />
+              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                Duração (min)
+              </span>
+              <input
+                name="duracaoSlotMin"
+                type="number"
+                min={10}
+                step={5}
+                required
+                defaultValue={30}
+                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              />
             </label>
           </div>
           <label className="block">
-            <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Especialidade</span>
-            <select name="especialidadeId" required className="mt-1 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+            <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+              Especialidade
+            </span>
+            <select
+              name="especialidadeId"
+              required
+              className="mt-1 w-full rounded border px-3 py-2 text-sm"
+              style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+            >
               <option value="">— escolha —</option>
               {prof.especialidades.map((pe) => (
                 <option key={pe.especialidadeId} value={pe.especialidadeId}>
@@ -2152,15 +2328,34 @@ export default async function MinhaAgendaPage() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label>
-              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Válido de</span>
-              <input name="validoDe" type="date" required className="mt-1 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }} />
+              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                Válido de
+              </span>
+              <input
+                name="validoDe"
+                type="date"
+                required
+                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              />
             </label>
             <label>
-              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>Válido até (vazio = 90 dias)</span>
-              <input name="validoAte" type="date" className="mt-1 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }} />
+              <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                Válido até (vazio = 90 dias)
+              </span>
+              <input
+                name="validoAte"
+                type="date"
+                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              />
             </label>
           </div>
-          <button type="submit" className="rounded px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}>
+          <button
+            type="submit"
+            className="rounded px-4 py-2 text-sm font-bold text-white"
+            style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}
+          >
             Criar template e gerar slots
           </button>
         </form>
@@ -2171,7 +2366,10 @@ export default async function MinhaAgendaPage() {
           Próximos slots
         </h2>
         <table className="w-full text-sm">
-          <thead className="text-xs tracking-wide uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <thead
+            className="text-xs uppercase tracking-wide"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             <tr>
               <th className="py-2 text-left">Data/hora</th>
               <th className="py-2 text-left">Status</th>
@@ -2181,9 +2379,25 @@ export default async function MinhaAgendaPage() {
           </thead>
           <tbody>
             {proxSlots.map((s) => (
-              <tr key={s.id} className="border-t" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+              <tr
+                key={s.id}
+                className="border-t"
+                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              >
                 <td className="py-3">{s.dataHoraInicio.toLocaleString("pt-BR")}</td>
-                <td className="py-3"><Badge variant={s.status === "disponivel" ? "success" : s.status === "bloqueado" ? "warning" : "default"}>{s.status}</Badge></td>
+                <td className="py-3">
+                  <Badge
+                    variant={
+                      s.status === "disponivel"
+                        ? "success"
+                        : s.status === "bloqueado"
+                          ? "warning"
+                          : "default"
+                    }
+                  >
+                    {s.status}
+                  </Badge>
+                </td>
                 <td className="py-3 text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
                   {s.consulta?.cidadao.nomeCompleto ?? "—"}
                 </td>
@@ -2191,14 +2405,33 @@ export default async function MinhaAgendaPage() {
                   {s.status === "disponivel" && (
                     <form action={bloquearSlotAction} className="inline">
                       <input type="hidden" name="slotId" value={s.id} />
-                      <input type="text" name="motivo" placeholder="motivo" required className="mr-1 rounded border px-2 py-1 text-xs" style={{ borderColor: "rgb(var(--ifp-surface-200))" }} />
-                      <button type="submit" className="text-xs underline" style={{ color: "rgb(var(--ifp-orange-700))" }}>Bloquear</button>
+                      <input
+                        type="text"
+                        name="motivo"
+                        placeholder="motivo"
+                        required
+                        className="mr-1 rounded border px-2 py-1 text-xs"
+                        style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                      />
+                      <button
+                        type="submit"
+                        className="text-xs underline"
+                        style={{ color: "rgb(var(--ifp-orange-700))" }}
+                      >
+                        Bloquear
+                      </button>
                     </form>
                   )}
                   {s.status === "bloqueado" && (
                     <form action={desbloquearSlotAction} className="inline">
                       <input type="hidden" name="slotId" value={s.id} />
-                      <button type="submit" className="text-xs underline" style={{ color: "rgb(var(--ifp-orange-700))" }}>Desbloquear</button>
+                      <button
+                        type="submit"
+                        className="text-xs underline"
+                        style={{ color: "rgb(var(--ifp-orange-700))" }}
+                      >
+                        Desbloquear
+                      </button>
                     </form>
                   )}
                 </td>
@@ -2241,7 +2474,9 @@ export async function criarTemplateAction(formData: FormData) {
   const especialidadeId = String(formData.get("especialidadeId"));
   const validoDe = new Date(String(formData.get("validoDe")));
   const validoAteRaw = String(formData.get("validoAte") ?? "");
-  const validoAte = validoAteRaw ? new Date(validoAteRaw) : new Date(validoDe.getTime() + 90 * 86400_000);
+  const validoAte = validoAteRaw
+    ? new Date(validoAteRaw)
+    : new Date(validoDe.getTime() + 90 * 86400_000);
 
   const template = await db.agendaTemplate.create({
     data: {
@@ -2270,7 +2505,12 @@ export async function criarTemplateAction(formData: FormData) {
 
   for (const s of slotsToCreate) {
     await db.slot.upsert({
-      where: { profissionalId_dataHoraInicio: { profissionalId: prof.id, dataHoraInicio: s.dataHoraInicio } },
+      where: {
+        profissionalId_dataHoraInicio: {
+          profissionalId: prof.id,
+          dataHoraInicio: s.dataHoraInicio,
+        },
+      },
       update: {},
       create: {
         profissionalId: prof.id,
@@ -2283,7 +2523,11 @@ export async function criarTemplateAction(formData: FormData) {
     });
   }
 
-  await logEvent({ userId: session.user.id, action: "template_criado", meta: { templateId: template.id, slotsCount: slotsToCreate.length } });
+  await logEvent({
+    userId: session.user.id,
+    action: "template_criado",
+    meta: { templateId: template.id, slotsCount: slotsToCreate.length },
+  });
   revalidatePath("/medico/minha-agenda");
 }
 
@@ -2293,8 +2537,12 @@ export async function bloquearSlotAction(formData: FormData) {
   const slotId = String(formData.get("slotId"));
   const motivo = String(formData.get("motivo") ?? "Bloqueado");
 
-  const slot = await db.slot.findUniqueOrThrow({ where: { id: slotId }, include: { profissional: true } });
-  if (!podeConfigurarAgendaProfissional(session, slot.profissional.userId)) throw new Error("Sem permissão");
+  const slot = await db.slot.findUniqueOrThrow({
+    where: { id: slotId },
+    include: { profissional: true },
+  });
+  if (!podeConfigurarAgendaProfissional(session, slot.profissional.userId))
+    throw new Error("Sem permissão");
 
   await bloquearSlot(slotId, motivo);
   await logEvent({ userId: session.user.id, action: "slot_bloqueado", meta: { slotId, motivo } });
@@ -2306,8 +2554,12 @@ export async function desbloquearSlotAction(formData: FormData) {
   if (!session) throw new Error("Sem sessão");
   const slotId = String(formData.get("slotId"));
 
-  const slot = await db.slot.findUniqueOrThrow({ where: { id: slotId }, include: { profissional: true } });
-  if (!podeConfigurarAgendaProfissional(session, slot.profissional.userId)) throw new Error("Sem permissão");
+  const slot = await db.slot.findUniqueOrThrow({
+    where: { id: slotId },
+    include: { profissional: true },
+  });
+  if (!podeConfigurarAgendaProfissional(session, slot.profissional.userId))
+    throw new Error("Sem permissão");
 
   await liberarSlot(slotId, "Desbloqueado pelo profissional");
   await logEvent({ userId: session.user.id, action: "slot_desbloqueado", meta: { slotId } });
@@ -2332,6 +2584,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): /medico/min
 Substituir o placeholder atual. Mostra próximas consultas do dia + KPIs simples.
 
 **Files:**
+
 - Modify: ⚠️ A home da unidade médica fica em `src/app/medico/page.tsx` (literal segment > dynamic catch-all). Se já existir um `src/app/[unidade]/page.tsx` que cobre `/medico`, esse fica intacto pra outras unidades. **Criar** `src/app/medico/page.tsx`.
 
 ### Step 10.1 — Implementação
@@ -2364,9 +2617,12 @@ export default async function MedicoHomePage() {
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
 
   const hoje = new Date();
-  const inicioDia = new Date(hoje); inicioDia.setHours(0, 0, 0, 0);
-  const fimDia = new Date(hoje); fimDia.setHours(23, 59, 59, 999);
-  const em7Dias = new Date(hoje); em7Dias.setDate(em7Dias.getDate() + 7);
+  const inicioDia = new Date(hoje);
+  inicioDia.setHours(0, 0, 0, 0);
+  const fimDia = new Date(hoje);
+  fimDia.setHours(23, 59, 59, 999);
+  const em7Dias = new Date(hoje);
+  em7Dias.setDate(em7Dias.getDate() + 7);
 
   const [consultasHoje, consultas7d, slotsLivresHoje] = await Promise.all([
     db.consulta.findMany({
@@ -2375,7 +2631,10 @@ export default async function MedicoHomePage() {
       orderBy: { slot: { dataHoraInicio: "asc" } },
     }),
     db.consulta.count({
-      where: { slot: { dataHoraInicio: { gte: inicioDia, lte: em7Dias } }, status: { in: ["agendada", "confirmada"] } },
+      where: {
+        slot: { dataHoraInicio: { gte: inicioDia, lte: em7Dias } },
+        status: { in: ["agendada", "confirmada"] },
+      },
     }),
     db.slot.count({
       where: { status: "disponivel", dataHoraInicio: { gte: hoje, lte: fimDia } },
@@ -2386,7 +2645,10 @@ export default async function MedicoHomePage() {
     <AppShell session={session}>
       <header className="mb-6 flex items-end justify-between">
         <div>
-          <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p
+            className="text-xs uppercase tracking-wider"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             Centro Médico
           </p>
           <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
@@ -2423,7 +2685,10 @@ export default async function MedicoHomePage() {
           </p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-xs tracking-wide uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+            <thead
+              className="text-xs uppercase tracking-wide"
+              style={{ color: "rgb(var(--ifp-muted))" }}
+            >
               <tr>
                 <th className="py-2 text-left">Horário</th>
                 <th className="py-2 text-left">Cidadão</th>
@@ -2434,9 +2699,16 @@ export default async function MedicoHomePage() {
             </thead>
             <tbody>
               {consultasHoje.map((c) => (
-                <tr key={c.id} className="border-t" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+                <tr
+                  key={c.id}
+                  className="border-t"
+                  style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                >
                   <td className="py-3 font-mono text-xs">
-                    {c.slot.dataHoraInicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                    {c.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </td>
                   <td className="py-3">
                     <Link
@@ -2492,6 +2764,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): home /medic
 Vista semanal 7 dias × faixa horária. Cores por especialidade. Filtros (profissional + especialidade).
 
 **Files:**
+
 - Create: `src/app/medico/agenda/page.tsx`
 
 ### Step 11.1 — Implementação
@@ -2532,7 +2805,8 @@ export default async function AgendaSemanalPage({
   const sp = await searchParams;
   const refDate = sp.semana ? new Date(sp.semana) : new Date();
   const inicio = inicioSemana(refDate);
-  const fim = new Date(inicio); fim.setDate(fim.getDate() + 7);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + 7);
 
   const [profs, especialidades, slots] = await Promise.all([
     db.profissional.findMany({ where: { ativo: true }, orderBy: { nomeExibicao: "asc" } }),
@@ -2543,7 +2817,11 @@ export default async function AgendaSemanalPage({
         ...(sp.profissionalId ? { profissionalId: sp.profissionalId } : {}),
         ...(sp.especialidadeId ? { especialidadeId: sp.especialidadeId } : {}),
       },
-      include: { profissional: true, especialidade: true, consulta: { include: { cidadao: true } } },
+      include: {
+        profissional: true,
+        especialidade: true,
+        consulta: { include: { cidadao: true } },
+      },
       orderBy: { dataHoraInicio: "asc" },
     }),
   ]);
@@ -2554,7 +2832,10 @@ export default async function AgendaSemanalPage({
     <AppShell session={session}>
       <header className="mb-6 flex items-end justify-between">
         <div>
-          <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p
+            className="text-xs uppercase tracking-wider"
+            style={{ color: "rgb(var(--ifp-muted))" }}
+          >
             Centro Médico
           </p>
           <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
@@ -2562,15 +2843,39 @@ export default async function AgendaSemanalPage({
           </h1>
         </div>
         <form className="flex items-center gap-2">
-          <select name="profissionalId" defaultValue={sp.profissionalId ?? ""} className="rounded border px-2 py-1 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+          <select
+            name="profissionalId"
+            defaultValue={sp.profissionalId ?? ""}
+            className="rounded border px-2 py-1 text-sm"
+            style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+          >
             <option value="">Todos profissionais</option>
-            {profs.map((p) => (<option key={p.id} value={p.id}>{p.nomeExibicao}</option>))}
+            {profs.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nomeExibicao}
+              </option>
+            ))}
           </select>
-          <select name="especialidadeId" defaultValue={sp.especialidadeId ?? ""} className="rounded border px-2 py-1 text-sm" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+          <select
+            name="especialidadeId"
+            defaultValue={sp.especialidadeId ?? ""}
+            className="rounded border px-2 py-1 text-sm"
+            style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+          >
             <option value="">Todas especialidades</option>
-            {especialidades.map((e) => (<option key={e.id} value={e.id}>{e.nome}</option>))}
+            {especialidades.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.nome}
+              </option>
+            ))}
           </select>
-          <button type="submit" className="rounded px-3 py-1 text-sm font-bold text-white" style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}>Filtrar</button>
+          <button
+            type="submit"
+            className="rounded px-3 py-1 text-sm font-bold text-white"
+            style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}
+          >
+            Filtrar
+          </button>
         </form>
       </header>
 
@@ -2579,9 +2884,17 @@ export default async function AgendaSemanalPage({
           {/* Header dias */}
           <div></div>
           {DIAS.map((d, i) => {
-            const dt = new Date(inicio); dt.setDate(dt.getDate() + i);
+            const dt = new Date(inicio);
+            dt.setDate(dt.getDate() + i);
             return (
-              <div key={i} className="border-b py-2 text-center text-xs font-semibold" style={{ color: "rgb(var(--ifp-muted))", borderColor: "rgb(var(--ifp-surface-200))" }}>
+              <div
+                key={i}
+                className="border-b py-2 text-center text-xs font-semibold"
+                style={{
+                  color: "rgb(var(--ifp-muted))",
+                  borderColor: "rgb(var(--ifp-surface-200))",
+                }}
+              >
                 {d} {dt.getDate()}/{dt.getMonth() + 1}
               </div>
             );
@@ -2589,31 +2902,55 @@ export default async function AgendaSemanalPage({
 
           {/* Coluna horas */}
           <div className="relative" style={{ height: altura }}>
-            {Array.from({ length: HORA_FIM - HORA_INICIO + 1 }, (_, i) => HORA_INICIO + i).map((h) => (
-              <div
-                key={h}
-                className="absolute w-full text-right pr-1 text-[10px]"
-                style={{ top: (h - HORA_INICIO) * 60 * PX_POR_MIN, color: "rgb(var(--ifp-muted))" }}
-              >
-                {String(h).padStart(2, "0")}:00
-              </div>
-            ))}
+            {Array.from({ length: HORA_FIM - HORA_INICIO + 1 }, (_, i) => HORA_INICIO + i).map(
+              (h) => (
+                <div
+                  key={h}
+                  className="absolute w-full pr-1 text-right text-[10px]"
+                  style={{
+                    top: (h - HORA_INICIO) * 60 * PX_POR_MIN,
+                    color: "rgb(var(--ifp-muted))",
+                  }}
+                >
+                  {String(h).padStart(2, "0")}:00
+                </div>
+              ),
+            )}
           </div>
 
           {/* 7 colunas de dia */}
           {DIAS.map((_, dia) => {
-            const dtStart = new Date(inicio); dtStart.setDate(dtStart.getDate() + dia);
-            const dtEnd = new Date(dtStart); dtEnd.setHours(23, 59, 59, 999);
-            const slotsDia = slots.filter((s) => s.dataHoraInicio >= dtStart && s.dataHoraInicio <= dtEnd);
+            const dtStart = new Date(inicio);
+            dtStart.setDate(dtStart.getDate() + dia);
+            const dtEnd = new Date(dtStart);
+            dtEnd.setHours(23, 59, 59, 999);
+            const slotsDia = slots.filter(
+              (s) => s.dataHoraInicio >= dtStart && s.dataHoraInicio <= dtEnd,
+            );
             return (
-              <div key={dia} className="relative border-l" style={{ height: altura, borderColor: "rgb(var(--ifp-surface-200))" }}>
+              <div
+                key={dia}
+                className="relative border-l"
+                style={{ height: altura, borderColor: "rgb(var(--ifp-surface-200))" }}
+              >
                 {/* linhas horárias */}
-                {Array.from({ length: HORA_FIM - HORA_INICIO }, (_, i) => i + HORA_INICIO).map((h) => (
-                  <div key={h} className="absolute w-full border-t" style={{ top: (h - HORA_INICIO) * 60 * PX_POR_MIN, borderColor: "rgb(var(--ifp-surface-200))" }} />
-                ))}
+                {Array.from({ length: HORA_FIM - HORA_INICIO }, (_, i) => i + HORA_INICIO).map(
+                  (h) => (
+                    <div
+                      key={h}
+                      className="absolute w-full border-t"
+                      style={{
+                        top: (h - HORA_INICIO) * 60 * PX_POR_MIN,
+                        borderColor: "rgb(var(--ifp-surface-200))",
+                      }}
+                    />
+                  ),
+                )}
                 {/* slots */}
                 {slotsDia.map((s) => {
-                  const minDay = (s.dataHoraInicio.getHours() - HORA_INICIO) * 60 + s.dataHoraInicio.getMinutes();
+                  const minDay =
+                    (s.dataHoraInicio.getHours() - HORA_INICIO) * 60 +
+                    s.dataHoraInicio.getMinutes();
                   const top = minDay * PX_POR_MIN;
                   const height = s.duracaoMin * PX_POR_MIN;
                   const isBlocked = s.status === "bloqueado";
@@ -2630,14 +2967,18 @@ export default async function AgendaSemanalPage({
                         background: isBlocked
                           ? `repeating-linear-gradient(45deg, ${s.especialidade.corDestaque}22, ${s.especialidade.corDestaque}22 6px, transparent 6px, transparent 12px)`
                           : isReserved
-                          ? s.especialidade.corDestaque + "AA"
-                          : s.especialidade.corDestaque + "33",
+                            ? s.especialidade.corDestaque + "AA"
+                            : s.especialidade.corDestaque + "33",
                         color: isReserved ? "#fff" : "rgb(var(--ifp-ink))",
                       }}
                       title={`${s.profissional.nomeExibicao} · ${s.especialidade.nome} · ${s.status}`}
                     >
-                      <div className="truncate font-bold">{s.profissional.nomeExibicao.split(" ").slice(0, 2).join(" ")}</div>
-                      {s.consulta && <div className="truncate">{s.consulta.cidadao.nomeCompleto}</div>}
+                      <div className="truncate font-bold">
+                        {s.profissional.nomeExibicao.split(" ").slice(0, 2).join(" ")}
+                      </div>
+                      {s.consulta && (
+                        <div className="truncate">{s.consulta.cidadao.nomeCompleto}</div>
+                      )}
                     </div>
                   );
                 })}
@@ -2668,6 +3009,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): /medico/age
 Server actions com state na URL (querystring). 4 etapas: buscar cidadão → especialidade → slot → confirmar.
 
 **Files:**
+
 - Create: `src/app/medico/consultas/nova/page.tsx`
 - Create: `src/app/medico/consultas/nova/actions.ts`
 
@@ -2731,7 +3073,13 @@ export default async function NovaConsultaPage({
               className="w-full rounded border px-3 py-2 text-sm"
               style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
             />
-            <button type="submit" className="mt-2 rounded px-3 py-1 text-sm font-bold text-white" style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}>Buscar</button>
+            <button
+              type="submit"
+              className="mt-2 rounded px-3 py-1 text-sm font-bold text-white"
+              style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}
+            >
+              Buscar
+            </button>
           </form>
           {matches.length > 0 && (
             <ul className="mt-4 divide-y" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
@@ -2760,7 +3108,10 @@ export default async function NovaConsultaPage({
 
   // Step 2: especialidade
   if (!sp.especialidadeId) {
-    const especialidades = await db.especialidade.findMany({ where: { ativa: true }, orderBy: { nome: "asc" } });
+    const especialidades = await db.especialidade.findMany({
+      where: { ativa: true },
+      orderBy: { nome: "asc" },
+    });
     return (
       <AppShell session={session}>
         <h1 className="mb-6 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
@@ -2772,7 +3123,9 @@ export default async function NovaConsultaPage({
             {especialidades.map((e) => (
               <Link
                 key={e.id}
-                href={`/medico/consultas/nova?cidadaoId=${cidadao.id}&especialidadeId=${e.id}` as Route}
+                href={
+                  `/medico/consultas/nova?cidadaoId=${cidadao.id}&especialidadeId=${e.id}` as Route
+                }
                 className="rounded border p-3 text-sm font-medium hover:opacity-80"
                 style={{
                   borderColor: "rgb(var(--ifp-surface-200))",
@@ -2792,7 +3145,9 @@ export default async function NovaConsultaPage({
     );
   }
 
-  const especialidade = await db.especialidade.findUniqueOrThrow({ where: { id: sp.especialidadeId } });
+  const especialidade = await db.especialidade.findUniqueOrThrow({
+    where: { id: sp.especialidadeId },
+  });
 
   // Step 3: escolher slot disponível
   const slots = await db.slot.findMany({
@@ -2812,9 +3167,13 @@ export default async function NovaConsultaPage({
         Marcar consulta · {cidadao.nomeCompleto}
       </h1>
       <Card>
-        <p className="mb-3 text-sm font-semibold">Passo 3 de 4: Escolha um horário ({especialidade.nome})</p>
+        <p className="mb-3 text-sm font-semibold">
+          Passo 3 de 4: Escolha um horário ({especialidade.nome})
+        </p>
         {slots.length === 0 ? (
-          <p style={{ color: "rgb(var(--ifp-muted))" }}>Nenhum slot disponível nos próximos dias pra essa especialidade.</p>
+          <p style={{ color: "rgb(var(--ifp-muted))" }}>
+            Nenhum slot disponível nos próximos dias pra essa especialidade.
+          </p>
         ) : (
           <ul className="divide-y" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
             {slots.map((s) => (
@@ -2830,7 +3189,11 @@ export default async function NovaConsultaPage({
                   <input type="hidden" name="cidadaoId" value={cidadao.id} />
                   <input type="hidden" name="profissionalId" value={s.profissionalId} />
                   <input type="hidden" name="especialidadeId" value={s.especialidadeId} />
-                  <button type="submit" className="rounded px-3 py-1 text-sm font-bold text-white" style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}>
+                  <button
+                    type="submit"
+                    className="rounded px-3 py-1 text-sm font-bold text-white"
+                    style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}
+                  >
                     Reservar
                   </button>
                 </form>
@@ -2883,7 +3246,9 @@ export async function reservarConsultaAction(formData: FormData) {
     redirect(`/medico/consultas/${consulta.id}` as Route);
   } catch (e) {
     if (e instanceof SlotIndisponivelError) {
-      redirect(`/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}&erro=slot_indisponivel` as Route);
+      redirect(
+        `/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}&erro=slot_indisponivel` as Route,
+      );
     }
     throw e;
   }
@@ -2905,6 +3270,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): wizard /med
 Mostra detalhe + botões contextuais de transição.
 
 **Files:**
+
 - Create: `src/app/medico/consultas/[id]/page.tsx`
 - Create: `src/app/medico/consultas/[id]/actions.ts`
 
@@ -2924,7 +3290,10 @@ import { Badge } from "@/components/ui/badge";
 import { podeTransicionarConsulta } from "@/lib/medico/rbac";
 import { transitionAction, cancelAction } from "./actions";
 
-const PROXIMOS_STATUS: Record<string, ("confirmada" | "em_atendimento" | "realizada" | "faltou" | "cancelada")[]> = {
+const PROXIMOS_STATUS: Record<
+  string,
+  ("confirmada" | "em_atendimento" | "realizada" | "faltou" | "cancelada")[]
+> = {
   agendada: ["confirmada", "em_atendimento", "faltou", "cancelada"],
   confirmada: ["em_atendimento", "faltou", "cancelada"],
   em_atendimento: ["realizada", "faltou", "cancelada"],
@@ -2933,11 +3302,7 @@ const PROXIMOS_STATUS: Record<string, ("confirmada" | "em_atendimento" | "realiz
   cancelada: [],
 };
 
-export default async function ConsultaDetalhePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function ConsultaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
@@ -2959,46 +3324,62 @@ export default async function ConsultaDetalhePage({
   return (
     <AppShell session={session}>
       <header className="mb-6">
-        <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+        <p className="text-xs uppercase tracking-wider" style={{ color: "rgb(var(--ifp-muted))" }}>
           Consulta
         </p>
         <h1 className="mt-1 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
           {consulta.cidadao.nomeCompleto}
         </h1>
         <p className="mt-1 text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
-          {consulta.slot.dataHoraInicio.toLocaleString("pt-BR")} · {consulta.profissional.nomeExibicao} · {consulta.especialidade.nome}
+          {consulta.slot.dataHoraInicio.toLocaleString("pt-BR")} ·{" "}
+          {consulta.profissional.nomeExibicao} · {consulta.especialidade.nome}
         </p>
       </header>
 
       <Card className="mb-6">
         <div className="flex items-center gap-3">
           <span style={{ color: "rgb(var(--ifp-muted))" }}>Status atual:</span>
-          <Badge variant={consulta.status === "realizada" ? "success" : consulta.status === "faltou" || consulta.status === "cancelada" ? "danger" : "default"}>
+          <Badge
+            variant={
+              consulta.status === "realizada"
+                ? "success"
+                : consulta.status === "faltou" || consulta.status === "cancelada"
+                  ? "danger"
+                  : "default"
+            }
+          >
             {consulta.status}
           </Badge>
         </div>
 
         {proximos.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {proximos.filter((p) => p !== "cancelada").map((p) => (
-              <form key={p} action={transitionAction} className="inline">
-                <input type="hidden" name="id" value={consulta.id} />
-                <input type="hidden" name="para" value={p} />
-                <button
-                  type="submit"
-                  disabled={
-                    !podeTransicionarConsulta(session, consulta.status, p, consulta.profissional.userId)
-                  }
-                  className="rounded border px-3 py-1 text-sm font-medium disabled:opacity-50"
-                  style={{
-                    borderColor: "rgb(var(--ifp-orange-700))",
-                    color: "rgb(var(--ifp-orange-700))",
-                  }}
-                >
-                  → {p}
-                </button>
-              </form>
-            ))}
+            {proximos
+              .filter((p) => p !== "cancelada")
+              .map((p) => (
+                <form key={p} action={transitionAction} className="inline">
+                  <input type="hidden" name="id" value={consulta.id} />
+                  <input type="hidden" name="para" value={p} />
+                  <button
+                    type="submit"
+                    disabled={
+                      !podeTransicionarConsulta(
+                        session,
+                        consulta.status,
+                        p,
+                        consulta.profissional.userId,
+                      )
+                    }
+                    className="rounded border px-3 py-1 text-sm font-medium disabled:opacity-50"
+                    style={{
+                      borderColor: "rgb(var(--ifp-orange-700))",
+                      color: "rgb(var(--ifp-orange-700))",
+                    }}
+                  >
+                    → {p}
+                  </button>
+                </form>
+              ))}
             {proximos.includes("cancelada") && (
               <form action={cancelAction} className="inline">
                 <input type="hidden" name="id" value={consulta.id} />
@@ -3024,7 +3405,10 @@ export default async function ConsultaDetalhePage({
       </Card>
 
       <Card className="mb-6">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: "rgb(var(--ifp-muted))" }}>
+        <h2
+          className="mb-3 text-sm font-semibold uppercase tracking-wide"
+          style={{ color: "rgb(var(--ifp-muted))" }}
+        >
           Observações
         </h2>
         <p style={{ color: "rgb(var(--ifp-ink))" }}>
@@ -3033,7 +3417,10 @@ export default async function ConsultaDetalhePage({
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: "rgb(var(--ifp-muted))" }}>
+        <h2
+          className="mb-3 text-sm font-semibold uppercase tracking-wide"
+          style={{ color: "rgb(var(--ifp-muted))" }}
+        >
           Espaço pro prontuário (F1.B.2)
         </h2>
         <p style={{ color: "rgb(var(--ifp-muted))" }}>
@@ -3104,7 +3491,11 @@ export async function cancelAction(formData: FormData) {
   }
 
   await liberarSlot(c.slotId, motivo);
-  await logEvent({ userId: session.user.id, action: "consulta_cancelada", meta: { consultaId: id, motivo } });
+  await logEvent({
+    userId: session.user.id,
+    action: "consulta_cancelada",
+    meta: { consultaId: id, motivo },
+  });
 
   revalidatePath(`/medico/consultas/${id}`);
 }
@@ -3127,6 +3518,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): /medico/con
 Sidebar contextual: quando user está em `/medico/*`, mostra nav específica.
 
 **Files:**
+
 - Modify: `src/components/app-shell.tsx`
 
 ### Step 14.1 — Adicionar nav contextual
@@ -3149,16 +3541,22 @@ const items: NavItem[] = inMedico
   ? [
       { label: "Fila do dia", href: "/medico" },
       { label: "Agenda semanal", href: "/medico/agenda" },
-      ...(hasAnyRole(session, "profissional") ? [{ label: "Minha agenda", href: "/medico/minha-agenda" }] : []),
+      ...(hasAnyRole(session, "profissional")
+        ? [{ label: "Minha agenda", href: "/medico/minha-agenda" }]
+        : []),
       { label: "Profissionais", href: "/medico/profissionais" },
-      ...(podeGerenciarEspecialidade(session) ? [{ label: "Especialidades", href: "/medico/especialidades" }] : []),
+      ...(podeGerenciarEspecialidade(session)
+        ? [{ label: "Especialidades", href: "/medico/especialidades" }]
+        : []),
       { label: "Cidadãos", href: "/app/cidadaos" },
     ]
   : [
       { label: "Visão geral", href: "/app" },
       { label: "Cidadãos", href: "/app/cidadaos" },
       ...(podeAgendar(session) ? [{ label: "Vagas", href: "/app/vagas" }] : []),
-      ...(hasAnyRole(session, "super_admin", "social") ? [{ label: "Serviço Social", href: "/social" }] : []),
+      ...(hasAnyRole(session, "super_admin", "social")
+        ? [{ label: "Serviço Social", href: "/social" }]
+        : []),
       ...(hasAnyRole(session, "super_admin") ? [{ label: "Admin", href: "/admin/users" }] : []),
     ];
 ```
@@ -3176,7 +3574,7 @@ response.headers.set("x-pathname", req.nextUrl.pathname);
 
 E retornar `response` ao final dos branches que apenas seguem (em vez de `return;`). Onde já há `return Response.redirect(...)`, deixar como está.
 
-> Alternativa simples se headers no proxy ficar chato: usar `usePathname()` em componente client + passar como prop pra AppShell, ou checar via route group `(medico)` colocando todas rotas /medico/* em `app/medico/(unidade)/...` com layout próprio que controle nav. **Recomendo a alternativa mais simples**: criar `src/app/medico/layout.tsx` (Next 16 nested layout) que retorna `<AppShell session={session} navContext="medico">{children}</AppShell>`.
+> Alternativa simples se headers no proxy ficar chato: usar `usePathname()` em componente client + passar como prop pra AppShell, ou checar via route group `(medico)` colocando todas rotas /medico/\* em `app/medico/(unidade)/...` com layout próprio que controle nav. **Recomendo a alternativa mais simples**: criar `src/app/medico/layout.tsx` (Next 16 nested layout) que retorna `<AppShell session={session} navContext="medico">{children}</AppShell>`.
 
 ### Step 14.2-alt — Implementação via layout aninhado (Recomendado)
 
@@ -3217,7 +3615,9 @@ export function AppShell({ session, children, items: itemsOverride }: AppShellPr
     { label: "Visão geral", href: "/app" },
     { label: "Cidadãos", href: "/app/cidadaos" },
     ...(podeAgendar(session) ? [{ label: "Vagas", href: "/app/vagas" }] : []),
-    ...(hasAnyRole(session, "super_admin", "social") ? [{ label: "Serviço Social", href: "/social" }] : []),
+    ...(hasAnyRole(session, "super_admin", "social")
+      ? [{ label: "Serviço Social", href: "/social" }]
+      : []),
     ...(hasAnyRole(session, "super_admin") ? [{ label: "Admin", href: "/admin/users" }] : []),
   ];
   // ... resto inalterado
@@ -3230,13 +3630,21 @@ E em cada `src/app/medico/*/page.tsx`, ao invés de `<AppShell session={session}
 const medicoItems = [
   { label: "Fila do dia", href: "/medico" },
   { label: "Agenda semanal", href: "/medico/agenda" },
-  ...(hasAnyRole(session, "profissional") ? [{ label: "Minha agenda", href: "/medico/minha-agenda" }] : []),
+  ...(hasAnyRole(session, "profissional")
+    ? [{ label: "Minha agenda", href: "/medico/minha-agenda" }]
+    : []),
   { label: "Profissionais", href: "/medico/profissionais" },
-  ...(podeGerenciarEspecialidade(session) ? [{ label: "Especialidades", href: "/medico/especialidades" }] : []),
+  ...(podeGerenciarEspecialidade(session)
+    ? [{ label: "Especialidades", href: "/medico/especialidades" }]
+    : []),
   { label: "Cidadãos", href: "/app/cidadaos" },
 ];
 
-return <AppShell session={session} items={medicoItems}>...</AppShell>;
+return (
+  <AppShell session={session} items={medicoItems}>
+    ...
+  </AppShell>
+);
 ```
 
 Pra evitar duplicação, criar `src/lib/medico/nav.ts`:
@@ -3251,9 +3659,13 @@ export function medicoNavItems(session: Session): NavItem[] {
   return [
     { label: "Fila do dia", href: "/medico" },
     { label: "Agenda semanal", href: "/medico/agenda" },
-    ...(hasAnyRole(session, "profissional") ? [{ label: "Minha agenda", href: "/medico/minha-agenda" }] : []),
+    ...(hasAnyRole(session, "profissional")
+      ? [{ label: "Minha agenda", href: "/medico/minha-agenda" }]
+      : []),
     { label: "Profissionais", href: "/medico/profissionais" },
-    ...(podeGerenciarEspecialidade(session) ? [{ label: "Especialidades", href: "/medico/especialidades" }] : []),
+    ...(podeGerenciarEspecialidade(session)
+      ? [{ label: "Especialidades", href: "/medico/especialidades" }]
+      : []),
     { label: "Cidadãos", href: "/app/cidadaos" },
   ];
 }
@@ -3276,6 +3688,7 @@ git -C "C:/Users/Administrador/ifp-connect" commit -m "feat(medico): nav context
 5 cenários cobrindo fluxos críticos. Cleanup do plano. Push consolidado.
 
 **Files:**
+
 - Create: `tests/e2e/medico-agenda.spec.ts`
 
 ### Step 15.1 — E2e spec
@@ -3288,7 +3701,12 @@ import { expect, test } from "@playwright/test";
 const SENHA_DEMO = "ifp-demo-2026";
 const SENHA_ERICK = "ifp-dev-2026";
 
-async function loginAs(page: import("@playwright/test").Page, slug: string, email: string, senha: string) {
+async function loginAs(
+  page: import("@playwright/test").Page,
+  slug: string,
+  email: string,
+  senha: string,
+) {
   await page.goto(`/${slug}/login`);
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill(senha);
@@ -3406,27 +3824,28 @@ Expected: ~15 commits desde a spec. Push sucesso.
 
 **1. Spec coverage:**
 
-| Seção da spec | Task |
-|---|---|
-| §1 Motivação | (cabeçalho do plano) |
-| §2 Decisões fechadas | implícitas em todas |
-| §3 Defaults assumidos | implícitas (sem WhatsApp, sem auto-agendamento etc.) |
-| §4.1 Schema Prisma (5 modelos + 2 enums) | T1 |
-| §4.2 `gerarSlots`/`reservarSlot` lógica | T3, T4 |
-| §4.3 RBAC matriz | T6 + gates em cada page (T7-T13) |
-| §5.1 Estrutura de arquivos | T7-T13 |
-| §5.2 Telas (8) | T7 esp, T8 prof×3, T9 minha-agenda, T10 home, T11 agenda, T12 nova, T13 detalhe |
-| §6 Fluxos A-E | T1+T2 (cadastrar prof e gerar seed), T9 (configurar agenda), T10+T12 (marcar), T13 (transições), T9 (bloquear) |
-| §7 Sub-tasks alto nível | T1-T15 |
-| §8 Não-objetivos | (declarados na spec; plano respeita) |
-| §9 Riscos | T1 índices, T4 anti-overbooking, T5 estado guardando soft-delete |
-| §10 Critérios sucesso | T15 e2e cobre 5; suíte unit cobre o resto |
+| Seção da spec                            | Task                                                                                                           |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| §1 Motivação                             | (cabeçalho do plano)                                                                                           |
+| §2 Decisões fechadas                     | implícitas em todas                                                                                            |
+| §3 Defaults assumidos                    | implícitas (sem WhatsApp, sem auto-agendamento etc.)                                                           |
+| §4.1 Schema Prisma (5 modelos + 2 enums) | T1                                                                                                             |
+| §4.2 `gerarSlots`/`reservarSlot` lógica  | T3, T4                                                                                                         |
+| §4.3 RBAC matriz                         | T6 + gates em cada page (T7-T13)                                                                               |
+| §5.1 Estrutura de arquivos               | T7-T13                                                                                                         |
+| §5.2 Telas (8)                           | T7 esp, T8 prof×3, T9 minha-agenda, T10 home, T11 agenda, T12 nova, T13 detalhe                                |
+| §6 Fluxos A-E                            | T1+T2 (cadastrar prof e gerar seed), T9 (configurar agenda), T10+T12 (marcar), T13 (transições), T9 (bloquear) |
+| §7 Sub-tasks alto nível                  | T1-T15                                                                                                         |
+| §8 Não-objetivos                         | (declarados na spec; plano respeita)                                                                           |
+| §9 Riscos                                | T1 índices, T4 anti-overbooking, T5 estado guardando soft-delete                                               |
+| §10 Critérios sucesso                    | T15 e2e cobre 5; suíte unit cobre o resto                                                                      |
 
 **Gap explícito:** Seed (T2) gera template **manualmente** porque `gerarSlots` só existe a partir de T3. Após T3, refatorar seed pra usar a lib é possível mas YAGNI — o seed-tmpl atualmente funciona idempotente.
 
 **2. Placeholder scan:** zero "TBD"/"TODO" não-explicado. Os "F1.B.2 prontuário" mencionados em vários lugares são referências futuras claras, não placeholders. O comentário em T13 "espaço pro prontuário (F1.B.2)" é mensagem visível na UI explicando o porquê do detalhe ser raso por ora — intencional.
 
 **3. Type consistency:**
+
 - `Especialidade.corDestaque` é `string` (hex) em T1, T2, T7, T11, T12 ✓
 - `Slot.dataHoraInicio` é `Date` em T1, T3, T4, T9, T10, T11 ✓
 - `Consulta.status` é `StatusConsulta` em T1, T5, T13 ✓
@@ -3440,23 +3859,23 @@ Expected: ~15 commits desde a spec. Push sucesso.
 
 ## Estimativa de tempo
 
-| Task | Tempo |
-|---|---|
-| T1 schema + migration | ~20 min |
-| T2 seed | ~30 min |
-| T3 gerarSlots TDD | ~30 min |
-| T4 reservarSlot TDD | ~30 min |
+| Task                             | Tempo   |
+| -------------------------------- | ------- |
+| T1 schema + migration            | ~20 min |
+| T2 seed                          | ~30 min |
+| T3 gerarSlots TDD                | ~30 min |
+| T4 reservarSlot TDD              | ~30 min |
 | T5 liberar/bloquear/transicionar | ~40 min |
-| T6 RBAC capabilities | ~25 min |
-| T7 /especialidades CRUD | ~40 min |
-| T8 /profissionais × 3 | ~60 min |
-| T9 /minha-agenda | ~50 min |
-| T10 /medico home | ~40 min |
-| T11 /medico/agenda grid | ~60 min |
-| T12 /consultas/nova wizard | ~50 min |
-| T13 /consultas/[id] | ~40 min |
-| T14 AppShell nav contextual | ~30 min |
-| T15 e2e + push | ~50 min |
+| T6 RBAC capabilities             | ~25 min |
+| T7 /especialidades CRUD          | ~40 min |
+| T8 /profissionais × 3            | ~60 min |
+| T9 /minha-agenda                 | ~50 min |
+| T10 /medico home                 | ~40 min |
+| T11 /medico/agenda grid          | ~60 min |
+| T12 /consultas/nova wizard       | ~50 min |
+| T13 /consultas/[id]              | ~40 min |
+| T14 AppShell nav contextual      | ~30 min |
+| T15 e2e + push                   | ~50 min |
 
 **Total ~9–10 horas contínuas.** ~2 dias úteis com interrupções e ajustes.
 
