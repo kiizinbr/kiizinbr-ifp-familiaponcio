@@ -251,7 +251,7 @@ Versões pinadas (engines): Node ≥ 20.11, pnpm ≥ 9. Stack instalada: Next 14
 
 **Validação local**: `pnpm install` (957 pacotes), `pnpm db:generate` ok, `tsc --noEmit` passa nos 4 workspaces, `next build` e `nest build` concluem sem erros, `next lint` limpo.
 
-PENDENTE: primeira migration do Prisma (precisa de Postgres rodando), implementação real dos módulos NestJS (auth/users/tenants/fichas), Auth.js no `apps/web`, fonte Garet, logos SVG.
+FEITO desde então (Sessões 4–8): migration inicial aplicada, módulos NestJS reais (auth/users/fichas-cidadas com RBAC + AuditLog), Auth.js no `apps/web`, e as telas do Serviço Social (listagem/wizard/detalhe). PENDENTE: módulos verticais por unidade, upload de documentos/consentimentos (S3), Row-Level Security no Postgres, fonte Garet, logos SVG.
 
 ---
 
@@ -326,21 +326,18 @@ Enum `Perfil` já definido no `schema.prisma`.
 - [x] **AuditLog service** (`AuditModule` global): wrapper `audit.registrar({ userId, acao, entidade, entidadeId, metadados })` que nunca bloqueia a operação principal (falha de gravação só vira log).
 - [x] **CRUD de Ficha Cidadã**: `FichasCidadasService` + `FichasCidadasController` protegidos por `JwtAuthGuard + PerfisGuard` (SUPER_ADMIN ou SERVICO_SOCIAL). Endpoints: `POST /fichas-cidadas` (cria titular, gera protocolo `IFP-YYYY-XXXXXX`), `GET /fichas-cidadas` (paginação + filtros por nome/CPF/protocolo/status/unidade/ativa), `GET /fichas-cidadas/:id` (registra READ no audit), `PATCH /fichas-cidadas/:id`, `PUT /fichas-cidadas/:id/membros`, `PUT /fichas-cidadas/:id/dados-socio`, `PUT /fichas-cidadas/:id/elegibilidade/:unidadeSlug`. Todos documentados via Swagger e com `class-validator` nos DTOs.
 - [x] **Deploy on-prem (Hyper-V + Ubuntu)**: `caddy/Caddyfile.internal` (HTTP por padrão, com opção comentada de `tls internal`), `docker-compose.onprem.yml` (override que usa `!override` em `ports` pra ficar só na 80), `.env.onprem.example` com hostnames `ifp.lan` / `api.ifp.lan`, `docs/deploy-onprem-hyperv.md` com 12 passos (Hyper-V VM specs e External Switch, instalação do Ubuntu Server 22.04, IP estático via Netplan, Docker via get.docker.com, ufw, build/migrate/seed/up, DNS interno via hosts ou AD, smoke tests, atualização, backup com cron, opção de HTTPS interno via Caddy CA, troubleshooting).
+- [x] **1ª migration do Prisma** criada e aplicada (`packages/database/migrations/20260530205929_init`, ao lado do `schema.prisma`) + **seed** rodado (4 Unidades + Super Admin `admin@ifp.local`). Fundação local validada ponta a ponta: Docker → Postgres → Prisma → API NestJS → JWT → RBAC → CRUD.
+- [x] **Telas do Serviço Social** (`apps/web`): `lib/use-auth-fetch.ts` (injeta o accessToken da sessão), `lib/use-fichas.ts` (hooks TanStack Query), `lib/api.ts` (tipos + labels PT-BR) e `lib/format.ts`; `QueryClientProvider` nos `providers`; `components/ui.tsx` (controles de formulário) e `components/sair-button.tsx`; guard central em `servico-social/layout.tsx`. **Listagem** (`/fichas`: busca com debounce + filtros + paginação), **wizard** de cadastro (`/fichas/nova`: 5 etapas, orquestra POST + PUTs) e **detalhe** (`/fichas/[id]`: dados completos + elegibilidade por unidade). `tsc` limpo e fluxo validado via API (ficha de teste `IFP-2026-079314`).
 
 ### Próximos passos (próxima sessão)
 
-1. **Provisionar a VM Hyper-V** seguindo `docs/deploy-onprem-hyperv.md` (External Switch, Ubuntu Server 22.04, Netplan com IP estático, Docker, ufw). Dentro da VM, `docker compose -f docker-compose.prod.yml -f docker-compose.onprem.yml --env-file .env.production up -d` + DNS interno (hosts file ou A record no AD).
-2. **Telas do Serviço Social** em `apps/web`:
-   - `/servico-social/fichas` (listagem com filtros + paginação)
-   - `/servico-social/fichas/nova` (wizard de 6 etapas que consome o CRUD criado)
-   - `/servico-social/fichas/[id]` (detalhe + ações de elegibilidade)
-   - Hook `useAuthFetch` que injeta o `accessToken` da sessão em todas as chamadas.
-3. **Row-Level Security no Postgres**: policies por `unidadeId` após primeira migration; criar role `app_user` que respeita RLS.
-4. **Documentos e consentimentos** (etapas 4 e 5 do wizard): upload pra storage S3-compatível (signed URLs) + endpoints `POST /fichas-cidadas/:id/documentos` e `POST /fichas-cidadas/:id/consentimentos`.
-5. **Magic link via Resend**: provider adicional no Auth.js + endpoint no NestJS pra emitir token de um clique. Obrigatório no primeiro login.
-6. **Layout base com troca de tema por unidade** (`data-theme` no `<html>`) e header com menu de unidades.
-7. **Logo SVG e fonte Garet**: arquivos do Erick em `apps/web/public/` e `apps/web/app/fonts/` (substituir Inter por `next/font/local`).
-8. **ESLint compartilhado**: `@typescript-eslint` + plugin Nest em `apps/api` e flat config em `packages/ui` (hoje noop).
+1. **Documentos e consentimentos** (etapas que faltam no wizard): endpoints `POST /fichas-cidadas/:id/documentos` e `POST /fichas-cidadas/:id/consentimentos` no NestJS + upload pra storage S3-compatível (signed URLs), e as etapas correspondentes no wizard (hoje sinalizadas como "próxima fase").
+2. **Row-Level Security no Postgres**: policies por `unidadeId` (a migration inicial já existe); criar role `app_user` que respeita RLS.
+3. **Magic link via Resend**: provider adicional no Auth.js + endpoint no NestJS pra emitir token de um clique. Obrigatório no primeiro login.
+4. **Layout base com troca de tema por unidade** (`data-theme` no `<html>`) e header com menu de unidades.
+5. **DX do `.env` no monorepo**: hoje `pnpm db:migrate`/`db:seed` e os apps não acham o `.env` da raiz sozinhos (workaround da Sessão 8: `set -a; . ./.env; set +a` antes do comando). Resolver de forma definitiva com `dotenv-cli` nos scripts ou `envFilePath: ["../../.env"]` no ConfigModule do Nest.
+6. **Provisionar a VM Hyper-V** seguindo `docs/deploy-onprem-hyperv.md` (External Switch, Ubuntu Server 22.04, Netplan, Docker, ufw) e subir o stack on-prem lá dentro.
+7. **Logo SVG e fonte Garet**; **ESLint compartilhado** (`@typescript-eslint` + plugin Nest em `apps/api`, flat config em `packages/ui`); corrigir o warning `outputFileTracingRoot` no `next.config.mjs`.
 
 ### Decisões pendentes (perguntar ao Erick / Simone)
 
@@ -372,6 +369,18 @@ Contato do projeto:
 ---
 
 ## 12. Histórico de sessões
+
+### Sessão 8 — Fundação local destravada + Telas do Serviço Social
+
+- **Subida da fundação**: `docker compose up -d` (Postgres 16 + Redis 7), 1ª migration do Prisma criada e aplicada (`migrations/20260530205929_init`), seed das 4 Unidades + Super Admin (`admin@ifp.local`). API validada de pé: `GET /health`, `POST /auth/login`, `GET /fichas-cidadas` (RBAC liberando SUPER_ADMIN, Prisma respondendo).
+- **DX do `.env` no monorepo**: o Prisma CLI, o seed (tsx) e o `ConfigModule` do Nest não acham o `.env` da raiz quando rodam de subpastas — a migration nunca tinha exposto isso. Workaround usado nesta sessão: `set -a; . ./.env; set +a` antes de cada comando. Correção definitiva (dotenv-cli / envFilePath) anotada nos próximos passos. Adicionada `NEXT_PUBLIC_API_URL` ao `.env`/`.env.example` (o browser precisa dela para o `useAuthFetch`).
+- **apps/web — telas do Serviço Social** (consomem o CRUD da Sessão 6):
+  - `lib/api.ts` (URL base, `ApiError`, tipos de domínio, labels PT-BR dos enums), `lib/format.ts` (CPF/telefone/data/moeda sem bug de fuso), `lib/use-auth-fetch.ts` (injeta `Authorization: Bearer` da sessão e traduz erros do Nest), `lib/use-fichas.ts` (hooks TanStack Query: listar/detalhar/criar/membros/socio/elegibilidade com invalidação de cache).
+  - `app/providers.tsx`: + `QueryClientProvider`. `components/ui.tsx`: Input/Select/Textarea/Checkbox/Botao/Campo/BadgeStatus/Alerta/Spinner (forwardRef p/ React Hook Form). `components/sair-button.tsx`.
+  - `app/servico-social/layout.tsx`: guard único (sessão + perfil SUPER_ADMIN/SERVICO_SOCIAL) + header com logout. Dashboard com cards navegáveis.
+  - `/servico-social/fichas`: listagem com busca (debounce 400ms), filtros por unidade/status e paginação. `/fichas/nova`: wizard de 5 etapas (titular → contato/endereço → membros via `useFieldArray` → socioeconômico opcional → revisão) que orquestra POST ficha + PUT membros + PUT dados-socio. `/fichas/[id]`: detalhe completo + painel de elegibilidade por unidade (status/motivo/reavaliação).
+  - Documentos e consentimentos ficam sinalizados como "próxima fase" (endpoints de upload ainda não existem).
+- **Validação**: `pnpm --filter @ifp/web typecheck` limpo; todas as rotas compilam no `next dev` e os guards redirecionam (307) sem sessão; fluxo E2E exercitado via API (POST 201 + 3× PUT 200 + filtros da listagem), criando a ficha de teste `IFP-2026-079314`.
 
 ### Sessão 1 — Arquitetura e bootstrap do repositório
 
@@ -476,4 +485,4 @@ Contato do projeto:
 
 ---
 
-Última atualização: Sessão 7 — Deploy on-prem (Hyper-V + Ubuntu Server, LAN interna) com `Caddyfile.internal`, override de compose e walkthrough em `docs/deploy-onprem-hyperv.md`. Próximo passo: criar a VM no Hyper-V seguindo o doc, rodar `docker compose -f docker-compose.prod.yml -f docker-compose.onprem.yml up -d` lá dentro, e implementar as telas de Serviço Social (listagem + wizard) consumindo o CRUD da API.
+Última atualização: Sessão 8 — Fundação local destravada (migration + seed, API validada) e telas do Serviço Social (listagem, wizard de cadastro e detalhe com elegibilidade por unidade) implementadas em `apps/web` e validadas. Próximo passo: documentos/consentimentos (upload S3) + Row-Level Security no Postgres, e resolver de forma definitiva a DX do `.env` no monorepo.
