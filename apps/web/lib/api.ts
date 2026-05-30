@@ -1,0 +1,243 @@
+/**
+ * Contrato client-side com a API IFP Connect.
+ *
+ * Aqui ficam: a URL base (exposta ao browser via NEXT_PUBLIC_API_URL), o tipo
+ * de erro padronizado e os tipos/labels de domínio que as telas do Serviço
+ * Social consomem. Os tipos espelham o que o NestJS devolve — valores Decimal
+ * do Prisma chegam como string no JSON, e datas como string ISO.
+ */
+
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333/api/v1";
+
+/** Erro de chamada à API: carrega o status HTTP e o corpo cru para depuração. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly body?: unknown,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+// ============================================================
+// Enums (espelham o schema.prisma)
+// ============================================================
+
+export type StatusElegibilidade =
+  | "PENDENTE"
+  | "APROVADO"
+  | "REPROVADO"
+  | "SUSPENSO"
+  | "DESLIGADO";
+
+export type EstadoCivil =
+  | "SOLTEIRO"
+  | "CASADO"
+  | "UNIAO_ESTAVEL"
+  | "DIVORCIADO"
+  | "VIUVO";
+
+export type Escolaridade =
+  | "SEM_ESCOLARIDADE"
+  | "FUND_INCOMPLETO"
+  | "FUND_COMPLETO"
+  | "MEDIO_INCOMPLETO"
+  | "MEDIO_COMPLETO"
+  | "SUPERIOR_INCOMPLETO"
+  | "SUPERIOR_COMPLETO"
+  | "POS_GRADUACAO";
+
+export type Parentesco =
+  | "CONJUGE"
+  | "FILHO"
+  | "FILHA"
+  | "ENTEADO"
+  | "PAI"
+  | "MAE"
+  | "IRMAO"
+  | "IRMA"
+  | "AVO"
+  | "AVOH"
+  | "NETO"
+  | "NETA"
+  | "OUTRO";
+
+export type SituacaoMoradia =
+  | "PROPRIA"
+  | "ALUGADA"
+  | "CEDIDA"
+  | "FINANCIADA"
+  | "OCUPACAO"
+  | "OUTRA";
+
+export type TipoUnidade = "MEDICO" | "CAPACITACAO" | "ESPORTIVO" | "EDUCACIONAL";
+
+// ============================================================
+// Labels PT-BR para exibição (selects e badges)
+// ============================================================
+
+export const STATUS_LABEL: Record<StatusElegibilidade, string> = {
+  PENDENTE: "Pendente",
+  APROVADO: "Aprovado",
+  REPROVADO: "Reprovado",
+  SUSPENSO: "Suspenso",
+  DESLIGADO: "Desligado",
+};
+
+export const ESTADO_CIVIL_LABEL: Record<EstadoCivil, string> = {
+  SOLTEIRO: "Solteiro(a)",
+  CASADO: "Casado(a)",
+  UNIAO_ESTAVEL: "União estável",
+  DIVORCIADO: "Divorciado(a)",
+  VIUVO: "Viúvo(a)",
+};
+
+export const ESCOLARIDADE_LABEL: Record<Escolaridade, string> = {
+  SEM_ESCOLARIDADE: "Sem escolaridade",
+  FUND_INCOMPLETO: "Fundamental incompleto",
+  FUND_COMPLETO: "Fundamental completo",
+  MEDIO_INCOMPLETO: "Médio incompleto",
+  MEDIO_COMPLETO: "Médio completo",
+  SUPERIOR_INCOMPLETO: "Superior incompleto",
+  SUPERIOR_COMPLETO: "Superior completo",
+  POS_GRADUACAO: "Pós-graduação",
+};
+
+export const PARENTESCO_LABEL: Record<Parentesco, string> = {
+  CONJUGE: "Cônjuge",
+  FILHO: "Filho",
+  FILHA: "Filha",
+  ENTEADO: "Enteado(a)",
+  PAI: "Pai",
+  MAE: "Mãe",
+  IRMAO: "Irmão",
+  IRMA: "Irmã",
+  AVO: "Avô",
+  AVOH: "Avó",
+  NETO: "Neto",
+  NETA: "Neta",
+  OUTRO: "Outro",
+};
+
+export const SITUACAO_MORADIA_LABEL: Record<SituacaoMoradia, string> = {
+  PROPRIA: "Própria",
+  ALUGADA: "Alugada",
+  CEDIDA: "Cedida",
+  FINANCIADA: "Financiada",
+  OCUPACAO: "Ocupação",
+  OUTRA: "Outra",
+};
+
+/** As 4 unidades do Instituto (slugs batem com o seed e a rota de elegibilidade). */
+export const UNIDADES: { slug: string; nome: string; tipo: TipoUnidade }[] = [
+  { slug: "medico", nome: "Centro Médico", tipo: "MEDICO" },
+  { slug: "capacitacao", nome: "Centro de Capacitação", tipo: "CAPACITACAO" },
+  { slug: "esportivo", nome: "Centro Esportivo", tipo: "ESPORTIVO" },
+  { slug: "educacional", nome: "Centro Recreativo / Educacional", tipo: "EDUCACIONAL" },
+];
+
+/** Helper: transforma um Record de labels em opções {value,label} para <select>. */
+export function asOptions<T extends string>(
+  labels: Record<T, string>,
+): { value: T; label: string }[] {
+  return (Object.entries(labels) as [T, string][]).map(([value, label]) => ({
+    value,
+    label,
+  }));
+}
+
+// ============================================================
+// Tipos de domínio (retornos da API)
+// ============================================================
+
+export interface Unidade {
+  id: string;
+  slug: string;
+  tipo: TipoUnidade;
+  nome: string;
+}
+
+export interface Elegibilidade {
+  id: string;
+  status: StatusElegibilidade;
+  motivo?: string | null;
+  reavaliarEm?: string | null;
+  avaliadoEm?: string | null;
+  unidade: Unidade;
+}
+
+export interface Membro {
+  id: string;
+  nomeCompleto: string;
+  cpf?: string | null;
+  dataNascimento: string;
+  parentesco: Parentesco;
+  ocupacao?: string | null;
+  escolaridade?: Escolaridade | null;
+  rendaMensal?: string | null;
+  observacoes?: string | null;
+}
+
+export interface DadosSocio {
+  rendaFamiliarTotal: string;
+  rendaPerCapita: string;
+  recebeBolsaFamilia: boolean;
+  recebeBPC: boolean;
+  recebeAuxilioGas: boolean;
+  outrosBeneficios?: string | null;
+  situacaoMoradia: SituacaoMoradia;
+  numeroPessoasMoradia: number;
+  numeroComodos?: number | null;
+  temAguaEncanada: boolean;
+  temEsgoto: boolean;
+  temEnergiaEletrica: boolean;
+  vulnerabilidades?: string | null;
+}
+
+/** Ficha como vem na listagem (campos essenciais + elegibilidades). */
+export interface FichaResumo {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+  cpf: string;
+  telefone: string;
+  dataNascimento: string;
+  ativa: boolean;
+  criadoEm: string;
+  elegibilidades: Elegibilidade[];
+}
+
+/** Ficha completa (GET /:id) — inclui titular completo, membros e dados socio. */
+export interface FichaDetalhe extends FichaResumo {
+  rg?: string | null;
+  estadoCivil?: EstadoCivil | null;
+  escolaridade?: Escolaridade | null;
+  email?: string | null;
+  telefoneAlt?: string | null;
+  whatsappOptIn: boolean;
+  cep?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade: string;
+  uf: string;
+  observacoes?: string | null;
+  membros: Membro[];
+  dadosSocio?: DadosSocio | null;
+}
+
+export interface Paginacao {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface ListaFichas {
+  items: FichaResumo[];
+  pagination: Paginacao;
+}
