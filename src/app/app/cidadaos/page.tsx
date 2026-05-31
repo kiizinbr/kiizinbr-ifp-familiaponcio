@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
+import { EditorialCanvas, Masthead } from "@/components/editorial";
+import styles from "@/components/editorial/editorial.module.css";
 import { listCidadaos, calcularIdade, type CidadaoStatus } from "@/lib/cidadao";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { formatCpf } from "@/lib/cpf";
@@ -15,11 +17,11 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   recreativo: "Recreativo",
 };
 
-const TONE_BADGE: Record<StatusTone, string> = {
-  red: "bg-red-100 text-red-700",
-  amber: "bg-amber-100 text-amber-700",
-  emerald: "bg-emerald-100 text-emerald-700",
-  slate: "bg-slate-100 text-[rgb(var(--ifp-muted))]",
+const TONE_CLASS: Record<StatusTone, string> = {
+  red: styles.toneRed ?? "",
+  amber: styles.toneAmber ?? "",
+  emerald: styles.toneEmerald ?? "",
+  slate: styles.toneSlate ?? "",
 };
 
 type CicloFilter = "rascunho" | "ativo" | "inativo";
@@ -63,49 +65,44 @@ export default async function CidadaosPage({
     session,
   );
 
+  const agora = new Date();
+  const dataWeekday = agora.toLocaleDateString("pt-BR", { weekday: "long" });
+  const dataFull = agora.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <AppShell session={session}>
-      <header className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
-            Pessoas atendidas
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Cidadãos</h1>
-          <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
-            {items.length} {items.length === 1 ? "pessoa encontrada" : "pessoas encontradas"}
-          </p>
-        </div>
-        <Link
-          href={"/app/cidadaos/novo" as Route}
-          className="rounded bg-[rgb(var(--ifp-orange-500))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-        >
-          + Novo cidadão
-        </Link>
-      </header>
+      <EditorialCanvas fullBleed>
+        <Masthead
+          kicker="Instituto Família Pôncio · Pessoas atendidas"
+          title="Cidadãos"
+          dateWeekday={dataWeekday}
+          dateFull={dataFull}
+          showClock={false}
+          action={
+            <Link href={"/app/cidadaos/novo" as Route} className={styles.btnPrimary}>
+              + Novo cidadão
+            </Link>
+          }
+        />
 
-      <section className="ifp-card mb-4 p-5">
-        <form method="get" className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1">
-            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
-              Buscar (nome, CPF, telefone)
-            </label>
+        <form method="get" className={styles.toolbar}>
+          <div className={`${styles.field} ${styles.fieldGrow}`}>
+            <label className={styles.fieldLabel}>Buscar (nome, CPF, telefone)</label>
             <input
               type="search"
               name="q"
               defaultValue={params.q ?? ""}
               placeholder="Ex: Maria Silva ou 123.456.789-09"
-              className="w-full rounded border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
+              className={styles.input}
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
-              Unidade
-            </label>
-            <select
-              name="unidade"
-              defaultValue={params.unidade ?? ""}
-              className="rounded border px-3 py-2 text-sm"
-            >
+          <div className={styles.field}>
+            <label className={styles.fieldLabel}>Unidade</label>
+            <select name="unidade" defaultValue={params.unidade ?? ""} className={styles.select}>
               <option value="">Todas</option>
               {UNIT_SCOPES.map((u) => (
                 <option key={u} value={u}>
@@ -114,126 +111,99 @@ export default async function CidadaosPage({
               ))}
             </select>
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
-              Status
-            </label>
-            <select
-              name="status"
-              defaultValue={params.status ?? "ativo"}
-              className="rounded border px-3 py-2 text-sm"
-            >
+          <div className={styles.field}>
+            <label className={styles.fieldLabel}>Status</label>
+            <select name="status" defaultValue={params.status ?? "ativo"} className={styles.select}>
               <option value="ativo">Ativos</option>
               <option value="deletado">Excluídos</option>
               <option value="anonimizado">Anonimizados (LGPD)</option>
             </select>
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
-              Ciclo
-            </label>
-            <select
-              name="ciclo"
-              defaultValue={params.ciclo ?? ""}
-              className="rounded border px-3 py-2 text-sm"
-            >
+          <div className={styles.field}>
+            <label className={styles.fieldLabel}>Ciclo</label>
+            <select name="ciclo" defaultValue={params.ciclo ?? ""} className={styles.select}>
               <option value="">Todos</option>
               <option value="rascunho">Rascunho</option>
               <option value="ativo">Ativo</option>
               <option value="inativo">Inativo</option>
             </select>
           </div>
-          <button
-            type="submit"
-            className="rounded border border-slate-300 px-4 py-2 text-sm transition hover:bg-slate-50"
-          >
+          <button type="submit" className={styles.btnGhost}>
             Filtrar
           </button>
         </form>
-      </section>
 
-      <section className="ifp-card overflow-hidden">
-        {items.length === 0 ? (
-          <div className="px-6 py-16 text-center">
-            <p className="text-sm text-[rgb(var(--ifp-muted))]">
-              Nenhum cidadão encontrado com esses filtros.
-            </p>
-          </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs tracking-wide text-[rgb(var(--ifp-muted))] uppercase">
-              <tr>
-                <th className="px-5 py-3 text-left font-medium">Nome</th>
-                <th className="px-5 py-3 text-left font-medium">CPF</th>
-                <th className="px-5 py-3 text-left font-medium">Idade</th>
-                <th className="px-5 py-3 text-left font-medium">Telefone</th>
-                <th className="px-5 py-3 text-left font-medium">Unidade</th>
-                <th className="px-5 py-3 text-left font-medium">Família</th>
-                <th className="px-5 py-3 text-left font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {items.map((c) => {
-                const unit = c.unitIdOrigem as UnitScope;
-                const status = statusDisplay(c);
-                return (
-                  <tr key={c.id} className="transition hover:bg-slate-50">
-                    <td className="px-5 py-3">
-                      <Link
-                        href={`/app/cidadaos/${c.id}` as Route}
-                        className="font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
-                      >
-                        {c.nomeCompleto}
-                      </Link>
-                      {c.nomeSocial && (
-                        <p className="text-xs text-[rgb(var(--ifp-muted))]">
-                          Social: {c.nomeSocial}
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs text-slate-700">
-                      {formatCpf(c.cpf)}
-                    </td>
-                    <td className="px-5 py-3 text-slate-700">
-                      {calcularIdade(c.dataNascimento)} anos
-                    </td>
-                    <td className="px-5 py-3 text-slate-700">{c.telefonePrincipal}</td>
-                    <td className="px-5 py-3">
-                      <span
-                        className="rounded px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
-                      >
-                        {UNIT_LABELS[unit]}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-xs text-[rgb(var(--ifp-muted))]">
-                      {c.familia?.nomeReferencia ?? "—"}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs font-medium ${TONE_BADGE[status.tone]}`}
-                      >
-                        {status.label}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </section>
+        <p className={styles.fieldLabel} style={{ marginTop: "20px" }}>
+          {items.length} {items.length === 1 ? "pessoa encontrada" : "pessoas encontradas"}
+        </p>
 
-      {nextCursor && (
-        <div className="mt-4 text-center">
-          <Link
-            href={`/app/cidadaos?cursor=${nextCursor}` as Route}
-            className="inline-block rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-          >
-            Carregar mais
-          </Link>
+        <div className={styles.tableWrap}>
+          {items.length === 0 ? (
+            <p className={styles.tableEmpty}>Nenhum cidadão encontrado com esses filtros.</p>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Nome</th>
+                  <th className={styles.th}>CPF</th>
+                  <th className={styles.th}>Idade</th>
+                  <th className={styles.th}>Telefone</th>
+                  <th className={styles.th}>Unidade</th>
+                  <th className={styles.th}>Família</th>
+                  <th className={styles.th}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((c) => {
+                  const unit = c.unitIdOrigem as UnitScope;
+                  const status = statusDisplay(c);
+                  return (
+                    <tr key={c.id} className={styles.tr}>
+                      <td className={`${styles.td} ${styles.tdName}`}>
+                        <Link href={`/app/cidadaos/${c.id}` as Route} className={styles.panelLink}>
+                          {c.nomeCompleto}
+                        </Link>
+                        {c.nomeSocial && (
+                          <div className={styles.tdMuted}>Social: {c.nomeSocial}</div>
+                        )}
+                      </td>
+                      <td className={`${styles.td} ${styles.tdMono}`}>{formatCpf(c.cpf)}</td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>
+                        {calcularIdade(c.dataNascimento)} anos
+                      </td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>{c.telefonePrincipal}</td>
+                      <td className={styles.td}>
+                        <span
+                          className={styles.unitPill}
+                          style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
+                        >
+                          {UNIT_LABELS[unit]}
+                        </span>
+                      </td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>
+                        {c.familia?.nomeReferencia ?? "—"}
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`${styles.tonePill} ${TONE_CLASS[status.tone]}`}>
+                          {status.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
-      )}
+
+        {nextCursor && (
+          <div className={styles.loadMore}>
+            <Link href={`/app/cidadaos?cursor=${nextCursor}` as Route} className={styles.btnGhost}>
+              Carregar mais
+            </Link>
+          </div>
+        )}
+      </EditorialCanvas>
     </AppShell>
   );
 }

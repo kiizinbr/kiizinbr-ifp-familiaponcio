@@ -245,6 +245,142 @@
   color: rgb(var(--ifp-ink-warm));
 }
 
+/* ============ TOOLBAR / FILTROS ============ */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 24px;
+  padding: 18px 20px;
+  background: rgb(var(--ifp-paper-2));
+  border: 1px solid var(--ifp-hair);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.fieldGrow {
+  flex: 1;
+  min-width: 200px;
+}
+.fieldLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(var(--ifp-ink-soft));
+}
+.input,
+.select {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: rgb(var(--ifp-ink-warm));
+  background: rgb(var(--ifp-paper));
+  border: 1px solid var(--ifp-hair-strong);
+  border-radius: 2px;
+  padding: 9px 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: rgb(var(--ifp-teal-700));
+  box-shadow: 0 0 0 3px rgb(var(--ifp-teal-500) / 0.18);
+}
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgb(var(--ifp-orange-500));
+  border: none;
+  border-radius: 2px;
+  padding: 11px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.btnPrimary:hover {
+  opacity: 0.9;
+}
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--ifp-ink-warm));
+  background: transparent;
+  border: 1px solid var(--ifp-hair-strong);
+  border-radius: 2px;
+  padding: 10px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.btnGhost:hover {
+  background: rgb(var(--ifp-paper-2));
+}
+/* badge de unidade (cor temática por unidade) + pill de status tonal */
+.unitPill {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+.tonePill {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.toneRed {
+  background: rgb(var(--ifp-danger) / 0.12);
+  color: rgb(var(--ifp-danger));
+}
+.toneAmber {
+  background: rgb(var(--ifp-orange-500) / 0.15);
+  color: rgb(var(--ifp-warning));
+}
+.toneEmerald {
+  background: rgb(var(--ifp-teal-500) / 0.15);
+  color: rgb(var(--ifp-teal-700));
+}
+.toneSlate {
+  background: rgb(var(--ifp-surface-100));
+  color: rgb(var(--ifp-ink-soft));
+}
+.tdMono {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  color: rgb(var(--ifp-ink-soft));
+}
+.tableEmpty {
+  padding: 56px 22px;
+  text-align: center;
+  font-style: italic;
+  color: rgb(var(--ifp-ink-soft));
+}
+.loadMore {
+  margin-top: 18px;
+  text-align: center;
+}
+
 /* ============ TILE GRID (resumo por unidade etc.) ============ */
 .tileGrid {
   display: grid;
