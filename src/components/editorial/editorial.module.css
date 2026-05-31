@@ -138,7 +138,7 @@
 /* ============ KPI LEDGER ============ */
 .ledger {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--ledger-cols, 3), 1fr);
   border-bottom: 1px solid var(--ifp-hair);
   margin-top: 28px;
 }
@@ -163,14 +163,17 @@
 .kpi + .kpi::before {
   left: 40px;
 }
-.kpiNow::before {
+.kpiOrange::before {
   background: rgb(var(--ifp-orange-500));
 }
-.kpiDone::before {
+.kpiTeal::before {
   background: rgb(var(--ifp-teal-700));
 }
-.kpiFree::before {
+.kpiInk::before {
   background: rgb(var(--ifp-ink));
+}
+.kpiMuted::before {
+  background: var(--ifp-hair-strong);
 }
 .kpiLabel {
   font-size: 11.5px;
@@ -193,11 +196,24 @@
   gap: 14px;
   color: rgb(var(--ifp-ink-warm));
 }
-.kpiNow .kpiNum {
+.kpiOrange .kpiNum {
   color: rgb(var(--ifp-orange-500));
 }
-.kpiDone .kpiNum {
+.kpiTeal .kpiNum {
   color: rgb(var(--ifp-teal-700));
+}
+/* compact: número menor p/ dashboards com 4 colunas */
+.ledgerCompact .kpiNum {
+  font-size: clamp(40px, 4.5vw, 60px);
+}
+.ledgerCompact .kpi {
+  padding: 24px 22px 22px 0;
+}
+.ledgerCompact .kpi + .kpi {
+  padding-left: 28px;
+}
+.ledgerCompact .kpi + .kpi::before {
+  left: 28px;
 }
 .kpiSuffix {
   font-family: var(--font-body);
@@ -214,6 +230,216 @@
   font-size: 11.5px;
   color: rgb(var(--ifp-ink-soft));
   letter-spacing: 0.04em;
+}
+
+/* ============ SECTION TITLE ============ */
+.sectionTitle {
+  margin: 44px 0 18px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid rgb(var(--ifp-ink-warm));
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(var(--ifp-ink-warm));
+}
+
+/* ============ TILE GRID (resumo por unidade etc.) ============ */
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--ifp-hair);
+  border: 1px solid var(--ifp-hair);
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px 20px;
+  background: rgb(var(--ifp-paper));
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  transition: background 0.25s ease;
+}
+.tile:hover {
+  background: rgb(var(--ifp-paper-2));
+}
+.tileBar {
+  width: 32px;
+  height: 4px;
+  border-radius: 0 0 3px 3px;
+  background: var(--tile-accent, var(--ifp-hair-strong));
+  margin-bottom: 8px;
+}
+.tileLabel {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--ifp-ink-soft));
+  font-weight: 600;
+}
+.tileValue {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: rgb(var(--ifp-ink-warm));
+  font-variant-numeric: lining-nums;
+}
+.tileCaption {
+  font-size: 11.5px;
+  color: rgb(var(--ifp-ink-soft));
+}
+
+/* ============ PANEL (listas: triagens, atividade) ============ */
+.panelGrid {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+}
+@media (min-width: 900px) {
+  .panelGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.panel {
+  border: 1px solid var(--ifp-hair);
+  border-top: 3px solid rgb(var(--ifp-orange-900));
+  background: rgb(var(--ifp-paper));
+  padding: 22px 24px 24px;
+}
+.panelTitle {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  color: rgb(var(--ifp-ink-warm));
+  margin-bottom: 4px;
+}
+.panelBody {
+  margin-top: 12px;
+}
+.panelList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.panelItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--ifp-hair);
+}
+.panelItem:last-child {
+  border-bottom: none;
+}
+.panelLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--ifp-ink-warm));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.panelLink:hover {
+  color: rgb(var(--ifp-teal-700));
+}
+.panelPrimary {
+  font-size: 14px;
+  color: rgb(var(--ifp-ink-warm));
+}
+.panelMeta {
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: rgb(var(--ifp-ink-soft));
+  text-align: right;
+  white-space: nowrap;
+}
+.panelEmpty {
+  font-size: 13.5px;
+  color: rgb(var(--ifp-ink-soft));
+  font-style: italic;
+}
+
+/* ============ TABLE (editorial) ============ */
+.tableWrap {
+  margin-top: 28px;
+  border-top: 1.5px solid rgb(var(--ifp-ink-warm));
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.th {
+  text-align: left;
+  padding: 14px 16px;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--ifp-ink-soft));
+  border-bottom: 1px solid var(--ifp-hair-strong);
+  white-space: nowrap;
+}
+.td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ifp-hair);
+  color: rgb(var(--ifp-ink-warm));
+  vertical-align: middle;
+}
+.tr:hover .td {
+  background: rgb(var(--ifp-paper-2));
+}
+.trCurrent .td {
+  background: rgb(var(--ifp-orange-500) / 0.06);
+}
+.tdName {
+  font-weight: 600;
+}
+.tdMuted {
+  color: rgb(var(--ifp-ink-soft));
+}
+.youTag {
+  margin-left: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(var(--ifp-orange-700));
+}
+.rolePill {
+  display: inline-flex;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgb(var(--ifp-ink-soft));
+  background: color-mix(in srgb, rgb(var(--ifp-orange-900)) 9%, transparent);
+  border: 1px solid color-mix(in srgb, rgb(var(--ifp-orange-900)) 22%, transparent);
+}
+.statusDot {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: rgb(var(--ifp-ink-soft));
+}
+.statusDot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(var(--ifp-teal-700));
 }
 
 /* ============ AGENDA ============ */

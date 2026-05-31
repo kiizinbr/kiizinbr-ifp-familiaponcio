@@ -14,7 +14,7 @@ import {
   TimelineRow,
   EditorialEmpty,
   Colophon,
-} from "@/components/medico/editorial";
+} from "@/components/editorial";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 
 const STATUS_EM_FILA = ["agendada", "confirmada", "em_atendimento"] as const;
@@ -118,13 +118,13 @@ export default async function MedicoHomePage() {
 
         <KpiLedger
           items={[
-            { label: "Na fila", value: emAndamento, suffix: "aguardando", tone: "now" },
-            { label: "Realizadas hoje", value: realizadas, suffix: "concluídas", tone: "done" },
+            { label: "Na fila", value: emAndamento, suffix: "aguardando", tone: "orange" },
+            { label: "Realizadas hoje", value: realizadas, suffix: "concluídas", tone: "teal" },
             {
               label: "Slots livres",
               value: slotsLivresHoje,
               suffix: "vagos",
-              tone: "free",
+              tone: "ink",
               hint: `${consultas7d} agendadas em 7 dias`,
             },
           ]}

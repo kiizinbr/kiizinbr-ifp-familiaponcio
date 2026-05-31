@@ -83,7 +83,7 @@ export function Masthead({
   );
 }
 
-type KpiTone = "now" | "done" | "free";
+type KpiTone = "orange" | "teal" | "ink" | "muted";
 
 interface KpiItem {
   label: string;
@@ -96,15 +96,32 @@ interface KpiItem {
 // CSS-module classes são `string | undefined` sob noUncheckedIndexedAccess;
 // coalesce p/ string (a classe sempre existe no .module.css em runtime).
 const KPI_TONE_CLASS: Record<KpiTone, string> = {
-  now: styles.kpiNow ?? "",
-  done: styles.kpiDone ?? "",
-  free: styles.kpiFree ?? "",
+  orange: styles.kpiOrange ?? "",
+  teal: styles.kpiTeal ?? "",
+  ink: styles.kpiInk ?? "",
+  muted: styles.kpiMuted ?? "",
 };
 
-/** Livro-razão de KPIs: 3 colunas, número-manchete em Fraunces. */
-export function KpiLedger({ items }: { items: KpiItem[] }) {
+/**
+ * Livro-razão de KPIs: número-manchete em Fraunces + filete colorido por tom.
+ * `columns` define a grade (default 3); `compact` reduz o número p/ dashboards densos.
+ */
+export function KpiLedger({
+  items,
+  columns = 3,
+  compact = false,
+}: {
+  items: KpiItem[];
+  columns?: number;
+  compact?: boolean;
+}) {
+  const style = { ["--ledger-cols" as string]: String(columns) } as React.CSSProperties;
   return (
-    <section className={styles.ledger} aria-label="Resumo do dia">
+    <section
+      className={`${styles.ledger} ${compact ? styles.ledgerCompact : ""}`}
+      style={style}
+      aria-label="Resumo"
+    >
       {items.map((k) => (
         <div key={k.label} className={`${styles.kpi} ${KPI_TONE_CLASS[k.tone]}`}>
           <div className={styles.kpiLabel}>{k.label}</div>
@@ -117,6 +134,105 @@ export function KpiLedger({ items }: { items: KpiItem[] }) {
       ))}
     </section>
   );
+}
+
+/** Título de seção editorial (small-caps + filete). Ex.: "Unidades". */
+export function EditorialSectionTitle({ children }: { children: ReactNode }) {
+  return <h2 className={styles.sectionTitle}>{children}</h2>;
+}
+
+interface TileProps {
+  href?: string;
+  /** Cor do filete superior (ex.: "rgb(var(--ifp-filter-medico))"). */
+  accent?: string;
+  label: string;
+  value: number | string;
+  caption?: string;
+}
+
+/** Cartão-ladrilho editorial (ex.: resumo por unidade). Número em Fraunces. */
+export function EditorialTile({ href, accent, label, value, caption }: TileProps) {
+  const style = accent
+    ? ({ ["--tile-accent" as string]: accent } as React.CSSProperties)
+    : undefined;
+  const inner = (
+    <>
+      <span className={styles.tileBar} style={style} aria-hidden="true" />
+      <span className={styles.tileLabel}>{label}</span>
+      <span className={styles.tileValue}>{value}</span>
+      {caption && <span className={styles.tileCaption}>{caption}</span>}
+    </>
+  );
+  return href ? (
+    <Link href={href as Route} className={styles.tile}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={styles.tile}>{inner}</div>
+  );
+}
+
+/** Grade responsiva de ladrilhos. */
+export function EditorialTileGrid({ children }: { children: ReactNode }) {
+  return <div className={styles.tileGrid}>{children}</div>;
+}
+
+export interface PanelItem {
+  key: string;
+  primary: string;
+  secondary?: string;
+  href?: string;
+}
+
+/**
+ * Painel editorial: card com título serifado + lista de itens com hairlines.
+ * Passe `items` (lista) ou `children` (conteúdo livre).
+ */
+export function EditorialPanel({
+  title,
+  items,
+  emptyText = "Nada por aqui.",
+  children,
+}: {
+  title: string;
+  items?: PanelItem[];
+  emptyText?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className={styles.panel}>
+      <h3 className={styles.panelTitle}>{title}</h3>
+      <div className={styles.panelBody}>
+        {items ? (
+          items.length === 0 ? (
+            <p className={styles.panelEmpty}>{emptyText}</p>
+          ) : (
+            <ul className={styles.panelList}>
+              {items.map((it) => (
+                <li key={it.key} className={styles.panelItem}>
+                  {it.href ? (
+                    <Link href={it.href as Route} className={styles.panelLink}>
+                      {it.primary}
+                    </Link>
+                  ) : (
+                    <span className={styles.panelPrimary}>{it.primary}</span>
+                  )}
+                  {it.secondary && <span className={styles.panelMeta}>{it.secondary}</span>}
+                </li>
+              ))}
+            </ul>
+          )
+        ) : (
+          children
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Grade de 2 colunas pros painéis. */
+export function EditorialPanelGrid({ children }: { children: ReactNode }) {
+  return <div className={styles.panelGrid}>{children}</div>;
 }
 
 interface LegendItem {
