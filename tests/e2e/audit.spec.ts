@@ -1,7 +1,8 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 import fs from "node:fs";
 import path from "node:path";
+import { login, loginError, SENHA_ERICK } from "./helpers/login";
 
 // Carrega .env.local manualmente pra PrismaClient achar DATABASE_URL no runner Playwright.
 // Playwright nao carrega .env automaticamente (Next.js carrega no app, mas o test runner nao).
@@ -25,7 +26,6 @@ if (fs.existsSync(envPath)) {
  */
 
 const ERICK_EMAIL = "erick.ramos@familiaponcio.org.br";
-const ERICK_PASSWORD = "ifp-dev-2026";
 
 const db = new PrismaClient();
 
@@ -33,22 +33,12 @@ test.afterAll(async () => {
   await db.$disconnect();
 });
 
-async function loginAs(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
-  await page.goto("/login");
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.match(/^\/(login)?$/), { timeout: 15000 }),
-    page.click('button[type="submit"]'),
-  ]);
-  await page.waitForLoadState("networkidle");
-}
-
 test.describe("Audit log on auth events", () => {
   test("login bem-sucedido cria entry signin_success", async ({ page }) => {
     const before = new Date();
-    await loginAs(page, ERICK_EMAIL, ERICK_PASSWORD);
+    await login(page, "medico", ERICK_EMAIL, SENHA_ERICK);
+    // super_admin logando em /medico aterrissa em /medico (sai de /login).
+    await expect(page).toHaveURL(/\/medico$/);
 
     // Aguarda commit do evento (events.signIn e disparado fire-and-forget).
     await page.waitForTimeout(500);
@@ -72,14 +62,10 @@ test.describe("Audit log on auth events", () => {
 
   test("login com senha errada cria entry signin_failed", async ({ page }) => {
     const before = new Date();
-    await page.context().clearCookies();
-    await page.goto("/login");
-    await page.fill('input[name="email"]', ERICK_EMAIL);
-    await page.fill('input[name="password"]', "senha-errada-xxxxx");
-    await Promise.all([
-      page.waitForURL(/\/login\?error=invalid/, { timeout: 15000 }),
-      page.click('button[type="submit"]'),
-    ]);
+    await login(page, "medico", ERICK_EMAIL, "senha-errada-xxxxx");
+    // RBAC v2: senha errada NAO redireciona — mostra erro inline e fica em /<slug>/login.
+    await expect(loginError(page)).toBeVisible();
+    await expect(page).toHaveURL(/\/medico\/login/);
 
     await page.waitForTimeout(500);
 

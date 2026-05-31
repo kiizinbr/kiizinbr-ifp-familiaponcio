@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { login, SENHA_DEMO, SENHA_ERICK } from "./helpers/login";
 
 /**
  * e2e da edição de Ficha (melhorias Task 2) + redação de campo sensível na timeline.
@@ -8,21 +9,6 @@ import { test, expect, type Page } from "@playwright/test";
  *
  * Pré-requisito: `pnpm db:seed`.
  */
-
-const DEMO_PASSWORD = "ifp-demo-2026";
-const ERICK_PASSWORD = "ifp-dev-2026";
-
-async function loginAs(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
-  await page.goto("/login");
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.match(/^\/(login)?$/), { timeout: 15000 }),
-    page.click('button[type="submit"]'),
-  ]);
-  await page.waitForLoadState("networkidle");
-}
 
 function gerarCpf(): string {
   const base = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
@@ -43,7 +29,7 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
   const novoTelefone = "(21) 97777-1234";
 
   test("recepção cria a ficha", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto("/app/cidadaos/novo");
     await page.getByLabel(/Nome completo/).fill(nome);
     await page.getByLabel(/^CPF/).fill(gerarCpf());
@@ -59,7 +45,7 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
   });
 
   test("Erick (super_admin) edita o telefone e o detalhe reflete", async ({ page }) => {
-    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
+    await login(page, "medico", "erick.ramos@familiaponcio.org.br", SENHA_ERICK);
     await page.goto(`${cidadaoUrl}/editar`);
     await page.getByRole("button", { name: /Contato/ }).click();
     await page.getByLabel(/Telefone principal/).fill(novoTelefone);
@@ -72,7 +58,7 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
   });
 
   test("Erick (super_admin) edita um campo de Saúde", async ({ page }) => {
-    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
+    await login(page, "medico", "erick.ramos@familiaponcio.org.br", SENHA_ERICK);
     await page.goto(`${cidadaoUrl}/editar`);
     await page.getByRole("button", { name: /Saúde/ }).click();
     await page.getByLabel(/Alergias/).fill("Dipirona");
@@ -83,14 +69,14 @@ test.describe.serial("Edição de Ficha + redação na timeline", () => {
   });
 
   test("histórico: Erick (super_admin) VÊ o campo de saúde alterado", async ({ page }) => {
-    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
+    await login(page, "medico", "erick.ramos@familiaponcio.org.br", SENHA_ERICK);
     await page.goto(`${cidadaoUrl}/historico`);
     await expect(page.getByText("Ficha atualizada").first()).toBeVisible();
     await expect(page.getByText(/Alergias/).first()).toBeVisible();
   });
 
   test("histórico: recepção NÃO vê o nome do campo de saúde (redação)", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(`${cidadaoUrl}/historico`);
     await expect(page.getByText("Ficha atualizada").first()).toBeVisible();
     await expect(page.getByText(/alergia/i)).toHaveCount(0);

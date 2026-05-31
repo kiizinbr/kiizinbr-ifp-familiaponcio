@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { login, SENHA_DEMO, SENHA_ERICK } from "./helpers/login";
 
 /**
  * Testes e2e do Plano 3 — Ficha Cidadã (Task 10).
@@ -8,22 +9,10 @@ import { test, expect, type Page } from "@playwright/test";
  * Pré-requisito: `pnpm db:seed` (9 users seedados).
  * Escopo adaptado à UI existente: edição de ficha ainda não foi construída,
  * então "editar telefone" do plano original não é testável e fica pro futuro.
+ *
+ * Login agora é per-unidade (RBAC v2): `login(page, slug, email, senha)`.
+ * Os corpos seguem usando as rotas legadas `/app/cidadaos/*` (inalteradas).
  */
-
-const DEMO_PASSWORD = "ifp-demo-2026";
-const ERICK_PASSWORD = "ifp-dev-2026";
-
-async function loginAs(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
-  await page.goto("/login");
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.match(/^\/(login)?$/), { timeout: 15000 }),
-    page.click('button[type="submit"]'),
-  ]);
-  await page.waitForLoadState("networkidle");
-}
 
 /** Gera um CPF válido (dígitos verificadores corretos) e único por execução. */
 function gerarCpf(): string {
@@ -45,7 +34,7 @@ test.describe.serial("Ficha Cidadã — CRUD + RBAC", () => {
   const nomeCriado = `Teste E2E ${Date.now()}`;
 
   test("recepção cria uma ficha e é levada ao detalhe", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto("/app/cidadaos/novo");
 
     // Aba Identificação (ativa por padrão)
@@ -69,14 +58,14 @@ test.describe.serial("Ficha Cidadã — CRUD + RBAC", () => {
   });
 
   test("busca encontra a ficha recém-criada pelo nome", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(`/app/cidadaos?q=${encodeURIComponent(nomeCriado)}`);
 
     await expect(page.getByRole("link", { name: nomeCriado })).toBeVisible();
   });
 
   test("recepção NÃO vê seções Saúde e Socioeconômico no detalhe", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(urlCriada);
 
     await expect(page.getByRole("heading", { name: "Saúde" })).toHaveCount(0);
@@ -84,7 +73,7 @@ test.describe.serial("Ficha Cidadã — CRUD + RBAC", () => {
   });
 
   test("Erick (super_admin) VÊ seções Saúde e Socioeconômico no detalhe", async ({ page }) => {
-    await loginAs(page, "erick.ramos@familiaponcio.org.br", ERICK_PASSWORD);
+    await login(page, "medico", "erick.ramos@familiaponcio.org.br", SENHA_ERICK);
     await page.goto(urlCriada);
 
     await expect(page.getByRole("heading", { name: "Saúde" })).toBeVisible();
@@ -93,7 +82,7 @@ test.describe.serial("Ficha Cidadã — CRUD + RBAC", () => {
 
   test("Raquel (gestor_unidade:medico) VÊ Saúde mas NÃO vê Socio", async ({ page }) => {
     // Após T4: gestor_unidade ganha verSaude (decisão 1), perde verSocio (decisão 2).
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "raquel.barros@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(urlCriada);
 
     await expect(page.getByRole("heading", { name: "Saúde" })).toBeVisible();
@@ -101,14 +90,14 @@ test.describe.serial("Ficha Cidadã — CRUD + RBAC", () => {
   });
 
   test("gestor de outra unidade recebe 404 ao acessar ficha do Centro Médico", async ({ page }) => {
-    await loginAs(page, "luciana@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "capacitacao", "luciana@familiaponcio.org.br", SENHA_DEMO);
     const resp = await page.goto(urlCriada);
 
     expect(resp?.status()).toBe(404);
   });
 
   test("histórico mostra o evento 'Ficha criada' real (não derivado)", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(`${urlCriada}/historico`);
 
     await expect(page.getByRole("heading", { name: "Histórico" })).toBeVisible();

@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { login, SENHA_DEMO } from "./helpers/login";
 
 /**
  * e2e do Funil — Fatia A (agendamento interno).
@@ -7,28 +8,17 @@ import { test, expect, type Page } from "@playwright/test";
  *
  * Pré-requisito: `pnpm db:seed`. Teardown limpa "Vaga E2E"? Não — agendamentos usam
  * nomes "Interessado E2E"; cidadãos de teste já têm teardown. Vagas de teste ficam (poucas).
+ *
+ * Login agora é per-unidade (RBAC v2): raquel/maria entram em /medico,
+ * saulo (presidência) em /poncio. As navegações de corpo seguem em /app/*.
  */
-
-const DEMO = "ifp-demo-2026";
-
-async function loginAs(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
-  await page.goto("/login");
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.match(/^\/(login)?$/), { timeout: 15000 }),
-    page.click('button[type="submit"]'),
-  ]);
-  await page.waitForLoadState("networkidle");
-}
 
 test.describe.serial("Funil — vagas e agendamentos", () => {
   let vagaUrl = "";
   const tag = Date.now();
 
   test("coordenação cria uma vaga com 2 slots", async ({ page }) => {
-    await loginAs(page, "raquel.barros@familiaponcio.org.br", DEMO);
+    await login(page, "medico", "raquel.barros@familiaponcio.org.br", SENHA_DEMO);
     await page.goto("/app/vagas/nova");
     await page.getByLabel("Unidade").selectOption("medico");
     await page.getByLabel(/Slots/).fill("2");
@@ -46,7 +36,7 @@ test.describe.serial("Funil — vagas e agendamentos", () => {
   });
 
   test("callcenter agenda 2 entrevistas e a capacidade trava na 3ª", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
 
     for (let i = 1; i <= 2; i++) {
       await page.goto(vagaUrl);
@@ -63,14 +53,14 @@ test.describe.serial("Funil — vagas e agendamentos", () => {
   });
 
   test("callcenter confirma um agendamento", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(vagaUrl);
     await page.getByRole("button", { name: "Confirmar" }).first().click();
     await expect(page.getByText("confirmado").first()).toBeVisible();
   });
 
   test("presidência (não agenda) recebe 404 em Vagas", async ({ page }) => {
-    await loginAs(page, "saulo@familiaponcio.org.br", DEMO);
+    await login(page, "poncio", "saulo@familiaponcio.org.br", SENHA_DEMO);
     const resp = await page.goto("/app/vagas");
     expect(resp?.status()).toBe(404);
   });

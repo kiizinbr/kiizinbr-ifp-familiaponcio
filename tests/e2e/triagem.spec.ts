@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { login, SENHA_DEMO } from "./helpers/login";
 
 /**
  * Testes e2e do Plano 4 — Núcleo de Triagem (fatia estrutural).
@@ -9,22 +10,12 @@ import { test, expect, type Page } from "@playwright/test";
  * o cadastro nasce 'ativo' por default (criação de rascunho é fatia futura).
  * A regra `deveAtivarCidadao` tem cobertura unitária.
  *
+ * Login é per-unidade (RBAC v2): Maria (recepcao:medico) entra pela unidade
+ * `medico`; Regina (social) entra pela unidade `social`. Os corpos seguem
+ * navegando pelas rotas legadas `/app/cidadaos/*` (inalteradas via proxy).
+ *
  * Pré-requisito: `pnpm db:seed` (9 users seedados).
  */
-
-const DEMO_PASSWORD = "ifp-demo-2026";
-
-async function loginAs(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
-  await page.goto("/login");
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.match(/^\/(login)?$/), { timeout: 15000 }),
-    page.click('button[type="submit"]'),
-  ]);
-  await page.waitForLoadState("networkidle");
-}
 
 function gerarCpf(): string {
   const base = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
@@ -44,7 +35,7 @@ test.describe.serial("Triagem social (Plano 4)", () => {
   const nome = `Triagem E2E ${Date.now()}`;
 
   test("recepção cria um cidadão para triar", async ({ page }) => {
-    await loginAs(page, "maria.callcenter@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "medico", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
     await page.goto("/app/cidadaos/novo");
     await page.getByLabel(/Nome completo/).fill(nome);
     await page.getByLabel(/^CPF/).fill(gerarCpf());
@@ -61,7 +52,7 @@ test.describe.serial("Triagem social (Plano 4)", () => {
   });
 
   test("assistente social abre a triagem, preenche a entrevista e conclui", async ({ page }) => {
-    await loginAs(page, "regina@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "social", "regina@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(`${cidadaoUrl}/triagem`);
 
     await page.getByRole("button", { name: /Abrir triagem/ }).click();
@@ -76,7 +67,7 @@ test.describe.serial("Triagem social (Plano 4)", () => {
   });
 
   test("aprova elegibilidade no Centro Médico e a decisão persiste", async ({ page }) => {
-    await loginAs(page, "regina@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "social", "regina@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(`${cidadaoUrl}/triagem`);
 
     const row = page.getByTestId("eleg-row-medico");
@@ -88,7 +79,7 @@ test.describe.serial("Triagem social (Plano 4)", () => {
   });
 
   test("histórico do cidadão mostra os eventos de triagem", async ({ page }) => {
-    await loginAs(page, "regina@familiaponcio.org.br", DEMO_PASSWORD);
+    await login(page, "social", "regina@familiaponcio.org.br", SENHA_DEMO);
     await page.goto(`${cidadaoUrl}/historico`);
 
     await expect(page.getByText("Triagem aberta")).toBeVisible();

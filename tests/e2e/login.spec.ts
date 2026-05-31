@@ -1,14 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { login, SENHA_ERICK } from "./helpers/login";
 
-test("login flow funciona com erick.ramos", async ({ page }) => {
-  await page.goto("/app");
-  await expect(page).toHaveURL(/\/login/);
+test("login per-unidade leva erick.ramos pra /medico", async ({ page }) => {
+  await login(page, "medico", "erick.ramos@familiaponcio.org.br", SENHA_ERICK);
 
-  await page.fill('input[name="email"]', "erick.ramos@familiaponcio.org.br");
-  await page.fill('input[name="password"]', "ifp-dev-2026");
-  await page.click('button[type="submit"]');
-
-  await expect(page).toHaveURL(/\/app/);
-  // /app Global (super_admin) tem h1 "Olá, Erick"
-  await expect(page.locator("h1")).toContainText(/Olá, Erick/);
+  // super_admin logando em /medico aterrissa em /medico (RBAC v2).
+  await expect(page).toHaveURL(/\/medico$/);
 });
