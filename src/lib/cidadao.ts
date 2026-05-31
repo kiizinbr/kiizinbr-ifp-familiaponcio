@@ -6,6 +6,7 @@
  */
 
 import type { Session } from "next-auth";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { normalizeCpf } from "@/lib/cpf";
 import { normalizeCep } from "@/lib/cep";
@@ -27,6 +28,28 @@ export interface CidadaoListFilters {
   idadeMax?: number;
   limit?: number;
   cursor?: string;
+}
+
+/**
+ * Monta o filtro Prisma de busca da listagem de cidadãos a partir do termo.
+ * Extraído de listCidadaos para teste unitário puro (sem DB).
+ */
+export function buildCidadaoSearchFilter(search: string | undefined): Prisma.CidadaoWhereInput {
+  const searchTerm = search?.trim();
+  if (!searchTerm) return {};
+
+  // cpf/telefone só entram quando o termo tem dígitos: senão normalizeCpf()
+  // devolve "" e `contains: ""` vira LIKE '%%', casando TODOS os registros
+  // (achado #2 — mesma pegadinha já corrigida no wizard de nova consulta).
+  const digits = normalizeCpf(searchTerm);
+  const or: Prisma.CidadaoWhereInput[] = [
+    { nomeCompleto: { contains: searchTerm, mode: "insensitive" } },
+    { nomeSocial: { contains: searchTerm, mode: "insensitive" } },
+  ];
+  if (digits) {
+    or.push({ cpf: { contains: digits } }, { telefonePrincipal: { contains: digits } });
+  }
+  return { OR: or };
 }
 
 /**
@@ -80,20 +103,9 @@ export async function listCidadaos(filters: CidadaoListFilters, session: Session
     }
   }
 
-  // Busca trigram: implementada via raw SQL pra usar `similarity()` e gin index
-  // mas pra MVP usamos ILIKE (mais simples) que ainda hits o trigram index automaticamente.
-  // (Plano 3 evolução: raw query com similarity > 0.3 explícito)
-  const searchTerm = filters.search?.trim();
-  const searchFilter = searchTerm
-    ? {
-        OR: [
-          { nomeCompleto: { contains: searchTerm, mode: "insensitive" as const } },
-          { nomeSocial: { contains: searchTerm, mode: "insensitive" as const } },
-          { cpf: { contains: normalizeCpf(searchTerm) } },
-          { telefonePrincipal: { contains: normalizeCpf(searchTerm) } },
-        ],
-      }
-    : {};
+  // Busca: ILIKE em nome/nomeSocial + cpf/telefone (estes só quando há dígitos —
+  // ver buildCidadaoSearchFilter; senão `contains: ""` vira LIKE '%%' e casa tudo).
+  const searchFilter = buildCidadaoSearchFilter(filters.search);
 
   const cidadaos = await db.cidadao.findMany({
     where: {
