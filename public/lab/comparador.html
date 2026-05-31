@@ -11,135 +11,680 @@
       rel="stylesheet"
     />
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
       :root {
-        --laranja: #ff772e; --laranja-esc: #c24d0f; --marrom: #752c05;
-        --teal: #007571; --teal-claro: #10c2bb; --cinza: #4a4a49;
-        --ink: #2c2620; --muted: #857a6d; --line: #e7e0d5; --line-strong: #d8cfc0;
-        --paper: #f7f3ec; --paper-2: #fffdf9;
-        --c-baixo: #007571; --c-medio: #c24d0f; --c-alto: #752c05;
+        --laranja: #ff772e;
+        --laranja-esc: #c24d0f;
+        --marrom: #752c05;
+        --teal: #007571;
+        --teal-claro: #10c2bb;
+        --cinza: #4a4a49;
+        --ink: #2c2620;
+        --muted: #857a6d;
+        --line: #e7e0d5;
+        --line-strong: #d8cfc0;
+        --paper: #f7f3ec;
+        --paper-2: #fffdf9;
+        --c-baixo: #007571;
+        --c-medio: #c24d0f;
+        --c-alto: #752c05;
         --display: "Bricolage Grotesque", Georgia, serif;
         --body: "Public Sans", system-ui, sans-serif;
         --mono: "IBM Plex Mono", monospace;
       }
-      html { scroll-behavior: smooth; }
-      body {
-        font-family: var(--body); background: var(--paper); color: var(--ink);
-        line-height: 1.5; -webkit-font-smoothing: antialiased;
-        background-image:
-          radial-gradient(circle at 12% -5%, rgba(255,119,46,0.06), transparent 40%),
-          radial-gradient(circle at 92% 8%, rgba(0,117,113,0.06), transparent 38%);
+      html {
+        scroll-behavior: smooth;
       }
-      .wrap { max-width: 1320px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) clamp(20px, 4vw, 56px) 96px; }
+      body {
+        font-family: var(--body);
+        background: var(--paper);
+        color: var(--ink);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        background-image:
+          radial-gradient(circle at 12% -5%, rgba(255, 119, 46, 0.06), transparent 40%),
+          radial-gradient(circle at 92% 8%, rgba(0, 117, 113, 0.06), transparent 38%);
+      }
+      .wrap {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: clamp(28px, 5vw, 64px) clamp(20px, 4vw, 56px) 96px;
+      }
 
       /* ---- header ---- */
-      .kicker { font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--laranja-esc); }
-      h1 { font-family: var(--display); font-size: clamp(40px, 6.5vw, 78px); font-weight: 800; letter-spacing: -0.035em; color: var(--marrom); line-height: 0.96; margin: 14px 0 0; }
-      h1 em { font-style: normal; color: var(--teal); }
-      .lede { font-size: clamp(16px, 1.6vw, 19px); color: var(--ink); max-width: 64ch; margin-top: 18px; }
-      .lede b { color: var(--marrom); }
-      .meta-bar { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 26px; padding-top: 22px; border-top: 2px solid var(--marrom); font-size: 13px; color: var(--muted); font-family: var(--mono); }
-      .meta-bar b { color: var(--ink); }
+      .kicker {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--laranja-esc);
+      }
+      h1 {
+        font-family: var(--display);
+        font-size: clamp(40px, 6.5vw, 78px);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        color: var(--marrom);
+        line-height: 0.96;
+        margin: 14px 0 0;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--teal);
+      }
+      .lede {
+        font-size: clamp(16px, 1.6vw, 19px);
+        color: var(--ink);
+        max-width: 64ch;
+        margin-top: 18px;
+      }
+      .lede b {
+        color: var(--marrom);
+      }
+      .meta-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 26px;
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 2px solid var(--marrom);
+        font-size: 13px;
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+      .meta-bar b {
+        color: var(--ink);
+      }
 
       /* ---- legend ---- */
-      .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-size: 12.5px; color: var(--muted); align-items: center; }
-      .chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--paper-2); }
-      .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-      .dot.baixo { background: var(--c-baixo); } .dot.medio { background: var(--c-medio); } .dot.alto { background: var(--c-alto); }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-top: 18px;
+        font-size: 12.5px;
+        color: var(--muted);
+        align-items: center;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line-strong);
+        background: var(--paper-2);
+      }
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .dot.baixo {
+        background: var(--c-baixo);
+      }
+      .dot.medio {
+        background: var(--c-medio);
+      }
+      .dot.alto {
+        background: var(--c-alto);
+      }
 
       /* ---- finding band ---- */
-      .finding { margin-top: 30px; background: linear-gradient(100deg, #fff6ee, #fdf0e3); border: 1px solid var(--line-strong); border-left: 5px solid var(--laranja); border-radius: 14px; padding: 22px 26px; }
-      .finding h3 { font-family: var(--display); font-size: 19px; font-weight: 700; color: var(--marrom); }
-      .finding p { font-size: 14.5px; color: var(--ink); margin-top: 8px; max-width: 88ch; }
-      .finding p b { color: var(--laranja-esc); }
-      .finding .strat { margin-top: 12px; font-size: 13.5px; color: var(--ink); padding-left: 16px; position: relative; }
-      .finding .strat::before { content: "↳"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
-      .finding .strat b { color: var(--teal); }
+      .finding {
+        margin-top: 30px;
+        background: linear-gradient(100deg, #fff6ee, #fdf0e3);
+        border: 1px solid var(--line-strong);
+        border-left: 5px solid var(--laranja);
+        border-radius: 14px;
+        padding: 22px 26px;
+      }
+      .finding h3 {
+        font-family: var(--display);
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--marrom);
+      }
+      .finding p {
+        font-size: 14.5px;
+        color: var(--ink);
+        margin-top: 8px;
+        max-width: 88ch;
+      }
+      .finding p b {
+        color: var(--laranja-esc);
+      }
+      .finding .strat {
+        margin-top: 12px;
+        font-size: 13.5px;
+        color: var(--ink);
+        padding-left: 16px;
+        position: relative;
+      }
+      .finding .strat::before {
+        content: "↳";
+        position: absolute;
+        left: 0;
+        color: var(--teal);
+        font-weight: 700;
+      }
+      .finding .strat b {
+        color: var(--teal);
+      }
 
       /* ---- section title ---- */
-      .sec { margin-top: 60px; }
-      .sec-h { font-family: var(--display); font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -0.02em; color: var(--marrom); display: flex; align-items: baseline; gap: 12px; }
-      .sec-n { font-family: var(--mono); font-size: 13px; color: var(--laranja-esc); font-weight: 600; }
-      .sec-sub { font-size: 14.5px; color: var(--muted); margin-top: 8px; max-width: 72ch; }
-      .sec-sub b { color: var(--ink); }
+      .sec {
+        margin-top: 60px;
+      }
+      .sec-h {
+        font-family: var(--display);
+        font-size: clamp(22px, 3vw, 30px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--marrom);
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .sec-n {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--laranja-esc);
+        font-weight: 600;
+      }
+      .sec-sub {
+        font-size: 14.5px;
+        color: var(--muted);
+        margin-top: 8px;
+        max-width: 72ch;
+      }
+      .sec-sub b {
+        color: var(--ink);
+      }
 
       /* ---- matrix ---- */
-      .matrix-scroll { overflow-x: auto; margin-top: 24px; border: 1px solid var(--line-strong); border-radius: 16px; background: var(--paper-2); box-shadow: 0 8px 28px rgba(117,44,5,0.06); }
-      table { width: 100%; border-collapse: collapse; min-width: 920px; }
-      th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
-      thead th { font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: var(--paper); position: sticky; top: 0; }
-      tbody tr:last-child td { border-bottom: 0; }
-      tbody tr:hover { background: rgba(255,119,46,0.035); }
-      .dir-name { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--marrom); white-space: nowrap; }
-      .dir-tese { font-size: 11.5px; color: var(--muted); margin-top: 2px; max-width: 30ch; }
-      .rankbadge { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-      .score-cell { font-family: var(--display); font-weight: 800; font-size: 20px; color: var(--teal); }
-      .score-cell small { font-family: var(--body); font-size: 10px; color: var(--muted); font-weight: 400; }
-      .cost { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 6px; color: #fff; }
-      .cost.baixo { background: var(--c-baixo); } .cost.medio { background: var(--c-medio); } .cost.alto { background: var(--c-alto); }
-      .yn { font-family: var(--mono); font-size: 12px; font-weight: 600; }
-      .yn.yes { color: var(--c-alto); } .yn.no { color: var(--c-baixo); }
-      .cell-note { font-size: 12px; color: var(--ink); }
-      .cell-note .fnt { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+      .matrix-scroll {
+        overflow-x: auto;
+        margin-top: 24px;
+        border: 1px solid var(--line-strong);
+        border-radius: 16px;
+        background: var(--paper-2);
+        box-shadow: 0 8px 28px rgba(117, 44, 5, 0.06);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 920px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13.5px;
+        vertical-align: middle;
+      }
+      thead th {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: var(--paper);
+        position: sticky;
+        top: 0;
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr:hover {
+        background: rgba(255, 119, 46, 0.035);
+      }
+      .dir-name {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--marrom);
+        white-space: nowrap;
+      }
+      .dir-tese {
+        font-size: 11.5px;
+        color: var(--muted);
+        margin-top: 2px;
+        max-width: 30ch;
+      }
+      .rankbadge {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .score-cell {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 20px;
+        color: var(--teal);
+      }
+      .score-cell small {
+        font-family: var(--body);
+        font-size: 10px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .cost {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 3px 9px;
+        border-radius: 6px;
+        color: #fff;
+      }
+      .cost.baixo {
+        background: var(--c-baixo);
+      }
+      .cost.medio {
+        background: var(--c-medio);
+      }
+      .cost.alto {
+        background: var(--c-alto);
+      }
+      .yn {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .yn.yes {
+        color: var(--c-alto);
+      }
+      .yn.no {
+        color: var(--c-baixo);
+      }
+      .cell-note {
+        font-size: 12px;
+        color: var(--ink);
+      }
+      .cell-note .fnt {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
 
       /* ---- gallery ---- */
-      .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 26px; margin-top: 26px; }
-      @media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
-      .gcard { background: var(--paper-2); border: 1px solid var(--line-strong); border-radius: 18px; overflow: hidden; box-shadow: 0 8px 28px rgba(117,44,5,0.06); display: flex; flex-direction: column; transition: transform .2s ease, box-shadow .2s ease; }
-      .gcard:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(117,44,5,0.13); }
-      .thumb { position: relative; width: 100%; aspect-ratio: 1380 / 880; overflow: hidden; border-bottom: 1px solid var(--line); background: #efe9df; }
-      .thumb iframe { position: absolute; top: 0; left: 0; width: 1380px; height: 880px; border: 0; transform-origin: top left; transform: scale(var(--s, 0.4)); pointer-events: none; }
-      .thumb a.cover { position: absolute; inset: 0; z-index: 2; }
-      .thumb .full { position: absolute; right: 12px; bottom: 12px; z-index: 3; font-family: var(--mono); font-size: 11px; font-weight: 600; color: #fff; background: rgba(44,38,32,0.82); padding: 6px 12px; border-radius: 999px; text-decoration: none; backdrop-filter: blur(4px); transition: background .15s; }
-      .thumb .full:hover { background: var(--marrom); }
-      .thumb .rank { position: absolute; left: 12px; top: 12px; z-index: 3; font-family: var(--display); font-weight: 800; font-size: 13px; color: var(--marrom); background: rgba(255,253,249,0.92); padding: 4px 11px; border-radius: 999px; }
-      .gbody { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
-      .ghead { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
-      .gtitle { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: -0.015em; color: var(--marrom); line-height: 1.1; }
-      .gtese { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
-      .gscore { text-align: right; flex-shrink: 0; }
-      .gscore .b { font-family: var(--display); font-weight: 800; font-size: 28px; color: var(--teal); line-height: 1; }
-      .gscore .o { font-size: 10px; color: var(--muted); font-family: var(--mono); }
-      .meta-row { display: flex; flex-wrap: wrap; gap: 7px; }
-      .tag { font-family: var(--mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.03em; padding: 4px 9px; border-radius: 7px; border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink); }
-      .tag.cost-baixo { border-color: var(--c-baixo); color: var(--c-baixo); }
-      .tag.cost-medio { border-color: var(--c-medio); color: var(--c-medio); }
-      .tag.cost-alto { border-color: var(--c-alto); color: var(--c-alto); }
-      .tag.warn { border-color: var(--c-alto); color: var(--c-alto); background: rgba(117,44,5,0.05); }
-      .tag.a11y { border-color: var(--c-medio); color: var(--c-medio); background: rgba(194,77,15,0.06); }
-      .sig { font-size: 13px; color: var(--ink); border-left: 3px solid var(--teal-claro); padding-left: 12px; }
-      .sig .lab, .lists .lab { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--laranja-esc); display: block; margin-bottom: 4px; }
-      .lists { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-      @media (max-width: 760px) { .lists { grid-template-columns: 1fr; } }
-      .lists ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
-      .lists li { font-size: 12.5px; padding-left: 16px; position: relative; color: var(--ink); }
-      .lists .strengths li::before { content: "+"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
-      .lists .risks li::before { content: "−"; position: absolute; left: 0; color: var(--c-alto); font-weight: 700; }
-      .bestfor { font-size: 12.5px; color: var(--ink); background: rgba(0,117,113,0.06); border-radius: 10px; padding: 11px 14px; }
-      .bestfor b { color: var(--teal); }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+        gap: 26px;
+        margin-top: 26px;
+      }
+      @media (max-width: 640px) {
+        .gallery {
+          grid-template-columns: 1fr;
+        }
+      }
+      .gcard {
+        background: var(--paper-2);
+        border: 1px solid var(--line-strong);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(117, 44, 5, 0.06);
+        display: flex;
+        flex-direction: column;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .gcard:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 44px rgba(117, 44, 5, 0.13);
+      }
+      .thumb {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1380 / 880;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+        background: #efe9df;
+      }
+      .thumb iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1380px;
+        height: 880px;
+        border: 0;
+        transform-origin: top left;
+        transform: scale(var(--s, 0.4));
+        pointer-events: none;
+      }
+      .thumb a.cover {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+      }
+      .thumb .full {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 3;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        background: rgba(44, 38, 32, 0.82);
+        padding: 6px 12px;
+        border-radius: 999px;
+        text-decoration: none;
+        backdrop-filter: blur(4px);
+        transition: background 0.15s;
+      }
+      .thumb .full:hover {
+        background: var(--marrom);
+      }
+      .thumb .rank {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        z-index: 3;
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 13px;
+        color: var(--marrom);
+        background: rgba(255, 253, 249, 0.92);
+        padding: 4px 11px;
+        border-radius: 999px;
+      }
+      .gbody {
+        padding: 20px 22px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1;
+      }
+      .ghead {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      .gtitle {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 21px;
+        letter-spacing: -0.015em;
+        color: var(--marrom);
+        line-height: 1.1;
+      }
+      .gtese {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .gscore {
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .gscore .b {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 28px;
+        color: var(--teal);
+        line-height: 1;
+      }
+      .gscore .o {
+        font-size: 10px;
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .tag {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        padding: 4px 9px;
+        border-radius: 7px;
+        border: 1px solid var(--line-strong);
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .tag.cost-baixo {
+        border-color: var(--c-baixo);
+        color: var(--c-baixo);
+      }
+      .tag.cost-medio {
+        border-color: var(--c-medio);
+        color: var(--c-medio);
+      }
+      .tag.cost-alto {
+        border-color: var(--c-alto);
+        color: var(--c-alto);
+      }
+      .tag.warn {
+        border-color: var(--c-alto);
+        color: var(--c-alto);
+        background: rgba(117, 44, 5, 0.05);
+      }
+      .tag.a11y {
+        border-color: var(--c-medio);
+        color: var(--c-medio);
+        background: rgba(194, 77, 15, 0.06);
+      }
+      .sig {
+        font-size: 13px;
+        color: var(--ink);
+        border-left: 3px solid var(--teal-claro);
+        padding-left: 12px;
+      }
+      .sig .lab,
+      .lists .lab {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--laranja-esc);
+        display: block;
+        margin-bottom: 4px;
+      }
+      .lists {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      @media (max-width: 760px) {
+        .lists {
+          grid-template-columns: 1fr;
+        }
+      }
+      .lists ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .lists li {
+        font-size: 12.5px;
+        padding-left: 16px;
+        position: relative;
+        color: var(--ink);
+      }
+      .lists .strengths li::before {
+        content: "+";
+        position: absolute;
+        left: 0;
+        color: var(--teal);
+        font-weight: 700;
+      }
+      .lists .risks li::before {
+        content: "−";
+        position: absolute;
+        left: 0;
+        color: var(--c-alto);
+        font-weight: 700;
+      }
+      .bestfor {
+        font-size: 12.5px;
+        color: var(--ink);
+        background: rgba(0, 117, 113, 0.06);
+        border-radius: 10px;
+        padding: 11px 14px;
+      }
+      .bestfor b {
+        color: var(--teal);
+      }
 
       /* ---- recommendation ---- */
-      .rec { margin-top: 64px; background: linear-gradient(135deg, #2c2620, #44362a); color: #f3ece1; border-radius: 22px; padding: clamp(28px, 4vw, 48px); position: relative; overflow: hidden; }
-      .rec::after { content: "🦁"; position: absolute; right: -10px; bottom: -24px; font-size: 160px; opacity: 0.07; }
-      .rec h2 { font-family: var(--display); font-size: clamp(24px, 3vw, 34px); font-weight: 800; letter-spacing: -0.02em; color: #fff; position: relative; }
-      .rec .intro { font-size: 15px; max-width: 78ch; margin-top: 14px; color: #e3d8c9; position: relative; }
-      .rec .intro b { color: var(--laranja); }
-      .by-tone { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 26px; position: relative; }
-      .tone { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 18px; }
-      .tone .q { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--teal-claro); }
-      .tone .pick { font-family: var(--display); font-weight: 700; font-size: 18px; color: #fff; margin-top: 6px; }
-      .tone .why { font-size: 12.5px; color: #ccbfae; margin-top: 6px; }
-      .myrec { margin-top: 26px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 22px; position: relative; }
-      .myrec .pick { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; }
-      .myrec .pick .n { background: var(--laranja); color: #2c2620; font-weight: 700; padding: 5px 12px; border-radius: 999px; }
-      .myrec ul { margin-top: 16px; display: flex; flex-direction: column; gap: 9px; max-width: 80ch; }
-      .myrec li { font-size: 14px; padding-left: 22px; position: relative; color: #e3d8c9; }
-      .myrec li::before { content: "▸"; position: absolute; left: 0; color: var(--teal-claro); }
-      .myrec li b { color: #fff; }
+      .rec {
+        margin-top: 64px;
+        background: linear-gradient(135deg, #2c2620, #44362a);
+        color: #f3ece1;
+        border-radius: 22px;
+        padding: clamp(28px, 4vw, 48px);
+        position: relative;
+        overflow: hidden;
+      }
+      .rec::after {
+        content: "🦁";
+        position: absolute;
+        right: -10px;
+        bottom: -24px;
+        font-size: 160px;
+        opacity: 0.07;
+      }
+      .rec h2 {
+        font-family: var(--display);
+        font-size: clamp(24px, 3vw, 34px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #fff;
+        position: relative;
+      }
+      .rec .intro {
+        font-size: 15px;
+        max-width: 78ch;
+        margin-top: 14px;
+        color: #e3d8c9;
+        position: relative;
+      }
+      .rec .intro b {
+        color: var(--laranja);
+      }
+      .by-tone {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-top: 26px;
+        position: relative;
+      }
+      .tone {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        padding: 16px 18px;
+      }
+      .tone .q {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--teal-claro);
+      }
+      .tone .pick {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 18px;
+        color: #fff;
+        margin-top: 6px;
+      }
+      .tone .why {
+        font-size: 12.5px;
+        color: #ccbfae;
+        margin-top: 6px;
+      }
+      .myrec {
+        margin-top: 26px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding-top: 22px;
+        position: relative;
+      }
+      .myrec .pick {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .myrec .pick .n {
+        background: var(--laranja);
+        color: #2c2620;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 999px;
+      }
+      .myrec ul {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        max-width: 80ch;
+      }
+      .myrec li {
+        font-size: 14px;
+        padding-left: 22px;
+        position: relative;
+        color: #e3d8c9;
+      }
+      .myrec li::before {
+        content: "▸";
+        position: absolute;
+        left: 0;
+        color: var(--teal-claro);
+      }
+      .myrec li b {
+        color: #fff;
+      }
 
-      .foot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line-strong); font-size: 13px; color: var(--muted); }
-      .foot a { color: var(--teal); font-weight: 600; }
-      .foot code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; color: var(--marrom); }
+      .foot {
+        margin-top: 56px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line-strong);
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .foot a {
+        color: var(--teal);
+        font-weight: 600;
+      }
+      .foot code {
+        font-family: var(--mono);
+        font-size: 12px;
+        background: var(--paper-2);
+        border: 1px solid var(--line);
+        padding: 1px 6px;
+        border-radius: 5px;
+        color: var(--marrom);
+      }
     </style>
   </head>
   <body>
@@ -162,23 +707,27 @@
           <span class="chip"><span class="dot baixo"></span>custo baixo</span>
           <span class="chip"><span class="dot medio"></span>custo médio</span>
           <span class="chip"><span class="dot alto"></span>custo alto</span>
-          <span style="color:var(--muted)">— "custo" = trabalho pra converter o mockup → React e propagar pras 8 telas.</span>
+          <span style="color: var(--muted)"
+            >— "custo" = trabalho pra converter o mockup → React e propagar pras 8 telas.</span
+          >
         </div>
 
         <div class="finding">
           <h3>⚠ A virada da análise: não existe opção barata</h3>
           <p>
-            Lendo os arquivos de verdade, as 6 direções são <b>re-skins do Design System</b>, não "temas da unidade".
-            Todas trocam a Garet por <b>fontes novas self-hostadas</b>, inventam um <b>ramp de neutros</b> próprio e
-            exigem <b>variantes de Card/Badge</b> que o DS não tem (o Badge atual só faz pill preenchido). Por isso o
-            custo é <b>alto em quase todas</b> — não há atalho via tokens. <b>Como o custo é uniforme, o critério de
-            decisão passa a ser o TOM, não o preço.</b>
+            Lendo os arquivos de verdade, as 6 direções são <b>re-skins do Design System</b>, não
+            "temas da unidade". Todas trocam a Garet por <b>fontes novas self-hostadas</b>, inventam
+            um <b>ramp de neutros</b> próprio e exigem <b>variantes de Card/Badge</b> que o DS não
+            tem (o Badge atual só faz pill preenchido). Por isso o custo é
+            <b>alto em quase todas</b> — não há atalho via tokens.
+            <b>Como o custo é uniforme, o critério de decisão passa a ser o TOM, não o preço.</b>
           </p>
           <p class="strat">
-            <b>Atalho estratégico:</b> ~40% do custo é uma <b>fundação única e compartilhada</b> (self-hostar a serifa,
-            criar o ramp, estender o Badge com estado "agora/live" + um componente de linha da timeline). E
-            <b>4 das 6 usam Fraunces</b> (Editorial / Orgânico / Acolhimento / Sereno) — escolher entre essas reaproveita
-            o mesmo investimento e permite <b>combinar direções</b> depois.
+            <b>Atalho estratégico:</b> ~40% do custo é uma
+            <b>fundação única e compartilhada</b> (self-hostar a serifa, criar o ramp, estender o
+            Badge com estado "agora/live" + um componente de linha da timeline). E
+            <b>4 das 6 usam Fraunces</b> (Editorial / Orgânico / Acolhimento / Sereno) — escolher
+            entre essas reaproveita o mesmo investimento e permite <b>combinar direções</b> depois.
           </p>
         </div>
       </header>
@@ -186,13 +735,23 @@
       <!-- ===== MATRIZ ===== -->
       <section class="sec">
         <div class="sec-h"><span class="sec-n">01</span> Matriz de decisão</div>
-        <p class="sec-sub">Visão de cima. Com o custo uniformemente alto, as colunas que de fato <b>diferenciam</b> são <b>tema escuro</b> (só Comando — o item mais caro), <b>quantas fontes novas</b> e o <b>tom/força</b> de cada uma.</p>
+        <p class="sec-sub">
+          Visão de cima. Com o custo uniformemente alto, as colunas que de fato
+          <b>diferenciam</b> são <b>tema escuro</b> (só Comando — o item mais caro),
+          <b>quantas fontes novas</b> e o <b>tom/força</b> de cada uma.
+        </p>
         <div class="matrix-scroll">
           <table id="matrix">
             <thead>
               <tr>
-                <th>Direção</th><th>Nota</th><th>Fontes novas</th><th>Tema escuro</th>
-                <th>Custo · Fila</th><th>Custo · 8 telas</th><th>Força</th><th>Maior driver de custo</th>
+                <th>Direção</th>
+                <th>Nota</th>
+                <th>Fontes novas</th>
+                <th>Tema escuro</th>
+                <th>Custo · Fila</th>
+                <th>Custo · 8 telas</th>
+                <th>Força</th>
+                <th>Maior driver de custo</th>
               </tr>
             </thead>
             <tbody id="matrix-body"></tbody>
@@ -203,7 +762,10 @@
       <!-- ===== GALERIA ===== -->
       <section class="sec">
         <div class="sec-h"><span class="sec-n">02</span> Lado a lado (mockups vivos)</div>
-        <p class="sec-sub">Cada miniatura é o arquivo real renderizado. Clique pra abrir em tela cheia. O painel traz o detalhe-assinatura, o custo e o "melhor pra".</p>
+        <p class="sec-sub">
+          Cada miniatura é o arquivo real renderizado. Clique pra abrir em tela cheia. O painel traz
+          o detalhe-assinatura, o custo e o "melhor pra".
+        </p>
         <div class="gallery" id="gallery"></div>
       </section>
 
@@ -211,51 +773,82 @@
       <section class="rec">
         <h2>Minha recomendação — você decide</h2>
         <p class="intro">
-          Como o custo é alto nas 6, parei de recomendar pelo preço e passei a recomendar pelo <b>tom</b> que você quer
-          pro Centro Médico. Abaixo, a direção certa <b>por intenção</b> — e, no fim, a minha aposta única.
+          Como o custo é alto nas 6, parei de recomendar pelo preço e passei a recomendar pelo
+          <b>tom</b> que você quer pro Centro Médico. Abaixo, a direção certa <b>por intenção</b> —
+          e, no fim, a minha aposta única.
         </p>
 
         <div class="by-tone">
           <div class="tone">
             <div class="q">Quero "primeiro mundo" institucional</div>
             <div class="pick">→ Editorial</div>
-            <div class="why">Maior nota (50), tema claro, números-manchete. Brilha se a Fila também for TV de recepção.</div>
+            <div class="why">
+              Maior nota (50), tema claro, números-manchete. Brilha se a Fila também for TV de
+              recepção.
+            </div>
           </div>
           <div class="tone">
             <div class="q">Quero "clínica que acolhe"</div>
             <div class="pick">→ Sereno / Acolhimento</div>
-            <div class="why">Sereno = teal premium (a unidade médico já é teal). Acolhimento = mais quente/afetivo. Ambos com a11y de movimento ok.</div>
+            <div class="why">
+              Sereno = teal premium (a unidade médico já é teal). Acolhimento = mais quente/afetivo.
+              Ambos com a11y de movimento ok.
+            </div>
           </div>
           <div class="tone">
             <div class="q">Quero painel de despacho</div>
             <div class="pick">→ Comando</div>
-            <div class="why">Foco no AGORA imbatível, MAS exige adotar dark mode de verdade (o mais caro) + risco de tom "NOC".</div>
+            <div class="why">
+              Foco no AGORA imbatível, MAS exige adotar dark mode de verdade (o mais caro) + risco
+              de tom "NOC".
+            </div>
           </div>
           <div class="tone">
             <div class="q">Quero serviço público forte</div>
             <div class="pick">→ Cívico</div>
-            <div class="why">Brutalismo legível de relance. Assume fork do Card/Badge (contradiz o DS suave) + 3 fontes.</div>
+            <div class="why">
+              Brutalismo legível de relance. Assume fork do Card/Badge (contradiz o DS suave) + 3
+              fontes.
+            </div>
           </div>
         </div>
 
         <div class="myrec">
-          <div class="pick"><span class="n">Minha aposta</span> Editorial — temperada com cuidado</div>
+          <div class="pick">
+            <span class="n">Minha aposta</span> Editorial — temperada com cuidado
+          </div>
           <ul>
-            <li><b>Base Editorial</b> (serifa + números-manchete + hairlines): é a maior nota, é tema claro e entrega o "primeiro mundo" que você declarou como ambição.</li>
-            <li><b>Temperada com o teal-cuidado do Sereno</b> — a unidade médico já é teal, e isso suaviza o tom institucional pro domínio de saúde de família, sem virar dark mode.</li>
-            <li><b>Roubando o nó "AGORA · em curso ~14 min" do Comando</b> (sem o fundo escuro): é o melhor tratamento de "quem está sendo atendido" das 6.</li>
-            <li><b>Por que dá certo de custo:</b> as 3 (Editorial, Sereno) usam <b>Fraunces</b> — a fundação de fonte é a mesma. Você combina o melhor de cada sem pagar 3 vezes.</li>
-            <li><b>Eu evitaria por ora:</b> Orgânico como está (faltou <code>prefers-reduced-motion</code> no mockup — dívida de a11y) e Comando-dark, a menos que você queira mesmo comprometer com dark mode no /medico.</li>
+            <li>
+              <b>Base Editorial</b> (serifa + números-manchete + hairlines): é a maior nota, é tema
+              claro e entrega o "primeiro mundo" que você declarou como ambição.
+            </li>
+            <li>
+              <b>Temperada com o teal-cuidado do Sereno</b> — a unidade médico já é teal, e isso
+              suaviza o tom institucional pro domínio de saúde de família, sem virar dark mode.
+            </li>
+            <li>
+              <b>Roubando o nó "AGORA · em curso ~14 min" do Comando</b> (sem o fundo escuro): é o
+              melhor tratamento de "quem está sendo atendido" das 6.
+            </li>
+            <li>
+              <b>Por que dá certo de custo:</b> as 3 (Editorial, Sereno) usam <b>Fraunces</b> — a
+              fundação de fonte é a mesma. Você combina o melhor de cada sem pagar 3 vezes.
+            </li>
+            <li>
+              <b>Eu evitaria por ora:</b> Orgânico como está (faltou
+              <code>prefers-reduced-motion</code> no mockup — dívida de a11y) e Comando-dark, a
+              menos que você queira mesmo comprometer com dark mode no /medico.
+            </li>
           </ul>
         </div>
       </section>
 
       <p class="foot">
-        Galeria original (só notas, sem custo): <a href="/lab/index.html">/lab/index.html</a> ·
-        Lab inicial A/B/C: <a href="/lab/fila-do-dia.html">/lab/fila-do-dia.html</a><br />
-        <b>Próximo passo:</b> me diga a direção (ou a combinação) e eu propago pras 8 telas <code>/medico</code> via
-        <code>frontend-design</code> — começando pela fundação compartilhada (self-host da fonte + ramp + Badge/timeline),
-        depois tela a tela.
+        Galeria original (só notas, sem custo): <a href="/lab/index.html">/lab/index.html</a> · Lab
+        inicial A/B/C: <a href="/lab/fila-do-dia.html">/lab/fila-do-dia.html</a><br />
+        <b>Próximo passo:</b> me diga a direção (ou a combinação) e eu propago pras 8 telas
+        <code>/medico</code> via <code>frontend-design</code> — começando pela fundação
+        compartilhada (self-host da fonte + ramp + Badge/timeline), depois tela a tela.
       </p>
     </div>
 
@@ -264,70 +857,184 @@
       // Esta é a única fonte de verdade do comparador.
       const DIRS = [
         {
-          rank: 1, key: "editorial", title: "Editorial — Institucional Primeiro Mundo", total: 50,
+          rank: 1,
+          key: "editorial",
+          title: "Editorial — Institucional Primeiro Mundo",
+          total: 50,
           tese: "Tinta sobre papel creme · serifa display + números-herói + hairlines",
-          fonts: "Fraunces (variável) + Spline Sans", fontCount: 2, newFonts: true, dark: false,
-          costFila: "alto", costAll8: "alto",
+          fonts: "Fraunces (variável) + Spline Sans",
+          fontCount: 2,
+          newFonts: true,
+          dark: false,
+          costFila: "alto",
+          costAll8: "alto",
           sig: "A linha AGORA vira faixa editorial teal (barra pulsante + gradiente + badge sólido com ping) — único ponto vivo num layout de tinta-sobre-papel.",
-          strengths: ["Visual de altíssimo nível — cara de relatório anual / produto internacional", "Maior nota do rubric (50); números-manchete comunicam KPI na hora", "A11y de movimento bem-feita (reduced-motion + 4 fixes WCAG já iterados)", "Paleta de marca usada com disciplina"],
-          risks: ["2 fontes novas self-hostadas (uma variável ~100-200kb) — rompe com Garet do resto do app", "Cria um 2º ramp neutro creme+tinta paralelo ao DS (risco de vazamento)", "Badge do DS (pill filled) não cobre outline/dashed/check/ping — refactor de componente universal", "Editorial brilha em página-manchete mas é caro de manter coerente em agenda-grid / wizard / CRUDs"],
+          strengths: [
+            "Visual de altíssimo nível — cara de relatório anual / produto internacional",
+            "Maior nota do rubric (50); números-manchete comunicam KPI na hora",
+            "A11y de movimento bem-feita (reduced-motion + 4 fixes WCAG já iterados)",
+            "Paleta de marca usada com disciplina",
+          ],
+          risks: [
+            "2 fontes novas self-hostadas (uma variável ~100-200kb) — rompe com Garet do resto do app",
+            "Cria um 2º ramp neutro creme+tinta paralelo ao DS (risco de vazamento)",
+            "Badge do DS (pill filled) não cobre outline/dashed/check/ping — refactor de componente universal",
+            "Editorial brilha em página-manchete mas é caro de manter coerente em agenda-grid / wizard / CRUDs",
+          ],
           best: "Quando a meta é 'primeiro mundo' / institucional premium e a Fila também rodar num painel/TV de recepção. Menos indicada se quiser propagação barata ou manter a marca Garet unificada.",
-          force: "Solidez institucional", driver: "2 fontes + 2º ramp neutro", a11y: false,
+          force: "Solidez institucional",
+          driver: "2 fontes + 2º ramp neutro",
+          a11y: false,
         },
         {
-          rank: 2, key: "comando", title: "Comando — Centro de Operações", total: 49,
+          rank: 2,
+          key: "comando",
+          title: "Comando — Centro de Operações",
+          total: 49,
           tese: "Painel dark data-dense · cockpit em tempo real",
-          fonts: "Space Grotesk + JetBrains Mono + Manrope", fontCount: 3, newFonts: true, dark: true,
-          costFila: "alto", costAll8: "alto",
+          fonts: "Space Grotesk + JetBrains Mono + Manrope",
+          fontCount: 3,
+          newFonts: true,
+          dark: true,
+          costFila: "alto",
+          costAll8: "alto",
           sig: "Nó AGORA herói no spine: ponto teal com glow + badge 'AGORA · EM ATENDIMENTO' + barra de 'tempo em curso ~14 min' — padrão de status que a Fila atual nem trata.",
-          strengths: ["Foco no AGORA excepcional (nó-herói + barra de tempo em curso)", "Densidade favorece a recepção que opera a tela o dia todo", "Telemetria (relógio/KPIs/footer de status) dá sensação de produto 'vivo'", "Diferenciação visual forte — ninguém mais comunica tempo-real assim"],
-          risks: ["Exige construir um TEMA ESCURO inteiro que o DS não tem — a maior fonte de custo de todas", "3 fontes Google a self-hostar", "Tom 'DARK OPS / NOC / node CL-SRV' destoa de plataforma social de saúde de família", "Dark + formulários densos (wizard / CRUD / grid) é o mais difícil de propagar; contraste suspeito a auditar"],
+          strengths: [
+            "Foco no AGORA excepcional (nó-herói + barra de tempo em curso)",
+            "Densidade favorece a recepção que opera a tela o dia todo",
+            "Telemetria (relógio/KPIs/footer de status) dá sensação de produto 'vivo'",
+            "Diferenciação visual forte — ninguém mais comunica tempo-real assim",
+          ],
+          risks: [
+            "Exige construir um TEMA ESCURO inteiro que o DS não tem — a maior fonte de custo de todas",
+            "3 fontes Google a self-hostar",
+            "Tom 'DARK OPS / NOC / node CL-SRV' destoa de plataforma social de saúde de família",
+            "Dark + formulários densos (wizard / CRUD / grid) é o mais difícil de propagar; contraste suspeito a auditar",
+          ],
           best: "Só com decisão explícita de adotar dark mode como linguagem do /medico, e se a Fila for painel operacional de despacho. Não é a escolha pra propagar barato mantendo o tom acolhedor.",
-          force: "Tempo-real / cockpit", driver: "Dark mode do zero (o mais caro)", a11y: true,
+          force: "Tempo-real / cockpit",
+          driver: "Dark mode do zero (o mais caro)",
+          a11y: true,
         },
         {
-          rank: 3, key: "civico", title: "Cívico — Brutalismo Institucional", total: 46.5,
+          rank: 3,
+          key: "civico",
+          title: "Cívico — Brutalismo Institucional",
+          total: 46.5,
           tese: "Cartaz suíço + Gov.uk · display condensada, alto contraste",
-          fonts: "Archivo Black + Archivo Narrow + Spline Sans", fontCount: 3, newFonts: true, dark: false,
-          costFila: "alto", costAll8: "alto",
+          fonts: "Archivo Black + Archivo Narrow + Spline Sans",
+          fontCount: 3,
+          newFonts: true,
+          dark: false,
+          costFila: "alto",
+          costAll8: "alto",
           sig: "AGORA = faixa laranja sólida com anel preto + célula de hora em marrom (cor reservada só ao AGORA) + aba '▶ AGORA' — o marrom institucional vira território semântico único.",
-          strengths: ["Uso quase perfeito da paleta do brandbook; marrom como cor única do AGORA é ideia forte", "Hierarquia de status cristalina, escaneável de relance (o caso de uso da recepção)", "reduced-motion implementado corretamente", "Linha .meta traz info operacional real (sala / fone / espera) pensada pro fluxo"],
-          risks: ["3 fontes novas self-hostadas — o maior custo isolado e o menos reversível", "Card/Badge brutalistas CONTRADIZEM o DS (radius-lg+sombra / pill) — quebra consistência ou força fork do DS só pro /medico", "Estética agressiva (display até 132px, bordas pretas grossas) pode soar 'pesada demais' pra saúde/social", "Dados do mockup (sala/fone/espera) não existem no modelo — risco de placeholder ou trabalho de backend"],
+          strengths: [
+            "Uso quase perfeito da paleta do brandbook; marrom como cor única do AGORA é ideia forte",
+            "Hierarquia de status cristalina, escaneável de relance (o caso de uso da recepção)",
+            "reduced-motion implementado corretamente",
+            "Linha .meta traz info operacional real (sala / fone / espera) pensada pro fluxo",
+          ],
+          risks: [
+            "3 fontes novas self-hostadas — o maior custo isolado e o menos reversível",
+            "Card/Badge brutalistas CONTRADIZEM o DS (radius-lg+sombra / pill) — quebra consistência ou força fork do DS só pro /medico",
+            "Estética agressiva (display até 132px, bordas pretas grossas) pode soar 'pesada demais' pra saúde/social",
+            "Dados do mockup (sala/fone/espera) não existem no modelo — risco de placeholder ou trabalho de backend",
+          ],
           best: "Quando quiser personalidade forte e leitura de painel de relance (TV na parede), tratando /medico como sub-tema próprio. Certo pra 'serviço público sério e auditável', errado pra 'combinar com o resto leve do IFP'.",
-          force: "Clareza de painel", driver: "3 fontes + contradiz o DS", a11y: true,
+          force: "Clareza de painel",
+          driver: "3 fontes + contradiz o DS",
+          a11y: true,
         },
         {
-          rank: 4, key: "organico", title: "Orgânico — Cuidado que Respira", total: 45,
+          rank: 4,
+          key: "organico",
+          title: "Orgânico — Cuidado que Respira",
+          total: 45,
           tese: "Formas naturais + mesh sutil · timeline como rio/caule",
-          fonts: "Fraunces + Nunito Sans", fontCount: 2, newFonts: true, dark: false,
-          costFila: "medio", costAll8: "alto",
+          fonts: "Fraunces + Nunito Sans",
+          fontCount: 2,
+          newFonts: true,
+          dark: false,
+          costFila: "medio",
+          costAll8: "alto",
           sig: "O AGORA é um 'blob' pulsante orgânico (forma assimétrica + respiração contínua) em vez de card+badge — carrega a metáfora 'cuidado que respira'.",
-          strengths: ["Forte diferenciação emocional ('cuidado'), alinhada a um instituto de família", "Marcador AGORA memorável e auto-explicativo", "Fila é a tela onde a linguagem orgânica rende mais por esforço", "Não exige dark mode (evita o custo mais caro)"],
-          risks: ["⚠ Animações de respiração infinitas SEM prefers-reduced-motion no mockup — a11y reprovada por padrão (corrigível, mas é dívida)", "Deriva de marca: paleta sage/creme/coral não bate com o brandbook (#FF772E/#007571)", "Raios assimétricos/blobs escalam mal pras telas densas (agenda-grid, wizard, CRUDs)", "Custo de julgamento por tela — decidir quanto 'orgânico' aplicar em cada uma"],
+          strengths: [
+            "Forte diferenciação emocional ('cuidado'), alinhada a um instituto de família",
+            "Marcador AGORA memorável e auto-explicativo",
+            "Fila é a tela onde a linguagem orgânica rende mais por esforço",
+            "Não exige dark mode (evita o custo mais caro)",
+          ],
+          risks: [
+            "⚠ Animações de respiração infinitas SEM prefers-reduced-motion no mockup — a11y reprovada por padrão (corrigível, mas é dívida)",
+            "Deriva de marca: paleta sage/creme/coral não bate com o brandbook (#FF772E/#007571)",
+            "Raios assimétricos/blobs escalam mal pras telas densas (agenda-grid, wizard, CRUDs)",
+            "Custo de julgamento por tela — decidir quanto 'orgânico' aplicar em cada uma",
+          ],
           best: "Quando priorizar acolhimento/humanização sobre densidade, tratando Fila/Home como vitrine emocional e usando versão mais contida nas telas tabulares. Certo se o público é família/paciente; errado pra eficiência do médico em telas densas.",
-          force: "Calor + natureza", driver: "Não generaliza + falta a11y", a11y: false,
+          force: "Calor + natureza",
+          driver: "Não generaliza + falta a11y",
+          a11y: false,
         },
         {
-          rank: 5, key: "acolhimento", title: "Acolhimento — Caloroso e Humano", total: 44,
+          rank: 5,
+          key: "acolhimento",
+          title: "Acolhimento — Caloroso e Humano",
+          total: 44,
           tese: "ONG que cuida com afeto · creme quente, avatares grandes",
-          fonts: "Fraunces + Nunito", fontCount: 2, newFonts: true, dark: false,
-          costFila: "alto", costAll8: "alto",
+          fonts: "Fraunces + Nunito",
+          fontCount: 2,
+          newFonts: true,
+          dark: false,
+          costFila: "alto",
+          costAll8: "alto",
           sig: "Cartão 'ACONTECENDO AGORA' com tag teal flutuante + ring + lift; teal vira 'sinal de vivo', laranja vira protagonista institucional; avatares de iniciais por especialidade.",
-          strengths: ["Única direção com personalidade editorial-quente clara, alinhada à missão social ('feito com cuidado')", "Paleta do brandbook com inteligência semântica (laranja=instituição, teal=agora)", "reduced-motion implementado corretamente", "Reaproveita as cores de filtro por unidade do DS; Avatar de iniciais é componente reutilizável"],
-          risks: ["2 fontes novas + ~6 famílias de token novas (creme, ink quente, sombras tingidas) — amplia o DS enxuto", "Risco de contraste WCAG (ink-soft sobre creme, branco sobre gradiente laranja) a auditar", "Fundo creme + serif cansa/polui em telas densas (agenda-grid, CRUDs)", "Ink marrom paralelo fragmenta o token de texto do DS se não for adotado global"],
+          strengths: [
+            "Única direção com personalidade editorial-quente clara, alinhada à missão social ('feito com cuidado')",
+            "Paleta do brandbook com inteligência semântica (laranja=instituição, teal=agora)",
+            "reduced-motion implementado corretamente",
+            "Reaproveita as cores de filtro por unidade do DS; Avatar de iniciais é componente reutilizável",
+          ],
+          risks: [
+            "2 fontes novas + ~6 famílias de token novas (creme, ink quente, sombras tingidas) — amplia o DS enxuto",
+            "Risco de contraste WCAG (ink-soft sobre creme, branco sobre gradiente laranja) a auditar",
+            "Fundo creme + serif cansa/polui em telas densas (agenda-grid, CRUDs)",
+            "Ink marrom paralelo fragmenta o token de texto do DS se não for adotado global",
+          ],
           best: "Quando o IFP quer TRANSMITIR acolhimento/missão social como atributo de marca — parecer humano e cuidadoso. Certo se priorizar identidade emocional sobre custo; menos indicada pra propagação rápida mantendo o DS enxuto.",
-          force: "Afeto humano", driver: "Re-skin creme + 2 fontes", a11y: true,
+          force: "Afeto humano",
+          driver: "Re-skin creme + 2 fontes",
+          a11y: true,
         },
         {
-          rank: 6, key: "sereno", title: "Sereno — Clínica Calma Premium", total: 43,
+          rank: 6,
+          key: "sereno",
+          title: "Sereno — Clínica Calma Premium",
+          total: 43,
           tese: "Wellness premium calmo · banho teal, serifa + glass",
-          fonts: "Fraunces (variável) + Spline Sans", fontCount: 2, newFonts: true, dark: false,
-          costFila: "alto", costAll8: "alto",
+          fonts: "Fraunces (variável) + Spline Sans",
+          fontCount: 2,
+          newFonts: true,
+          dark: false,
+          costFila: "alto",
+          costAll8: "alto",
           sig: "AGORA = card branco→teal com ring inset + scale + badge-now em pílula com dot live + anel pulse — tratado como 'estamos te cuidando agora', não alarme.",
-          strengths: ["Tom certo pra saúde: clínica calma premium combina com o IFP; reaproveita o teal da unidade médico", "Hierarquia tipográfica elegante (Fraunces nos números/horários)", "reduced-motion correto (restaura estado final — raro nos mockups)", "Cor por especialidade + slot livre com CTA laranja (vaga ociosa vira encaixe)"],
-          risks: ["É um RE-SKIN do DS (ink/fundo/bordas/sombras viram banho teal) — vira ilha visual se não propagar", "2 fontes novas (Fraunces variável) a self-hostar", "Contraste: ink-mute teal abaixo de 4.5:1 a ajustar antes de prod", "backdrop-filter blur (glass) + radius 22 destoam do DS e pesam em telas densas (agenda-grid)"],
+          strengths: [
+            "Tom certo pra saúde: clínica calma premium combina com o IFP; reaproveita o teal da unidade médico",
+            "Hierarquia tipográfica elegante (Fraunces nos números/horários)",
+            "reduced-motion correto (restaura estado final — raro nos mockups)",
+            "Cor por especialidade + slot livre com CTA laranja (vaga ociosa vira encaixe)",
+          ],
+          risks: [
+            "É um RE-SKIN do DS (ink/fundo/bordas/sombras viram banho teal) — vira ilha visual se não propagar",
+            "2 fontes novas (Fraunces variável) a self-hostar",
+            "Contraste: ink-mute teal abaixo de 4.5:1 a ajustar antes de prod",
+            "backdrop-filter blur (glass) + radius 22 destoam do DS e pesam em telas densas (agenda-grid)",
+          ],
           best: "Quando priorizar percepção de cuidado/marca premium na unidade médica acima de densidade, em telas vistas por pacientes/recepção. Certo se tratar /medico como sub-tema mais rico; errado pra mínima divergência do DS.",
-          force: "Calma premium", driver: "Re-skin teal + glass", a11y: true,
+          force: "Calma premium",
+          driver: "Re-skin teal + glass",
+          a11y: true,
         },
       ];
 
@@ -338,15 +1045,46 @@
       DIRS.forEach((d) => {
         const tr = document.createElement("tr");
         tr.innerHTML =
-          '<td><div class="dir-name"><span class="rankbadge">#' + d.rank + "</span> " + d.title.split(" — ")[0] +
-          '</div><div class="dir-tese">' + d.tese + "</div></td>" +
-          '<td><span class="score-cell">' + d.total + ' <small>/60</small></span></td>' +
-          '<td><span class="yn ' + (d.newFonts ? "yes" : "no") + '">' + d.fontCount + ' nova' + (d.fontCount > 1 ? "s" : "") + '</span><div class="cell-note"><span class="fnt">' + d.fonts + "</span></div></td>" +
-          '<td><span class="yn ' + (d.dark ? "yes" : "no") + '">' + (d.dark ? "SIM ⚠" : "não") + "</span></td>" +
-          '<td><span class="cost ' + d.costFila + '">' + COSTLAB[d.costFila] + "</span></td>" +
-          '<td><span class="cost ' + d.costAll8 + '">' + COSTLAB[d.costAll8] + "</span></td>" +
-          '<td class="cell-note">' + d.force + "</td>" +
-          '<td class="cell-note">' + d.driver + "</td>";
+          '<td><div class="dir-name"><span class="rankbadge">#' +
+          d.rank +
+          "</span> " +
+          d.title.split(" — ")[0] +
+          '</div><div class="dir-tese">' +
+          d.tese +
+          "</div></td>" +
+          '<td><span class="score-cell">' +
+          d.total +
+          " <small>/60</small></span></td>" +
+          '<td><span class="yn ' +
+          (d.newFonts ? "yes" : "no") +
+          '">' +
+          d.fontCount +
+          " nova" +
+          (d.fontCount > 1 ? "s" : "") +
+          '</span><div class="cell-note"><span class="fnt">' +
+          d.fonts +
+          "</span></div></td>" +
+          '<td><span class="yn ' +
+          (d.dark ? "yes" : "no") +
+          '">' +
+          (d.dark ? "SIM ⚠" : "não") +
+          "</span></td>" +
+          '<td><span class="cost ' +
+          d.costFila +
+          '">' +
+          COSTLAB[d.costFila] +
+          "</span></td>" +
+          '<td><span class="cost ' +
+          d.costAll8 +
+          '">' +
+          COSTLAB[d.costAll8] +
+          "</span></td>" +
+          '<td class="cell-note">' +
+          d.force +
+          "</td>" +
+          '<td class="cell-note">' +
+          d.driver +
+          "</td>";
         mb.appendChild(tr);
       });
 
@@ -361,24 +1099,63 @@
         const a11yTag = d.a11y ? "" : '<span class="tag a11y">⚠ falta reduced-motion</span>';
         card.innerHTML =
           '<div class="thumb">' +
-          '<span class="rank">#' + d.rank + " · " + d.total + "/60</span>" +
-          '<iframe src="/lab/fila-' + d.key + '.html" loading="lazy" title="' + d.title + '" scrolling="no"></iframe>' +
-          '<a class="cover" href="/lab/fila-' + d.key + '.html" target="_blank" rel="noopener" aria-label="Abrir ' + d.title + '"></a>' +
-          '<a class="full" href="/lab/fila-' + d.key + '.html" target="_blank" rel="noopener">tela cheia ↗</a>' +
+          '<span class="rank">#' +
+          d.rank +
+          " · " +
+          d.total +
+          "/60</span>" +
+          '<iframe src="/lab/fila-' +
+          d.key +
+          '.html" loading="lazy" title="' +
+          d.title +
+          '" scrolling="no"></iframe>' +
+          '<a class="cover" href="/lab/fila-' +
+          d.key +
+          '.html" target="_blank" rel="noopener" aria-label="Abrir ' +
+          d.title +
+          '"></a>' +
+          '<a class="full" href="/lab/fila-' +
+          d.key +
+          '.html" target="_blank" rel="noopener">tela cheia ↗</a>' +
           "</div>" +
           '<div class="gbody">' +
-          '<div class="ghead"><div><div class="gtitle">' + d.title + '</div><div class="gtese">' + d.tese + '</div></div>' +
-          '<div class="gscore"><div class="b">' + d.total + '</div><div class="o">de 60</div></div></div>' +
+          '<div class="ghead"><div><div class="gtitle">' +
+          d.title +
+          '</div><div class="gtese">' +
+          d.tese +
+          "</div></div>" +
+          '<div class="gscore"><div class="b">' +
+          d.total +
+          '</div><div class="o">de 60</div></div></div>' +
           '<div class="meta-row">' +
-          '<span class="tag">' + d.fonts + "</span>" +
-          '<span class="tag cost-' + d.costFila + '">Fila: ' + COSTLAB[d.costFila] + "</span>" +
-          '<span class="tag cost-' + d.costAll8 + '">8 telas: ' + COSTLAB[d.costAll8] + "</span>" +
-          darkTag + a11yTag +
+          '<span class="tag">' +
+          d.fonts +
+          "</span>" +
+          '<span class="tag cost-' +
+          d.costFila +
+          '">Fila: ' +
+          COSTLAB[d.costFila] +
+          "</span>" +
+          '<span class="tag cost-' +
+          d.costAll8 +
+          '">8 telas: ' +
+          COSTLAB[d.costAll8] +
+          "</span>" +
+          darkTag +
+          a11yTag +
           "</div>" +
-          '<div class="sig"><span class="lab">Detalhe-assinatura</span>' + d.sig + "</div>" +
-          '<div class="lists"><div class="strengths"><span class="lab">Forças</span><ul>' + strengths + "</ul></div>" +
-          '<div class="risks"><span class="lab">Riscos</span><ul>' + risks + "</ul></div></div>" +
-          '<div class="bestfor"><b>Melhor pra:</b> ' + d.best + "</div>" +
+          '<div class="sig"><span class="lab">Detalhe-assinatura</span>' +
+          d.sig +
+          "</div>" +
+          '<div class="lists"><div class="strengths"><span class="lab">Forças</span><ul>' +
+          strengths +
+          "</ul></div>" +
+          '<div class="risks"><span class="lab">Riscos</span><ul>' +
+          risks +
+          "</ul></div></div>" +
+          '<div class="bestfor"><b>Melhor pra:</b> ' +
+          d.best +
+          "</div>" +
           "</div>";
         g.appendChild(card);
       });

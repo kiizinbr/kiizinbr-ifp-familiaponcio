@@ -1,17 +1,33 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
+import type { StatusConsulta } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state";
+import { MedicoShell } from "@/components/medico/medico-shell";
+import {
+  EditorialCanvas,
+  Masthead,
+  KpiLedger,
+  Agenda,
+  TimelineRow,
+  EditorialEmpty,
+  Colophon,
+} from "@/components/medico/editorial";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
-import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 
 const STATUS_EM_FILA = ["agendada", "confirmada", "em_atendimento"] as const;
+
+/** status de domínio → badge editorial (kind + label PT-BR). */
+const STATUS_BADGE = {
+  agendada: { kind: "scheduled", label: "Agendada" },
+  confirmada: { kind: "confirmed", label: "Confirmada" },
+  em_atendimento: { kind: "now", label: "Agora" },
+  realizada: { kind: "done", label: "Realizada" },
+  faltou: { kind: "danger", label: "Faltou" },
+  cancelada: { kind: "muted", label: "Cancelada" },
+} as const satisfies Record<StatusConsulta, { kind: string; label: string }>;
 
 export default async function MedicoHomePage() {
   const session = await auth();
@@ -48,175 +64,115 @@ export default async function MedicoHomePage() {
   ).length;
   const realizadas = consultasHoje.filter((c) => c.status === "realizada").length;
 
-  const dataExtenso = agora.toLocaleDateString("pt-BR", {
-    weekday: "long",
+  const dataWeekday = agora.toLocaleDateString("pt-BR", { weekday: "long" });
+  const dataFull = agora.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
+    year: "numeric",
   });
 
-  // marcador "agora": índice da primeira consulta cujo horário ainda não passou
-  const idxAgora = consultasHoje.findIndex(
-    (c) => c.slot.dataHoraInicio.getTime() >= agora.getTime(),
-  );
+  // legenda: especialidades distintas presentes hoje (cor + nome)
+  const legendMap = new Map<string, { color: string; label: string }>();
+  for (const c of consultasHoje) {
+    if (!legendMap.has(c.especialidade.id)) {
+      legendMap.set(c.especialidade.id, {
+        color: c.especialidade.corDestaque,
+        label: c.especialidade.nome,
+      });
+    }
+  }
+  const legend = [...legendMap.values()];
 
   return (
     <MedicoShell session={session}>
-      <MedicoHeader
-        eyebrow={dataExtenso}
-        titulo="Fila do dia"
-        acao={
-          podeMarcarConsulta(session) ? (
-            <Link
-              href={"/medico/consultas/nova" as Route}
-              className="inline-flex items-center gap-2 rounded-[var(--ifp-radius-md)] px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{ backgroundColor: "rgb(var(--ifp-orange-500))" }}
-            >
-              + Marcar consulta
-            </Link>
-          ) : undefined
-        }
-      />
-
-      {/* KPIs — faixa de 3 */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
-        <MiniKpi label="Em fila hoje" value={emAndamento} tone="teal" />
-        <MiniKpi label="Realizadas hoje" value={realizadas} tone="ink" />
-        <MiniKpi
-          label="Slots livres hoje"
-          value={slotsLivresHoje}
-          tone="muted"
-          hint={`${consultas7d} agendadas em 7 dias`}
+      <EditorialCanvas fullBleed>
+        <Masthead
+          kicker="Instituto Família Pôncio · Centro Médico"
+          title="Fila"
+          titleEm="do dia"
+          dateWeekday={dataWeekday}
+          dateFull={dataFull}
+          action={
+            podeMarcarConsulta(session) ? (
+              <Link
+                href={"/medico/consultas/nova" as Route}
+                style={{
+                  display: "inline-block",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                  background: "rgb(var(--ifp-orange-500))",
+                  padding: "12px 18px",
+                  borderRadius: "2px",
+                  textDecoration: "none",
+                }}
+              >
+                + Marcar consulta
+              </Link>
+            ) : undefined
+          }
         />
-      </div>
 
-      {/* Timeline viva */}
-      <Card className="!p-0">
-        <div
-          className="flex items-center justify-between border-b px-6 py-4"
-          style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-        >
-          <h2 className="text-sm font-bold tracking-wide" style={{ color: "rgb(var(--ifp-ink))" }}>
-            Agenda de hoje
-          </h2>
-          <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
-            {consultasHoje.length} {consultasHoje.length === 1 ? "consulta" : "consultas"}
-          </span>
-        </div>
+        <KpiLedger
+          items={[
+            { label: "Na fila", value: emAndamento, suffix: "aguardando", tone: "now" },
+            { label: "Realizadas hoje", value: realizadas, suffix: "concluídas", tone: "done" },
+            {
+              label: "Slots livres",
+              value: slotsLivresHoje,
+              suffix: "vagos",
+              tone: "free",
+              hint: `${consultas7d} agendadas em 7 dias`,
+            },
+          ]}
+        />
 
-        {consultasHoje.length === 0 ? (
-          <EmptyState
-            titulo="Dia livre por enquanto"
-            descricao="Nenhuma consulta agendada para hoje. Marque a primeira pelo botão acima."
-          />
-        ) : (
-          <ol className="relative px-6 py-5">
-            {/* linha vertical da timeline */}
-            <span
-              className="absolute top-5 bottom-5 left-[calc(1.5rem+58px)] w-px"
-              style={{ background: "rgb(var(--ifp-surface-200))" }}
-              aria-hidden
+        <Agenda title="A pauta de hoje" legend={legend}>
+          {consultasHoje.length === 0 ? (
+            <EditorialEmpty
+              title="Dia livre por enquanto"
+              text="Nenhuma consulta agendada para hoje. Marque a primeira pelo botão acima."
             />
-            {consultasHoje.map((c, i) => {
-              const visual = CONSULTA_VISUAL[c.status];
+          ) : (
+            consultasHoje.map((c, i) => {
+              const badge = STATUS_BADGE[c.status];
+              const isNow = c.status === "em_atendimento";
               const hora = c.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
                 minute: "2-digit",
               });
-              const passou = c.slot.dataHoraInicio.getTime() < agora.getTime();
-              const ehAgora = i === idxAgora;
+              const elapsedMin = isNow
+                ? Math.max(
+                    0,
+                    Math.floor((agora.getTime() - c.slot.dataHoraInicio.getTime()) / 60000),
+                  )
+                : undefined;
               return (
-                <li key={c.id} className="relative flex gap-4 py-2.5">
-                  <span
-                    className="w-[58px] shrink-0 pt-0.5 text-right font-mono text-sm font-semibold tabular-nums"
-                    style={{ color: passou ? "rgb(var(--ifp-muted))" : "rgb(var(--ifp-ink))" }}
-                  >
-                    {hora}
-                  </span>
-                  {/* nó da timeline */}
-                  <span className="relative z-10 mt-1 flex h-3 w-3 shrink-0 items-center justify-center">
-                    <span
-                      className="h-3 w-3 rounded-full ring-4 ring-white"
-                      style={{ background: c.especialidade.corDestaque }}
-                    />
-                    {ehAgora && (
-                      <span
-                        className="absolute h-3 w-3 animate-ping rounded-full"
-                        style={{ background: c.especialidade.corDestaque, opacity: 0.5 }}
-                      />
-                    )}
-                  </span>
-                  <Link
-                    href={`/medico/consultas/${c.id}` as Route}
-                    className="group flex flex-1 items-center justify-between gap-3 rounded-[var(--ifp-radius-md)] px-3 py-2 transition hover:bg-[rgb(var(--ifp-surface-50))]"
-                  >
-                    <div className="min-w-0">
-                      <p
-                        className="truncate font-semibold"
-                        style={{ color: "rgb(var(--ifp-ink))" }}
-                      >
-                        {c.cidadao.nomeCompleto}
-                      </p>
-                      <p className="truncate text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
-                        <span
-                          className="mr-1.5 inline-block rounded px-1.5 py-0.5 font-medium"
-                          style={{
-                            background: c.especialidade.corDestaque + "1f",
-                            color: c.especialidade.corDestaque,
-                          }}
-                        >
-                          {c.especialidade.nome}
-                        </span>
-                        {c.profissional.nomeExibicao}
-                      </p>
-                    </div>
-                    <Badge variant={visual.variant}>{visual.label}</Badge>
-                  </Link>
-                </li>
+                <TimelineRow
+                  key={c.id}
+                  href={`/medico/consultas/${c.id}`}
+                  time={hora}
+                  durationMin={c.slot.duracaoMin}
+                  specColor={c.especialidade.corDestaque}
+                  specName={c.especialidade.nome}
+                  patientName={c.cidadao.nomeCompleto}
+                  proName={c.profissional.nomeExibicao}
+                  variant={isNow ? "now" : "default"}
+                  statusKind={badge.kind}
+                  statusLabel={badge.label}
+                  elapsedMin={elapsedMin}
+                  delaySec={i * 0.07}
+                />
               );
-            })}
-          </ol>
-        )}
-      </Card>
-    </MedicoShell>
-  );
-}
+            })
+          )}
+        </Agenda>
 
-function MiniKpi({
-  label,
-  value,
-  tone,
-  hint,
-}: {
-  label: string;
-  value: number;
-  tone: "teal" | "ink" | "muted";
-  hint?: string;
-}) {
-  const color =
-    tone === "teal"
-      ? "rgb(var(--ifp-teal-700))"
-      : tone === "ink"
-        ? "rgb(var(--ifp-ink))"
-        : "rgb(var(--ifp-muted))";
-  return (
-    <div
-      className="rounded-[var(--ifp-radius-lg)] border bg-white p-5"
-      style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-    >
-      <p className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-        {label}
-      </p>
-      <p
-        className="mt-2 text-[2.4rem] leading-none font-extrabold tracking-tight"
-        style={{ color }}
-      >
-        {value}
-      </p>
-      {hint && (
-        <p className="mt-2 text-[11px]" style={{ color: "rgb(var(--ifp-muted))" }}>
-          {hint}
-        </p>
-      )}
-    </div>
+        <Colophon left="Centro Médico · Duque de Caxias / RJ" right="Atualizado em tempo real" />
+      </EditorialCanvas>
+    </MedicoShell>
   );
 }

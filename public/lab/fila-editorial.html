@@ -1,717 +1,853 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Fila do dia — Centro Médico · IFP Connect</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<!--
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fila do dia — Centro Médico · IFP Connect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
   Direção: Editorial — Institucional Primeiro Mundo
   Display:  Fraunces (serifa expressiva, opsz alto, cara de relatório anual)
   Corpo:    Spline Sans (grotesk humanista refinado — NÃO Inter/Roboto/Arial)
   Refino R-DA1: 4 top-fixes do diretor de arte (cor dominante, chips saturados,
                 contraste WCAG do label/spec, consistência de cor da linha AGORA).
 -->
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<style>
-  :root {
-    /* Brandbook IFP */
-    --orange:        #FF772E;
-    --orange-dark:   #C24D0F;
-    --brown:         #752C05;
-    --teal:          #007571;
-    --teal-light:    #10C2BB;
-    --gray-inst:     #4A4A49;
-    --white:         #FFFFFF;
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Spline+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* Brandbook IFP */
+        --orange: #ff772e;
+        --orange-dark: #c24d0f;
+        --brown: #752c05;
+        --teal: #007571;
+        --teal-light: #10c2bb;
+        --gray-inst: #4a4a49;
+        --white: #ffffff;
 
-    /* Neutros editoriais derivados (creme + tinta) */
-    --paper:         #FBF8F3;   /* creme base */
-    --paper-2:       #F4EFE6;   /* creme mais profundo p/ camada */
-    --ink:           #1E1813;   /* quase-preto quente, cor da tinta */
-    --ink-soft:      #5A5048;
-    --hair:          rgba(30, 24, 19, 0.14);  /* hairline */
-    --hair-strong:   rgba(30, 24, 19, 0.30);
+        /* Neutros editoriais derivados (creme + tinta) */
+        --paper: #fbf8f3; /* creme base */
+        --paper-2: #f4efe6; /* creme mais profundo p/ camada */
+        --ink: #1e1813; /* quase-preto quente, cor da tinta */
+        --ink-soft: #5a5048;
+        --hair: rgba(30, 24, 19, 0.14); /* hairline */
+        --hair-strong: rgba(30, 24, 19, 0.3);
 
-    --measure: 1180px;
-  }
+        --measure: 1180px;
+      }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+      html {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
 
-  body {
-    font-family: "Spline Sans", sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    line-height: 1.5;
-    /* textura de papel: grão sutil sobreposto ao creme */
-    background-image:
-      radial-gradient(rgba(117, 44, 5, 0.022) 1px, transparent 1px),
-      radial-gradient(rgba(117, 44, 5, 0.018) 1px, transparent 1px);
-    background-size: 22px 22px, 22px 22px;
-    background-position: 0 0, 11px 11px;
-    min-height: 100vh;
-  }
+      body {
+        font-family: "Spline Sans", sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        line-height: 1.5;
+        /* textura de papel: grão sutil sobreposto ao creme */
+        background-image:
+          radial-gradient(rgba(117, 44, 5, 0.022) 1px, transparent 1px),
+          radial-gradient(rgba(117, 44, 5, 0.018) 1px, transparent 1px);
+        background-size:
+          22px 22px,
+          22px 22px;
+        background-position:
+          0 0,
+          11px 11px;
+        min-height: 100vh;
+      }
 
-  /* ============ LAB BAR ============ */
-  .labbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    height: 34px;
-    padding: 0 22px;
-    background: var(--ink);
-    color: var(--paper);
-    font-size: 11.5px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .labbar .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--orange);
-    box-shadow: 0 0 0 0 rgba(255,119,46,0.6);
-    animation: labpulse 2.4s ease-out infinite;
-  }
-  @keyframes labpulse {
-    0%   { box-shadow: 0 0 0 0 rgba(255,119,46,0.55); }
-    70%  { box-shadow: 0 0 0 7px rgba(255,119,46,0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,119,46,0); }
-  }
-  .labbar b { font-weight: 600; letter-spacing: 0.06em; }
-  .labbar .sep { opacity: 0.4; }
-  .labbar .muted { opacity: 0.55; letter-spacing: 0.14em; }
+      /* ============ LAB BAR ============ */
+      .labbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        height: 34px;
+        padding: 0 22px;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 11.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .labbar .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--orange);
+        box-shadow: 0 0 0 0 rgba(255, 119, 46, 0.6);
+        animation: labpulse 2.4s ease-out infinite;
+      }
+      @keyframes labpulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 119, 46, 0.55);
+        }
+        70% {
+          box-shadow: 0 0 0 7px rgba(255, 119, 46, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 119, 46, 0);
+        }
+      }
+      .labbar b {
+        font-weight: 600;
+        letter-spacing: 0.06em;
+      }
+      .labbar .sep {
+        opacity: 0.4;
+      }
+      .labbar .muted {
+        opacity: 0.55;
+        letter-spacing: 0.14em;
+      }
 
-  /* ============ SHELL ============ */
-  .shell {
-    max-width: var(--measure);
-    margin: 0 auto;
-    padding: 0 40px 96px;
-  }
+      /* ============ SHELL ============ */
+      .shell {
+        max-width: var(--measure);
+        margin: 0 auto;
+        padding: 0 40px 96px;
+      }
 
-  /* ============ MASTHEAD ============ */
-  .masthead {
-    padding: 64px 0 0;
-    position: relative;
-  }
-  .masthead .kicker {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 12px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--brown);
-    font-weight: 600;
-  }
-  .masthead .kicker .rule {
-    flex: 0 0 34px;
-    height: 1px;
-    background: var(--brown);
-  }
-  .masthead .kicker .lion {
-    font-size: 15px;
-    filter: saturate(0.85);
-  }
+      /* ============ MASTHEAD ============ */
+      .masthead {
+        padding: 64px 0 0;
+        position: relative;
+      }
+      .masthead .kicker {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--brown);
+        font-weight: 600;
+      }
+      .masthead .kicker .rule {
+        flex: 0 0 34px;
+        height: 1px;
+        background: var(--brown);
+      }
+      .masthead .kicker .lion {
+        font-size: 15px;
+        filter: saturate(0.85);
+      }
 
-  .titlerow {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 32px;
-    margin-top: 14px;
-  }
-  .masthead h1 {
-    font-family: "Fraunces", serif;
-    font-optical-sizing: auto;
-    font-weight: 600;
-    font-size: clamp(54px, 8vw, 104px);
-    line-height: 0.9;
-    letter-spacing: -0.025em;
-    color: var(--ink);
-  }
-  .masthead h1 em {
-    font-style: italic;
-    font-weight: 400;
-    color: var(--brown);
-  }
+      .titlerow {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 32px;
+        margin-top: 14px;
+      }
+      .masthead h1 {
+        font-family: "Fraunces", serif;
+        font-optical-sizing: auto;
+        font-weight: 600;
+        font-size: clamp(54px, 8vw, 104px);
+        line-height: 0.9;
+        letter-spacing: -0.025em;
+        color: var(--ink);
+      }
+      .masthead h1 em {
+        font-style: italic;
+        font-weight: 400;
+        color: var(--brown);
+      }
 
-  .dateline {
-    text-align: right;
-    flex: 0 0 auto;
-    padding-bottom: 10px;
-  }
-  .dateline .day {
-    font-family: "Fraunces", serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 20px;
-    color: var(--ink);
-    line-height: 1.15;
-  }
-  .dateline .full {
-    margin-top: 4px;
-    font-size: 12.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-  .dateline .clock {
-    margin-top: 10px;
-    font-variant-numeric: tabular-nums;
-    font-size: 13px;
-    letter-spacing: 0.18em;
-    color: var(--teal);
-    font-weight: 600;
-  }
+      .dateline {
+        text-align: right;
+        flex: 0 0 auto;
+        padding-bottom: 10px;
+      }
+      .dateline .day {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 400;
+        font-size: 20px;
+        color: var(--ink);
+        line-height: 1.15;
+      }
+      .dateline .full {
+        margin-top: 4px;
+        font-size: 12.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+      .dateline .clock {
+        margin-top: 10px;
+        font-variant-numeric: tabular-nums;
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        color: var(--teal);
+        font-weight: 600;
+      }
 
-  /* ---- FIX 1: filete marrom espesso sob o h1 — âncora de cor sólida.
+      /* ---- FIX 1: filete marrom espesso sob o h1 — âncora de cor sólida.
           Substitui a hairline preta do masthead por um bloco de cor da paleta,
           com um acento laranja afiado na ponta (cor dominante + acento). ---- */
-  .masthead .underline {
-    margin-top: 30px;
-    height: 7px;
-    width: 100%;
-    background: var(--brown);
-    border-radius: 2px;
-    position: relative;
-    overflow: hidden;
-  }
-  .masthead .underline::after {
-    content: "";
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 148px;
-    background: var(--orange);
-  }
+      .masthead .underline {
+        margin-top: 30px;
+        height: 7px;
+        width: 100%;
+        background: var(--brown);
+        border-radius: 2px;
+        position: relative;
+        overflow: hidden;
+      }
+      .masthead .underline::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 148px;
+        background: var(--orange);
+      }
 
-  /* ============ KPI LEDGER ============ */
-  .ledger {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border-bottom: 1px solid var(--hair);
-    margin-top: 4px;
-  }
-  .kpi {
-    padding: 38px 30px 34px 0;
-    position: relative;
-  }
-  .kpi + .kpi {
-    padding-left: 40px;
-    border-left: 1px solid var(--hair);
-  }
-  /* FIX 1 (reforço): cada KPI carrega um filete superior sólido da paleta,
+      /* ============ KPI LEDGER ============ */
+      .ledger {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-bottom: 1px solid var(--hair);
+        margin-top: 4px;
+      }
+      .kpi {
+        padding: 38px 30px 34px 0;
+        position: relative;
+      }
+      .kpi + .kpi {
+        padding-left: 40px;
+        border-left: 1px solid var(--hair);
+      }
+      /* FIX 1 (reforço): cada KPI carrega um filete superior sólido da paleta,
      distribuindo a cor da marca pela faixa em vez de só tinta sobre creme. */
-  .kpi::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 46px;
-    height: 4px;
-    border-radius: 0 0 3px 3px;
-    background: var(--hair-strong);
-  }
-  .kpi + .kpi::before { left: 40px; }
-  .kpi[data-tone="now"]::before  { background: var(--orange); }
-  .kpi[data-tone="done"]::before { background: var(--teal); }
-  .kpi[data-tone="free"]::before { background: var(--gray-inst); }
-  .kpi .label {
-    font-size: 11.5px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    font-weight: 600;
-  }
-  .kpi .num {
-    font-family: "Fraunces", serif;
-    font-optical-sizing: auto;
-    font-weight: 500;
-    font-size: clamp(64px, 9vw, 120px);
-    line-height: 0.86;
-    letter-spacing: -0.03em;
-    margin-top: 14px;
-    font-variant-numeric: lining-nums;
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-  }
-  .kpi .num .suffix {
-    font-family: "Spline Sans", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    color: var(--ink-soft);
-    text-transform: lowercase;
-    align-self: flex-end;
-    padding-bottom: 18px;
-  }
-  .kpi[data-tone="now"]  .num { color: var(--orange); }
-  .kpi[data-tone="done"] .num { color: var(--teal); }
-  .kpi[data-tone="free"] .num { color: var(--ink); }
+      .kpi::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 46px;
+        height: 4px;
+        border-radius: 0 0 3px 3px;
+        background: var(--hair-strong);
+      }
+      .kpi + .kpi::before {
+        left: 40px;
+      }
+      .kpi[data-tone="now"]::before {
+        background: var(--orange);
+      }
+      .kpi[data-tone="done"]::before {
+        background: var(--teal);
+      }
+      .kpi[data-tone="free"]::before {
+        background: var(--gray-inst);
+      }
+      .kpi .label {
+        font-size: 11.5px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+      .kpi .num {
+        font-family: "Fraunces", serif;
+        font-optical-sizing: auto;
+        font-weight: 500;
+        font-size: clamp(64px, 9vw, 120px);
+        line-height: 0.86;
+        letter-spacing: -0.03em;
+        margin-top: 14px;
+        font-variant-numeric: lining-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+      }
+      .kpi .num .suffix {
+        font-family: "Spline Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: var(--ink-soft);
+        text-transform: lowercase;
+        align-self: flex-end;
+        padding-bottom: 18px;
+      }
+      .kpi[data-tone="now"] .num {
+        color: var(--orange);
+      }
+      .kpi[data-tone="done"] .num {
+        color: var(--teal);
+      }
+      .kpi[data-tone="free"] .num {
+        color: var(--ink);
+      }
 
-  /* ============ AGENDA ============ */
-  .agenda-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: 48px 0 10px;
-  }
-  .agenda-head .h {
-    font-family: "Fraunces", serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 26px;
-    color: var(--ink);
-  }
-  .agenda-head .legend {
-    display: flex;
-    gap: 20px;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-  .agenda-head .legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-  }
-  .agenda-head .legend i {
-    width: 9px; height: 9px; border-radius: 2px; display: inline-block;
-  }
+      /* ============ AGENDA ============ */
+      .agenda-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 48px 0 10px;
+      }
+      .agenda-head .h {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 400;
+        font-size: 26px;
+        color: var(--ink);
+      }
+      .agenda-head .legend {
+        display: flex;
+        gap: 20px;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+      .agenda-head .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .agenda-head .legend i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        display: inline-block;
+      }
 
-  .agenda {
-    border-top: 1.5px solid var(--ink);
-  }
+      .agenda {
+        border-top: 1.5px solid var(--ink);
+      }
 
-  /* linha = entrada de pauta */
-  .entry {
-    display: grid;
-    grid-template-columns: 132px 1fr 200px 150px;
-    align-items: center;
-    column-gap: 24px;
-    padding: 22px 18px 22px 22px;
-    border-bottom: 1px solid var(--hair);
-    position: relative;
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.35s ease, padding-left 0.35s ease;
-    /* entrada em stagger */
-    opacity: 0;
-    transform: translateY(10px);
-    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
-  }
-  @keyframes rise {
-    to { opacity: 1; transform: none; }
-  }
-  .entry:hover {
-    background: var(--paper-2);
-    padding-left: 30px;
-  }
-  /* nó de cor da especialidade na margem esquerda */
-  .entry::before {
-    content: "";
-    position: absolute;
-    left: 0; top: 50%;
-    width: 4px; height: 0;
-    background: var(--spec, var(--gray-inst));
-    transform: translateY(-50%);
-    transition: height 0.35s ease;
-  }
-  .entry:hover::before { height: 64%; }
+      /* linha = entrada de pauta */
+      .entry {
+        display: grid;
+        grid-template-columns: 132px 1fr 200px 150px;
+        align-items: center;
+        column-gap: 24px;
+        padding: 22px 18px 22px 22px;
+        border-bottom: 1px solid var(--hair);
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+        transition:
+          background 0.35s ease,
+          padding-left 0.35s ease;
+        /* entrada em stagger */
+        opacity: 0;
+        transform: translateY(10px);
+        animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .entry:hover {
+        background: var(--paper-2);
+        padding-left: 30px;
+      }
+      /* nó de cor da especialidade na margem esquerda */
+      .entry::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 4px;
+        height: 0;
+        background: var(--spec, var(--gray-inst));
+        transform: translateY(-50%);
+        transition: height 0.35s ease;
+      }
+      .entry:hover::before {
+        height: 64%;
+      }
 
-  /* TIME */
-  .e-time {
-    font-family: "Fraunces", serif;
-    font-optical-sizing: auto;
-    font-weight: 500;
-    font-size: 30px;
-    letter-spacing: -0.01em;
-    font-variant-numeric: tabular-nums lining-nums;
-    color: var(--ink);
-    line-height: 1;
-  }
-  .e-time .dur {
-    display: block;
-    font-family: "Spline Sans", sans-serif;
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-top: 6px;
-    font-weight: 600;
-  }
+      /* TIME */
+      .e-time {
+        font-family: "Fraunces", serif;
+        font-optical-sizing: auto;
+        font-weight: 500;
+        font-size: 30px;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums lining-nums;
+        color: var(--ink);
+        line-height: 1;
+      }
+      .e-time .dur {
+        display: block;
+        font-family: "Spline Sans", sans-serif;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin-top: 6px;
+        font-weight: 600;
+      }
 
-  /* PATIENT */
-  .e-patient .name {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--ink);
-    letter-spacing: -0.005em;
-  }
-  /* ---- FIX 2 + FIX 3: chip de especialidade saturado.
+      /* PATIENT */
+      .e-patient .name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: -0.005em;
+      }
+      /* ---- FIX 2 + FIX 3: chip de especialidade saturado.
           - fundo tonal de baixa opacidade (spec a 12%) + borda (spec a 32%)
           - nó .spec i engrossado (10px, borda densa de 2px) com halo
           - texto em --ink-soft (legível) em vez da cor pálida da spec ---- */
-  .e-patient .spec {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 7px;
-    padding: 4px 11px 4px 9px;
-    border-radius: 999px;
-    font-size: 12px;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--ink-soft);                                       /* FIX 3 */
-    background: color-mix(in srgb, var(--spec, var(--gray-inst)) 12%, transparent); /* FIX 2 */
-    border: 1px solid color-mix(in srgb, var(--spec, var(--gray-inst)) 32%, transparent); /* FIX 2 */
-    line-height: 1;
-  }
-  .e-patient .spec i {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--spec, var(--gray-inst));
-    border: 2px solid color-mix(in srgb, var(--spec, var(--gray-inst)) 55%, var(--white)); /* FIX 2: nó denso */
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--spec, var(--gray-inst)) 35%, transparent);
-    flex: 0 0 auto;
-  }
+      .e-patient .spec {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 7px;
+        padding: 4px 11px 4px 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--ink-soft); /* FIX 3 */
+        background: color-mix(in srgb, var(--spec, var(--gray-inst)) 12%, transparent); /* FIX 2 */
+        border: 1px solid color-mix(in srgb, var(--spec, var(--gray-inst)) 32%, transparent); /* FIX 2 */
+        line-height: 1;
+      }
+      .e-patient .spec i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--spec, var(--gray-inst));
+        border: 2px solid color-mix(in srgb, var(--spec, var(--gray-inst)) 55%, var(--white)); /* FIX 2: nó denso */
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--spec, var(--gray-inst)) 35%, transparent);
+        flex: 0 0 auto;
+      }
 
-  /* PRO */
-  .e-pro {
-    font-size: 14px;
-    color: var(--ink-soft);
-  }
-  .e-pro .role {
-    display: block;
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);   /* FIX 3: era --hair-strong (rgba .30, falhava WCAG) */
-    margin-bottom: 3px;
-    font-weight: 600;
-  }
-  .e-pro .who { color: var(--ink); font-weight: 500; }
+      /* PRO */
+      .e-pro {
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .e-pro .role {
+        display: block;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-soft); /* FIX 3: era --hair-strong (rgba .30, falhava WCAG) */
+        margin-bottom: 3px;
+        font-weight: 600;
+      }
+      .e-pro .who {
+        color: var(--ink);
+        font-weight: 500;
+      }
 
-  /* STATUS */
-  .e-status { text-align: right; }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    font-weight: 700;
-    padding: 7px 13px;
-    border-radius: 2px;
-    border: 1px solid var(--hair-strong);
-    color: var(--ink-soft);
-    background: transparent;
-    white-space: nowrap;
-  }
-  .badge.done {
-    border-color: rgba(0,117,113,0.4);
-    color: var(--teal);
-  }
-  .badge.done::before {
-    content: "✓"; font-size: 12px; line-height: 1;
-  }
-  .badge.confirmed {
-    border-color: rgba(30,24,19,0.34);
-    color: var(--ink);
-  }
-  .badge.scheduled {
-    border-style: dashed;
-  }
+      /* STATUS */
+      .e-status {
+        text-align: right;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 7px 13px;
+        border-radius: 2px;
+        border: 1px solid var(--hair-strong);
+        color: var(--ink-soft);
+        background: transparent;
+        white-space: nowrap;
+      }
+      .badge.done {
+        border-color: rgba(0, 117, 113, 0.4);
+        color: var(--teal);
+      }
+      .badge.done::before {
+        content: "✓";
+        font-size: 12px;
+        line-height: 1;
+      }
+      .badge.confirmed {
+        border-color: rgba(30, 24, 19, 0.34);
+        color: var(--ink);
+      }
+      .badge.scheduled {
+        border-style: dashed;
+      }
 
-  /* ===== AGORA — destaque editorial forte =====
+      /* ===== AGORA — destaque editorial forte =====
      FIX 4: clínico = teal em TODA a linha (nó/borda, gradiente, badge),
      coerente com o chip teal. Mantém o pulso/glow como linguagem de "vivo". */
-  .entry.now {
-    background:
-      linear-gradient(90deg, rgba(0,117,113,0.12), rgba(0,117,113,0.0) 62%);
-    border-bottom-color: var(--hair-strong);
-    margin: 6px 0;
-    box-shadow:
-      inset 0 1px 0 rgba(0,117,113,0.28),
-      0 22px 40px -30px rgba(0,117,113,0.55);
-  }
-  .entry.now::before {
-    height: 100%;
-    width: 4px;
-    background: var(--teal);            /* FIX 4: era --orange */
-    animation: edgepulse 1.8s ease-in-out infinite;
-  }
-  @keyframes edgepulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(16,194,187,0); }
-    50%     { box-shadow: 0 0 18px 1px rgba(16,194,187,0.7); }
-  }
-  .entry.now .e-time { color: var(--teal); }
-  .entry.now .e-patient .name { color: var(--brown); }
+      .entry.now {
+        background: linear-gradient(90deg, rgba(0, 117, 113, 0.12), rgba(0, 117, 113, 0) 62%);
+        border-bottom-color: var(--hair-strong);
+        margin: 6px 0;
+        box-shadow:
+          inset 0 1px 0 rgba(0, 117, 113, 0.28),
+          0 22px 40px -30px rgba(0, 117, 113, 0.55);
+      }
+      .entry.now::before {
+        height: 100%;
+        width: 4px;
+        background: var(--teal); /* FIX 4: era --orange */
+        animation: edgepulse 1.8s ease-in-out infinite;
+      }
+      @keyframes edgepulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 194, 187, 0);
+        }
+        50% {
+          box-shadow: 0 0 18px 1px rgba(16, 194, 187, 0.7);
+        }
+      }
+      .entry.now .e-time {
+        color: var(--teal);
+      }
+      .entry.now .e-patient .name {
+        color: var(--brown);
+      }
 
-  .badge.now {
-    border: none;
-    background: var(--teal);            /* FIX 4: bloco sólido teal, era laranja */
-    color: #fff;
-    position: relative;
-    padding-left: 26px;
-  }
-  .badge.now .pulse {
-    position: absolute;
-    left: 11px; top: 50%;
-    width: 7px; height: 7px;
-    margin-top: -3.5px;
-    border-radius: 50%;
-    background: #fff;
-  }
-  .badge.now .pulse::after {
-    content: "";
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    background: #fff;
-    animation: ping 1.4s ease-out infinite;
-  }
-  @keyframes ping {
-    0%   { transform: scale(1); opacity: 0.9; }
-    100% { transform: scale(3.4); opacity: 0; }
-  }
+      .badge.now {
+        border: none;
+        background: var(--teal); /* FIX 4: bloco sólido teal, era laranja */
+        color: #fff;
+        position: relative;
+        padding-left: 26px;
+      }
+      .badge.now .pulse {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        width: 7px;
+        height: 7px;
+        margin-top: -3.5px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .badge.now .pulse::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: #fff;
+        animation: ping 1.4s ease-out infinite;
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(3.4);
+          opacity: 0;
+        }
+      }
 
-  /* ===== slot livre — vago, discreto ===== */
-  .entry.free {
-    grid-template-columns: 132px 1fr;
-    color: var(--hair-strong);
-    background:
-      repeating-linear-gradient(
-        -45deg,
-        transparent, transparent 9px,
-        rgba(30,24,19,0.028) 9px, rgba(30,24,19,0.028) 10px
-      );
-  }
-  .entry.free:hover { background: var(--paper-2); padding-left: 30px; }
-  .entry.free .e-time { color: var(--hair-strong); font-weight: 400; }
-  .entry.free .vacant {
-    font-family: "Fraunces", serif;
-    font-style: italic;
-    font-size: 17px;
-    color: var(--ink-soft);
-  }
-  .entry.free .vacant small {
-    font-family: "Spline Sans", sans-serif;
-    font-style: normal;
-    display: block;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-soft);   /* alinhado ao FIX 3: legível, não hairline */
-    margin-top: 4px;
-    font-weight: 600;
-  }
+      /* ===== slot livre — vago, discreto ===== */
+      .entry.free {
+        grid-template-columns: 132px 1fr;
+        color: var(--hair-strong);
+        background: repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 9px,
+          rgba(30, 24, 19, 0.028) 9px,
+          rgba(30, 24, 19, 0.028) 10px
+        );
+      }
+      .entry.free:hover {
+        background: var(--paper-2);
+        padding-left: 30px;
+      }
+      .entry.free .e-time {
+        color: var(--hair-strong);
+        font-weight: 400;
+      }
+      .entry.free .vacant {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-size: 17px;
+        color: var(--ink-soft);
+      }
+      .entry.free .vacant small {
+        font-family: "Spline Sans", sans-serif;
+        font-style: normal;
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-soft); /* alinhado ao FIX 3: legível, não hairline */
+        margin-top: 4px;
+        font-weight: 600;
+      }
 
-  /* ============ COLOPHON ============ */
-  .colophon {
-    margin-top: 40px;
-    padding-top: 22px;
-    border-top: 1px solid var(--hair);
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 11.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-  .colophon .mark {
-    font-family: "Fraunces", serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 16px;
-    letter-spacing: 0;
-    text-transform: none;
-    color: var(--brown);
-  }
+      /* ============ COLOPHON ============ */
+      .colophon {
+        margin-top: 40px;
+        padding-top: 22px;
+        border-top: 1px solid var(--hair);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 11.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+      .colophon .mark {
+        font-family: "Fraunces", serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: 16px;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--brown);
+      }
 
-  /* ============ RESPONSIVE ============ */
-  @media (max-width: 980px) {
-    .shell { padding: 0 24px 72px; }
-    .ledger { grid-template-columns: 1fr; }
-    .kpi + .kpi { padding-left: 0; border-left: none; border-top: 1px solid var(--hair); }
-    .kpi + .kpi::before { left: 0; }
-    .entry { grid-template-columns: 96px 1fr; row-gap: 14px; }
-    .e-pro, .e-status { grid-column: 2; text-align: left; }
-    .e-status { margin-top: -6px; }
-    .titlerow { flex-direction: column; align-items: flex-start; }
-    .dateline { text-align: left; }
-  }
+      /* ============ RESPONSIVE ============ */
+      @media (max-width: 980px) {
+        .shell {
+          padding: 0 24px 72px;
+        }
+        .ledger {
+          grid-template-columns: 1fr;
+        }
+        .kpi + .kpi {
+          padding-left: 0;
+          border-left: none;
+          border-top: 1px solid var(--hair);
+        }
+        .kpi + .kpi::before {
+          left: 0;
+        }
+        .entry {
+          grid-template-columns: 96px 1fr;
+          row-gap: 14px;
+        }
+        .e-pro,
+        .e-status {
+          grid-column: 2;
+          text-align: left;
+        }
+        .e-status {
+          margin-top: -6px;
+        }
+        .titlerow {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .dateline {
+          text-align: left;
+        }
+      }
 
-  @media (prefers-reduced-motion: reduce) {
-    .entry { animation: none; opacity: 1; transform: none; }
-    .entry.now::before, .labbar .dot, .badge.now .pulse::after { animation: none; }
-  }
-</style>
-</head>
-<body>
-
-  <!-- LAB IDENTIFIER -->
-  <div class="labbar">
-    <span class="dot" aria-hidden="true"></span>
-    <span><b>IFP Lab</b></span>
-    <span class="sep">·</span>
-    <span>Editorial — Institucional Primeiro Mundo</span>
-    <span class="muted" style="margin-left:auto;">Centro Médico</span>
-  </div>
-
-  <div class="shell">
-
-    <!-- MASTHEAD -->
-    <header class="masthead">
-      <div class="kicker">
-        <span class="rule" aria-hidden="true"></span>
-        <span class="lion" aria-hidden="true">🦁</span>
-        Instituto Família Pôncio · Centro Médico
-      </div>
-      <div class="titlerow">
-        <h1>Fila<br><em>do dia</em></h1>
-        <div class="dateline">
-          <div class="day">quinta-feira</div>
-          <div class="full">29 de maio de 2026</div>
-          <div class="clock" id="clock" aria-label="hora atual">—:—</div>
-        </div>
-      </div>
-      <div class="underline" aria-hidden="true"></div>
-    </header>
-
-    <!-- KPI LEDGER -->
-    <section class="ledger" aria-label="Resumo do dia">
-      <div class="kpi" data-tone="now">
-        <div class="label">Na fila</div>
-        <div class="num">4<span class="suffix">aguardando</span></div>
-      </div>
-      <div class="kpi" data-tone="done">
-        <div class="label">Realizadas hoje</div>
-        <div class="num">2<span class="suffix">concluídas</span></div>
-      </div>
-      <div class="kpi" data-tone="free">
-        <div class="label">Slots livres</div>
-        <div class="num">6<span class="suffix">vagos</span></div>
-      </div>
-    </section>
-
-    <!-- AGENDA -->
-    <div class="agenda-head">
-      <div class="h">A pauta de hoje</div>
-      <div class="legend" aria-hidden="true">
-        <span><i style="background:#007571"></i> Clínico</span>
-        <span><i style="background:#C24D0F"></i> Ginecologia</span>
-        <span><i style="background:#FF772E"></i> Pediatria</span>
-        <span><i style="background:#6B6B6B"></i> Psicologia</span>
-      </div>
+      @media (prefers-reduced-motion: reduce) {
+        .entry {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
+        .entry.now::before,
+        .labbar .dot,
+        .badge.now .pulse::after {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- LAB IDENTIFIER -->
+    <div class="labbar">
+      <span class="dot" aria-hidden="true"></span>
+      <span><b>IFP Lab</b></span>
+      <span class="sep">·</span>
+      <span>Editorial — Institucional Primeiro Mundo</span>
+      <span class="muted" style="margin-left: auto">Centro Médico</span>
     </div>
 
-    <main class="agenda">
-
-      <!-- 08:00 REALIZADA -->
-      <a class="entry" style="--spec:#007571; animation-delay:.05s" href="#">
-        <div class="e-time">08:00<span class="dur">30 min</span></div>
-        <div class="e-patient">
-          <div class="name">Maria das Graças Almeida</div>
-          <div class="spec"><i></i> Clínico Geral</div>
+    <div class="shell">
+      <!-- MASTHEAD -->
+      <header class="masthead">
+        <div class="kicker">
+          <span class="rule" aria-hidden="true"></span>
+          <span class="lion" aria-hidden="true">🦁</span>
+          Instituto Família Pôncio · Centro Médico
         </div>
-        <div class="e-pro"><span class="role">Profissional</span><span class="who">Dr. João Silva</span></div>
-        <div class="e-status"><span class="badge done">Realizada</span></div>
-      </a>
-
-      <!-- 08:30 REALIZADA -->
-      <a class="entry" style="--spec:#007571; animation-delay:.12s" href="#">
-        <div class="e-time">08:30<span class="dur">30 min</span></div>
-        <div class="e-patient">
-          <div class="name">José Roberto Almeida</div>
-          <div class="spec"><i></i> Clínico Geral</div>
+        <div class="titlerow">
+          <h1>Fila<br /><em>do dia</em></h1>
+          <div class="dateline">
+            <div class="day">quinta-feira</div>
+            <div class="full">29 de maio de 2026</div>
+            <div class="clock" id="clock" aria-label="hora atual">—:—</div>
+          </div>
         </div>
-        <div class="e-pro"><span class="role">Profissional</span><span class="who">Dr. João Silva</span></div>
-        <div class="e-status"><span class="badge done">Realizada</span></div>
-      </a>
+        <div class="underline" aria-hidden="true"></div>
+      </header>
 
-      <!-- 09:00 EM ATENDIMENTO — AGORA (FIX 4: linha inteira em teal) -->
-      <a class="entry now" style="--spec:#007571; animation-delay:.19s" href="#" aria-current="true">
-        <div class="e-time">09:00<span class="dur">30 min</span></div>
-        <div class="e-patient">
-          <div class="name">Antônia Pereira</div>
-          <div class="spec"><i></i> Clínico Geral</div>
+      <!-- KPI LEDGER -->
+      <section class="ledger" aria-label="Resumo do dia">
+        <div class="kpi" data-tone="now">
+          <div class="label">Na fila</div>
+          <div class="num">4<span class="suffix">aguardando</span></div>
         </div>
-        <div class="e-pro"><span class="role">Profissional</span><span class="who">Dr. João Silva</span></div>
-        <div class="e-status"><span class="badge now"><span class="pulse" aria-hidden="true"></span>Agora</span></div>
-      </a>
-
-      <!-- 09:30 CONFIRMADA -->
-      <a class="entry" style="--spec:#C24D0F; animation-delay:.26s" href="#">
-        <div class="e-time">09:30<span class="dur">30 min</span></div>
-        <div class="e-patient">
-          <div class="name">Joana D'Arc Santos</div>
-          <div class="spec"><i></i> Ginecologia</div>
+        <div class="kpi" data-tone="done">
+          <div class="label">Realizadas hoje</div>
+          <div class="num">2<span class="suffix">concluídas</span></div>
         </div>
-        <div class="e-pro"><span class="role">Profissional</span><span class="who">Dra. Maria Souza</span></div>
-        <div class="e-status"><span class="badge confirmed">Confirmada</span></div>
-      </a>
-
-      <!-- 10:00 SLOT LIVRE -->
-      <a class="entry free" style="animation-delay:.33s" href="#">
-        <div class="e-time">10:00</div>
-        <div class="vacant">Horário disponível<small>toque para agendar</small></div>
-      </a>
-
-      <!-- 10:30 AGENDADA -->
-      <a class="entry" style="--spec:#FF772E; animation-delay:.40s" href="#">
-        <div class="e-time">10:30<span class="dur">30 min</span></div>
-        <div class="e-patient">
-          <div class="name">Pedro Henrique Costa</div>
-          <div class="spec"><i></i> Pediatria</div>
+        <div class="kpi" data-tone="free">
+          <div class="label">Slots livres</div>
+          <div class="num">6<span class="suffix">vagos</span></div>
         </div>
-        <div class="e-pro"><span class="role">Profissional</span><span class="who">Dr. João Silva</span></div>
-        <div class="e-status"><span class="badge scheduled">Agendada</span></div>
-      </a>
+      </section>
 
-      <!-- 14:00 AGENDADA -->
-      <a class="entry" style="--spec:#6B6B6B; animation-delay:.47s" href="#">
-        <div class="e-time">14:00<span class="dur">50 min</span></div>
-        <div class="e-patient">
-          <div class="name">Luiza Fernanda Souza</div>
-          <div class="spec"><i></i> Psicologia</div>
+      <!-- AGENDA -->
+      <div class="agenda-head">
+        <div class="h">A pauta de hoje</div>
+        <div class="legend" aria-hidden="true">
+          <span><i style="background: #007571"></i> Clínico</span>
+          <span><i style="background: #c24d0f"></i> Ginecologia</span>
+          <span><i style="background: #ff772e"></i> Pediatria</span>
+          <span><i style="background: #6b6b6b"></i> Psicologia</span>
         </div>
-        <div class="e-pro"><span class="role">Profissional</span><span class="who">Psic. Ana Lima</span></div>
-        <div class="e-status"><span class="badge scheduled">Agendada</span></div>
-      </a>
+      </div>
 
-    </main>
+      <main class="agenda">
+        <!-- 08:00 REALIZADA -->
+        <a class="entry" style="--spec: #007571; animation-delay: 0.05s" href="#">
+          <div class="e-time">08:00<span class="dur">30 min</span></div>
+          <div class="e-patient">
+            <div class="name">Maria das Graças Almeida</div>
+            <div class="spec"><i></i> Clínico Geral</div>
+          </div>
+          <div class="e-pro">
+            <span class="role">Profissional</span><span class="who">Dr. João Silva</span>
+          </div>
+          <div class="e-status"><span class="badge done">Realizada</span></div>
+        </a>
 
-    <!-- COLOPHON -->
-    <footer class="colophon">
-      <span>Centro Médico · Duque de Caxias / RJ</span>
-      <span class="mark">IFP Connect</span>
-      <span>Atualizado em tempo real</span>
-    </footer>
+        <!-- 08:30 REALIZADA -->
+        <a class="entry" style="--spec: #007571; animation-delay: 0.12s" href="#">
+          <div class="e-time">08:30<span class="dur">30 min</span></div>
+          <div class="e-patient">
+            <div class="name">José Roberto Almeida</div>
+            <div class="spec"><i></i> Clínico Geral</div>
+          </div>
+          <div class="e-pro">
+            <span class="role">Profissional</span><span class="who">Dr. João Silva</span>
+          </div>
+          <div class="e-status"><span class="badge done">Realizada</span></div>
+        </a>
 
-  </div>
+        <!-- 09:00 EM ATENDIMENTO — AGORA (FIX 4: linha inteira em teal) -->
+        <a
+          class="entry now"
+          style="--spec: #007571; animation-delay: 0.19s"
+          href="#"
+          aria-current="true"
+        >
+          <div class="e-time">09:00<span class="dur">30 min</span></div>
+          <div class="e-patient">
+            <div class="name">Antônia Pereira</div>
+            <div class="spec"><i></i> Clínico Geral</div>
+          </div>
+          <div class="e-pro">
+            <span class="role">Profissional</span><span class="who">Dr. João Silva</span>
+          </div>
+          <div class="e-status">
+            <span class="badge now"><span class="pulse" aria-hidden="true"></span>Agora</span>
+          </div>
+        </a>
 
-  <script>
-    // Micro-interação única: relógio institucional na dateline (tabular nums).
-    (function () {
-      var el = document.getElementById('clock');
-      if (!el) return;
-      function tick() {
-        var d = new Date();
-        var hh = String(d.getHours()).padStart(2, '0');
-        var mm = String(d.getMinutes()).padStart(2, '0');
-        el.textContent = hh + ':' + mm;
-      }
-      tick();
-      setInterval(tick, 15000);
-    })();
-  </script>
+        <!-- 09:30 CONFIRMADA -->
+        <a class="entry" style="--spec: #c24d0f; animation-delay: 0.26s" href="#">
+          <div class="e-time">09:30<span class="dur">30 min</span></div>
+          <div class="e-patient">
+            <div class="name">Joana D'Arc Santos</div>
+            <div class="spec"><i></i> Ginecologia</div>
+          </div>
+          <div class="e-pro">
+            <span class="role">Profissional</span><span class="who">Dra. Maria Souza</span>
+          </div>
+          <div class="e-status"><span class="badge confirmed">Confirmada</span></div>
+        </a>
 
-</body>
+        <!-- 10:00 SLOT LIVRE -->
+        <a class="entry free" style="animation-delay: 0.33s" href="#">
+          <div class="e-time">10:00</div>
+          <div class="vacant">Horário disponível<small>toque para agendar</small></div>
+        </a>
+
+        <!-- 10:30 AGENDADA -->
+        <a class="entry" style="--spec: #ff772e; animation-delay: 0.4s" href="#">
+          <div class="e-time">10:30<span class="dur">30 min</span></div>
+          <div class="e-patient">
+            <div class="name">Pedro Henrique Costa</div>
+            <div class="spec"><i></i> Pediatria</div>
+          </div>
+          <div class="e-pro">
+            <span class="role">Profissional</span><span class="who">Dr. João Silva</span>
+          </div>
+          <div class="e-status"><span class="badge scheduled">Agendada</span></div>
+        </a>
+
+        <!-- 14:00 AGENDADA -->
+        <a class="entry" style="--spec: #6b6b6b; animation-delay: 0.47s" href="#">
+          <div class="e-time">14:00<span class="dur">50 min</span></div>
+          <div class="e-patient">
+            <div class="name">Luiza Fernanda Souza</div>
+            <div class="spec"><i></i> Psicologia</div>
+          </div>
+          <div class="e-pro">
+            <span class="role">Profissional</span><span class="who">Psic. Ana Lima</span>
+          </div>
+          <div class="e-status"><span class="badge scheduled">Agendada</span></div>
+        </a>
+      </main>
+
+      <!-- COLOPHON -->
+      <footer class="colophon">
+        <span>Centro Médico · Duque de Caxias / RJ</span>
+        <span class="mark">IFP Connect</span>
+        <span>Atualizado em tempo real</span>
+      </footer>
+    </div>
+
+    <script>
+      // Micro-interação única: relógio institucional na dateline (tabular nums).
+      (function () {
+        var el = document.getElementById("clock");
+        if (!el) return;
+        function tick() {
+          var d = new Date();
+          var hh = String(d.getHours()).padStart(2, "0");
+          var mm = String(d.getMinutes()).padStart(2, "0");
+          el.textContent = hh + ":" + mm;
+        }
+        tick();
+        setInterval(tick, 15000);
+      })();
+    </script>
+  </body>
 </html>

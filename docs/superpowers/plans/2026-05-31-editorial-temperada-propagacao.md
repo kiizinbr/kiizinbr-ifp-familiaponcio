@@ -33,6 +33,7 @@ A análise mostrou que ~40% do custo é uma **fundação** comum. Construí-la d
 ### FASE 2 — Propagar pras outras 7 telas
 
 Aplicar a linguagem (Fraunces display, hairlines, ledger, paper ramp, teal-cuidado) tela a tela. As densas exigem JULGAMENTO (não há mockup): definir o que "editorial" significa em cada uma.
+
 1. `agenda/` (grid Doctolib semanal) — hairlines nas células, Fraunces nos cabeçalhos de dia/hora; cuidar densidade.
 2. `minha-agenda/` (self-service do profissional).
 3. `profissionais/` (lista) + `profissionais/novo` + `profissionais/[id]` (form).
@@ -50,5 +51,6 @@ Aplicar a linguagem (Fraunces display, hairlines, ledger, paper ramp, teal-cuida
 - **Divergência de marca:** /medico fica Fraunces; resto do IFP é Garet. Aceito como sub-tema da unidade (decisão implícita na escolha).
 
 ## Como executar
+
 - Núcleo testável (helpers de cálculo de "em curso", estados de TimelineRow) → TDD, dá pra ralph-loop. UI → `frontend-design` direto, preview→revisão.
 - Sempre rodar pnpm DENTRO do WSL; push pelo git nativo do Windows. Ver [[reference-ifp-dev-commands]], [[feedback-wslrelay-postgres]].

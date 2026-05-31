@@ -1,506 +1,883 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Fila do dia · Centro Médico · IFP Connect</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<!-- Display: Fraunces (opsz/wght variable, soft optical curves) · Body: Spline Sans (refined humanist sans) -->
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,520;9..144,560&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-<style>
-  :root{
-    /* ——— Paleta IFP (somente brand + neutros derivados) ——— */
-    --orange:#FF772E;          /* ação primária — o acento afiado */
-    --orange-dark:#C24D0F;
-    --brown:#752C05;           /* headlines / mascote */
-    --teal:#007571;            /* saúde / cuidado — dominante */
-    --teal-light:#10C2BB;
-    --gray:#4A4A49;
-    --white:#FFFFFF;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fila do dia · Centro Médico · IFP Connect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Display: Fraunces (opsz/wght variable, soft optical curves) · Body: Spline Sans (refined humanist sans) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,520;9..144,560&family=Spline+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* ——— Paleta IFP (somente brand + neutros derivados) ——— */
+        --orange: #ff772e; /* ação primária — o acento afiado */
+        --orange-dark: #c24d0f;
+        --brown: #752c05; /* headlines / mascote */
+        --teal: #007571; /* saúde / cuidado — dominante */
+        --teal-light: #10c2bb;
+        --gray: #4a4a49;
+        --white: #ffffff;
 
-    /* especialidades (linguagem de varredura) */
-    --esp-clinico:#007571;
-    --esp-gineco:#C24D0F;
-    --esp-pedia:#FF772E;
-    --esp-psico:#6B6B6B;
+        /* especialidades (linguagem de varredura) */
+        --esp-clinico: #007571;
+        --esp-gineco: #c24d0f;
+        --esp-pedia: #ff772e;
+        --esp-psico: #6b6b6b;
 
-    /* tinta / texto */
-    --ink:#173B3A;             /* teal-tinta, quase preto esverdeado */
-    --ink-soft:#3F5E5C;
-    --ink-mute:#6E8987;
+        /* tinta / texto */
+        --ink: #173b3a; /* teal-tinta, quase preto esverdeado */
+        --ink-soft: #3f5e5c;
+        --ink-mute: #6e8987;
 
-    /* FIX 4 — teal-wash mais presente: fundo deixa de ser pale-on-pale,
+        /* FIX 4 — teal-wash mais presente: fundo deixa de ser pale-on-pale,
        dando separação real aos surfaces brancos e à sombra difusa */
-    --bg:#D6E7E4;
-    --bg-deep:#BFD8D4;
-    --surface:#FFFFFF;
-    --surface-2:#F4FAF8;
-    --line:#CADEDB;
+        --bg: #d6e7e4;
+        --bg-deep: #bfd8d4;
+        --surface: #ffffff;
+        --surface-2: #f4faf8;
+        --line: #cadedb;
 
-    --radius:22px;
-    --radius-sm:14px;
-    --shadow-soft:0 1px 2px rgba(23,59,58,.05), 0 16px 40px -22px rgba(23,59,58,.30);
-    --shadow-lift:0 2px 4px rgba(23,59,58,.06), 0 30px 60px -28px rgba(23,59,58,.42);
-  }
-
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-  body{
-    font-family:"Spline Sans",sans-serif;
-    color:var(--ink);
-    background:
-      radial-gradient(1200px 680px at 82% -8%, rgba(16,194,187,.20), transparent 60%),
-      radial-gradient(1000px 620px at -6% 8%, rgba(0,117,113,.16), transparent 58%),
-      linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
-    background-attachment:fixed;
-    min-height:100vh;
-    padding:46px 24px 90px;
-    line-height:1.5;
-  }
-
-  .shell{max-width:1180px;margin:0 auto}
-
-  /* ——— Cabeçalho ——— */
-  .topbar{
-    display:flex;align-items:flex-end;justify-content:space-between;
-    gap:32px;flex-wrap:wrap;margin-bottom:30px;
-    opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) .05s forwards;
-  }
-  .eyebrow{
-    display:inline-flex;align-items:center;gap:9px;
-    font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--teal);margin-bottom:10px;
-  }
-  .eyebrow .lion{
-    width:24px;height:24px;border-radius:8px;display:grid;place-items:center;
-    background:linear-gradient(150deg,var(--teal),#005c59);
-    color:#fff;font-size:13px;box-shadow:0 6px 16px -8px rgba(0,117,113,.8);
-  }
-  /* FIX 3 — H1 crava: peso 560 + tracking -0.025em, voz claramente acima do corpo */
-  h1{
-    font-family:"Fraunces",serif;
-    font-optical-sizing:auto;
-    font-weight:560;
-    font-size:clamp(40px,5.4vw,62px);
-    letter-spacing:-.025em;
-    line-height:.97;
-    color:var(--brown);
-  }
-  h1 em{font-style:italic;font-weight:520;color:var(--teal)}
-  .subtitle{
-    margin-top:10px;font-size:15.5px;color:var(--ink-soft);
-    display:flex;align-items:center;gap:10px;
-  }
-  .subtitle .dot{width:5px;height:5px;border-radius:50%;background:var(--teal-light)}
-  .date{
-    font-family:"Fraunces",serif;font-weight:440;font-style:italic;
-    color:var(--ink-soft);
-  }
-
-  .clock{
-    text-align:right;
-    background:rgba(255,255,255,.55);
-    border:1px solid rgba(255,255,255,.7);
-    backdrop-filter:blur(8px);
-    border-radius:var(--radius-sm);
-    padding:12px 18px;box-shadow:var(--shadow-soft);
-  }
-  .clock .now{
-    font-family:"Fraunces",serif;font-weight:560;font-size:30px;
-    letter-spacing:-.02em;color:var(--ink);line-height:1;
-    font-variant-numeric:tabular-nums;
-  }
-  .clock .lbl{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);margin-top:5px}
-
-  /* ——— KPIs ——— */
-  .kpis{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:30px;
-  }
-  .kpi{
-    position:relative;overflow:hidden;
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:22px 24px 20px;
-    box-shadow:var(--shadow-soft);
-    opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards;
-  }
-  .kpi:nth-child(1){animation-delay:.12s}
-  .kpi:nth-child(2){animation-delay:.20s}
-  .kpi:nth-child(3){animation-delay:.28s}
-  .kpi .cap{
-    font-size:12.5px;font-weight:600;letter-spacing:.04em;
-    text-transform:uppercase;color:var(--ink-mute);
-  }
-  /* FIX 3 — números KPI sobem pra 460, criando hierarquia de peso real vs. corpo */
-  .kpi .val{
-    font-family:"Fraunces",serif;font-optical-sizing:auto;
-    font-weight:460;font-size:54px;line-height:1;letter-spacing:-.02em;
-    margin-top:8px;color:var(--ink);font-variant-numeric:tabular-nums;
-  }
-  .kpi .val small{font-size:17px;font-weight:500;color:var(--ink-mute);margin-left:7px;font-family:"Spline Sans",sans-serif;letter-spacing:0}
-  .kpi .rail{position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:var(--radius) 0 0 var(--radius)}
-  .kpi.k-fila .rail{background:linear-gradient(var(--teal),var(--teal-light))}
-  .kpi.k-feita .rail{background:linear-gradient(#9fb6b4,#cadbd9)}
-  /* FIX 1 — "6 slots livres" cravado em laranja: o número vira ponto de ação, não --ink */
-  .kpi.k-livre .rail{background:linear-gradient(var(--orange),var(--orange-dark))}
-  .kpi.k-livre .val{color:var(--orange-dark)}
-  .kpi.k-livre .cap{color:var(--orange-dark)}
-  .kpi.k-livre{
-    border-color:color-mix(in srgb, var(--orange) 26%, var(--line));
-    background:linear-gradient(180deg, color-mix(in srgb, var(--orange) 5%, #fff), #fff);
-  }
-  .kpi.k-feita .val{color:var(--ink-soft)}
-
-  /* ——— Board ——— */
-  .board{
-    background:rgba(255,255,255,.4);
-    border:1px solid rgba(255,255,255,.66);
-    border-radius:calc(var(--radius) + 6px);
-    padding:8px;
-    box-shadow:var(--shadow-soft);
-    backdrop-filter:blur(6px);
-    opacity:0;animation:rise .8s cubic-bezier(.2,.7,.2,1) .34s forwards;
-  }
-  .board-head{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:16px 20px 14px;gap:16px;flex-wrap:wrap;
-  }
-  .board-head h2{
-    font-family:"Fraunces",serif;font-weight:520;font-size:21px;
-    letter-spacing:-.01em;color:var(--ink);
-  }
-  .legend{display:flex;gap:14px;flex-wrap:wrap}
-  .legend span{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-soft);font-weight:500}
-  .legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
-
-  /* ——— Timeline ——— */
-  /* FIX 4 — veil mais escuro atrás da timeline => surfaces brancos ganham separação */
-  .timeline{
-    position:relative;
-    background:linear-gradient(180deg, var(--bg-deep), #B2CFCB);
-    border-radius:var(--radius);
-    padding:14px 14px 16px;
-  }
-  .timeline::before{
-    content:"";position:absolute;left:108px;top:22px;bottom:22px;width:2px;
-    background:linear-gradient(var(--teal-light),rgba(0,117,113,.18));
-    opacity:.55;
-  }
-
-  .row{
-    position:relative;display:grid;
-    grid-template-columns:86px 22px 1fr auto;
-    align-items:center;gap:18px;
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:var(--radius-sm);
-    padding:16px 20px;margin:10px 0;
-    box-shadow:var(--shadow-soft);
-    transition:transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s;
-    opacity:0;animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards;
-  }
-  .row:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift)}
-  .timeline .row:nth-child(1){animation-delay:.44s}
-  .timeline .row:nth-child(2){animation-delay:.50s}
-  .timeline .row:nth-child(3){animation-delay:.56s}
-  .timeline .row:nth-child(4){animation-delay:.62s}
-  .timeline .row:nth-child(5){animation-delay:.68s}
-  .timeline .row:nth-child(6){animation-delay:.74s}
-  .timeline .row:nth-child(7){animation-delay:.80s}
-
-  .time{
-    font-family:"Fraunces",serif;font-weight:440;font-size:22px;
-    letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums;
-  }
-  .time .ampm{display:block;font-family:"Spline Sans";font-size:11px;font-weight:500;color:var(--ink-mute);letter-spacing:.08em;margin-top:1px}
-
-  /* nó da timeline carrega a cor da especialidade */
-  .node{position:relative;width:22px;height:22px;display:grid;place-items:center}
-  .node i{width:13px;height:13px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 0 1.5px currentColor, 0 4px 10px -4px currentColor}
-  .node.done i{background:currentColor}
-  .node.future i{background:#fff;box-shadow:0 0 0 2px currentColor}
-
-  .who .name{font-weight:600;font-size:16px;color:var(--ink);letter-spacing:-.005em}
-  .who .meta{font-size:13.5px;color:var(--ink-mute);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .who .meta .prof{color:var(--ink-soft)}
-
-  /* FIX 2 — chips de especialidade legíveis: fundo ~17%, borda ~30%, texto na cor escura */
-  .chip{
-    display:inline-flex;align-items:center;gap:6px;
-    font-size:12.5px;font-weight:600;letter-spacing:.005em;
-    padding:4px 11px;border-radius:999px;
-    background:color-mix(in srgb, var(--c) 17%, #fff);
-    border:1px solid color-mix(in srgb, var(--c) 32%, transparent);
-    color:color-mix(in srgb, var(--c) 78%, #2a1f17);
-  }
-  .chip i{width:7px;height:7px;border-radius:50%;background:var(--c)}
-
-  /* status à direita */
-  .status{
-    display:inline-flex;align-items:center;gap:7px;
-    font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-    padding:7px 13px;border-radius:999px;white-space:nowrap;
-  }
-  .status.done{color:var(--ink-mute);background:var(--surface-2);border:1px solid var(--line)}
-  .status.conf{color:var(--teal);background:color-mix(in srgb,var(--teal) 11%,#fff);border:1px solid color-mix(in srgb,var(--teal) 26%,transparent)}
-  .status.sched{color:var(--ink-soft);background:#fff;border:1px solid var(--line)}
-  .status .tick{width:6px;height:6px;border-radius:50%;background:currentColor}
-
-  .row.done{background:var(--surface-2);box-shadow:0 1px 2px rgba(23,59,58,.04)}
-  .row.done .name{color:var(--ink-soft)}
-  .row.done .time{color:var(--ink-mute)}
-
-  /* ——— Linha AGORA (EM ATENDIMENTO) — destaque forte com pulso ——— */
-  .row.now{
-    background:linear-gradient(120deg,#fff, #F1FBF9);
-    border-color:color-mix(in srgb,var(--teal) 42%,transparent);
-    box-shadow:var(--shadow-lift), 0 0 0 1px color-mix(in srgb,var(--teal) 30%,transparent) inset;
-    transform:scale(1.012);
-    z-index:2;
-  }
-  .row.now::after{
-    content:"";position:absolute;left:-1px;top:-1px;right:-1px;bottom:-1px;
-    border-radius:inherit;pointer-events:none;
-    box-shadow:0 0 0 0 rgba(0,117,113,.45);
-    animation:pulse 2.4s ease-out infinite;
-  }
-  .row.now .name{color:var(--brown);font-weight:600}
-  .badge-now{
-    display:inline-flex;align-items:center;gap:8px;
-    font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-    color:#fff;background:linear-gradient(120deg,var(--teal),#00908b);
-    padding:8px 15px;border-radius:999px;box-shadow:0 10px 24px -10px rgba(0,117,113,.8);
-  }
-  .badge-now .live{width:8px;height:8px;border-radius:50%;background:var(--teal-light);box-shadow:0 0 0 0 rgba(16,194,187,.7);animation:blip 1.6s ease-out infinite}
-  .now-node i{background:var(--teal)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--teal) 22%,transparent),0 0 0 1.5px var(--teal)!important}
-
-  /* ——— Slot livre (vago) — CTA laranja sólido: a ação cravada ——— */
-  /* FIX 1 — laranja sólido num ponto de ação real */
-  .slot{
-    display:grid;grid-template-columns:86px 22px 1fr auto;align-items:center;gap:18px;
-    border:1.5px dashed color-mix(in srgb,var(--orange) 45%,var(--line));
-    background:linear-gradient(180deg, color-mix(in srgb,var(--orange) 5%,#fff), #fff);
-    border-radius:var(--radius-sm);padding:14px 20px;margin:10px 0;
-    opacity:0;animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards;
-  }
-  .slot .time{color:var(--ink-mute);font-weight:340}
-  .slot .vac{display:grid;place-items:center}
-  .slot .vac i{width:12px;height:12px;border-radius:50%;border:2px dashed var(--orange);}
-  .slot .label{font-weight:500;color:var(--orange-dark);font-size:14.5px}
-  .slot .label b{font-weight:600}
-  .cta{
-    display:inline-flex;align-items:center;gap:8px;cursor:pointer;
-    font-family:"Spline Sans";font-size:13.5px;font-weight:600;letter-spacing:.01em;
-    color:#fff;background:var(--orange);
-    border:none;border-radius:999px;padding:10px 18px;
-    box-shadow:0 12px 26px -12px rgba(255,119,46,.9);
-    transition:transform .18s, box-shadow .18s, background .18s;
-  }
-  .cta:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 16px 30px -12px rgba(194,77,15,.9)}
-  .cta:active{transform:translateY(0)}
-  .cta svg{width:15px;height:15px}
-
-  .foot{
-    margin-top:22px;text-align:center;font-size:12.5px;color:var(--ink-mute);
-    display:flex;align-items:center;justify-content:center;gap:9px;
-    opacity:0;animation:rise .7s ease .9s forwards;
-  }
-  .foot .lion{font-size:14px}
-
-  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(0,117,113,.40)}
-    70%{box-shadow:0 0 0 14px rgba(0,117,113,0)}
-    100%{box-shadow:0 0 0 0 rgba(0,117,113,0)}
-  }
-  @keyframes blip{
-    0%{box-shadow:0 0 0 0 rgba(16,194,187,.7)}
-    70%{box-shadow:0 0 0 7px rgba(16,194,187,0)}
-    100%{box-shadow:0 0 0 0 rgba(16,194,187,0)}
-  }
-  @media (prefers-reduced-motion:reduce){
-    /* mata o movimento MAS restaura o estado final — senao tudo fica preso em opacity:0 */
-    *{animation:none!important;transition:none!important}
-    .topbar,.kpi,.board,.row,.slot,.foot{opacity:1!important;transform:none!important}
-  }
-
-  @media (max-width:760px){
-    .kpis{grid-template-columns:1fr}
-    .row,.slot{grid-template-columns:64px 18px 1fr;row-gap:12px}
-    .row .status,.row .badge-now,.slot .cta{grid-column:1 / -1;justify-self:start}
-    .timeline::before{left:84px}
-  }
-</style>
-</head>
-<body>
-  <main class="shell">
-
-    <!-- Cabeçalho -->
-    <header class="topbar">
-      <div>
-        <span class="eyebrow"><span class="lion">🦁</span> Centro Médico · IFP</span>
-        <h1>Fila do <em>dia</em></h1>
-        <p class="subtitle">
-          <span class="date">quinta-feira, 29 de maio de 2026</span>
-          <span class="dot"></span>
-          <span>4 pessoas aguardando atendimento</span>
-        </p>
-      </div>
-      <div class="clock">
-        <div class="now" id="clock">09:12</div>
-        <div class="lbl">Horário local</div>
-      </div>
-    </header>
-
-    <!-- KPIs -->
-    <section class="kpis" aria-label="Resumo do dia">
-      <div class="kpi k-fila">
-        <span class="rail"></span>
-        <div class="cap">Na fila</div>
-        <div class="val">4</div>
-      </div>
-      <div class="kpi k-feita">
-        <span class="rail"></span>
-        <div class="cap">Realizadas hoje</div>
-        <div class="val">2</div>
-      </div>
-      <div class="kpi k-livre">
-        <span class="rail"></span>
-        <div class="cap">Slots livres</div>
-        <div class="val">6<small>vagas abertas</small></div>
-      </div>
-    </section>
-
-    <!-- Board -->
-    <section class="board" aria-label="Agenda do dia">
-      <div class="board-head">
-        <h2>Agenda · quinta-feira</h2>
-        <div class="legend">
-          <span><i style="background:var(--esp-clinico)"></i>Clínico Geral</span>
-          <span><i style="background:var(--esp-gineco)"></i>Ginecologia</span>
-          <span><i style="background:var(--esp-pedia)"></i>Pediatria</span>
-          <span><i style="background:var(--esp-psico)"></i>Psicologia</span>
-        </div>
-      </div>
-
-      <div class="timeline">
-
-        <!-- 08:00 REALIZADA -->
-        <article class="row done">
-          <div class="time">08:00<span class="ampm">manhã</span></div>
-          <div class="node done" style="color:var(--esp-clinico)"><i></i></div>
-          <div class="who">
-            <div class="name">Maria das Graças Almeida</div>
-            <div class="meta">
-              <span class="chip" style="--c:var(--esp-clinico)"><i></i>Clínico Geral</span>
-              <span class="prof">Dr. João Silva</span>
-            </div>
-          </div>
-          <div class="status done"><span class="tick"></span>Realizada</div>
-        </article>
-
-        <!-- 08:30 REALIZADA -->
-        <article class="row done">
-          <div class="time">08:30<span class="ampm">manhã</span></div>
-          <div class="node done" style="color:var(--esp-clinico)"><i></i></div>
-          <div class="who">
-            <div class="name">José Roberto Almeida</div>
-            <div class="meta">
-              <span class="chip" style="--c:var(--esp-clinico)"><i></i>Clínico Geral</span>
-              <span class="prof">Dr. João Silva</span>
-            </div>
-          </div>
-          <div class="status done"><span class="tick"></span>Realizada</div>
-        </article>
-
-        <!-- 09:00 EM ATENDIMENTO — AGORA -->
-        <article class="row now">
-          <div class="time">09:00<span class="ampm">manhã</span></div>
-          <div class="node now-node" style="color:var(--esp-clinico)"><i></i></div>
-          <div class="who">
-            <div class="name">Antônia Pereira</div>
-            <div class="meta">
-              <span class="chip" style="--c:var(--esp-clinico)"><i></i>Clínico Geral</span>
-              <span class="prof">Dr. João Silva</span>
-            </div>
-          </div>
-          <div class="badge-now"><span class="live"></span>Em atendimento</div>
-        </article>
-
-        <!-- 09:30 CONFIRMADA -->
-        <article class="row">
-          <div class="time">09:30<span class="ampm">manhã</span></div>
-          <div class="node future" style="color:var(--esp-gineco)"><i></i></div>
-          <div class="who">
-            <div class="name">Joana D'Arc Santos</div>
-            <div class="meta">
-              <span class="chip" style="--c:var(--esp-gineco)"><i></i>Ginecologia</span>
-              <span class="prof">Dra. Maria Souza</span>
-            </div>
-          </div>
-          <div class="status conf"><span class="tick"></span>Confirmada</div>
-        </article>
-
-        <!-- 10:00 SLOT LIVRE -->
-        <div class="slot" style="animation-delay:.72s">
-          <div class="time">10:00<span class="ampm">manhã</span></div>
-          <div class="vac"><i></i></div>
-          <div class="label"><b>Horário vago</b> — disponível para encaixe</div>
-          <button class="cta" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Encaixar paciente
-          </button>
-        </div>
-
-        <!-- 10:30 AGENDADA -->
-        <article class="row" style="animation-delay:.78s">
-          <div class="time">10:30<span class="ampm">manhã</span></div>
-          <div class="node future" style="color:var(--esp-pedia)"><i></i></div>
-          <div class="who">
-            <div class="name">Pedro Henrique Costa</div>
-            <div class="meta">
-              <span class="chip" style="--c:var(--esp-pedia)"><i></i>Pediatria</span>
-              <span class="prof">Dr. João Silva</span>
-            </div>
-          </div>
-          <div class="status sched"><span class="tick"></span>Agendada</div>
-        </article>
-
-        <!-- 14:00 AGENDADA -->
-        <article class="row" style="animation-delay:.84s">
-          <div class="time">14:00<span class="ampm">tarde</span></div>
-          <div class="node future" style="color:var(--esp-psico)"><i></i></div>
-          <div class="who">
-            <div class="name">Luiza Fernanda Souza</div>
-            <div class="meta">
-              <span class="chip" style="--c:var(--esp-psico)"><i></i>Psicologia</span>
-              <span class="prof">Psic. Ana Lima</span>
-            </div>
-          </div>
-          <div class="status sched"><span class="tick"></span>Agendada</div>
-        </article>
-
-      </div>
-    </section>
-
-    <p class="foot"><span class="lion">🦁</span> Instituto Família Pôncio · Centro Médico · Duque de Caxias / RJ</p>
-  </main>
-
-  <script>
-    // Micro-interação única: relógio vivo (tabular), reforça que é tela de uso contínuo.
-    (function(){
-      var el = document.getElementById('clock');
-      function tick(){
-        var d = new Date();
-        var hh = String(d.getHours()).padStart(2,'0');
-        var mm = String(d.getMinutes()).padStart(2,'0');
-        el.textContent = hh + ':' + mm;
+        --radius: 22px;
+        --radius-sm: 14px;
+        --shadow-soft: 0 1px 2px rgba(23, 59, 58, 0.05), 0 16px 40px -22px rgba(23, 59, 58, 0.3);
+        --shadow-lift: 0 2px 4px rgba(23, 59, 58, 0.06), 0 30px 60px -28px rgba(23, 59, 58, 0.42);
       }
-      tick();
-      setInterval(tick, 15000);
-    })();
-  </script>
-</body>
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      body {
+        font-family: "Spline Sans", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 680px at 82% -8%, rgba(16, 194, 187, 0.2), transparent 60%),
+          radial-gradient(1000px 620px at -6% 8%, rgba(0, 117, 113, 0.16), transparent 58%),
+          linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        padding: 46px 24px 90px;
+        line-height: 1.5;
+      }
+
+      .shell {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      /* ——— Cabeçalho ——— */
+      .topbar {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 32px;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+        opacity: 0;
+        animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.05s forwards;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: 10px;
+      }
+      .eyebrow .lion {
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(150deg, var(--teal), #005c59);
+        color: #fff;
+        font-size: 13px;
+        box-shadow: 0 6px 16px -8px rgba(0, 117, 113, 0.8);
+      }
+      /* FIX 3 — H1 crava: peso 560 + tracking -0.025em, voz claramente acima do corpo */
+      h1 {
+        font-family: "Fraunces", serif;
+        font-optical-sizing: auto;
+        font-weight: 560;
+        font-size: clamp(40px, 5.4vw, 62px);
+        letter-spacing: -0.025em;
+        line-height: 0.97;
+        color: var(--brown);
+      }
+      h1 em {
+        font-style: italic;
+        font-weight: 520;
+        color: var(--teal);
+      }
+      .subtitle {
+        margin-top: 10px;
+        font-size: 15.5px;
+        color: var(--ink-soft);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .subtitle .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--teal-light);
+      }
+      .date {
+        font-family: "Fraunces", serif;
+        font-weight: 440;
+        font-style: italic;
+        color: var(--ink-soft);
+      }
+
+      .clock {
+        text-align: right;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: var(--radius-sm);
+        padding: 12px 18px;
+        box-shadow: var(--shadow-soft);
+      }
+      .clock .now {
+        font-family: "Fraunces", serif;
+        font-weight: 560;
+        font-size: 30px;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .clock .lbl {
+        font-size: 11.5px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+        margin-top: 5px;
+      }
+
+      /* ——— KPIs ——— */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 30px;
+      }
+      .kpi {
+        position: relative;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 22px 24px 20px;
+        box-shadow: var(--shadow-soft);
+        opacity: 0;
+        animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      .kpi:nth-child(1) {
+        animation-delay: 0.12s;
+      }
+      .kpi:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .kpi:nth-child(3) {
+        animation-delay: 0.28s;
+      }
+      .kpi .cap {
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+      }
+      /* FIX 3 — números KPI sobem pra 460, criando hierarquia de peso real vs. corpo */
+      .kpi .val {
+        font-family: "Fraunces", serif;
+        font-optical-sizing: auto;
+        font-weight: 460;
+        font-size: 54px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-top: 8px;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .kpi .val small {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--ink-mute);
+        margin-left: 7px;
+        font-family: "Spline Sans", sans-serif;
+        letter-spacing: 0;
+      }
+      .kpi .rail {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        border-radius: var(--radius) 0 0 var(--radius);
+      }
+      .kpi.k-fila .rail {
+        background: linear-gradient(var(--teal), var(--teal-light));
+      }
+      .kpi.k-feita .rail {
+        background: linear-gradient(#9fb6b4, #cadbd9);
+      }
+      /* FIX 1 — "6 slots livres" cravado em laranja: o número vira ponto de ação, não --ink */
+      .kpi.k-livre .rail {
+        background: linear-gradient(var(--orange), var(--orange-dark));
+      }
+      .kpi.k-livre .val {
+        color: var(--orange-dark);
+      }
+      .kpi.k-livre .cap {
+        color: var(--orange-dark);
+      }
+      .kpi.k-livre {
+        border-color: color-mix(in srgb, var(--orange) 26%, var(--line));
+        background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 5%, #fff), #fff);
+      }
+      .kpi.k-feita .val {
+        color: var(--ink-soft);
+      }
+
+      /* ——— Board ——— */
+      .board {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.66);
+        border-radius: calc(var(--radius) + 6px);
+        padding: 8px;
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.34s forwards;
+      }
+      .board-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 14px;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .board-head h2 {
+        font-family: "Fraunces", serif;
+        font-weight: 520;
+        font-size: 21px;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+      .legend {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        font-weight: 500;
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      /* ——— Timeline ——— */
+      /* FIX 4 — veil mais escuro atrás da timeline => surfaces brancos ganham separação */
+      .timeline {
+        position: relative;
+        background: linear-gradient(180deg, var(--bg-deep), #b2cfcb);
+        border-radius: var(--radius);
+        padding: 14px 14px 16px;
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 108px;
+        top: 22px;
+        bottom: 22px;
+        width: 2px;
+        background: linear-gradient(var(--teal-light), rgba(0, 117, 113, 0.18));
+        opacity: 0.55;
+      }
+
+      .row {
+        position: relative;
+        display: grid;
+        grid-template-columns: 86px 22px 1fr auto;
+        align-items: center;
+        gap: 18px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 16px 20px;
+        margin: 10px 0;
+        box-shadow: var(--shadow-soft);
+        transition:
+          transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1),
+          box-shadow 0.25s;
+        opacity: 0;
+        animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      .row:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lift);
+      }
+      .timeline .row:nth-child(1) {
+        animation-delay: 0.44s;
+      }
+      .timeline .row:nth-child(2) {
+        animation-delay: 0.5s;
+      }
+      .timeline .row:nth-child(3) {
+        animation-delay: 0.56s;
+      }
+      .timeline .row:nth-child(4) {
+        animation-delay: 0.62s;
+      }
+      .timeline .row:nth-child(5) {
+        animation-delay: 0.68s;
+      }
+      .timeline .row:nth-child(6) {
+        animation-delay: 0.74s;
+      }
+      .timeline .row:nth-child(7) {
+        animation-delay: 0.8s;
+      }
+
+      .time {
+        font-family: "Fraunces", serif;
+        font-weight: 440;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .time .ampm {
+        display: block;
+        font-family: "Spline Sans";
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-mute);
+        letter-spacing: 0.08em;
+        margin-top: 1px;
+      }
+
+      /* nó da timeline carrega a cor da especialidade */
+      .node {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+      }
+      .node i {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 2.5px solid #fff;
+        box-shadow:
+          0 0 0 1.5px currentColor,
+          0 4px 10px -4px currentColor;
+      }
+      .node.done i {
+        background: currentColor;
+      }
+      .node.future i {
+        background: #fff;
+        box-shadow: 0 0 0 2px currentColor;
+      }
+
+      .who .name {
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--ink);
+        letter-spacing: -0.005em;
+      }
+      .who .meta {
+        font-size: 13.5px;
+        color: var(--ink-mute);
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .who .meta .prof {
+        color: var(--ink-soft);
+      }
+
+      /* FIX 2 — chips de especialidade legíveis: fundo ~17%, borda ~30%, texto na cor escura */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.005em;
+        padding: 4px 11px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--c) 17%, #fff);
+        border: 1px solid color-mix(in srgb, var(--c) 32%, transparent);
+        color: color-mix(in srgb, var(--c) 78%, #2a1f17);
+      }
+      .chip i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+
+      /* status à direita */
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 7px 13px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .status.done {
+        color: var(--ink-mute);
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+      }
+      .status.conf {
+        color: var(--teal);
+        background: color-mix(in srgb, var(--teal) 11%, #fff);
+        border: 1px solid color-mix(in srgb, var(--teal) 26%, transparent);
+      }
+      .status.sched {
+        color: var(--ink-soft);
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+      .status .tick {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .row.done {
+        background: var(--surface-2);
+        box-shadow: 0 1px 2px rgba(23, 59, 58, 0.04);
+      }
+      .row.done .name {
+        color: var(--ink-soft);
+      }
+      .row.done .time {
+        color: var(--ink-mute);
+      }
+
+      /* ——— Linha AGORA (EM ATENDIMENTO) — destaque forte com pulso ——— */
+      .row.now {
+        background: linear-gradient(120deg, #fff, #f1fbf9);
+        border-color: color-mix(in srgb, var(--teal) 42%, transparent);
+        box-shadow:
+          var(--shadow-lift),
+          0 0 0 1px color-mix(in srgb, var(--teal) 30%, transparent) inset;
+        transform: scale(1.012);
+        z-index: 2;
+      }
+      .row.now::after {
+        content: "";
+        position: absolute;
+        left: -1px;
+        top: -1px;
+        right: -1px;
+        bottom: -1px;
+        border-radius: inherit;
+        pointer-events: none;
+        box-shadow: 0 0 0 0 rgba(0, 117, 113, 0.45);
+        animation: pulse 2.4s ease-out infinite;
+      }
+      .row.now .name {
+        color: var(--brown);
+        font-weight: 600;
+      }
+      .badge-now {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fff;
+        background: linear-gradient(120deg, var(--teal), #00908b);
+        padding: 8px 15px;
+        border-radius: 999px;
+        box-shadow: 0 10px 24px -10px rgba(0, 117, 113, 0.8);
+      }
+      .badge-now .live {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal-light);
+        box-shadow: 0 0 0 0 rgba(16, 194, 187, 0.7);
+        animation: blip 1.6s ease-out infinite;
+      }
+      .now-node i {
+        background: var(--teal) !important;
+        box-shadow:
+          0 0 0 4px color-mix(in srgb, var(--teal) 22%, transparent),
+          0 0 0 1.5px var(--teal) !important;
+      }
+
+      /* ——— Slot livre (vago) — CTA laranja sólido: a ação cravada ——— */
+      /* FIX 1 — laranja sólido num ponto de ação real */
+      .slot {
+        display: grid;
+        grid-template-columns: 86px 22px 1fr auto;
+        align-items: center;
+        gap: 18px;
+        border: 1.5px dashed color-mix(in srgb, var(--orange) 45%, var(--line));
+        background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 5%, #fff), #fff);
+        border-radius: var(--radius-sm);
+        padding: 14px 20px;
+        margin: 10px 0;
+        opacity: 0;
+        animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      .slot .time {
+        color: var(--ink-mute);
+        font-weight: 340;
+      }
+      .slot .vac {
+        display: grid;
+        place-items: center;
+      }
+      .slot .vac i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px dashed var(--orange);
+      }
+      .slot .label {
+        font-weight: 500;
+        color: var(--orange-dark);
+        font-size: 14.5px;
+      }
+      .slot .label b {
+        font-weight: 600;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-family: "Spline Sans";
+        font-size: 13.5px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        color: #fff;
+        background: var(--orange);
+        border: none;
+        border-radius: 999px;
+        padding: 10px 18px;
+        box-shadow: 0 12px 26px -12px rgba(255, 119, 46, 0.9);
+        transition:
+          transform 0.18s,
+          box-shadow 0.18s,
+          background 0.18s;
+      }
+      .cta:hover {
+        background: var(--orange-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px -12px rgba(194, 77, 15, 0.9);
+      }
+      .cta:active {
+        transform: translateY(0);
+      }
+      .cta svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .foot {
+        margin-top: 22px;
+        text-align: center;
+        font-size: 12.5px;
+        color: var(--ink-mute);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        opacity: 0;
+        animation: rise 0.7s ease 0.9s forwards;
+      }
+      .foot .lion {
+        font-size: 14px;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 117, 113, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 14px rgba(0, 117, 113, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 117, 113, 0);
+        }
+      }
+      @keyframes blip {
+        0% {
+          box-shadow: 0 0 0 0 rgba(16, 194, 187, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 7px rgba(16, 194, 187, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 194, 187, 0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        /* mata o movimento MAS restaura o estado final — senao tudo fica preso em opacity:0 */
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+        .topbar,
+        .kpi,
+        .board,
+        .row,
+        .slot,
+        .foot {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .kpis {
+          grid-template-columns: 1fr;
+        }
+        .row,
+        .slot {
+          grid-template-columns: 64px 18px 1fr;
+          row-gap: 12px;
+        }
+        .row .status,
+        .row .badge-now,
+        .slot .cta {
+          grid-column: 1 / -1;
+          justify-self: start;
+        }
+        .timeline::before {
+          left: 84px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <!-- Cabeçalho -->
+      <header class="topbar">
+        <div>
+          <span class="eyebrow"><span class="lion">🦁</span> Centro Médico · IFP</span>
+          <h1>Fila do <em>dia</em></h1>
+          <p class="subtitle">
+            <span class="date">quinta-feira, 29 de maio de 2026</span>
+            <span class="dot"></span>
+            <span>4 pessoas aguardando atendimento</span>
+          </p>
+        </div>
+        <div class="clock">
+          <div class="now" id="clock">09:12</div>
+          <div class="lbl">Horário local</div>
+        </div>
+      </header>
+
+      <!-- KPIs -->
+      <section class="kpis" aria-label="Resumo do dia">
+        <div class="kpi k-fila">
+          <span class="rail"></span>
+          <div class="cap">Na fila</div>
+          <div class="val">4</div>
+        </div>
+        <div class="kpi k-feita">
+          <span class="rail"></span>
+          <div class="cap">Realizadas hoje</div>
+          <div class="val">2</div>
+        </div>
+        <div class="kpi k-livre">
+          <span class="rail"></span>
+          <div class="cap">Slots livres</div>
+          <div class="val">6<small>vagas abertas</small></div>
+        </div>
+      </section>
+
+      <!-- Board -->
+      <section class="board" aria-label="Agenda do dia">
+        <div class="board-head">
+          <h2>Agenda · quinta-feira</h2>
+          <div class="legend">
+            <span><i style="background: var(--esp-clinico)"></i>Clínico Geral</span>
+            <span><i style="background: var(--esp-gineco)"></i>Ginecologia</span>
+            <span><i style="background: var(--esp-pedia)"></i>Pediatria</span>
+            <span><i style="background: var(--esp-psico)"></i>Psicologia</span>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <!-- 08:00 REALIZADA -->
+          <article class="row done">
+            <div class="time">08:00<span class="ampm">manhã</span></div>
+            <div class="node done" style="color: var(--esp-clinico)"><i></i></div>
+            <div class="who">
+              <div class="name">Maria das Graças Almeida</div>
+              <div class="meta">
+                <span class="chip" style="--c: var(--esp-clinico)"><i></i>Clínico Geral</span>
+                <span class="prof">Dr. João Silva</span>
+              </div>
+            </div>
+            <div class="status done"><span class="tick"></span>Realizada</div>
+          </article>
+
+          <!-- 08:30 REALIZADA -->
+          <article class="row done">
+            <div class="time">08:30<span class="ampm">manhã</span></div>
+            <div class="node done" style="color: var(--esp-clinico)"><i></i></div>
+            <div class="who">
+              <div class="name">José Roberto Almeida</div>
+              <div class="meta">
+                <span class="chip" style="--c: var(--esp-clinico)"><i></i>Clínico Geral</span>
+                <span class="prof">Dr. João Silva</span>
+              </div>
+            </div>
+            <div class="status done"><span class="tick"></span>Realizada</div>
+          </article>
+
+          <!-- 09:00 EM ATENDIMENTO — AGORA -->
+          <article class="row now">
+            <div class="time">09:00<span class="ampm">manhã</span></div>
+            <div class="node now-node" style="color: var(--esp-clinico)"><i></i></div>
+            <div class="who">
+              <div class="name">Antônia Pereira</div>
+              <div class="meta">
+                <span class="chip" style="--c: var(--esp-clinico)"><i></i>Clínico Geral</span>
+                <span class="prof">Dr. João Silva</span>
+              </div>
+            </div>
+            <div class="badge-now"><span class="live"></span>Em atendimento</div>
+          </article>
+
+          <!-- 09:30 CONFIRMADA -->
+          <article class="row">
+            <div class="time">09:30<span class="ampm">manhã</span></div>
+            <div class="node future" style="color: var(--esp-gineco)"><i></i></div>
+            <div class="who">
+              <div class="name">Joana D'Arc Santos</div>
+              <div class="meta">
+                <span class="chip" style="--c: var(--esp-gineco)"><i></i>Ginecologia</span>
+                <span class="prof">Dra. Maria Souza</span>
+              </div>
+            </div>
+            <div class="status conf"><span class="tick"></span>Confirmada</div>
+          </article>
+
+          <!-- 10:00 SLOT LIVRE -->
+          <div class="slot" style="animation-delay: 0.72s">
+            <div class="time">10:00<span class="ampm">manhã</span></div>
+            <div class="vac"><i></i></div>
+            <div class="label"><b>Horário vago</b> — disponível para encaixe</div>
+            <button class="cta" type="button">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Encaixar paciente
+            </button>
+          </div>
+
+          <!-- 10:30 AGENDADA -->
+          <article class="row" style="animation-delay: 0.78s">
+            <div class="time">10:30<span class="ampm">manhã</span></div>
+            <div class="node future" style="color: var(--esp-pedia)"><i></i></div>
+            <div class="who">
+              <div class="name">Pedro Henrique Costa</div>
+              <div class="meta">
+                <span class="chip" style="--c: var(--esp-pedia)"><i></i>Pediatria</span>
+                <span class="prof">Dr. João Silva</span>
+              </div>
+            </div>
+            <div class="status sched"><span class="tick"></span>Agendada</div>
+          </article>
+
+          <!-- 14:00 AGENDADA -->
+          <article class="row" style="animation-delay: 0.84s">
+            <div class="time">14:00<span class="ampm">tarde</span></div>
+            <div class="node future" style="color: var(--esp-psico)"><i></i></div>
+            <div class="who">
+              <div class="name">Luiza Fernanda Souza</div>
+              <div class="meta">
+                <span class="chip" style="--c: var(--esp-psico)"><i></i>Psicologia</span>
+                <span class="prof">Psic. Ana Lima</span>
+              </div>
+            </div>
+            <div class="status sched"><span class="tick"></span>Agendada</div>
+          </article>
+        </div>
+      </section>
+
+      <p class="foot">
+        <span class="lion">🦁</span> Instituto Família Pôncio · Centro Médico · Duque de Caxias / RJ
+      </p>
+    </main>
+
+    <script>
+      // Micro-interação única: relógio vivo (tabular), reforça que é tela de uso contínuo.
+      (function () {
+        var el = document.getElementById("clock");
+        function tick() {
+          var d = new Date();
+          var hh = String(d.getHours()).padStart(2, "0");
+          var mm = String(d.getMinutes()).padStart(2, "0");
+          el.textContent = hh + ":" + mm;
+        }
+        tick();
+        setInterval(tick, 15000);
+      })();
+    </script>
+  </body>
 </html>

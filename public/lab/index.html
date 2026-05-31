@@ -11,50 +11,212 @@
       rel="stylesheet"
     />
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
       :root {
-        --laranja: #ff772e; --laranja-esc: #c24d0f; --marrom: #752c05;
-        --teal: #007571; --teal-claro: #10c2bb; --cinza: #4a4a49;
-        --ink: #2c2620; --muted: #8c8175; --line: #e2dcd2; --paper: #faf7f2;
+        --laranja: #ff772e;
+        --laranja-esc: #c24d0f;
+        --marrom: #752c05;
+        --teal: #007571;
+        --teal-claro: #10c2bb;
+        --cinza: #4a4a49;
+        --ink: #2c2620;
+        --muted: #8c8175;
+        --line: #e2dcd2;
+        --paper: #faf7f2;
       }
       body {
-        font-family: "Manrope", system-ui, sans-serif; background: var(--paper); color: var(--ink);
-        padding: clamp(28px, 6vw, 72px); line-height: 1.5;
+        font-family: "Manrope", system-ui, sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        padding: clamp(28px, 6vw, 72px);
+        line-height: 1.5;
       }
-      .wrap { max-width: 1180px; margin: 0 auto; }
-      .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--laranja-esc); }
-      h1 { font-family: "Fraunces", Georgia, serif; font-size: clamp(38px, 6vw, 64px); font-weight: 900;
-        letter-spacing: -0.03em; color: var(--marrom); line-height: 1; margin: 12px 0 0; }
-      .lede { font-size: 17px; color: var(--muted); max-width: 60ch; margin-top: 16px; font-weight: 500; }
-      .lede b { color: var(--ink); font-weight: 700; }
-      .meta-bar { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 22px; padding-top: 22px; border-top: 2px solid var(--marrom); font-size: 13px; color: var(--muted); }
-      .meta-bar b { color: var(--ink); }
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 22px; margin-top: 40px; }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .kicker {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--laranja-esc);
+      }
+      h1 {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(38px, 6vw, 64px);
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        color: var(--marrom);
+        line-height: 1;
+        margin: 12px 0 0;
+      }
+      .lede {
+        font-size: 17px;
+        color: var(--muted);
+        max-width: 60ch;
+        margin-top: 16px;
+        font-weight: 500;
+      }
+      .lede b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .meta-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 22px;
+        padding-top: 22px;
+        border-top: 2px solid var(--marrom);
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .meta-bar b {
+        color: var(--ink);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 22px;
+        margin-top: 40px;
+      }
       .card {
-        display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line);
-        border-radius: 18px; overflow: hidden; text-decoration: none; color: inherit;
-        box-shadow: 0 6px 20px rgba(117, 44, 5, 0.05); transition: transform 0.18s ease, box-shadow 0.18s ease;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 6px 20px rgba(117, 44, 5, 0.05);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease;
       }
-      .card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(117, 44, 5, 0.12); }
-      .card-top { padding: 22px 22px 18px; border-bottom: 1px solid var(--line); position: relative; }
-      .rank { position: absolute; top: 18px; right: 20px; font-family: "Fraunces", serif; font-size: 13px; font-weight: 600; color: var(--muted); }
-      .swatch { display: flex; gap: 5px; margin-bottom: 14px; }
-      .swatch i { width: 26px; height: 26px; border-radius: 7px; display: block; }
-      .card h2 { font-family: "Fraunces", Georgia, serif; font-size: 23px; font-weight: 600; letter-spacing: -0.01em; color: var(--marrom); }
-      .card .tese { font-size: 13.5px; color: var(--muted); margin-top: 7px; }
-      .card-body { padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
-      .row { font-size: 13px; }
-      .row .lab { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--laranja-esc); }
-      .row .val { color: var(--ink); margin-top: 3px; }
-      .row .val.mono { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--muted); }
-      .score { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
-      .score .big { font-family: "Fraunces", serif; font-size: 30px; font-weight: 900; line-height: 1; }
-      .score .of { font-size: 12px; color: var(--muted); }
-      .bars { display: flex; gap: 3px; flex: 1; align-items: flex-end; height: 30px; }
-      .bars i { flex: 1; background: var(--teal); border-radius: 2px 2px 0 0; opacity: 0.85; min-height: 3px; }
-      .open { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--laranja-esc); display: inline-flex; align-items: center; gap: 6px; }
-      .foot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
-      .foot a { color: var(--teal); }
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(117, 44, 5, 0.12);
+      }
+      .card-top {
+        padding: 22px 22px 18px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+      }
+      .rank {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        font-family: "Fraunces", serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .swatch {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 14px;
+      }
+      .swatch i {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: block;
+      }
+      .card h2 {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 23px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--marrom);
+      }
+      .card .tese {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin-top: 7px;
+      }
+      .card-body {
+        padding: 18px 22px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1;
+      }
+      .row {
+        font-size: 13px;
+      }
+      .row .lab {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--laranja-esc);
+      }
+      .row .val {
+        color: var(--ink);
+        margin-top: 3px;
+      }
+      .row .val.mono {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11.5px;
+        color: var(--muted);
+      }
+      .score {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .score .big {
+        font-family: "Fraunces", serif;
+        font-size: 30px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .score .of {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .bars {
+        display: flex;
+        gap: 3px;
+        flex: 1;
+        align-items: flex-end;
+        height: 30px;
+      }
+      .bars i {
+        flex: 1;
+        background: var(--teal);
+        border-radius: 2px 2px 0 0;
+        opacity: 0.85;
+        min-height: 3px;
+      }
+      .open {
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--laranja-esc);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .foot {
+        margin-top: 44px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .foot a {
+        color: var(--teal);
+      }
     </style>
   </head>
   <body>
@@ -62,9 +224,9 @@
       <p class="kicker">🦁 IFP Connect · Design Lab</p>
       <h1>Fila do dia — 6 direções</h1>
       <p class="lede">
-        Seis direções visuais <b>radicalmente distintas</b> da mesma tela, geradas em paralelo,
-        cada uma criticada contra um rubric anti-slop e refinada. Mesma fila, mesma paleta do
-        brandbook — execução completamente diferente. <b>Clique pra abrir cada uma em tela cheia.</b>
+        Seis direções visuais <b>radicalmente distintas</b> da mesma tela, geradas em paralelo, cada
+        uma criticada contra um rubric anti-slop e refinada. Mesma fila, mesma paleta do brandbook —
+        execução completamente diferente. <b>Clique pra abrir cada uma em tela cheia.</b>
       </p>
       <div class="meta-bar">
         <span><b>18 agentes</b> · gerar → criticar → refinar</span>
@@ -84,42 +246,66 @@
 
     <script>
       const DIRS = [
-        { key: "editorial", title: "Editorial — Institucional Primeiro Mundo", total: 50,
+        {
+          key: "editorial",
+          title: "Editorial — Institucional Primeiro Mundo",
+          total: 50,
           tese: "Tinta sobre papel creme · serifa display + números-herói + hairlines",
           font: "Fraunces + Spline Sans",
           sig: "Números-herói gigantes em Fraunces separados por hairlines, como livro-razão de fundação; AGORA com glow editorial",
           colors: ["#752c05", "#c24d0f", "#007571"],
-          scores: [9, 7, 8, 9, 8, 9] },
-        { key: "comando", title: "Comando — Centro de Operações", total: 49,
+          scores: [9, 7, 8, 9, 8, 9],
+        },
+        {
+          key: "comando",
+          title: "Comando — Centro de Operações",
+          total: 49,
           tese: "Painel dark data-dense · cockpit em tempo real",
           font: "Space Grotesk + JetBrains Mono",
           sig: "Nó AGORA cravado na espinha da timeline com glow teal + barra de progresso 'em curso ~14 min'",
           colors: ["#16140f", "#10c2bb", "#ff772e"],
-          scores: [9, 8, 9, 8, 9, 6] },
-        { key: "civico", title: "Cívico — Brutalismo Institucional", total: 46.5,
+          scores: [9, 8, 9, 8, 9, 6],
+        },
+        {
+          key: "civico",
+          title: "Cívico — Brutalismo Institucional",
+          total: 46.5,
           tese: "Cartaz suíço + Gov.uk · display condensada, alto contraste",
           font: "Archivo Black + Spline Sans",
           sig: "Linha AGORA é bloco laranja sólido com etiqueta preta '▶ AGORA' e anel duro que pulsa",
           colors: ["#752c05", "#ff772e", "#007571"],
-          scores: [6.5, 8.5, 6.5, 8.5, 9, 7.5] },
-        { key: "organico", title: "Orgânico — Cuidado que Respira", total: 45,
+          scores: [6.5, 8.5, 6.5, 8.5, 9, 7.5],
+        },
+        {
+          key: "organico",
+          title: "Orgânico — Cuidado que Respira",
+          total: 45,
           tese: "Formas naturais + mesh sutil · timeline como rio/caule",
           font: "Fraunces + Hanken Grotesk",
           sig: "Timeline é um rio vertical com gradiente vivo e nós-blob; card AGORA respira em glow de 4.5s",
           colors: ["#007571", "#ff772e", "#752c05"],
-          scores: [7, 8, 9, 7, 7, 7] },
-        { key: "acolhimento", title: "Acolhimento — Caloroso e Humano", total: 44,
+          scores: [7, 8, 9, 7, 7, 7],
+        },
+        {
+          key: "acolhimento",
+          title: "Acolhimento — Caloroso e Humano",
+          total: 44,
           tese: "ONG que cuida com afeto · creme quente, avatares grandes",
           font: "Fraunces + Nunito",
           sig: "Card AGORA é o coração da tela: glow teal + selo 'ACONTECENDO AGORA'; KPI 'na fila' laranja sólido",
           colors: ["#ff772e", "#c24d0f", "#007571"],
-          scores: [8, 7, 8, 7, 6, 8] },
-        { key: "sereno", title: "Sereno — Clínica Calma Premium", total: 43,
+          scores: [8, 7, 8, 7, 6, 8],
+        },
+        {
+          key: "sereno",
+          title: "Sereno — Clínica Calma Premium",
+          total: 43,
           tese: "Wellness premium calmo · respiro, teal sereno",
           font: "Fraunces + Spline Sans",
           sig: "AGORA respira como batimento real (dupla-batida) com anel de radar e varredura de luz teal",
           colors: ["#007571", "#10c2bb", "#ff772e"],
-          scores: [7, 6, 8, 7, 6, 9] },
+          scores: [7, 6, 8, 7, 6, 9],
+        },
       ];
       const LABELS = ["Tipo", "Cor", "Atmos", "AntiSlop", "Ousadia", "Uso"];
       const grid = document.getElementById("grid");
@@ -132,15 +318,31 @@
           .join("");
         const sw = d.colors.map((c) => '<i style="background:' + c + '"></i>').join("");
         a.innerHTML =
-          '<div class="card-top"><span class="rank">#' + (i + 1) + "</span>" +
-          '<div class="swatch">' + sw + "</div>" +
-          "<h2>" + d.title + "</h2>" +
-          '<p class="tese">' + d.tese + "</p></div>" +
+          '<div class="card-top"><span class="rank">#' +
+          (i + 1) +
+          "</span>" +
+          '<div class="swatch">' +
+          sw +
+          "</div>" +
+          "<h2>" +
+          d.title +
+          "</h2>" +
+          '<p class="tese">' +
+          d.tese +
+          "</p></div>" +
           '<div class="card-body">' +
-          '<div class="row"><div class="lab">Fontes</div><div class="val mono">' + d.font + "</div></div>" +
-          '<div class="row"><div class="lab">Detalhe-assinatura</div><div class="val">' + d.sig + "</div></div>" +
-          '<div class="score"><div><div class="big">' + d.total + '</div><div class="of">de 60</div></div>' +
-          '<div class="bars">' + bars + "</div></div>" +
+          '<div class="row"><div class="lab">Fontes</div><div class="val mono">' +
+          d.font +
+          "</div></div>" +
+          '<div class="row"><div class="lab">Detalhe-assinatura</div><div class="val">' +
+          d.sig +
+          "</div></div>" +
+          '<div class="score"><div><div class="big">' +
+          d.total +
+          '</div><div class="of">de 60</div></div>' +
+          '<div class="bars">' +
+          bars +
+          "</div></div>" +
           '<span class="open">Abrir em tela cheia →</span>' +
           "</div>";
         grid.appendChild(a);
