@@ -21,10 +21,11 @@
   - `docs/superpowers/specs/2026-05-31-f1a1-capacitacao-design.md` (393 ln, §0 com 10 decisões)
 - [x] **Fix achado #2 — busca Cidadãos** (TDD red→green): extraído `buildCidadaoSearchFilter` em `src/lib/cidadao.ts` + fix (cpf/telefone só com dígitos) + `tests/unit/cidadao-search.test.ts` (5 testes). **Unit 103/103 verde.**
 
-### ⏳ Em andamento / RESUME HERE
+### ✅ NOITE CONCLUÍDA — ver `2026-05-31-overnight-REPORT.md`
 
-- [ ] Confirmar **typecheck** verde (`pnpm typecheck`) — bloqueado por outage transitório do classifier de comandos (2026-05-31 ~01:56).
-- [ ] **Commit #1**: fix busca + specs drafts (chunk lógico) → push.
+Tudo verificado e pushado em `origin/overnight/2026-05-31` (5 commits sobre `c86b5a8`).
+unit 103/103 · e2e 39/39 · build/typecheck/lint verdes · 2 revisores independentes HOLDS.
+Pendências restantes = **decisões suas** (direção do produto, rbac.spec, P3/P4/P5) — detalhadas no REPORT.
 
 ### ⬜ Pendente — DO (aplicar + pushar)
 

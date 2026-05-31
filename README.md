@@ -49,13 +49,13 @@ pnpm dev
 
 ## URLs (dev)
 
-| O que            | URL                         | Como entrar                                         |
-| ---------------- | --------------------------- | --------------------------------------------------- |
-| App              | http://localhost:3000       | —                                                   |
-| Login            | http://localhost:3000/login | `erick.ramos@familiaponcio.org.br` / `ifp-dev-2026` |
-| Página protegida | http://localhost:3000/app   | redireciona pro login se sem sessão                 |
-| Prisma Studio    | http://localhost:5555       | `pnpm db:studio`                                    |
-| MinIO console    | http://localhost:9001       | `ifp_minio` / `ifp_minio_dev_pw`                    |
+| O que             | URL                                   | Como entrar                                                                |
+| ----------------- | ------------------------------------- | -------------------------------------------------------------------------- |
+| Landing pública   | http://localhost:3000                 | sem login — escolha de unidade                                             |
+| Login por unidade | http://localhost:3000/<unidade>/login | ex.: `/medico/login` · `erick.ramos@familiaponcio.org.br` / `ifp-dev-2026` |
+| Painel da unidade | http://localhost:3000/medico          | redireciona pro `/<unidade>/login` se sem sessão                           |
+| Prisma Studio     | http://localhost:5555                 | `pnpm db:studio`                                                           |
+| MinIO console     | http://localhost:9001                 | `ifp_minio` / `ifp_minio_dev_pw`                                           |
 
 ## Scripts pnpm
 
