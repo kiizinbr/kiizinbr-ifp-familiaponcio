@@ -39,7 +39,12 @@ export type AuditAction =
   | "consulta_iniciada"
   | "consulta_realizada"
   | "consulta_faltou"
-  | "consulta_cancelada";
+  | "consulta_cancelada"
+  // Prontuário (F1.B.2)
+  | "prontuario_criado"
+  | "prontuario_assinado"
+  | "prontuario_addendo"
+  | "cidadao_saude_atualizada";
 
 interface LogEventArgs {
   userId?: string | null;

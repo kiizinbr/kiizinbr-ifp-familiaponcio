@@ -238,6 +238,7 @@ model Cidadao {
   triagens     Triagem[]
   agendamentos Agendamento[]
   consultas    Consulta[]
+  notasEvolucao NotaEvolucao[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -445,6 +446,7 @@ model Profissional {
   templates      AgendaTemplate[]
   slots          Slot[]
   consultas      Consulta[]
+  notasEvolucao  NotaEvolucao[]
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
 }
@@ -535,10 +537,95 @@ model Consulta {
   cidadao                Cidadao        @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
   profissional           Profissional   @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
   especialidade          Especialidade  @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
+  notaEvolucao           NotaEvolucao?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
   @@index([profissionalId, status])
   @@index([cidadaoId])
   @@index([status, createdAt])
+}
+
+// ============================================================
+// F1.B.2 — Prontuário Médico (evolução + sinais vitais + CID-10)
+// ============================================================
+
+enum StatusNota {
+  rascunho
+  assinada
+}
+
+/// Nota clínica de evolução. 1:1 com Consulta (§0.2). Unidade do prontuário.
+/// Imutável após assinatura (§0.3/§0.4); correções via AddendoNota (append-only).
+model NotaEvolucao {
+  id             String     @id @default(cuid())
+  consultaId     String     @unique
+  cidadaoId      String
+  profissionalId String
+
+  // §0.1 — formato híbrido: evolução em texto livre + blocos estruturados opcionais
+  texto          String?    @db.Text
+
+  // §0.5 — sinais vitais (todos opcionais; IMC derivado, NÃO persistido)
+  paSistolica    Int?
+  paDiastolica   Int?
+  fcBpm          Int?
+  frIrpm         Int?
+  tempC          Decimal?   @db.Decimal(4, 1)
+  pesoKg         Decimal?   @db.Decimal(5, 2)
+  alturaCm       Int?
+  spo2           Int?
+
+  // §0.3/§0.4 — ciclo de vida da assinatura
+  status         StatusNota @default(rascunho)
+  assinadaEm     DateTime?
+  assinadaPor    String? // userId (= profissional dono)
+
+  consulta     Consulta          @relation(fields: [consultaId], references: [id], onDelete: Restrict)
+  cidadao      Cidadao           @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
+  profissional Profissional      @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  diagnosticos DiagnosticoNota[]
+  addendos     AddendoNota[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cidadaoId, createdAt])
+  @@index([profissionalId])
+}
+
+/// §0.4 — correção/complemento append-only de nota assinada. Nunca reescreve o original.
+model AddendoNota {
+  id        String       @id @default(cuid())
+  notaId    String
+  autorId   String // userId
+  texto     String       @db.Text
+  nota      NotaEvolucao @relation(fields: [notaId], references: [id], onDelete: Restrict)
+  createdAt DateTime     @default(now())
+
+  @@index([notaId, createdAt])
+}
+
+/// §0.6 — CID-10 por nota. `principal` marca o diagnóstico principal.
+/// codigoCid aceita null; descricao é texto livre OU descrição do CID (fallback).
+model DiagnosticoNota {
+  id        String       @id @default(cuid())
+  notaId    String
+  codigoCid String? // ex. "J06.9"
+  descricao String
+  principal Boolean      @default(false)
+  nota      NotaEvolucao @relation(fields: [notaId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+
+  @@index([notaId])
+  @@index([codigoCid])
+}
+
+/// §0.6 — tabela de referência CID-10 (seed do CSV DATASUS). Read-only.
+model Cid10 {
+  codigo    String  @id
+  descricao String
+  capitulo  String?
+
+  @@index([descricao])
 }

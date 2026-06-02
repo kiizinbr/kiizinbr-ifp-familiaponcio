@@ -2,11 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { Session } from "next-auth";
 import type { RoleName, UnitScope } from "@/lib/rbac-types";
 import {
+  podeAssinarNota,
+  podeAtualizarSaudeCidadao,
   podeConfigurarAgendaProfissional,
+  podeEditarNota,
   podeGerenciarEspecialidade,
   podeGerenciarProfissional,
   podeMarcarConsulta,
   podeTransicionarConsulta,
+  podeVerProntuario,
 } from "@/lib/medico/rbac";
 
 function sessionWith(
@@ -103,5 +107,74 @@ describe("podeGerenciarEspecialidade", () => {
     expect(
       podeGerenciarEspecialidade(sessionWith([{ name: "recepcao", unitScope: "medico" }])),
     ).toBe(false);
+  });
+});
+
+// ── F1.B.2 Prontuário ────────────────────────────────────────────────
+
+describe("podeVerProntuario", () => {
+  it("profissional vê (leitura cross-profissional §4)", () => {
+    expect(podeVerProntuario(sessionWith([{ name: "profissional", unitScope: "medico" }]))).toBe(
+      true,
+    );
+  });
+  it("recepcao NÃO vê conteúdo clínico", () => {
+    expect(podeVerProntuario(sessionWith([{ name: "recepcao", unitScope: "medico" }]))).toBe(false);
+  });
+  it("social NÃO vê conteúdo clínico", () => {
+    expect(podeVerProntuario(sessionWith([{ name: "social", unitScope: null }]))).toBe(false);
+  });
+  it("sem sessão → false", () => {
+    expect(podeVerProntuario(null)).toBe(false);
+  });
+});
+
+describe("podeEditarNota", () => {
+  it("profissional dono + rascunho → true", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeEditarNota(s, "user-X", "rascunho")).toBe(true);
+  });
+  it("profissional dono + assinada → false (imutável)", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeEditarNota(s, "user-X", "assinada")).toBe(false);
+  });
+  it("profissional NÃO-dono + rascunho → false (ownership)", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeEditarNota(s, "user-Y", "rascunho")).toBe(false);
+  });
+  it("gestor_unidade + rascunho → false (gestor não edita clínico §0.3)", () => {
+    const s = sessionWith([{ name: "gestor_unidade", unitScope: "medico" }], "user-G");
+    expect(podeEditarNota(s, "user-G", "rascunho")).toBe(false);
+  });
+});
+
+describe("podeAssinarNota", () => {
+  it("profissional dono → true", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeAssinarNota(s, "user-X")).toBe(true);
+  });
+  it("profissional NÃO-dono → false", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeAssinarNota(s, "user-Y")).toBe(false);
+  });
+  it("super_admin não-dono → false (assinatura é ato pessoal, sem bypass §0.4)", () => {
+    const s = sessionWith([{ name: "super_admin", unitScope: null }], "admin-1");
+    expect(podeAssinarNota(s, "user-X")).toBe(false);
+  });
+});
+
+describe("podeAtualizarSaudeCidadao", () => {
+  it("profissional → true (§0.7)", () => {
+    expect(
+      podeAtualizarSaudeCidadao(sessionWith([{ name: "profissional", unitScope: "medico" }])),
+    ).toBe(true);
+  });
+  it("recepcao → false", () => {
+    expect(
+      podeAtualizarSaudeCidadao(sessionWith([{ name: "recepcao", unitScope: "medico" }])),
+    ).toBe(false);
+  });
+  it("sem sessão → false", () => {
+    expect(podeAtualizarSaudeCidadao(null)).toBe(false);
   });
 });

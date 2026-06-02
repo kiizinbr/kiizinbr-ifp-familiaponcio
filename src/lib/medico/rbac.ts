@@ -1,5 +1,5 @@
 import type { Session } from "next-auth";
-import type { StatusConsulta } from "@prisma/client";
+import type { StatusConsulta, StatusNota } from "@prisma/client";
 import { hasAnyRole } from "@/lib/rbac";
 
 /**
@@ -58,4 +58,47 @@ export function podeTransicionarConsulta(
 export function podeGerenciarEspecialidade(session: Session | null): boolean {
   if (!session) return false;
   return hasAnyRole(session, "super_admin", "gestor_unidade");
+}
+
+// ── F1.B.2 Prontuário ────────────────────────────────────────────────
+
+/**
+ * Leitura do prontuário (conteúdo clínico) — §4. Cross-profissional:
+ * super_admin, gestor_unidade e profissional veem. Recepção/social NÃO veem.
+ */
+export function podeVerProntuario(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+}
+
+/**
+ * Edição da nota de evolução (§0.3): SÓ o profissional DONO e SÓ enquanto rascunho.
+ * Gestor/super_admin não editam conteúdo clínico; nota assinada é imutável.
+ */
+export function podeEditarNota(
+  session: Session | null,
+  notaProfissionalUserId: string,
+  status: StatusNota,
+): boolean {
+  if (!session) return false;
+  if (status !== "rascunho") return false;
+  return hasAnyRole(session, "profissional") && session.user.id === notaProfissionalUserId;
+}
+
+/**
+ * Assinatura da nota (§0.4): ato pessoal/legal — só o profissional DONO,
+ * SEM bypass de admin/gestor.
+ */
+export function podeAssinarNota(session: Session | null, notaProfissionalUserId: string): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "profissional") && session.user.id === notaProfissionalUserId;
+}
+
+/**
+ * Edição dos campos de saúde do cidadão a partir do prontuário (§0.7):
+ * profissional (e gestão), mas NÃO recepção/social.
+ */
+export function podeAtualizarSaudeCidadao(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
 }
