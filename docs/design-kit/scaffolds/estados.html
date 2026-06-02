@@ -1,0 +1,108 @@
+<!doctype html>
+<!--
+  IFP CONNECT · SCAFFOLD — Catálogo de ESTADOS
+  Vazio (por papel) · erro de corrida · sem permissão · loading/skeleton · offline.
+  Desenhe sempre TODOS os estados de cada tela. Aqui ficam os moldes.
+-->
+<html lang="pt-BR" data-theme="light" data-unit="medico">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Estados · IFP Connect</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <link rel="stylesheet" href="scaffold-chrome.css" />
+    <style>
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 90px; }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+      .state-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
+      .state-card > .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); padding: 12px 16px; border-bottom: 1px solid var(--line); }
+      .state-card > .area { padding: 8px; min-height: 230px; display: grid; place-items: center; }
+      .perm { text-align: center; padding: 40px 24px; }
+      .perm .lock { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--surface-sunken); border: 1px solid var(--line); margin: 0 auto 14px; color: var(--text-3); }
+      .offline { display: flex; align-items: center; gap: 12px; background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); border-radius: var(--r-md); padding: 14px 16px; margin: 24px; }
+      .offline svg { color: var(--warn); flex: none; }
+      @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 22px">
+        <span style="width: 34px; height: 34px; border-radius: 9px; background: var(--logo-bg); border: 1px solid var(--logo-ring); display: grid; place-items: center; overflow: hidden"><img src="../public/logo/ifp-symbol.png" alt="IFP" style="width: 25px; height: 25px; object-fit: contain" /></span>
+        <div><b style="font-size: 15px; font-weight: 800; letter-spacing: -0.02em; display: block">Catálogo de estados</b><span class="micro" style="color: var(--text-3)">Vazio · erro · sem permissão · loading · offline</span></div>
+        <button class="toggle-pill" data-theme-toggle style="margin-left: auto"><span class="dot"></span><span data-theme-label>Claro</span></button>
+      </div>
+
+      <div class="grid">
+        <!-- vazio por papel -->
+        <div class="state-card">
+          <div class="lbl">Vazio · papel social (Regina)</div>
+          <div class="area">
+            <div class="empty"><img src="../public/logo/ifp-symbol.png" alt="" /><div class="e-title">Sem triagens pendentes</div><div class="e-msg">Tudo em dia. Novas triagens aparecem aqui assim que um cidadão é agendado.</div></div>
+          </div>
+        </div>
+        <div class="state-card">
+          <div class="lbl">Vazio · papel recepção (Maria)</div>
+          <div class="area">
+            <div class="empty"><img src="../public/logo/ifp-symbol.png" alt="" /><div class="e-title">Nenhuma vaga aberta no mês</div><div class="e-msg">Abra uma vaga para começar a receber inscrições da comunidade.</div><button class="btn btn-primary btn-sm" style="margin-top: 12px">+ Abrir vaga</button></div>
+          </div>
+        </div>
+
+        <!-- erro de corrida -->
+        <div class="state-card">
+          <div class="lbl">Erro de corrida (overbooking)</div>
+          <div class="area" style="padding: 24px">
+            <div style="display: flex; gap: 12px; align-items: flex-start; background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); border-radius: var(--r-md); padding: 16px">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+              <div><div style="font-weight: 700; font-size: 13.5px; color: var(--danger)">Este horário acabou de ser reservado</div><div style="font-size: 12.5px; color: var(--text-2); margin-top: 3px; line-height: 1.5">Outra pessoa confirmou primeiro. Escolha outro slot — sua reserva não foi perdida.</div><button class="btn btn-secondary btn-sm" style="margin-top: 12px">Ver outros horários</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- sem permissão -->
+        <div class="state-card">
+          <div class="lbl">Sem permissão (atos clínicos)</div>
+          <div class="area">
+            <div class="perm">
+              <div class="lock"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></div>
+              <div class="e-title" style="font-size: 16px; font-weight: 700">Só o profissional dono assina</div>
+              <div class="e-msg" style="margin: 6px auto 0">Assinar uma nota clínica é um ato pessoal — não há bypass de administrador. Você pode visualizar, mas não assinar a nota da Dra. Maria.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- loading skeleton -->
+        <div class="state-card">
+          <div class="lbl">Loading · skeleton</div>
+          <div class="area" style="padding: 20px; place-items: stretch">
+            <div style="display: flex; flex-direction: column; gap: 12px; width: 100%">
+              <div class="skel" style="height: 16px; width: 50%"></div>
+              <div class="skel" style="height: 12px; width: 100%"></div>
+              <div class="skel" style="height: 12px; width: 88%"></div>
+              <div style="display: flex; gap: 12px; margin-top: 8px"><div class="skel" style="height: 44px; width: 44px; border-radius: 12px"></div><div style="flex: 1; display: flex; flex-direction: column; gap: 8px"><div class="skel" style="height: 12px; width: 45%"></div><div class="skel" style="height: 10px; width: 28%"></div></div></div>
+              <div class="skel" style="height: 38px; width: 100%; border-radius: 10px; margin-top: 4px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- offline -->
+        <div class="state-card">
+          <div class="lbl">Offline · presença mobile tolerante</div>
+          <div class="area" style="place-items: stretch; padding: 0">
+            <div class="offline">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22M16.7 11.7A6 6 0 0 0 12 10M5 13a10 10 0 0 1 4-2.5M8.5 16.5a4 4 0 0 1 5 0M12 20h.01" /></svg>
+              <div><div style="font-weight: 700; font-size: 13.5px">Sem conexão — salvando localmente</div><div style="font-size: 12.5px; color: var(--text-2); margin-top: 2px">3 presenças marcadas serão sincronizadas quando a internet voltar.</div></div>
+            </div>
+            <div style="padding: 0 24px 24px">
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line)"><span style="font-size: 14px; font-weight: 600">Sofia Mendes</span><span class="badge badge-success"><span class="dot"></span> Presente</span></div>
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line)"><span style="font-size: 14px; font-weight: 600">Pedro Nunes</span><span class="badge badge-success"><span class="dot"></span> Presente</span></div>
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 0"><span style="font-size: 14px; font-weight: 600; color: var(--text-3)">Carlos Tavares</span><span class="badge badge-default"><span class="dot"></span> —</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="scaffold-chrome.js"></script>
+  </body>
+</html>

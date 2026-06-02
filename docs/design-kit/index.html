@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IFP Connect · Design Kit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="ifp-tokens.css" />
+    <link rel="stylesheet" href="ifp-components.css" />
+    <style>
+      /* ----- layout do documento ----- */
+      .doc {
+        display: grid;
+        grid-template-columns: 232px minmax(0, 1fr);
+        max-width: 1320px;
+        margin: 0 auto;
+      }
+      .docnav {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 22px 14px 40px;
+        border-right: 1px solid var(--line);
+      }
+      .docnav .nv-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 8px 18px;
+      }
+      .docnav .nv-brand .symbol {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--logo-bg);
+        border: 1px solid var(--logo-ring);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        flex: none;
+      }
+      .docnav .nv-brand .symbol img {
+        width: 25px;
+        height: 25px;
+        object-fit: contain;
+      }
+      .docnav .nv-brand > span:last-child {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+      }
+      .docnav .nv-brand b {
+        font-size: 13.5px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+      .docnav .nv-brand > span:last-child > span {
+        font-size: 10.5px;
+        color: var(--text-3);
+      }
+      .docnav .grp {
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-3);
+        padding: 16px 10px 6px;
+      }
+      .docnav a {
+        display: block;
+        padding: 7px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-2);
+        text-decoration: none;
+        transition: background var(--t-fast), color var(--t-fast);
+      }
+      .docnav a:hover {
+        background: var(--surface-sunken);
+        color: var(--text);
+      }
+      .docmain {
+        padding: 0 40px 120px;
+      }
+      .docbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        margin-bottom: 8px;
+        background: color-mix(in srgb, var(--bg) 90%, transparent);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--line);
+      }
+      .docbar .spacer {
+        flex: 1;
+      }
+      section.block {
+        padding: 40px 0;
+        border-bottom: 1px solid var(--line);
+        scroll-margin-top: 70px;
+      }
+      section.block > .eyebrow {
+        margin-bottom: 8px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .lead {
+        font-size: 15px;
+        color: var(--text-2);
+        max-width: 640px;
+        line-height: 1.6;
+        margin: 12px 0 0;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .g2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .g3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .g4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .demo {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .demo-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-3);
+        margin-bottom: 14px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      /* swatches */
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+        gap: 12px;
+      }
+      .sw {
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .sw .chip-color {
+        height: 60px;
+      }
+      .sw .meta {
+        padding: 9px 11px;
+      }
+      .sw .meta b {
+        font-size: 12px;
+        font-weight: 700;
+        display: block;
+      }
+      .sw .meta code {
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        color: var(--text-3);
+      }
+      /* type scale rows */
+      .type-row {
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .type-row .tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-3);
+        width: 96px;
+        flex: none;
+      }
+      /* scaffold gallery */
+      .scaffolds {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px;
+      }
+      .scaf {
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        text-decoration: none;
+        color: inherit;
+        transition: transform var(--t-base), box-shadow var(--t-base), border-color var(--t-base);
+      }
+      .scaf:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-pop);
+        border-color: var(--accent-line);
+      }
+      .scaf .thumb {
+        height: 150px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface-sunken);
+        position: relative;
+        overflow: hidden;
+      }
+      .scaf .meta {
+        padding: 14px 16px;
+      }
+      .scaf .meta .nm {
+        font-size: 14.5px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .scaf .meta .ds {
+        font-size: 12.5px;
+        color: var(--text-3);
+        margin-top: 4px;
+        line-height: 1.45;
+      }
+      .scaf .meta .arrow {
+        margin-left: auto;
+        color: var(--accent);
+      }
+      .tokens-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+      }
+      .tokens-table td {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .tokens-table td:first-child {
+        font-family: var(--font-mono);
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .tokens-table td:last-child {
+        color: var(--text-3);
+      }
+      .callout {
+        display: flex;
+        gap: 12px;
+        background: var(--accent-soft);
+        border: 1px solid var(--accent-line);
+        border-radius: var(--r-md);
+        padding: 14px 16px;
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.55;
+      }
+      .callout .lk {
+        color: var(--accent);
+        flex: none;
+        font-family: var(--font-mono);
+      }
+      .ruleset {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .rule {
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
+        padding: 14px 15px;
+        background: var(--surface);
+      }
+      .rule h4 {
+        margin: 0 0 6px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .rule h4 .yes {
+        color: var(--ok);
+      }
+      .rule h4 .no {
+        color: var(--danger);
+      }
+      .rule p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--text-2);
+        line-height: 1.5;
+      }
+      @media (max-width: 920px) {
+        .doc {
+          grid-template-columns: 1fr;
+        }
+        .docnav {
+          display: none;
+        }
+        .docmain {
+          padding: 0 20px 80px;
+        }
+        .g2,
+        .g3,
+        .g4,
+        .ruleset {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body data-unit="medico">
+    <div class="doc">
+      <!-- ============ NAV ============ -->
+      <nav class="docnav" aria-label="Navegação do design kit">
+        <div class="nv-brand">
+          <span class="symbol"><img src="public/logo/ifp-symbol.png" alt="IFP" /></span>
+          <span>
+            <b>IFP Connect</b>
+            <span>Design Kit · v1</span>
+          </span>
+        </div>
+        <div class="grp">Início</div>
+        <a href="#intro">Visão & como usar</a>
+        <a href="#direcao">Direção visual</a>
+        <div class="grp">Fundação</div>
+        <a href="#cores">Cores & unidades</a>
+        <a href="#tipografia">Tipografia</a>
+        <a href="#espaco">Espaço · raio · sombra</a>
+        <a href="#tokens">Tabela de tokens</a>
+        <div class="grp">Componentes</div>
+        <a href="#botoes">Botões</a>
+        <a href="#forms">Inputs & forms</a>
+        <a href="#status">Badges & status</a>
+        <a href="#dados">KPI · tabela · timeline</a>
+        <a href="#fluxo">Stepper · toast · modal</a>
+        <a href="#estados-c">Empty · skeleton</a>
+        <div class="grp">Scaffolds</div>
+        <a href="#scaffolds">Esqueletos de página</a>
+        <div class="grp">Padrões</div>
+        <a href="#padroes">Decisões & regras</a>
+      </nav>
+
+      <!-- ============ MAIN ============ -->
+      <main class="docmain">
+        <div class="docbar">
+          <span class="eyebrow"><span class="pulse" style="background: var(--accent)"></span> Ferramenta Clínica Premium</span>
+          <span class="spacer"></span>
+          <div class="segmented" id="unitSeg" role="group" aria-label="Sotaque de unidade">
+            <button data-u="medico" class="on">Médico</button>
+            <button data-u="capacitacao">Capac.</button>
+            <button data-u="esportivo">Esport.</button>
+            <button data-u="recreativo">Recre.</button>
+            <button data-u="poncio">Pôncio</button>
+            <button data-u="social">Social</button>
+          </div>
+          <button class="toggle-pill" id="themeToggle" aria-label="Alternar tema">
+            <span class="dot"></span><span id="themeLabel">Claro</span>
+          </button>
+        </div>
+
+        <!-- ===== INTRO ===== -->
+        <section class="block" id="intro">
+          <span class="eyebrow">Design Kit · IFP Connect</span>
+          <h1 class="t-display" style="margin: 10px 0 0">A fundação visual de tudo que vem depois.</h1>
+          <p class="lead">
+            Este kit não desenha telas — ele desenha <b>como qualquer tela futura será montada</b>. Tokens, componentes
+            e esqueletos de página prontos para forkar, na direção <b>"clínica premium"</b> validada no mockup do
+            prontuário. Denso e preciso para a equipe; digno e acolhedor para o cidadão. Uma marca só (IFP); a cor da
+            unidade entra como <b>sinal funcional discreto</b> — experimente o seletor de unidade ali em cima.
+          </p>
+          <div class="grid g3" style="margin-top: 26px">
+            <div class="demo">
+              <div class="demo-label">1 · Copie a fundação</div>
+              <p class="t-small" style="margin: 0; color: var(--text-2)">
+                <code class="mono">ifp-tokens.css</code> + <code class="mono">ifp-components.css</code> vão para
+                <code class="mono">src/styles/</code> e são importados no <code class="mono">globals.css</code>. Tokens
+                são canônicos do brandbook.
+              </p>
+            </div>
+            <div class="demo">
+              <div class="demo-label">2 · Forke um scaffold</div>
+              <p class="t-small" style="margin: 0; color: var(--text-2)">
+                Cada esqueleto de página é um HTML autossuficiente. Abra, copie a estrutura, troque o conteúdo. App
+                shell, 3 colunas, lista, dashboard, wizard, login.
+              </p>
+            </div>
+            <div class="demo">
+              <div class="demo-label">3 · Aplique o sotaque</div>
+              <p class="t-small" style="margin: 0; color: var(--text-2)">
+                <code class="mono">data-unit="esportivo"</code> no body já reorienta faixas e selos para a cor da
+                unidade — sem virar 4 apps diferentes.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== DIREÇÃO ===== -->
+        <section class="block" id="direcao">
+          <span class="eyebrow">A direção</span>
+          <h2 class="t-h1" style="margin: 8px 0 0">Clínica premium, não portal de governo.</h2>
+          <div class="ruleset" style="margin-top: 22px">
+            <div class="rule">
+              <h4><span class="yes">✓</span> Buscar</h4>
+              <p>
+                Densidade alta com hierarquia clara · cor como sinal funcional · tipografia afiada (Hanken Grotesk +
+                IBM Plex Mono nos dados) · sensação Doctolib / Elation / Linear · dignidade e confiança.
+              </p>
+            </div>
+            <div class="rule">
+              <h4><span class="no">✕</span> Evitar</h4>
+              <p>
+                Tema "Editorial" abandonado (serifa Fraunces, fundo creme) · cara de sistema público antigo · 4 marcas
+                diferentes por unidade · dark patterns no consentimento (público vulnerável).
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== CORES ===== -->
+        <section class="block" id="cores">
+          <span class="eyebrow">Fundação · Cor</span>
+          <h2 class="t-h2" style="margin: 8px 0 4px">Paleta do brandbook (canônica)</h2>
+          <p class="lead" style="margin-bottom: 18px">
+            Restrição dura de marca: você decide <b>como usar</b>, nunca troca. Laranja = ação. Teal = saúde/sucesso.
+            Marrom = manchetes e o leão.
+          </p>
+          <div class="swatches">
+            <div class="sw">
+              <div class="chip-color" style="background: #ff772e"></div>
+              <div class="meta"><b>Laranja 500</b><code>#FF772E · ação</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #c24d0f"></div>
+              <div class="meta"><b>Laranja 700</b><code>#C24D0F · forte</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #752c05"></div>
+              <div class="meta"><b>Marrom 900</b><code>#752C05 · leão</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #10c2bb"></div>
+              <div class="meta"><b>Teal 500</b><code>#10C2BB · info</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #007571"></div>
+              <div class="meta"><b>Teal 700</b><code>#007571 · saúde</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #4a4a49"></div>
+              <div class="meta"><b>Tinta</b><code>#4A4A49 · texto</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #fafaf9; border-bottom: 1px solid var(--line)"></div>
+              <div class="meta"><b>Surface 50</b><code>#FAFAF9 · página</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #e5e4e1"></div>
+              <div class="meta"><b>Surface 200</b><code>#E5E4E1 · borda</code></div>
+            </div>
+          </div>
+
+          <h3 class="t-h3" style="margin: 30px 0 4px">Sotaque por unidade</h3>
+          <p class="lead" style="margin-bottom: 16px">
+            Cerimonial e dominante no login; <b>discreto</b> no app (faixa de topo, selo, slot de agenda).
+          </p>
+          <div class="swatches">
+            <div class="sw">
+              <div class="chip-color" style="background: #007571"></div>
+              <div class="meta"><b>Médico</b><code>#007571 · saúde</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #ff772e"></div>
+              <div class="meta"><b>Capacitação</b><code>#FF772E · energia</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #c24d0f"></div>
+              <div class="meta"><b>Esportivo</b><code>#C24D0F · movimento</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #10c2bb"></div>
+              <div class="meta"><b>Recreativo</b><code>#10C2BB · alegria</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #752c05"></div>
+              <div class="meta"><b>Pôncio</b><code>#752C05 · autoridade</code></div>
+            </div>
+            <div class="sw">
+              <div class="chip-color" style="background: #4a4a49"></div>
+              <div class="meta"><b>Social</b><code>#4A4A49 · transversal</code></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== TIPOGRAFIA ===== -->
+        <section class="block" id="tipografia">
+          <span class="eyebrow">Fundação · Tipo</span>
+          <h2 class="t-h2" style="margin: 8px 0 4px">Hanken Grotesk + IBM Plex Mono</h2>
+          <p class="lead" style="margin-bottom: 10px">
+            UI em Hanken Grotesk (afiada, humanista). Dados clínicos, números, códigos e microlabels em IBM Plex Mono
+            com numerais tabulares — alinham em colunas, leem como instrumento.
+          </p>
+          <div class="demo">
+            <div class="type-row"><span class="tag">display · 800</span><span class="t-display">Aa Referência regional</span></div>
+            <div class="type-row"><span class="tag">h1 · 800</span><span class="t-h1">Fila do dia · Centro Médico</span></div>
+            <div class="type-row"><span class="tag">h2 · 800</span><span class="t-h2">Evolução do atendimento</span></div>
+            <div class="type-row"><span class="tag">h3 · 700</span><span class="t-h3">Saúde do paciente</span></div>
+            <div class="type-row"><span class="tag">body · 400</span><span class="t-body">Paciente comparece para retorno, refere boa adesão ao tratamento.</span></div>
+            <div class="type-row"><span class="tag">mono · dados</span><span class="mono" style="font-size: 15px">138/86 mmHg · PRONT #04127 · 14:30</span></div>
+            <div class="type-row" style="border-bottom: 0"><span class="tag">micro · label</span><span class="micro">Sinais vitais · CID-10</span></div>
+          </div>
+        </section>
+
+        <!-- ===== ESPAÇO / RAIO / SOMBRA ===== -->
+        <section class="block" id="espaco">
+          <span class="eyebrow">Fundação · Forma</span>
+          <h2 class="t-h2" style="margin: 8px 0 18px">Espaço · raio · sombra · motion</h2>
+          <div class="grid g2">
+            <div class="demo">
+              <div class="demo-label">Escala de espaço (base 4px)</div>
+              <div style="display: flex; align-items: flex-end; gap: 10px">
+                <div style="text-align: center"><div style="width: 4px; height: 4px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">1</code></div>
+                <div style="text-align: center"><div style="width: 8px; height: 8px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">2</code></div>
+                <div style="text-align: center"><div style="width: 12px; height: 12px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">3</code></div>
+                <div style="text-align: center"><div style="width: 16px; height: 16px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">4</code></div>
+                <div style="text-align: center"><div style="width: 24px; height: 24px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">6</code></div>
+                <div style="text-align: center"><div style="width: 32px; height: 32px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">8</code></div>
+                <div style="text-align: center"><div style="width: 48px; height: 48px; background: var(--accent)"></div><code class="mono" style="font-size: 9px; color: var(--text-3)">12</code></div>
+              </div>
+            </div>
+            <div class="demo">
+              <div class="demo-label">Raio</div>
+              <div class="row">
+                <div style="width: 60px; height: 48px; background: var(--surface-sunken); border: 1px solid var(--line-strong); border-radius: var(--r-sm)"></div>
+                <div style="width: 60px; height: 48px; background: var(--surface-sunken); border: 1px solid var(--line-strong); border-radius: var(--r-md)"></div>
+                <div style="width: 60px; height: 48px; background: var(--surface-sunken); border: 1px solid var(--line-strong); border-radius: var(--r-lg)"></div>
+                <div style="width: 60px; height: 48px; background: var(--surface-sunken); border: 1px solid var(--line-strong); border-radius: var(--r-xl)"></div>
+              </div>
+              <div class="row" style="margin-top: 8px">
+                <code class="mono" style="font-size: 10px; color: var(--text-3); width: 60px; text-align: center">sm 7</code>
+                <code class="mono" style="font-size: 10px; color: var(--text-3); width: 60px; text-align: center">md 10</code>
+                <code class="mono" style="font-size: 10px; color: var(--text-3); width: 60px; text-align: center">lg 14</code>
+                <code class="mono" style="font-size: 10px; color: var(--text-3); width: 60px; text-align: center">xl 20</code>
+              </div>
+            </div>
+            <div class="demo">
+              <div class="demo-label">Sombra</div>
+              <div class="row" style="gap: 22px">
+                <div style="width: 80px; height: 54px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow)"></div>
+                <div style="width: 80px; height: 54px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-pop)"></div>
+              </div>
+            </div>
+            <div class="demo">
+              <div class="demo-label">Motion · 120 / 200 / 320ms ease-out</div>
+              <p class="t-small" style="margin: 0">
+                Transições curtas e funcionais. <code class="mono">--t-fast</code> em hover de botão/linha,
+                <code class="mono">--t-base</code> em cards, <code class="mono">--t-slow</code> em entrada de modal/toast.
+                Sem loops decorativos infinitos (exceto o pulso "ao vivo").
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== TOKENS TABLE ===== -->
+        <section class="block" id="tokens">
+          <span class="eyebrow">Fundação · Handoff</span>
+          <h2 class="t-h2" style="margin: 8px 0 14px">Tokens semânticos (claro/escuro)</h2>
+          <div class="demo">
+            <table class="tokens-table">
+              <tr><td>--bg / --surface / --surface-sunken</td><td>fundo de página · card · poço</td></tr>
+              <tr><td>--line / --line-strong</td><td>bordas e divisores</td></tr>
+              <tr><td>--text / --text-2 / --text-3</td><td>tinta primária · secundária · terciária</td></tr>
+              <tr><td>--accent / --accent-soft / --accent-line</td><td>acento de sistema (teal) + variações</td></tr>
+              <tr><td>--unit / --unit-2</td><td>sotaque da unidade ativa (data-unit)</td></tr>
+              <tr><td>--live / --live-soft</td><td>sinal vivo: agora · urgência · em atendimento</td></tr>
+              <tr><td>--ok · --warn · --danger (+ -soft)</td><td>estados semânticos</td></tr>
+              <tr><td>--shadow / --shadow-pop</td><td>elevação base · elevação flutuante</td></tr>
+            </table>
+          </div>
+          <div class="callout" style="margin-top: 16px">
+            <span class="lk">●</span>
+            <span
+              >Os nomes <code class="mono">--ifp-*</code> (paleta canônica) e os triplets RGB já batem com o
+              <code class="mono">globals.css</code> do repo. A camada semântica (<code class="mono">--bg</code>,
+              <code class="mono">--surface</code>…) é nova e troca sozinha entre <code class="mono">data-theme</code>
+              claro/escuro — é o que o dev cola em <code class="mono">:root</code>.</span
+            >
+          </div>
+        </section>
+
+        <!-- ===== BOTÕES ===== -->
+        <section class="block" id="botoes">
+          <span class="eyebrow">Componentes</span>
+          <h2 class="t-h2" style="margin: 8px 0 16px">Botões</h2>
+          <div class="demo">
+            <div class="row">
+              <button class="btn btn-primary">Marcar consulta</button>
+              <button class="btn btn-unit">Ação da unidade</button>
+              <button class="btn btn-secondary">Cancelar</button>
+              <button class="btn btn-ghost">Ver agenda</button>
+              <button class="btn btn-danger">Excluir ficha</button>
+              <button class="btn btn-primary is-loading">Salvando</button>
+              <button class="btn btn-primary" disabled>Desabilitado</button>
+            </div>
+            <div class="row" style="margin-top: 14px">
+              <button class="btn btn-primary btn-sm">Pequeno</button>
+              <button class="btn btn-primary">Médio</button>
+              <button class="btn btn-primary btn-lg">Grande</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== FORMS ===== -->
+        <section class="block" id="forms">
+          <span class="eyebrow">Componentes</span>
+          <h2 class="t-h2" style="margin: 8px 0 16px">Inputs & formulário</h2>
+          <div class="grid g2">
+            <div class="demo">
+              <div class="field-group">
+                <label class="label" for="d1">Nome do cidadão <span class="req">*</span></label>
+                <input class="input" id="d1" placeholder="Ex.: Marcos Antônio Ferreira" value="Marcos Antônio Ferreira" />
+              </div>
+              <div class="field-group input-search">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+                <input class="input" placeholder="Buscar paciente, CPF, prontuário…" />
+              </div>
+              <div class="field-group">
+                <label class="label">Observação</label>
+                <textarea class="textarea" placeholder="Texto livre…"></textarea>
+              </div>
+            </div>
+            <div class="demo">
+              <div class="field-group">
+                <label class="label">CPF <span class="req">*</span></label>
+                <input class="input is-error" value="000.000.000-00" />
+                <span class="field-error"
+                  ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg> CPF inválido — confira os dígitos.</span
+                >
+              </div>
+              <div class="field-group">
+                <label class="label">Especialidade</label>
+                <select class="select">
+                  <option>Clínico Geral</option>
+                  <option>Cardiologia</option>
+                  <option>Pediatria</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="label">Unidade (desabilitado p/ este papel)</label>
+                <input class="input" value="Centro Médico" disabled />
+                <span class="field-hint">Recepção só agenda na própria unidade.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== STATUS ===== -->
+        <section class="block" id="status">
+          <span class="eyebrow">Componentes</span>
+          <h2 class="t-h2" style="margin: 8px 0 16px">Badges, status & chips</h2>
+          <div class="grid g2">
+            <div class="demo">
+              <div class="demo-label">Badges</div>
+              <div class="row">
+                <span class="badge badge-success"><span class="dot"></span> Realizada</span>
+                <span class="badge badge-info"><span class="dot"></span> Agendada</span>
+                <span class="badge badge-warning"><span class="dot"></span> Pendente</span>
+                <span class="badge badge-danger"><span class="dot"></span> Faltou</span>
+                <span class="badge badge-default"><span class="dot"></span> Cancelada</span>
+                <span class="badge badge-live"><span class="pulse"></span> Em atendimento</span>
+                <span class="badge badge-unit"><span class="dot"></span> Esportivo</span>
+              </div>
+            </div>
+            <div class="demo">
+              <div class="demo-label">Chips</div>
+              <div class="chips">
+                <span class="chip chip-mono chip-accent">O+</span>
+                <span class="chip chip-danger">Dipirona</span>
+                <span class="chip chip-danger">Penicilina</span>
+                <span class="chip">Hipertensão (HAS)</span>
+                <span class="chip">Diabetes tipo 2</span>
+              </div>
+              <div class="row" style="margin-top: 16px">
+                <span class="avatar">MF</span>
+                <span class="avatar sm unit">AL</span>
+                <span class="micro">Avatares · iniciais</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== DADOS ===== -->
+        <section class="block" id="dados">
+          <span class="eyebrow">Componentes</span>
+          <h2 class="t-h2" style="margin: 8px 0 16px">KPI · tabela densa · timeline</h2>
+          <div class="grid g4" style="margin-bottom: 16px">
+            <div class="kpi drill">
+              <div class="kpi-top"><span class="micro">Consultas hoje</span><span class="kpi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /></svg></span></div>
+              <div class="kpi-val">42</div>
+              <div class="kpi-delta up">▲ 12% vs. ontem</div>
+            </div>
+            <div class="kpi drill">
+              <div class="kpi-top"><span class="micro">Pendentes / semana</span></div>
+              <div class="kpi-val">7</div>
+              <div class="kpi-delta down">▼ 3 desde 2ª</div>
+            </div>
+            <div class="kpi drill">
+              <div class="kpi-top"><span class="micro">Próximas 24h</span></div>
+              <div class="kpi-val">18</div>
+              <div class="t-small" style="color: var(--text-3)">8 confirmadas</div>
+            </div>
+            <div class="kpi drill">
+              <div class="kpi-top"><span class="micro">Cidadãos ativos</span></div>
+              <div class="kpi-val">1.284</div>
+              <div class="kpi-delta up">▲ 36 no mês</div>
+            </div>
+          </div>
+          <div class="grid g2">
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr><th>Hora</th><th>Cidadão</th><th>Especialidade</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="cell-mono">14:30</td><td class="cell-strong">Marcos A. Ferreira</td><td>Clínico Geral</td><td><span class="badge badge-live"><span class="pulse"></span> Atend.</span></td></tr>
+                  <tr><td class="cell-mono">15:00</td><td class="cell-strong">Joana Ribeiro</td><td>Cardiologia</td><td><span class="badge badge-info"><span class="dot"></span> Agend.</span></td></tr>
+                  <tr><td class="cell-mono">15:30</td><td class="cell-strong">Pedro Nunes</td><td>Pediatria</td><td><span class="badge badge-success"><span class="dot"></span> Realiz.</span></td></tr>
+                  <tr><td class="cell-mono">16:00</td><td class="cell-strong">Lúcia Castro</td><td>Psicologia</td><td><span class="badge badge-danger"><span class="dot"></span> Faltou</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <header><span class="tick"></span><h3>Histórico longitudinal</h3></header>
+              <div class="body">
+                <div class="timeline">
+                  <div class="tl-item live">
+                    <div class="tl-when">12/05/2026</div>
+                    <div class="tl-title">Dr. João Silva</div>
+                    <div class="tl-meta">Clínico Geral</div>
+                    <div class="tl-body">Retorno de HAS. PA controlada com Losartana.</div>
+                  </div>
+                  <div class="tl-item">
+                    <div class="tl-when">03/03/2026</div>
+                    <div class="tl-title">Dra. Maria Santos</div>
+                    <div class="tl-meta">Cardiologia</div>
+                    <div class="tl-body">ECG sem alterações agudas. Orientado controle de peso.</div>
+                  </div>
+                  <div class="tl-item">
+                    <div class="tl-when">18/11/2025</div>
+                    <div class="tl-title">Enf. Ana Lima</div>
+                    <div class="tl-meta">Enfermagem</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== FLUXO ===== -->
+        <section class="block" id="fluxo">
+          <span class="eyebrow">Componentes</span>
+          <h2 class="t-h2" style="margin: 8px 0 16px">Stepper · toast · modal</h2>
+          <div class="demo" style="margin-bottom: 16px">
+            <div class="demo-label">Stepper (wizard de 4 passos)</div>
+            <div class="stepper">
+              <div class="step done"><span class="num">✓</span><span class="lbl">Cidadão</span></div>
+              <span class="bar"></span>
+              <div class="step done"><span class="num">✓</span><span class="lbl">Especialidade</span></div>
+              <span class="bar"></span>
+              <div class="step active"><span class="num">3</span><span class="lbl">Horário</span></div>
+              <span class="bar"></span>
+              <div class="step"><span class="num">4</span><span class="lbl">Confirmar</span></div>
+            </div>
+          </div>
+          <div class="grid g2">
+            <div class="demo">
+              <div class="demo-label">Toasts (4 níveis)</div>
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div class="toast ok" style="animation: none"><svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" /></svg><div><div class="t-title">Consulta confirmada</div><div class="t-msg">WhatsApp de confirmação enviado.</div></div></div>
+                <div class="toast err" style="animation: none"><svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg><div><div class="t-title">Horário acabou de ser reservado</div><div class="t-msg">Escolha outro slot disponível.</div></div></div>
+                <div class="toast warn" style="animation: none"><svg class="t-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /><path d="M12 9v4M12 17h.01" /></svg><div><div class="t-title">Cidadão menor de idade</div><div class="t-msg">Confirme o responsável antes de matricular.</div></div></div>
+              </div>
+            </div>
+            <div class="demo" style="display: grid; place-items: center; min-height: 220px">
+              <button class="btn btn-secondary" id="openModal">Abrir modal de exemplo</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ESTADOS ===== -->
+        <section class="block" id="estados-c">
+          <span class="eyebrow">Componentes</span>
+          <h2 class="t-h2" style="margin: 8px 0 16px">Empty state & skeleton</h2>
+          <div class="grid g2">
+            <div class="demo" style="padding: 0">
+              <div class="empty">
+                <img src="public/logo/ifp-symbol.png" alt="" />
+                <div class="e-title">Sem triagens pendentes</div>
+                <div class="e-msg">Tudo em dia, Regina. Novas triagens aparecem aqui assim que um cidadão é agendado.</div>
+              </div>
+            </div>
+            <div class="demo">
+              <div class="demo-label">Skeleton (loading)</div>
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div class="skel" style="height: 16px; width: 60%"></div>
+                <div class="skel" style="height: 12px; width: 100%"></div>
+                <div class="skel" style="height: 12px; width: 90%"></div>
+                <div class="skel" style="height: 12px; width: 75%"></div>
+                <div class="row" style="margin-top: 6px">
+                  <div class="skel" style="height: 42px; width: 42px; border-radius: 12px"></div>
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+                    <div class="skel" style="height: 12px; width: 50%"></div>
+                    <div class="skel" style="height: 10px; width: 30%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== SCAFFOLDS ===== -->
+        <section class="block" id="scaffolds">
+          <span class="eyebrow">Scaffolds · esqueletos para forkar</span>
+          <h2 class="t-h1" style="margin: 8px 0 4px">Layouts de página prontos</h2>
+          <p class="lead" style="margin-bottom: 24px">
+            Cada cartão abre um HTML autossuficiente em tela cheia. São os esqueletos que se repetem — copie a estrutura
+            e troque o conteúdo. Cobrem o que já existe <b>e</b> o que ainda nem foi idealizado.
+          </p>
+          <div class="scaffolds" id="scafGrid"><!-- preenchido por JS --></div>
+        </section>
+
+        <!-- ===== PADRÕES ===== -->
+        <section class="block" id="padroes" style="border-bottom: 0">
+          <span class="eyebrow">Padrões · decisões</span>
+          <h2 class="t-h1" style="margin: 8px 0 18px">Regras que fazem o sistema parecer um só</h2>
+          <div class="ruleset">
+            <div class="rule">
+              <h4>Cor como sinal funcional</h4>
+              <p>App autenticado = 1 marca IFP. A cor da unidade entra como faixa de topo, selo ou slot de agenda — nunca repinta a tela inteira. A "explosão de cor" fica no login.</p>
+            </div>
+            <div class="rule">
+              <h4>Densidade vs. acolhimento</h4>
+              <p>Telas de equipe (agenda, fila, prontuário, tabelas) = densidade alta, info por pixel. Telas de cidadão/família (login, funil, certificado, feed) = respiro, escala maior, calor.</p>
+            </div>
+            <div class="rule">
+              <h4>Uso do leão</h4>
+              <p>SIM: login, landing, empty state (30%), certificado (grande), 404/500, boas-vindas. NÃO: sidebar (só o símbolo a 32px), headers operacionais, modais, toasts.</p>
+            </div>
+            <div class="rule">
+              <h4>Empty states por papel</h4>
+              <p>A mensagem muda com quem está logado: "Sem triagens pendentes" (Regina/social) ≠ "Nenhuma vaga aberta" (recepção) ≠ "Você ainda não tem cidadãos" (gestor).</p>
+            </div>
+            <div class="rule">
+              <h4>Atos clínicos pessoais</h4>
+              <p>Editar/assinar nota não tem bypass de admin. Visualmente: o botão "Assinar" só aparece ativo para o dono da nota; para os outros, fica inerte com tooltip.</p>
+            </div>
+            <div class="rule">
+              <h4>Consentimento honesto</h4>
+              <p>Público vulnerável. Nada de dark pattern: checkbox de consentimento sempre desmarcado, linguagem clara, sem CPF/dados sensíveis na rota pública.</p>
+            </div>
+          </div>
+          <div class="callout" style="margin-top: 22px">
+            <span class="lk">●</span>
+            <span>Para telas ainda <b>não idealizadas</b>: comece sempre pelo App Shell, escolha o scaffold mais próximo do tipo de tarefa (lista, fluxo, foco, dashboard), aplique <code class="mono">data-unit</code> e siga as 6 regras acima. O resto sai dos componentes.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- modal demo -->
+    <div class="modal-scrim" id="modalScrim" style="display: none">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+        <div class="m-head"><div class="m-title" id="mt">Cancelar consulta?</div></div>
+        <div class="m-body">
+          Informe o motivo do cancelamento. A ação é auditada e o cidadão recebe um WhatsApp avisando.
+          <div class="field-group" style="margin-top: 12px; margin-bottom: 0">
+            <textarea class="textarea" placeholder="Motivo do cancelamento…" style="min-height: 80px"></textarea>
+          </div>
+        </div>
+        <div class="m-foot">
+          <button class="btn btn-ghost" id="closeModal">Voltar</button>
+          <button class="btn btn-danger">Cancelar consulta</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ----- tema claro/escuro (persistente) -----
+      (function () {
+        var html = document.documentElement;
+        var saved = localStorage.getItem("ifp-theme");
+        if (saved) html.setAttribute("data-theme", saved);
+        var btn = document.getElementById("themeToggle");
+        var label = document.getElementById("themeLabel");
+        function sync() {
+          label.textContent = html.getAttribute("data-theme") === "dark" ? "Escuro" : "Claro";
+        }
+        sync();
+        btn.addEventListener("click", function () {
+          var dark = html.getAttribute("data-theme") === "dark";
+          html.setAttribute("data-theme", dark ? "light" : "dark");
+          localStorage.setItem("ifp-theme", dark ? "light" : "dark");
+          sync();
+        });
+      })();
+
+      // ----- seletor de sotaque de unidade -----
+      (function () {
+        var seg = document.getElementById("unitSeg");
+        seg.addEventListener("click", function (e) {
+          var b = e.target.closest("button");
+          if (!b) return;
+          seg.querySelectorAll("button").forEach(function (x) {
+            x.classList.remove("on");
+          });
+          b.classList.add("on");
+          document.body.setAttribute("data-unit", b.dataset.u);
+        });
+      })();
+
+      // ----- modal demo -----
+      (function () {
+        var scrim = document.getElementById("modalScrim");
+        document.getElementById("openModal").addEventListener("click", function () {
+          scrim.style.display = "grid";
+        });
+        function close() {
+          scrim.style.display = "none";
+        }
+        document.getElementById("closeModal").addEventListener("click", close);
+        scrim.addEventListener("click", function (e) {
+          if (e.target === scrim) close();
+        });
+      })();
+
+      // ----- gallery de scaffolds -----
+      (function () {
+        var items = [
+          { f: "scaffolds/app-shell.html", n: "App Shell", d: "Sidebar 256px + topbar + área de conteúdo. A base de toda tela autenticada." },
+          { f: "scaffolds/prontuario-3col.html", n: "Prontuário 3 colunas", d: "Contexto | Evolução | Ações. O padrão clínico denso — a tela-flagship.", flag: true },
+          { f: "scaffolds/lista-tabela.html", n: "Lista / tabela densa", d: "Busca, filtros, status colorido, paginação por cursor. Cidadãos, profissionais, turmas." },
+          { f: "scaffolds/dashboard-kpi.html", n: "Dashboard / KPIs", d: "Cards de KPI com drill-down inline. Pôncio executivo e homes de unidade." },
+          { f: "scaffolds/wizard.html", n: "Wizard / Stepper", d: "Fluxo de N passos. Marcar consulta, matrícula, matrícula esportiva." },
+          { f: "scaffolds/login-tematico.html", n: "Login temático", d: "Porta cerimonial: cor + gradiente + leão por unidade. As 6 cores num só lugar." },
+          { f: "scaffolds/funil-publico.html", n: "Funil público (mobile)", d: "Inscrição sem login, dados mínimos, consentimento honesto. Vem do Instagram." },
+          { f: "scaffolds/estados.html", n: "Estados", d: "Vazio · erro de corrida · sem permissão · loading · offline. Todos num catálogo." },
+          { f: "scaffolds/cert-capacitacao.html", n: "Certificado (Capacitação)", d: "Momento WOW: leão coroado em escala, QR, confetti. Cerimonial.", v: "capacitacao" },
+          { f: "scaffolds/esportivo-atleta.html", n: "Evolução do atleta (Esportivo)", d: "Radar de atributos 1–5 + presença. Campo aberto — proposta nova.", v: "esportivo" },
+          { f: "scaffolds/recreativo-daily.html", n: "Daily report (Recreativo)", d: "Captura de momento em 5–10s: foto + tags + nota. Vira feed da família.", v: "recreativo" },
+        ];
+        var unitColors = { capacitacao: "#FF772E", esportivo: "#C24D0F", recreativo: "#10C2BB" };
+        var grid = document.getElementById("scafGrid");
+        grid.innerHTML = items
+          .map(function (it) {
+            var accent = it.v ? unitColors[it.v] : "var(--accent)";
+            var flag = it.flag ? '<span class="badge badge-live" style="font-size:9.5px;padding:2px 7px">FLAGSHIP</span>' : "";
+            var vbadge = it.v ? '<span class="badge badge-unit" style="font-size:9.5px;padding:2px 7px;--unit:' + unitColors[it.v] + '">' + it.v + "</span>" : "";
+            return (
+              '<a class="scaf" href="' + it.f + '">' +
+              '<div class="thumb" style="background:linear-gradient(135deg,color-mix(in srgb,' + accent + ' 9%,var(--surface)),var(--surface-sunken))">' +
+              '<div style="position:absolute;inset:14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden">' +
+              '<div style="height:18px;border-bottom:1px solid var(--line);background:' + accent + ';opacity:.85"></div>' +
+              '<div style="display:flex;gap:6px;padding:10px"><div style="width:34%;height:74px;background:var(--surface-sunken);border-radius:5px"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="height:10px;width:70%;background:var(--surface-sunken);border-radius:3px"></div><div style="height:8px;width:90%;background:var(--surface-sunken);border-radius:3px"></div><div style="height:8px;width:60%;background:var(--surface-sunken);border-radius:3px"></div><div style="height:22px;width:46%;background:color-mix(in srgb,' + accent + ' 25%,var(--surface-sunken));border-radius:5px;margin-top:auto"></div></div></div>' +
+              "</div></div>" +
+              '<div class="meta"><div class="nm">' + it.n + " " + flag + vbadge +
+              '<span class="arrow">→</span></div><div class="ds">' + it.d + "</div></div></a>"
+            );
+          })
+          .join("");
+      })();
+    </script>
+  </body>
+</html>

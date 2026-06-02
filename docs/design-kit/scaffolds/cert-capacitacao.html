@@ -1,0 +1,113 @@
+<!doctype html>
+<!--
+  IFP CONNECT · SCAFFOLD — Certificado de conclusão (Capacitação, momento WOW)
+  Regra CapacitaSUAS: ≥80% presença → certificado. Leão coroado em escala GRANDE,
+  QR de validação, compartilhar no WhatsApp, confetti. Cerimonial, densidade baixa.
+  Primeiro certificado da vida de muitos beneficiários.
+-->
+<html lang="pt-BR" data-theme="light" data-unit="capacitacao">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Certificado · IFP Capacitação</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <link rel="stylesheet" href="scaffold-chrome.css" />
+    <style>
+      body { background: var(--surface-sunken); }
+      .stage { min-height: 100vh; display: grid; place-items: center; padding: 40px 24px 90px; position: relative; overflow: hidden; }
+      .congrats { text-align: center; margin-bottom: 22px; }
+      .congrats .micro { color: var(--unit); }
+      .congrats h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.025em; margin: 6px 0 0; }
+      .cert {
+        width: 100%; max-width: 720px; aspect-ratio: 1.414 / 1;
+        background: var(--surface); border-radius: 16px;
+        box-shadow: 0 30px 80px rgba(20, 22, 22, 0.18);
+        border: 1px solid var(--line);
+        position: relative; overflow: hidden;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; padding: 6% 9%;
+      }
+      .cert::before { /* moldura dupla */
+        content: ""; position: absolute; inset: 16px; border: 2px solid var(--unit); border-radius: 8px; opacity: 0.35;
+      }
+      .cert::after {
+        content: ""; position: absolute; inset: 22px; border: 1px solid var(--unit); border-radius: 5px; opacity: 0.2;
+      }
+      .cert .lion { width: 88px; height: 88px; object-fit: contain; margin-bottom: 10px; }
+      .cert .kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--unit); }
+      .cert .title { font-size: clamp(20px, 4vw, 30px); font-weight: 800; letter-spacing: -0.02em; color: var(--ifp-brown-900); margin: 4px 0 14px; }
+      .cert .body { font-size: clamp(12px, 1.8vw, 14px); color: var(--text-2); line-height: 1.6; max-width: 80%; }
+      .cert .name { font-size: clamp(22px, 4.5vw, 32px); font-weight: 800; letter-spacing: -0.02em; margin: 12px 0; color: var(--text); }
+      .cert .name::after { content: ""; display: block; width: 180px; max-width: 60%; height: 2px; background: var(--unit); margin: 8px auto 0; opacity: 0.5; }
+      .cert .foot { display: flex; align-items: flex-end; justify-content: space-between; width: 100%; position: absolute; left: 0; bottom: 0; padding: 0 9% 7%; }
+      .cert .sig { text-align: center; flex: 1; }
+      .cert .sig .ln { width: 70%; height: 1px; background: var(--line-strong); margin: 0 auto 5px; }
+      .cert .sig .nm { font-size: 12px; font-weight: 700; }
+      .cert .sig .rl { font-size: 10px; color: var(--text-3); }
+      .qr { width: 58px; height: 58px; border-radius: 8px; background:
+        conic-gradient(from 0deg, #000 0 25%, #fff 0 50%, #000 0 75%, #fff 0);
+        background-size: 14px 14px; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line); flex: none; }
+      .actions-row { display: flex; gap: 12px; margin-top: 24px; }
+      .wpp { background: #25d366; color: #fff; }
+      .wpp:hover { filter: brightness(1.05); }
+      /* confetti */
+      .confetti { position: absolute; top: -12px; width: 9px; height: 14px; opacity: 0; border-radius: 2px; animation: fall 2.8s linear forwards; }
+      @keyframes fall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(105vh) rotate(540deg); } }
+      @media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
+    </style>
+  </head>
+  <body>
+    <div class="stage" id="stage">
+      <div class="congrats">
+        <span class="micro">Parabéns, Lúcia!</span>
+        <h1>Seu primeiro certificado está pronto 🎉</h1>
+      </div>
+
+      <div class="cert">
+        <img class="lion" src="../public/logo/ifp-symbol.png" alt="IFP" />
+        <div class="kicker">Instituto Família Pôncio</div>
+        <div class="title">Certificado de Conclusão</div>
+        <div class="body">Certificamos que</div>
+        <div class="name">Lúcia Maria Castro</div>
+        <div class="body">concluiu com aproveitamento o curso de <b>Informática Básica</b> (40h), com frequência de 92%, pela trilha CapacitaSUAS, em Duque de Caxias / RJ.</div>
+        <div class="foot">
+          <div class="sig"><div class="ln"></div><div class="nm">Luciana Pôncio</div><div class="rl">Coordenação · Capacitação</div></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+            <div class="qr"></div>
+            <span style="font-family: var(--font-mono); font-size: 8px; color: var(--text-3); letter-spacing: 0.05em">VALIDAR · #CAP-2026-0418</span>
+          </div>
+          <div class="sig"><div class="ln"></div><div class="nm">02 jun 2026</div><div class="rl">Data de emissão</div></div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-lg wpp" id="share"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.8-.2-.3A8 8 0 1 1 12 20z" /></svg> Compartilhar no WhatsApp</button>
+        <button class="btn btn-secondary btn-lg">Baixar PDF</button>
+      </div>
+    </div>
+
+    <script src="scaffold-chrome.js"></script>
+    <script>
+      (function () {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var stage = document.getElementById("stage");
+        var colors = ["#FF772E", "#C24D0F", "#10C2BB", "#007571", "#752C05"];
+        function burst() {
+          for (var i = 0; i < 60; i++) {
+            var c = document.createElement("span");
+            c.className = "confetti";
+            c.style.left = Math.random() * 100 + "%";
+            c.style.background = colors[(Math.random() * colors.length) | 0];
+            c.style.animationDelay = Math.random() * 0.6 + "s";
+            c.style.animationDuration = 2.2 + Math.random() * 1.4 + "s";
+            stage.appendChild(c);
+            setTimeout((function (el) { return function () { el.remove(); }; })(c), 4200);
+          }
+        }
+        burst();
+        document.getElementById("share").addEventListener("click", burst);
+      })();
+    </script>
+  </body>
+</html>

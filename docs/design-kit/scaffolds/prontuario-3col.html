@@ -1,0 +1,365 @@
+<!doctype html>
+<!--
+  IFP CONNECT · SCAFFOLD — Prontuário 3 colunas (TELA-FLAGSHIP, ref. Elation)
+  Contexto (esq.) | Evolução (centro, a estrela) | Ações (dir.).
+  Tokens e componentes vêm do kit. Estilos específicos da tela ficam scoped.
+-->
+<html lang="pt-BR" data-theme="light" data-unit="medico">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prontuário · IFP Centro Médico</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <link rel="stylesheet" href="scaffold-chrome.css" />
+    <style>
+      /* ===== faixa de identificação do paciente ===== */
+      .patient {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 16px 24px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+      .patient .avatar {
+        width: 46px;
+        height: 46px;
+        font-size: 17px;
+      }
+      .patient .pname {
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+      }
+      .patient .pmeta {
+        display: flex;
+        gap: 14px;
+        margin-top: 3px;
+        font-size: 12.5px;
+        color: var(--text-3);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .patient .pmeta .mono {
+        color: var(--text-2);
+      }
+      .sep {
+        width: 1px;
+        height: 11px;
+        background: var(--line-strong);
+      }
+      .patient .right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .slotbox {
+        text-align: right;
+      }
+      .slotbox .t {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      /* ===== grid 3 colunas ===== */
+      main.pront {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr) 290px;
+        gap: 16px;
+        padding: 18px 24px 80px;
+        max-width: 1500px;
+        margin: 0 auto;
+        align-items: start;
+      }
+      .col {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+        animation: rise 0.5s both;
+      }
+      .col.c1 { animation-delay: 0.04s; }
+      .col.c2 { animation-delay: 0.11s; }
+      .col.c3 { animation-delay: 0.18s; }
+      @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+      .field { margin-bottom: 13px; }
+      .field:last-child { margin-bottom: 0; }
+      .field > .micro { display: block; margin-bottom: 6px; }
+      .med {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 13px;
+        padding: 7px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .med:last-child { border-bottom: 0; }
+      .med .dose { color: var(--text-3); }
+      /* coluna 2 */
+      .note {
+        width: 100%;
+        min-height: 150px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--surface-2);
+        padding: 14px 15px;
+        font: inherit;
+        font-size: 14.5px;
+        line-height: 1.6;
+        color: var(--text);
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.18s, box-shadow 0.18s;
+      }
+      .note:focus {
+        border-color: var(--accent-line);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+        background: var(--surface);
+      }
+      .block-label { display: flex; align-items: center; gap: 8px; margin: 20px 0 11px; }
+      .block-label .micro { margin: 0; }
+      .block-label .hr { flex: 1; height: 1px; background: var(--line); }
+      .vitais { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+      .vital {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 10px 8px;
+        background: var(--surface-2);
+      }
+      .vital .vlabel {
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-3);
+      }
+      .vital .vval {
+        font-family: var(--font-mono);
+        font-size: 19px;
+        font-weight: 600;
+        line-height: 1.2;
+        margin-top: 3px;
+      }
+      .vital .vval .u { font-size: 11px; color: var(--text-3); font-weight: 500; }
+      .vital.flag {
+        border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+        background: var(--warn-soft);
+      }
+      .vital.flag .vval { color: var(--warn); }
+      .vital.derived { background: var(--accent-soft); border-color: var(--accent-line); }
+      .vital.derived .vval { color: var(--accent); }
+      .cidrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .cid {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 11px;
+        border-radius: 9px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface-2);
+        font-size: 13px;
+      }
+      .cid .code { font-family: var(--font-mono); font-weight: 600; color: var(--accent); }
+      .cid.principal { border-color: var(--accent-line); background: var(--accent-soft); }
+      .cid .tag {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid var(--accent-line);
+        border-radius: 5px;
+        padding: 1px 5px;
+      }
+      .cid-add { border: 1px dashed var(--line-strong); color: var(--text-3); background: transparent; cursor: pointer; }
+      .signbar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+      .signbar .hint { font-size: 11.5px; color: var(--text-3); max-width: 240px; }
+      /* coluna 3 */
+      .soon { opacity: 0.62; }
+      .soon .body { display: flex; align-items: center; gap: 12px; }
+      .soon .ico {
+        width: 36px; height: 36px;
+        border-radius: 9px;
+        background: var(--surface-sunken);
+        border: 1px solid var(--line);
+        display: grid; place-items: center;
+        color: var(--text-3); flex: none;
+        font-size: 18px;
+      }
+      .soon .ttl { font-size: 13.5px; font-weight: 700; }
+      .soon .pill {
+        font-size: 9px; font-weight: 700;
+        letter-spacing: 0.07em; text-transform: uppercase;
+        color: var(--text-3);
+        border: 1px dashed var(--line-strong);
+        border-radius: 6px; padding: 2px 6px;
+        margin-top: 3px; display: inline-block;
+      }
+      .lgpd { font-size: 11px; color: var(--text-3); line-height: 1.5; display: flex; gap: 8px; }
+      .lgpd .lk { color: var(--accent); flex: none; font-family: var(--font-mono); }
+      @media (max-width: 1080px) {
+        main.pront { grid-template-columns: 1fr; }
+        .col.c3 { order: 3; }
+      }
+      @media (max-width: 560px) {
+        .vitais { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .col { opacity: 1; transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 11px">
+        <span style="width: 36px; height: 36px; border-radius: 9px; background: var(--logo-bg); border: 1px solid var(--logo-ring); display: grid; place-items: center; overflow: hidden">
+          <img src="../public/logo/ifp-symbol.png" alt="IFP" style="width: 26px; height: 26px; object-fit: contain" />
+        </span>
+        <span style="display: flex; flex-direction: column; line-height: 1.2">
+          <b style="font-size: 14px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap">IFP Connect</b>
+          <span style="font-size: 11px; color: var(--text-3)">Centro Médico</span>
+        </span>
+      </div>
+      <nav style="display: flex; gap: 2px; margin-left: 8px">
+        <a href="#" style="font-size: 13px; font-weight: 600; color: var(--text-3); text-decoration: none; padding: 7px 12px; border-radius: 8px">Fila do dia</a>
+        <a href="#" style="font-size: 13px; font-weight: 600; color: var(--text-3); text-decoration: none; padding: 7px 12px; border-radius: 8px">Agenda</a>
+        <a href="#" style="font-size: 13px; font-weight: 600; color: var(--text); background: var(--surface-sunken); text-decoration: none; padding: 7px 12px; border-radius: 8px">Atendimento</a>
+      </nav>
+      <span class="spacer"></span>
+      <button class="toggle-pill" data-theme-toggle aria-label="Alternar tema">
+        <span class="dot"></span><span data-theme-label>Claro</span>
+      </button>
+    </header>
+
+    <section class="patient">
+      <div class="avatar">MF</div>
+      <div>
+        <div class="pname">Marcos Antônio Ferreira</div>
+        <div class="pmeta">
+          <span>54 anos · Masculino</span>
+          <span class="sep"></span>
+          <span class="mono">PRONT #04127</span>
+          <span class="sep"></span>
+          <span>Convênio: <b>Filantropia</b></span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="slotbox">
+          <div class="micro">Consulta de hoje</div>
+          <div class="t mono">14:30 · Clínico Geral</div>
+        </div>
+        <span class="badge badge-live"><span class="pulse"></span> Em atendimento</span>
+      </div>
+    </section>
+
+    <main class="pront">
+      <!-- COLUNA 1 — CONTEXTO -->
+      <div class="col c1">
+        <section class="card">
+          <header><span class="tick"></span><h3>Saúde do paciente</h3><button class="act">Editar</button></header>
+          <div class="body">
+            <div class="field">
+              <span class="micro">Tipo sanguíneo</span>
+              <span class="chip chip-mono chip-accent">O+</span>
+            </div>
+            <div class="field">
+              <span class="micro">Alergias</span>
+              <div class="chips"><span class="chip chip-danger">Dipirona</span><span class="chip chip-danger">Penicilina</span></div>
+            </div>
+            <div class="field">
+              <span class="micro">Condições crônicas</span>
+              <div class="chips"><span class="chip">Hipertensão (HAS)</span><span class="chip">Diabetes tipo 2</span></div>
+            </div>
+            <div class="field">
+              <span class="micro">Medicamentos em uso</span>
+              <div class="med"><span>Losartana</span><span class="dose mono">50&nbsp;mg · 1x/dia</span></div>
+              <div class="med"><span>Metformina</span><span class="dose mono">850&nbsp;mg · 2x/dia</span></div>
+            </div>
+          </div>
+        </section>
+        <section class="card">
+          <header><span class="tick"></span><h3>Histórico de atendimentos</h3></header>
+          <div class="body">
+            <div class="timeline">
+              <div class="tl-item">
+                <div class="tl-when">12/05/2026</div>
+                <div class="tl-title">Dr. João Silva</div>
+                <div class="tl-meta">Clínico Geral</div>
+                <div class="tl-body">Retorno de HAS. PA controlada com Losartana. Mantida conduta. Solicitado perfil lipídico.</div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-when">03/03/2026</div>
+                <div class="tl-title">Dra. Maria Santos</div>
+                <div class="tl-meta">Cardiologia</div>
+                <div class="tl-body">ECG sem alterações agudas. Orientado controle de peso e atividade física regular.</div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-when">18/11/2025</div>
+                <div class="tl-title">Enf. Ana Lima</div>
+                <div class="tl-meta">Enfermagem</div>
+                <div class="tl-body">Aferição de PA e glicemia capilar. Orientação sobre adesão medicamentosa.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- COLUNA 2 — EVOLUÇÃO -->
+      <div class="col c2">
+        <section class="card">
+          <header><span class="tick"></span><h3>Evolução do atendimento</h3><span class="act mono" style="color: var(--text-3)">rascunho · não assinada</span></header>
+          <div class="body" style="padding: 16px">
+            <textarea class="note" aria-label="Texto da evolução">
+Paciente comparece para retorno. Refere boa adesão ao tratamento anti-hipertensivo, sem queixas álgicas. Nega dispneia ou edema. Relata episódios ocasionais de cefaleia ao fim do dia.
+
+Ao exame: lúcido, orientado, corado, hidratado. ACV: ritmo regular, 2 tempos, sem sopros. AP: murmúrio vesicular presente bilateralmente.</textarea>
+            <div class="block-label"><span class="micro">Sinais vitais</span><span class="hr"></span></div>
+            <div class="vitais">
+              <div class="vital flag"><div class="vlabel">PA</div><div class="vval">138/86<span class="u"> mmHg</span></div></div>
+              <div class="vital"><div class="vlabel">FC</div><div class="vval">78<span class="u"> bpm</span></div></div>
+              <div class="vital"><div class="vlabel">FR</div><div class="vval">16<span class="u"> irpm</span></div></div>
+              <div class="vital"><div class="vlabel">Temp</div><div class="vval">36.4<span class="u"> °C</span></div></div>
+              <div class="vital"><div class="vlabel">SpO₂</div><div class="vval">97<span class="u"> %</span></div></div>
+              <div class="vital"><div class="vlabel">Peso</div><div class="vval">82.5<span class="u"> kg</span></div></div>
+              <div class="vital"><div class="vlabel">Altura</div><div class="vval">174<span class="u"> cm</span></div></div>
+              <div class="vital derived"><div class="vlabel">IMC ·&nbsp;deriv.</div><div class="vval">27.3</div></div>
+            </div>
+            <div class="block-label"><span class="micro">Diagnóstico (CID-10)</span><span class="hr"></span></div>
+            <div class="cidrow">
+              <span class="cid principal"><span class="code">I10</span> Hipertensão essencial <span class="tag">Principal</span></span>
+              <span class="cid"><span class="code">E11.9</span> Diabetes tipo 2</span>
+              <button class="cid cid-add">+ adicionar CID</button>
+            </div>
+            <div class="signbar">
+              <span class="hint">Ao assinar, a nota torna-se imutável e a consulta é concluída. Correções posteriores entram como addendo.</span>
+              <button class="btn btn-primary btn-lg" style="margin-left: auto">Assinar e concluir →</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- COLUNA 3 — AÇÕES (F1.B.3) -->
+      <div class="col c3">
+        <section class="card soon"><div class="body"><span class="ico">℞</span><div><div class="ttl">Prescrição</div><span class="pill">Chega no F1.B.3</span></div></div></section>
+        <section class="card soon"><div class="body"><span class="ico">⇄</span><div><div class="ttl">Encaminhamento</div><span class="pill">Chega no F1.B.3</span></div></div></section>
+        <section class="card soon"><div class="body"><span class="ico">✓</span><div><div class="ttl">Atestado</div><span class="pill">Chega no F1.B.3</span></div></div></section>
+        <section class="card">
+          <header><span class="tick" style="background: var(--text-3)"></span><h3>Privacidade</h3></header>
+          <div class="body">
+            <p class="lgpd"><span class="lk mono">●</span><span>Dado de saúde (LGPD art. 11). Esta abertura foi registrada na auditoria — quem acessou o prontuário de quem.</span></p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="scaffold-chrome.js"></script>
+  </body>
+</html>

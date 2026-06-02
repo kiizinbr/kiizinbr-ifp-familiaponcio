@@ -1,0 +1,134 @@
+<!doctype html>
+<!--
+  IFP CONNECT · SCAFFOLD — Login temático por unidade (porta cerimonial)
+  Fundo: foto institucional OU gradiente de fallback (hoje só gradiente).
+  Overlay da cor da unidade ~0.55. Card branco translúcido + leão + nome.
+  Troque a unidade no seletor de baixo p/ ver as 6 cores.
+-->
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar · IFP Connect</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <link rel="stylesheet" href="scaffold-chrome.css" />
+    <style>
+      body { background: none; }
+      .login-stage {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.6s ease;
+      }
+      .login-stage::before { /* overlay temático */
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--ov);
+        opacity: 0.55;
+        transition: background 0.6s ease;
+      }
+      .login-card {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        background: color-mix(in srgb, var(--surface) 95%, transparent);
+        backdrop-filter: blur(16px) saturate(1.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 26px;
+        box-shadow: 0 30px 80px rgba(20, 22, 22, 0.35);
+        padding: 34px 32px 30px;
+        text-align: center;
+        animation: lcin 0.5s both;
+      }
+      @keyframes lcin { from { opacity: 0; transform: translateY(10px); } }
+      .login-card .lion {
+        width: 56px; height: 56px; object-fit: contain;
+        margin: 0 auto 14px; display: block;
+      }
+      .login-card .uname { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; color: var(--ifp-brown-900); }
+      .login-card .inst { font-size: 12.5px; color: var(--text-3); margin-top: 2px; margin-bottom: 22px; }
+      .login-card .field-group { text-align: left; }
+      .lbtn {
+        width: 100%; color: #fff; border: 0; cursor: pointer;
+        font-family: inherit; font-weight: 700; font-size: 15px;
+        padding: 13px; border-radius: 12px; margin-top: 6px;
+        background: linear-gradient(135deg, var(--u1), var(--u2));
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--u1) 40%, transparent);
+        transition: transform 0.14s, box-shadow 0.14s;
+      }
+      .lbtn:hover { transform: translateY(-1px); }
+      .links { display: flex; justify-content: space-between; margin-top: 16px; font-size: 12.5px; }
+      .links a { color: var(--text-3); text-decoration: none; }
+      .links a:hover { color: var(--ifp-brown-900); }
+      .unitpicker {
+        position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+        z-index: 400; display: flex; gap: 6px;
+        background: var(--surface); border: 1px solid var(--line-strong);
+        border-radius: var(--r-full); padding: 6px; box-shadow: var(--shadow-pop);
+      }
+      .unitpicker button {
+        width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent;
+        cursor: pointer; transition: transform 0.14s, border-color 0.14s;
+      }
+      .unitpicker button:hover { transform: scale(1.12); }
+      .unitpicker button.on { border-color: var(--text); }
+    </style>
+  </head>
+  <body>
+    <div class="login-stage" id="stage">
+      <div class="login-card">
+        <img class="lion" src="../public/logo/ifp-symbol.png" alt="IFP" />
+        <div class="uname" id="uname">Centro Médico</div>
+        <div class="inst">Instituto Família Pôncio</div>
+        <div class="field-group">
+          <label class="label">E-mail</label>
+          <input class="input" type="email" placeholder="seu@email.com" />
+        </div>
+        <div class="field-group">
+          <label class="label">Senha</label>
+          <input class="input" type="password" placeholder="••••••••" />
+        </div>
+        <button class="lbtn" id="lbtn">Entrar</button>
+        <div class="links">
+          <a href="#">Esqueci a senha</a>
+          <a href="#">← Voltar</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="unitpicker" id="picker" aria-label="Trocar unidade"></div>
+
+    <script src="scaffold-chrome.js"></script>
+    <script>
+      var units = {
+        medico: { n: "Centro Médico", c1: "#007571", c2: "#10C2BB" },
+        capacitacao: { n: "Capacitação", c1: "#FF772E", c2: "#C24D0F" },
+        esportivo: { n: "Esportivo", c1: "#C24D0F", c2: "#752C05" },
+        recreativo: { n: "Recreativo", c1: "#10C2BB", c2: "#007571" },
+        poncio: { n: "Pôncio Executivo", c1: "#752C05", c2: "#4A4A49" },
+        social: { n: "Serviço Social", c1: "#4A4A49", c2: "#6B6B6B" },
+      };
+      var stage = document.getElementById("stage");
+      function apply(key) {
+        var u = units[key];
+        stage.style.background = "linear-gradient(135deg, " + u.c1 + ", " + u.c2 + ")";
+        stage.style.setProperty("--ov", u.c1);
+        document.getElementById("uname").textContent = u.n;
+        document.getElementById("lbtn").style.background = "linear-gradient(135deg," + u.c1 + "," + u.c2 + ")";
+        document.getElementById("lbtn").style.boxShadow = "0 8px 24px " + u.c1 + "66";
+        document.querySelectorAll("#picker button").forEach(function (b) { b.classList.toggle("on", b.dataset.u === key); });
+      }
+      var picker = document.getElementById("picker");
+      picker.innerHTML = Object.keys(units)
+        .map(function (k) { return "<button data-u='" + k + "' title='" + units[k].n + "' style='background:" + units[k].c1 + "'></button>"; })
+        .join("");
+      picker.addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) apply(b.dataset.u); });
+      apply("medico");
+    </script>
+  </body>
+</html>

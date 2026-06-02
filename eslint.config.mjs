@@ -13,6 +13,7 @@ export default tseslint.config(
       "next-env.d.ts",
       "*.config.{ts,mjs,js}",
       "tests/**",
+      "docs/**",
     ],
   },
   js.configs.recommended,

@@ -1,0 +1,199 @@
+<!doctype html>
+<!-- IFP Connect · Preview — Login + Home para Centro Médico e Capacitação -->
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview · Login + Home · IFP Connect</title>
+    <link rel="stylesheet" href="ifp-tokens.css" />
+    <link rel="stylesheet" href="ifp-components.css" />
+    <style>
+      body { padding: 0; }
+      .pv-top {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; align-items: center; gap: 14px;
+        padding: 16px 32px;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+      }
+      .pv-top .brand { display: flex; align-items: center; gap: 11px; }
+      .pv-top .brand .sym { width: 34px; height: 34px; border-radius: 9px; background: var(--logo-bg); border: 1px solid var(--logo-ring); display: grid; place-items: center; overflow: hidden; }
+      .pv-top .brand .sym img { width: 25px; height: 25px; object-fit: contain; }
+      .pv-top .brand b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+      .pv-top .spacer { flex: 1; }
+      .wrap { max-width: 1340px; margin: 0 auto; padding: 28px 32px 80px; }
+      .intro { margin-bottom: 26px; }
+      .intro .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+      .intro h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.025em; margin: 8px 0 6px; }
+      .intro p { font-size: 14.5px; color: var(--text-2); max-width: 680px; line-height: 1.6; margin: 0; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+      .col-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+      .col-head .sw { width: 13px; height: 13px; border-radius: 4px; }
+      .col-head .nm { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+      .col-head .tag { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+      .frame {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 22px;
+      }
+      .frame .chrome {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+      }
+      .frame .dots { display: flex; gap: 6px; }
+      .frame .dots i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+      .frame .url {
+        flex: 1; font-family: var(--font-mono); font-size: 11px; color: var(--text-3);
+        background: var(--surface-sunken); border: 1px solid var(--line); border-radius: var(--r-full);
+        padding: 5px 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .frame .open {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 11.5px; font-weight: 700; color: var(--accent); text-decoration: none;
+        border: 1px solid var(--accent-line); border-radius: var(--r-full); padding: 5px 11px;
+        transition: background var(--t-fast);
+      }
+      .frame .open:hover { background: var(--accent-soft); }
+      .viewport { position: relative; overflow: hidden; background: var(--surface-sunken); }
+      .viewport iframe { border: 0; display: block; transform-origin: top left; position: absolute; top: 0; left: 0; }
+      .scrim { position: absolute; inset: 0; cursor: zoom-in; }
+      .flabel {
+        position: absolute; left: 12px; top: 12px; z-index: 3;
+        font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+        color: #fff; background: rgba(20, 22, 22, 0.55); backdrop-filter: blur(6px);
+        border-radius: var(--r-full); padding: 4px 10px;
+      }
+      @media (max-width: 940px) { .cols { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="pv-top">
+      <div class="brand">
+        <span class="sym"><img src="public/logo/ifp-symbol.png" alt="IFP" /></span>
+        <b>IFP Connect</b>
+      </div>
+      <span class="badge badge-default" style="margin-left: 2px">Preview</span>
+      <span class="spacer"></span>
+      <a class="btn btn-ghost btn-sm" href="index.html">← Design Kit</a>
+      <button class="toggle-pill" id="themeToggle"><span class="dot"></span><span id="themeLabel">Claro</span></button>
+    </div>
+
+    <div class="wrap">
+      <div class="intro">
+        <div class="eyebrow">Preview · fluxo aplicado</div>
+        <h1>Login &amp; Home — Centro Médico e Capacitação</h1>
+        <p>
+          As duas unidades sobre a <b>mesma fundação</b>: fundo universal (o tom mais escuro), tipografia e componentes
+          idênticos. O que muda é só o <b>sotaque de cor do brandbook</b> — teal no Centro Médico, laranja na Capacitação.
+          Clique em qualquer tela para abrir em tamanho real.
+        </p>
+      </div>
+
+      <div class="cols">
+        <!-- COLUNA MÉDICO -->
+        <div>
+          <div class="col-head">
+            <span class="sw" style="background: #007571"></span>
+            <span class="nm">Centro Médico</span>
+            <span class="tag">unidade · saúde</span>
+          </div>
+          <div class="frame">
+            <div class="chrome">
+              <span class="dots"><i style="background: #ff5f57"></i><i style="background: #febc2e"></i><i style="background: #28c840"></i></span>
+              <span class="url">ifp.connect / centro-medico / entrar</span>
+              <a class="open" href="preview/login-medico.html" target="_blank">Tela cheia ↗</a>
+            </div>
+            <div class="viewport" data-src="preview/login-medico.html" data-w="1360" data-h="900" data-label="Login">
+              <span class="flabel">Login</span>
+            </div>
+          </div>
+          <div class="frame">
+            <div class="chrome">
+              <span class="dots"><i style="background: #ff5f57"></i><i style="background: #febc2e"></i><i style="background: #28c840"></i></span>
+              <span class="url">ifp.connect / centro-medico / fila-do-dia</span>
+              <a class="open" href="preview/home-medico.html" target="_blank">Tela cheia ↗</a>
+            </div>
+            <div class="viewport" data-src="preview/home-medico.html" data-w="1360" data-h="900" data-label="Home">
+              <span class="flabel">Home</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUNA CAPACITAÇÃO -->
+        <div>
+          <div class="col-head">
+            <span class="sw" style="background: #ff772e"></span>
+            <span class="nm">Capacitação</span>
+            <span class="tag">unidade · aprendizado</span>
+          </div>
+          <div class="frame">
+            <div class="chrome">
+              <span class="dots"><i style="background: #ff5f57"></i><i style="background: #febc2e"></i><i style="background: #28c840"></i></span>
+              <span class="url">ifp.connect / capacitacao / entrar</span>
+              <a class="open" href="preview/login-capacitacao.html" target="_blank">Tela cheia ↗</a>
+            </div>
+            <div class="viewport" data-src="preview/login-capacitacao.html" data-w="1360" data-h="900" data-label="Login">
+              <span class="flabel">Login</span>
+            </div>
+          </div>
+          <div class="frame">
+            <div class="chrome">
+              <span class="dots"><i style="background: #ff5f57"></i><i style="background: #febc2e"></i><i style="background: #28c840"></i></span>
+              <span class="url">ifp.connect / capacitacao / painel</span>
+              <a class="open" href="preview/home-capacitacao.html" target="_blank">Tela cheia ↗</a>
+            </div>
+            <div class="viewport" data-src="preview/home-capacitacao.html" data-w="1360" data-h="900" data-label="Home">
+              <span class="flabel">Home</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // tema
+      (function () {
+        var html = document.documentElement;
+        var saved = localStorage.getItem("ifp-theme");
+        if (saved) html.setAttribute("data-theme", saved);
+        var btn = document.getElementById("themeToggle"), label = document.getElementById("themeLabel");
+        function sync() { label.textContent = html.getAttribute("data-theme") === "dark" ? "Escuro" : "Claro"; }
+        sync();
+        btn.addEventListener("click", function () {
+          var dark = html.getAttribute("data-theme") === "dark";
+          html.setAttribute("data-theme", dark ? "light" : "dark");
+          localStorage.setItem("ifp-theme", dark ? "light" : "dark");
+          sync();
+        });
+      })();
+
+      // monta + escala os iframes para caber na coluna
+      function mountFrames() {
+        document.querySelectorAll(".viewport").forEach(function (vp) {
+          var w = +vp.dataset.w, h = +vp.dataset.h;
+          var iframe = vp.querySelector("iframe");
+          if (!iframe) {
+            iframe = document.createElement("iframe");
+            iframe.src = vp.dataset.src;
+            iframe.setAttribute("scrolling", "no");
+            iframe.setAttribute("loading", "lazy");
+            vp.appendChild(iframe);
+            var scrim = document.createElement("a");
+            scrim.className = "scrim";
+            scrim.href = vp.dataset.src;
+            scrim.target = "_blank";
+            scrim.title = "Abrir em tela cheia";
+            vp.appendChild(scrim);
+          }
+          iframe.style.width = w + "px";
+          iframe.style.height = h + "px";
+          var scale = vp.clientWidth / w;
+          iframe.style.transform = "scale(" + scale + ")";
+          vp.style.height = h * scale + "px";
+        });
+      }
+      mountFrames();
+      var rt;
+      window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(mountFrames, 150); });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- IFP Connect · Login — Centro Médico (fixo, unidade médico/teal) -->
+<html lang="pt-BR" data-theme="light" data-unit="medico">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar · Centro Médico</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <style>
+      body { background: none; }
+      .stage {
+        min-height: 100vh; display: grid; place-items: center; padding: 24px;
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #007571, #10c2bb);
+      }
+      .stage::before { content: ""; position: absolute; inset: 0; background: var(--unit); opacity: 0.5; }
+      .stage::after { /* textura sutil de grade clínica */
+        content: ""; position: absolute; inset: 0; opacity: 0.5;
+        background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .card {
+        position: relative; width: 100%; max-width: 416px;
+        background: color-mix(in srgb, var(--surface) 96%, transparent);
+        backdrop-filter: blur(18px) saturate(1.2);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 26px; box-shadow: 0 34px 90px rgba(8, 30, 29, 0.38);
+        padding: 36px 34px 30px; text-align: center;
+        animation: in 0.5s both;
+      }
+      @keyframes in { from { opacity: 0; transform: translateY(12px); } }
+      .lion { width: 58px; height: 58px; object-fit: contain; margin: 0 auto 14px; display: block; }
+      .uname { font-size: 23px; font-weight: 800; letter-spacing: -0.025em; color: var(--ifp-brown-900); }
+      .inst { font-size: 12.5px; color: var(--text-3); margin: 3px 0 24px; }
+      .field-group { text-align: left; }
+      .lbtn {
+        width: 100%; color: #fff; border: 0; cursor: pointer; font-family: inherit;
+        font-weight: 700; font-size: 15px; padding: 13px; border-radius: 12px; margin-top: 6px;
+        background: linear-gradient(135deg, #007571, #10c2bb);
+        box-shadow: 0 10px 26px rgba(0, 117, 113, 0.4);
+        transition: transform 0.14s;
+      }
+      .lbtn:hover { transform: translateY(-1px); }
+      .links { display: flex; justify-content: space-between; margin-top: 16px; font-size: 12.5px; }
+      .links a { color: var(--text-3); text-decoration: none; }
+      .links a:hover { color: var(--ifp-brown-900); }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="card">
+        <img class="lion" src="../public/logo/ifp-symbol.png" alt="IFP" />
+        <div class="uname">Centro Médico</div>
+        <div class="inst">Instituto Família Pôncio</div>
+        <div class="field-group">
+          <label class="label">E-mail</label>
+          <input class="input" type="email" placeholder="seu@email.com" value="joao.silva@ifp.org" />
+        </div>
+        <div class="field-group">
+          <label class="label">Senha</label>
+          <input class="input" type="password" placeholder="••••••••" value="········" />
+        </div>
+        <button class="lbtn">Entrar</button>
+        <div class="links">
+          <a href="#">Esqueci a senha</a>
+          <a href="#">Falar com a recepção</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
