@@ -44,7 +44,21 @@ export type AuditAction =
   | "prontuario_criado"
   | "prontuario_assinado"
   | "prontuario_addendo"
-  | "cidadao_saude_atualizada";
+  | "cidadao_saude_atualizada"
+  // Capacitação (F1.A.1)
+  | "curso_criado"
+  | "curso_atualizado"
+  | "curso_desativado"
+  | "turma_criada"
+  | "turma_atualizada"
+  | "turma_cancelada"
+  | "instrutor_criado"
+  | "instrutor_atualizado"
+  | "matricula_criada"
+  | "matricula_confirmada"
+  | "matricula_transicionada"
+  | "matricula_cancelada"
+  | "lista_espera_promovida";
 
 interface LogEventArgs {
   userId?: string | null;

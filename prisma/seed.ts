@@ -339,6 +339,184 @@ async function seedMedico() {
   );
 }
 
+// ── Capacitação (F1.A.1) — cursos, instrutores, turmas e matrículas demo ──
+async function seedCapacitacao(createdById: string) {
+  const CURSOS_SEED = [
+    {
+      id: "seed-curso-info",
+      nome: "Informática Básica",
+      area: "Tecnologia",
+      cargaHorariaTotal: 40,
+      modalidade: "presencial",
+      capacidadePadrao: 16,
+      descricao:
+        "Windows, internet, e-mail e o pacote Office para o dia a dia e o mercado de trabalho.",
+    },
+    {
+      id: "seed-curso-costura",
+      nome: "Corte e Costura",
+      area: "Geração de Renda",
+      cargaHorariaTotal: 60,
+      modalidade: "presencial",
+      capacidadePadrao: 12,
+      descricao: "Do molde ao acabamento: costura reta, overloque e peças sob medida.",
+    },
+    {
+      id: "seed-curso-padaria",
+      nome: "Panificação Artesanal",
+      area: "Gastronomia",
+      cargaHorariaTotal: 80,
+      modalidade: "presencial",
+      capacidadePadrao: 10,
+      descricao: "Pães, fermentação natural e confeitaria básica para geração de renda familiar.",
+    },
+  ] as const;
+
+  for (const c of CURSOS_SEED) {
+    await db.curso.upsert({
+      where: { id: c.id },
+      update: {
+        nome: c.nome,
+        area: c.area,
+        descricao: c.descricao,
+        cargaHorariaTotal: c.cargaHorariaTotal,
+        modalidade: c.modalidade,
+        capacidadePadrao: c.capacidadePadrao,
+        ativo: true,
+      },
+      create: {
+        id: c.id,
+        nome: c.nome,
+        area: c.area,
+        descricao: c.descricao,
+        cargaHorariaTotal: c.cargaHorariaTotal,
+        modalidade: c.modalidade,
+        capacidadePadrao: c.capacidadePadrao,
+        createdById,
+      },
+    });
+  }
+
+  const INSTRUTORES_SEED = [
+    {
+      id: "seed-instr-carlos",
+      nomeExibicao: "Prof. Carlos Andrade",
+      bio: "Analista de sistemas com 12 anos de docência em inclusão digital.",
+    },
+    {
+      id: "seed-instr-marta",
+      nomeExibicao: "Profa. Marta Lúcia",
+      bio: "Estilista e costureira industrial; oficinas de geração de renda.",
+    },
+  ] as const;
+
+  for (const i of INSTRUTORES_SEED) {
+    await db.instrutor.upsert({
+      where: { id: i.id },
+      update: { nomeExibicao: i.nomeExibicao, bio: i.bio, ativo: true },
+      create: { id: i.id, nomeExibicao: i.nomeExibicao, bio: i.bio },
+    });
+  }
+
+  const hoje = startOfDaySeed(new Date());
+  const TURMAS_SEED = [
+    {
+      codigo: "INFO-2026-01",
+      cursoId: "seed-curso-info",
+      instrutorId: "seed-instr-carlos",
+      status: "inscricoes_abertas",
+      capacidade: 4, // pequena de propósito → demonstra lista de espera
+      local: "Sala 2 — Sede",
+      inicio: addDaysSeed(hoje, 7),
+      fim: addDaysSeed(hoje, 45),
+    },
+    {
+      codigo: "COST-2026-01",
+      cursoId: "seed-curso-costura",
+      instrutorId: "seed-instr-marta",
+      status: "em_andamento",
+      capacidade: 12,
+      local: "Ateliê — Anexo",
+      inicio: addDaysSeed(hoje, -10),
+      fim: addDaysSeed(hoje, 30),
+    },
+    {
+      codigo: "PAO-2026-01",
+      cursoId: "seed-curso-padaria",
+      instrutorId: null,
+      status: "planejada",
+      capacidade: 10,
+      local: "Cozinha-escola",
+      inicio: addDaysSeed(hoje, 20),
+      fim: addDaysSeed(hoje, 60),
+    },
+  ] as const;
+
+  const turmaIdByCodigo = new Map<string, string>();
+  for (const t of TURMAS_SEED) {
+    const turma = await db.turma.upsert({
+      where: { codigo: t.codigo },
+      update: {
+        cursoId: t.cursoId,
+        instrutorId: t.instrutorId,
+        status: t.status,
+        capacidade: t.capacidade,
+        local: t.local,
+        dataInicio: t.inicio,
+        dataFim: t.fim,
+      },
+      create: {
+        codigo: t.codigo,
+        cursoId: t.cursoId,
+        instrutorId: t.instrutorId,
+        status: t.status,
+        capacidade: t.capacidade,
+        local: t.local,
+        dataInicio: t.inicio,
+        dataFim: t.fim,
+      },
+    });
+    turmaIdByCodigo.set(t.codigo, turma.id);
+  }
+
+  const cidadaos = await db.cidadao.findMany({
+    orderBy: { nomeCompleto: "asc" },
+    take: 8,
+    select: { id: true },
+  });
+
+  // (índice do cidadão, código da turma, status) — desenha um estado de demo rico:
+  // INFO lotada (4 ativos) + 2 na lista de espera; COST em andamento com 1 concluído.
+  const MATRICULAS_SEED = [
+    { ci: 0, turma: "INFO-2026-01", status: "confirmado" },
+    { ci: 1, turma: "INFO-2026-01", status: "confirmado" },
+    { ci: 2, turma: "INFO-2026-01", status: "cursando" },
+    { ci: 3, turma: "INFO-2026-01", status: "inscrito" },
+    { ci: 4, turma: "INFO-2026-01", status: "lista_espera" },
+    { ci: 5, turma: "INFO-2026-01", status: "lista_espera" },
+    { ci: 1, turma: "COST-2026-01", status: "cursando" },
+    { ci: 6, turma: "COST-2026-01", status: "cursando" },
+    { ci: 7, turma: "COST-2026-01", status: "concluido" },
+  ] as const;
+
+  let matriculas = 0;
+  for (const m of MATRICULAS_SEED) {
+    const cidadao = cidadaos[m.ci];
+    const turmaId = turmaIdByCodigo.get(m.turma);
+    if (!cidadao || !turmaId) continue;
+    await db.matricula.upsert({
+      where: { turmaId_cidadaoId: { turmaId, cidadaoId: cidadao.id } },
+      update: { status: m.status },
+      create: { turmaId, cidadaoId: cidadao.id, status: m.status, createdBy: createdById },
+    });
+    matriculas++;
+  }
+
+  console.log(
+    `[seed] capacitacao ok: ${CURSOS_SEED.length} cursos, ${INSTRUTORES_SEED.length} instrutores, ${TURMAS_SEED.length} turmas, ${matriculas} matriculas`,
+  );
+}
+
 async function main() {
   await seedRoles();
 
@@ -364,6 +542,9 @@ async function main() {
 
   // Centro Médico — especialidades + profissionais + slots (F1.B.1)
   await seedMedico();
+
+  // Capacitação — cursos + instrutores + turmas + matrículas (F1.A.1)
+  await seedCapacitacao(erick.id);
 }
 
 main().finally(() => db.$disconnect());
