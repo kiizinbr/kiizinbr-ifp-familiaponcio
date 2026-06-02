@@ -1,0 +1,561 @@
+/*
+  Prontuário 3-col — kit "Ferramenta Clínica Premium" ESCOPADO (sem tocar globals.css).
+  Tokens do kit redefinidos localmente no .root (tema claro); componentes + estilos da
+  tela reimplementados aqui pra não vazar pro resto do app. Fonte: design-kit scaffold
+  prontuario-3col.html + ifp-tokens/ifp-components.css.
+*/
+
+.root {
+  /* --- tokens do kit (claro), escopados --- */
+  --surface: #ffffff;
+  --surface-2: #f6f8f8;
+  --surface-sunken: #edf0f0;
+  --line: #dfe3e3;
+  --line-strong: #ccd2d2;
+  --text: #1b1d1d;
+  --text-2: #4a4a49;
+  --text-3: #82888a;
+  --accent: #007571; /* teal — saúde/médico */
+  --accent-soft: rgba(0, 117, 113, 0.09);
+  --accent-line: rgba(0, 117, 113, 0.28);
+  --live: #ff772e; /* laranja — agora/urgência */
+  --live-soft: rgba(255, 119, 46, 0.12);
+  --warn: #b45309;
+  --warn-soft: rgba(180, 83, 9, 0.12);
+  --danger: #ba1a1a;
+  --danger-soft: rgba(186, 26, 26, 0.09);
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --shadow: 0 1px 2px rgba(20, 22, 22, 0.04), 0 8px 24px rgba(20, 22, 22, 0.05);
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+.micro {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ===== patient strip ===== */
+.patient {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #0a3f3d);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 17px;
+  flex: none;
+}
+.pname {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.pmeta {
+  display: flex;
+  gap: 14px;
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--text-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.pmeta b {
+  color: var(--text-2);
+}
+.sep {
+  width: 1px;
+  height: 11px;
+  background: var(--line-strong);
+}
+.right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.slotbox {
+  text-align: right;
+}
+.slotT {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ===== badge ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.badgeLive {
+  color: var(--live);
+  background: var(--live-soft);
+  border-color: color-mix(in srgb, var(--live) 30%, transparent);
+}
+.badgeOk {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: pulse 1.9s infinite;
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+/* ===== grid 3 colunas ===== */
+.pront {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 290px;
+  gap: 16px;
+  align-items: start;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ===== card ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--line);
+}
+.tick {
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: none;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.headNote {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.body {
+  padding: 14px 15px;
+}
+
+/* ===== contexto: saúde + medicamentos ===== */
+.field {
+  margin-bottom: 13px;
+}
+.field:last-child {
+  margin-bottom: 0;
+}
+.fieldLabel {
+  display: block;
+  margin-bottom: 6px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+}
+.chipDanger {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+}
+.chipAccent {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+.med {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.med:last-child {
+  border-bottom: 0;
+}
+.dose {
+  color: var(--text-3);
+}
+.muted {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+/* ===== histórico timeline ===== */
+.timeline {
+  position: relative;
+  padding-left: 16px;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: 1.5px;
+  background: var(--line-strong);
+}
+.tlItem {
+  position: relative;
+  padding-bottom: 14px;
+}
+.tlItem:last-child {
+  padding-bottom: 0;
+}
+.tlItem::before {
+  content: "";
+  position: absolute;
+  left: -14.5px;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+}
+.tlWhen {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+.tlTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  margin: 2px 0 1px;
+}
+.tlMeta {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.tlBody {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 3px;
+}
+
+/* ===== evolução ===== */
+.note {
+  width: 100%;
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-2);
+  padding: 14px 15px;
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+}
+.note:focus {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--surface);
+}
+.noteReadonly {
+  white-space: pre-wrap;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.blockLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 11px;
+}
+.hr {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.vitais {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.vital {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 10px 8px;
+  background: var(--surface-2);
+}
+.vlabel {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.vinput {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+  margin-top: 3px;
+  padding: 0;
+}
+.vinput::placeholder {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.vval {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 3px;
+}
+.vu {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.vitalDerived {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.vitalDerived .vval {
+  color: var(--accent);
+}
+
+/* ===== CID ===== */
+.cidrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.cid {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+.cidPrincipal {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.cidCode {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent);
+}
+.cidInput {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+  padding: 8px 11px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.cidInput:focus {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cidCodeInput {
+  width: 90px;
+  font-family: var(--font-mono);
+}
+
+/* ===== ações de assinar ===== */
+.signbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.hint {
+  font-size: 11.5px;
+  color: var(--text-3);
+  max-width: 260px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 11px 18px;
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btnPrimary {
+  color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #fff), var(--accent));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.btnSecondary {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+.btnGrow {
+  margin-left: auto;
+}
+
+/* ===== ações (coluna 3 — placeholders F1.B.3) ===== */
+.soon {
+  opacity: 0.62;
+}
+.soonBody {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 15px;
+}
+.ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  flex: none;
+  font-size: 18px;
+}
+.soonTtl {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.pill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-top: 3px;
+  display: inline-block;
+}
+.lgpd {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.5;
+  display: flex;
+  gap: 8px;
+}
+.lk {
+  color: var(--accent);
+  flex: none;
+  font-family: var(--font-mono);
+}
+.addendo {
+  border-left: 2px solid var(--accent-line);
+  padding: 8px 0 8px 12px;
+  margin-top: 10px;
+}
+.addendoMeta {
+  font-size: 10.5px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  margin-bottom: 3px;
+}
+
+@media (max-width: 1080px) {
+  .pront {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .vitais {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
