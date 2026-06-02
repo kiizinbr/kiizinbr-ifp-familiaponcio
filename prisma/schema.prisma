@@ -38,6 +38,10 @@ model User {
   // Médico (F1.B.1) — reverse relation
   profissional Profissional?
 
+  // Capacitação (F1.A.1) — reverse relations
+  cursosCriados Curso[]    @relation("CursoCriadoPor")
+  instrutor     Instrutor?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -239,6 +243,7 @@ model Cidadao {
   agendamentos Agendamento[]
   consultas    Consulta[]
   notasEvolucao NotaEvolucao[]
+  matriculas   Matricula[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -628,4 +633,102 @@ model Cid10 {
   capitulo  String?
 
   @@index([descricao])
+}
+
+// ============================================================
+// F1.A.1 — Capacitação (Catálogo + Turma + Matrícula)
+// ============================================================
+
+/// §0.1 — Curso = template reutilizável; Turmas datadas são instâncias dele.
+model Curso {
+  id                String   @id @default(cuid())
+  nome              String
+  descricao         String?  @db.Text
+  area              String
+  cargaHorariaTotal Int
+  modalidade        String   @default("presencial") // presencial | online | hibrido
+  capacidadePadrao  Int      @default(20)
+  thumbUrl          String?
+  ativo             Boolean  @default(true) // soft-delete
+  turmas            Turma[]
+  createdById       String
+  createdBy         User     @relation("CursoCriadoPor", fields: [createdById], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([ativo, area])
+}
+
+/// §0.4 — Instrutor. userId nullable: null = ainda sem login (F1.A.1); login = F1.A.2.
+model Instrutor {
+  id           String   @id @default(cuid())
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  nomeExibicao String
+  bio          String?  @db.Text
+  ativo        Boolean  @default(true)
+  turmas       Turma[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum StatusTurma {
+  planejada
+  inscricoes_abertas
+  em_andamento
+  concluida
+  cancelada
+}
+
+/// §0.1 — Turma = instância datada de um Curso. Soft-delete da turma = status=cancelada.
+model Turma {
+  id          String      @id @default(cuid())
+  cursoId     String
+  curso       Curso       @relation(fields: [cursoId], references: [id], onDelete: Restrict)
+  instrutorId String?
+  instrutor   Instrutor?  @relation(fields: [instrutorId], references: [id], onDelete: SetNull)
+  codigo      String      @unique
+  dataInicio  DateTime    @db.Date
+  dataFim     DateTime    @db.Date
+  local       String?
+  capacidade  Int
+  status      StatusTurma @default(planejada)
+  observacoes String?     @db.Text
+  matriculas  Matricula[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([cursoId, status])
+  @@index([status, dataInicio])
+}
+
+enum StatusMatricula {
+  inscrito
+  confirmado
+  cursando
+  concluido
+  reprovado
+  desistente
+  lista_espera
+  cancelado
+}
+
+/// §0.2 reusa Cidadao via cidadaoId; §0.7 máquina de estados completa.
+model Matricula {
+  id              String          @id @default(cuid())
+  turmaId         String
+  turma           Turma           @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+  cidadaoId       String
+  cidadao         Cidadao         @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
+  status          StatusMatricula @default(inscrito)
+  origemTriagemId String?
+  observacoes     String?         @db.Text
+  motivoSaida     String?
+  createdBy       String // userId
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([turmaId, cidadaoId])
+  @@index([turmaId, status])
+  @@index([cidadaoId])
 }
