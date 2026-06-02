@@ -1,4 +1,6 @@
 import type { StatusNota } from "@prisma/client";
+import { db } from "@/lib/db";
+import { aplicarTransicaoConsulta } from "@/lib/medico/agenda";
 
 /**
  * Núcleo do prontuário médico (F1.B.2). Este arquivo concentra as funções PURAS
@@ -94,4 +96,125 @@ export class TransicaoNotaInvalidaError extends Error {
     super(`Transição de nota inválida: ${de} → ${para}`);
     this.name = "TransicaoNotaInvalidaError";
   }
+}
+
+// ============================================================================
+// T5 — orquestração transacional (salvar rascunho / assinar / addendo)
+// ============================================================================
+
+export class NotaAssinadaError extends Error {
+  constructor(public readonly notaId: string) {
+    super(`Nota ${notaId} já está assinada; correções devem ser feitas via addendo`);
+    this.name = "NotaAssinadaError";
+  }
+}
+
+export class NotaNaoAssinadaError extends Error {
+  constructor(public readonly notaId: string) {
+    super(`Nota ${notaId} ainda não está assinada; addendo só é permitido após a assinatura`);
+    this.name = "NotaNaoAssinadaError";
+  }
+}
+
+export interface DiagnosticoInput {
+  codigoCid?: string | null;
+  descricao: string;
+  principal?: boolean;
+}
+
+export interface SalvarRascunhoInput {
+  consultaId: string;
+  cidadaoId: string;
+  profissionalId: string;
+  texto?: string | null;
+  vitais?: SinaisVitaisInput;
+  diagnosticos?: DiagnosticoInput[];
+}
+
+/**
+ * Upsert da nota de evolução enquanto a consulta está em atendimento (§0.3).
+ * Rejeita com NotaAssinadaError se a nota já foi assinada (imutável — §0.4).
+ * Quando `diagnosticos` é fornecido, recria a lista (deleteMany → createMany).
+ */
+export async function salvarRascunho(input: SalvarRascunhoInput) {
+  return db.$transaction(async (tx) => {
+    const existente = await tx.notaEvolucao.findUnique({
+      where: { consultaId: input.consultaId },
+    });
+    if (existente && existente.status === "assinada") {
+      throw new NotaAssinadaError(existente.id);
+    }
+
+    const { vitais } = input;
+    const dados = {
+      cidadaoId: input.cidadaoId,
+      profissionalId: input.profissionalId,
+      texto: input.texto ?? null,
+      paSistolica: vitais?.paSistolica ?? null,
+      paDiastolica: vitais?.paDiastolica ?? null,
+      fcBpm: vitais?.fcBpm ?? null,
+      frIrpm: vitais?.frIrpm ?? null,
+      tempC: vitais?.tempC ?? null,
+      pesoKg: vitais?.pesoKg ?? null,
+      alturaCm: vitais?.alturaCm ?? null,
+      spo2: vitais?.spo2 ?? null,
+    };
+
+    const nota = await tx.notaEvolucao.upsert({
+      where: { consultaId: input.consultaId },
+      create: { consultaId: input.consultaId, ...dados },
+      update: dados,
+    });
+
+    if (input.diagnosticos) {
+      await tx.diagnosticoNota.deleteMany({ where: { notaId: nota.id } });
+      if (input.diagnosticos.length > 0) {
+        await tx.diagnosticoNota.createMany({
+          data: input.diagnosticos.map((d) => ({
+            notaId: nota.id,
+            codigoCid: d.codigoCid ?? null,
+            descricao: d.descricao,
+            principal: d.principal ?? false,
+          })),
+        });
+      }
+    }
+
+    return nota;
+  });
+}
+
+/**
+ * Assina a nota e conclui a consulta atomicamente (§3/§5 fluxo A). "Assinar e
+ * concluir" = ato único: marca a nota como assinada (imutável) e transiciona a
+ * consulta em_atendimento → realizada na MESMA transação, reusando
+ * aplicarTransicaoConsulta (evita $transaction aninhado).
+ */
+export async function assinarNota(notaId: string, userId: string) {
+  return db.$transaction(async (tx) => {
+    const nota = await tx.notaEvolucao.findUniqueOrThrow({ where: { id: notaId } });
+    if (!podeTransicionarNota(nota.status, "assinada")) {
+      throw new TransicaoNotaInvalidaError(nota.status, "assinada");
+    }
+    const assinada = await tx.notaEvolucao.update({
+      where: { id: notaId },
+      data: { status: "assinada", assinadaEm: new Date(), assinadaPor: userId },
+    });
+    await aplicarTransicaoConsulta(tx, nota.consultaId, "realizada");
+    return assinada;
+  });
+}
+
+/**
+ * Adiciona um addendo append-only a uma nota ASSINADA (§0.4). Nunca toca o
+ * registro original. Rejeita com NotaNaoAssinadaError se a nota ainda é rascunho.
+ */
+export async function adicionarAddendo(notaId: string, autorId: string, texto: string) {
+  return db.$transaction(async (tx) => {
+    const nota = await tx.notaEvolucao.findUniqueOrThrow({ where: { id: notaId } });
+    if (nota.status !== "assinada") {
+      throw new NotaNaoAssinadaError(notaId);
+    }
+    return tx.addendoNota.create({ data: { notaId, autorId, texto } });
+  });
 }

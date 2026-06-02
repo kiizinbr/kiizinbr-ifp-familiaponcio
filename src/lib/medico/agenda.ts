@@ -1,4 +1,4 @@
-import type { StatusConsulta } from "@prisma/client";
+import type { Prisma, StatusConsulta } from "@prisma/client";
 import { db } from "@/lib/db";
 
 export interface TemplateInput {
@@ -201,15 +201,27 @@ export async function liberarSlot(slotId: string, motivoCancelamento: string) {
   });
 }
 
+/**
+ * Aplica a transição de status da consulta DENTRO de uma transação existente
+ * (`tx`). Extraído de `transicionarConsulta` para ser reutilizável por outros
+ * fluxos transacionais (ex.: `assinarNota` do prontuário) SEM aninhar
+ * `$transaction` (Prisma não suporta aninhamento transparente).
+ */
+export async function aplicarTransicaoConsulta(
+  tx: Prisma.TransactionClient,
+  consultaId: string,
+  para: StatusConsulta,
+) {
+  const c = await tx.consulta.findUniqueOrThrow({ where: { id: consultaId } });
+  if (!TRANSICOES[c.status].has(para)) {
+    throw new TransicaoInvalidaError(c.status, para);
+  }
+  const updated = await tx.consulta.update({ where: { id: consultaId }, data: { status: para } });
+  const slotStatus = STATUS_SLOT_DERIVADO[para];
+  await tx.slot.update({ where: { id: c.slotId }, data: { status: slotStatus } });
+  return updated;
+}
+
 export async function transicionarConsulta(consultaId: string, para: StatusConsulta) {
-  return db.$transaction(async (tx) => {
-    const c = await tx.consulta.findUniqueOrThrow({ where: { id: consultaId } });
-    if (!TRANSICOES[c.status].has(para)) {
-      throw new TransicaoInvalidaError(c.status, para);
-    }
-    const updated = await tx.consulta.update({ where: { id: consultaId }, data: { status: para } });
-    const slotStatus = STATUS_SLOT_DERIVADO[para];
-    await tx.slot.update({ where: { id: c.slotId }, data: { status: slotStatus } });
-    return updated;
-  });
+  return db.$transaction((tx) => aplicarTransicaoConsulta(tx, consultaId, para));
 }
