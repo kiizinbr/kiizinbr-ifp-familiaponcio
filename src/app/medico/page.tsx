@@ -5,29 +5,26 @@ import type { StatusConsulta } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import { MedicoShell } from "@/components/medico/medico-shell";
-import {
-  EditorialCanvas,
-  Masthead,
-  KpiLedger,
-  Agenda,
-  TimelineRow,
-  EditorialEmpty,
-  Colophon,
-} from "@/components/editorial";
+import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { KpiCard } from "@/components/kpi-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 
 const STATUS_EM_FILA = ["agendada", "confirmada", "em_atendimento"] as const;
 
-/** status de domínio → badge editorial (kind + label PT-BR). */
+type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
+
+/** status de domínio → badge do kit (variant + label PT-BR). */
 const STATUS_BADGE = {
-  agendada: { kind: "scheduled", label: "Agendada" },
-  confirmada: { kind: "confirmed", label: "Confirmada" },
-  em_atendimento: { kind: "now", label: "Agora" },
-  realizada: { kind: "done", label: "Realizada" },
-  faltou: { kind: "danger", label: "Faltou" },
-  cancelada: { kind: "muted", label: "Cancelada" },
-} as const satisfies Record<StatusConsulta, { kind: string; label: string }>;
+  agendada: { variant: "info", label: "Agendada" },
+  confirmada: { variant: "success", label: "Confirmada" },
+  em_atendimento: { variant: "info", label: "Agora" },
+  realizada: { variant: "default", label: "Realizada" },
+  faltou: { variant: "danger", label: "Faltou" },
+  cancelada: { variant: "default", label: "Cancelada" },
+} as const satisfies Record<StatusConsulta, { variant: BadgeVariant; label: string }>;
 
 export default async function MedicoHomePage() {
   const session = await auth();
@@ -85,94 +82,196 @@ export default async function MedicoHomePage() {
 
   return (
     <MedicoShell session={session}>
-      <EditorialCanvas fullBleed>
-        <Masthead
-          kicker="Instituto Família Pôncio · Centro Médico"
-          title="Fila"
-          titleEm="do dia"
-          dateWeekday={dataWeekday}
-          dateFull={dataFull}
-          action={
-            podeMarcarConsulta(session) ? (
-              <Link
-                href={"/medico/consultas/nova" as Route}
-                style={{
-                  display: "inline-block",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "#fff",
-                  background: "rgb(var(--ifp-orange-500))",
-                  padding: "12px 18px",
-                  borderRadius: "2px",
-                  textDecoration: "none",
-                }}
-              >
+      <MedicoHeader
+        eyebrow="Instituto Família Pôncio · Centro Médico"
+        titulo="Fila do dia"
+        descricao={`${dataWeekday} · ${dataFull}`}
+        acao={
+          podeMarcarConsulta(session) ? (
+            <Link href={"/medico/consultas/nova" as Route}>
+              <Button variant="primary" size="sm">
                 + Marcar consulta
-              </Link>
-            ) : undefined
-          }
-        />
+              </Button>
+            </Link>
+          ) : undefined
+        }
+      />
 
-        <KpiLedger
-          items={[
-            { label: "Na fila", value: emAndamento, suffix: "aguardando", tone: "orange" },
-            { label: "Realizadas hoje", value: realizadas, suffix: "concluídas", tone: "teal" },
-            {
-              label: "Slots livres",
-              value: slotsLivresHoje,
-              suffix: "vagos",
-              tone: "ink",
-              hint: `${consultas7d} agendadas em 7 dias`,
-            },
-          ]}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: 16,
+          marginBottom: 28,
+        }}
+      >
+        <KpiCard label="Na fila" value={`${emAndamento} aguardando`} />
+        <KpiCard label="Realizadas hoje" value={`${realizadas} concluídas`} />
+        <KpiCard
+          label="Slots livres"
+          value={`${slotsLivresHoje} vagos`}
+          hint={`${consultas7d} agendadas em 7 dias`}
         />
+      </div>
 
-        <Agenda title="A pauta de hoje" legend={legend}>
-          {consultasHoje.length === 0 ? (
-            <EditorialEmpty
-              title="Dia livre por enquanto"
-              text="Nenhuma consulta agendada para hoje. Marque a primeira pelo botão acima."
-            />
-          ) : (
-            consultasHoje.map((c, i) => {
+      <section>
+        <header
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
+          <h2 className="t-h2" style={{ color: "var(--text)" }}>
+            A pauta de hoje
+          </h2>
+          {legend.length > 0 && (
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {legend.map((l) => (
+                <span
+                  key={l.label}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 11,
+                    color: "var(--text-3)",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: l.color,
+                      flex: "none",
+                    }}
+                  />
+                  {l.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </header>
+
+        {consultasHoje.length === 0 ? (
+          <EmptyState
+            titulo="Dia livre por enquanto"
+            descricao="Nenhuma consulta agendada para hoje. Marque a primeira pelo botão acima."
+          />
+        ) : (
+          <div className="timeline">
+            {consultasHoje.map((c) => {
               const badge = STATUS_BADGE[c.status];
               const isNow = c.status === "em_atendimento";
               const hora = c.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
                 minute: "2-digit",
               });
+              const durationMin = c.slot.duracaoMin;
               const elapsedMin = isNow
                 ? Math.max(
                     0,
                     Math.floor((agora.getTime() - c.slot.dataHoraInicio.getTime()) / 60000),
                   )
                 : undefined;
+              const prog =
+                isNow && durationMin && elapsedMin != null
+                  ? Math.max(4, Math.min(100, Math.round((elapsedMin / durationMin) * 100)))
+                  : undefined;
               return (
-                <TimelineRow
+                <Link
                   key={c.id}
-                  href={`/medico/consultas/${c.id}`}
-                  time={hora}
-                  durationMin={c.slot.duracaoMin}
-                  specColor={c.especialidade.corDestaque}
-                  specName={c.especialidade.nome}
-                  patientName={c.cidadao.nomeCompleto}
-                  proName={c.profissional.nomeExibicao}
-                  variant={isNow ? "now" : "default"}
-                  statusKind={badge.kind}
-                  statusLabel={badge.label}
-                  elapsedMin={elapsedMin}
-                  delaySec={i * 0.07}
-                />
+                  href={`/medico/consultas/${c.id}` as Route}
+                  className={`tl-item${isNow ? " live" : ""}`}
+                  style={{ display: "block", textDecoration: "none", color: "inherit" }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <span className="tl-when">
+                        {hora}
+                        {durationMin != null && ` · ${durationMin} min`}
+                      </span>
+                      <div className="tl-title" style={{ color: "var(--text)" }}>
+                        {c.cidadao.nomeCompleto}
+                      </div>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          fontSize: 11,
+                          color: "var(--text-3)",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            background: c.especialidade.corDestaque,
+                            flex: "none",
+                          }}
+                        />
+                        {c.especialidade.nome}
+                      </span>
+                      <div className="tl-meta">{c.profissional.nomeExibicao}</div>
+                    </div>
+                    <div style={{ flex: "none" }}>
+                      {isNow ? (
+                        <span className="badge badge-live">
+                          <span className="pulse" />
+                          EM ATENDIMENTO
+                        </span>
+                      ) : (
+                        <Badge variant={badge.variant}>{badge.label}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  {isNow && elapsedMin != null && prog != null && (
+                    <div style={{ marginTop: 6 }}>
+                      <span style={{ fontSize: 11, color: "var(--live)", fontWeight: 600 }}>
+                        em curso · ~{elapsedMin} min
+                      </span>
+                      <div
+                        style={{
+                          height: 4,
+                          borderRadius: 999,
+                          background: "var(--live-soft)",
+                          marginTop: 3,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${prog}%`,
+                            height: "100%",
+                            borderRadius: 999,
+                            background: "var(--live)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </Link>
               );
-            })
-          )}
-        </Agenda>
+            })}
+          </div>
+        )}
+      </section>
 
-        <Colophon left="Centro Médico · Duque de Caxias / RJ" right="Atualizado em tempo real" />
-      </EditorialCanvas>
+      <p className="micro" style={{ marginTop: 32, color: "var(--text-3)" }}>
+        Centro Médico · Duque de Caxias / RJ · Atualizado em tempo real
+      </p>
     </MedicoShell>
   );
 }

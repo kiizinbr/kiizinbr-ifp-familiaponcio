@@ -13,44 +13,53 @@ export default async function PoncioDashboardPage() {
 
   return (
     <main
-      className="min-h-screen"
-      style={{
-        backgroundColor: "rgb(var(--ifp-surface-50))",
-        padding: "var(--ifp-space-12)",
-      }}
+      className="ifp-kit"
+      data-unit="poncio"
+      data-unit-accent=""
+      style={{ minHeight: "100vh", padding: "var(--sp-12)" }}
     >
-      <div className="mx-auto max-w-5xl">
-        <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+      <div style={{ maxWidth: 1024, margin: "0 auto" }}>
+        <p className="micro" style={{ color: "var(--accent)" }}>
           Pôncio Executivo
         </p>
-        <h1 className="mt-2 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
+        <h1 className="t-h1" style={{ color: "var(--text)", marginTop: "var(--sp-2)" }}>
           Visão geral das unidades
         </h1>
-        <p className="mt-2" style={{ color: "rgb(var(--ifp-ink))" }}>
+        <p style={{ color: "var(--text-2)", marginTop: "var(--sp-2)", fontSize: 14 }}>
           Bem-vindo, {session.user.name ?? session.user.email}.
         </p>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div
+          style={{
+            marginTop: "var(--sp-8)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            gap: "var(--sp-4)",
+          }}
+        >
           {UNIDADES_OPERACIONAIS.map((slug) => {
             const u = UNIDADES[slug];
             return (
-              <div
-                key={slug}
-                style={{
-                  backgroundColor: "rgb(var(--ifp-canvas))",
-                  border: "1px solid rgb(var(--ifp-surface-200))",
-                  borderTop: `4px solid ${u.corFiltroLogin}`,
-                  borderRadius: "var(--ifp-radius-md)",
-                  boxShadow: "var(--ifp-shadow-sm)",
-                  padding: "var(--ifp-space-6)",
-                }}
-              >
-                <h2 className="font-bold" style={{ color: "rgb(var(--ifp-ink))" }}>
-                  {u.nome}
-                </h2>
-                <p className="mt-2 text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Indicadores serão exibidos aqui.
-                </p>
+              <div key={slug} className="card" style={{ position: "relative", overflow: "hidden" }}>
+                {/* faixa de cor de dado da unidade (mantida do brandbook) */}
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    insetInline: 0,
+                    top: 0,
+                    height: 4,
+                    background: u.corFiltroLogin,
+                  }}
+                />
+                <div className="body" style={{ paddingTop: 18 }}>
+                  <h2 className="t-h3" style={{ color: "var(--text)" }}>
+                    {u.nome}
+                  </h2>
+                  <p style={{ color: "var(--text-3)", fontSize: 13, marginTop: "var(--sp-2)" }}>
+                    Indicadores serão exibidos aqui.
+                  </p>
+                </div>
               </div>
             );
           })}

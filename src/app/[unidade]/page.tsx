@@ -19,30 +19,26 @@ export default async function UnidadeHomePage({
 
   return (
     <main
-      className="min-h-screen"
-      style={{
-        backgroundColor: "rgb(var(--ifp-surface-50))",
-        padding: "var(--ifp-space-12)",
-      }}
+      className="ifp-kit"
+      data-unit={slug}
+      data-unit-accent=""
+      style={{ minHeight: "100vh", padding: "var(--sp-12)" }}
     >
       <div
-        className="mx-auto max-w-3xl"
+        className="card mx-auto"
         style={{
-          backgroundColor: "rgb(var(--ifp-canvas))",
-          border: "1px solid rgb(var(--ifp-surface-200))",
-          borderLeft: `6px solid ${unidade.corFiltroLogin}`,
-          borderRadius: "var(--ifp-radius-lg)",
-          boxShadow: "var(--ifp-shadow-sm)",
-          padding: "var(--ifp-space-8)",
+          maxWidth: 768,
+          borderLeft: "6px solid var(--unit)",
+          padding: "var(--sp-8)",
         }}
       >
-        <p className="text-xs tracking-wider uppercase" style={{ color: "rgb(var(--ifp-muted))" }}>
+        <p className="micro" style={{ color: "var(--unit)" }}>
           Unidade
         </p>
-        <h1 className="mt-2 text-3xl font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
+        <h1 className="t-h1" style={{ marginTop: "var(--sp-2)", color: "var(--text)" }}>
           {unidade.nome}
         </h1>
-        <p className="mt-4" style={{ color: "rgb(var(--ifp-ink))" }}>
+        <p className="t-body" style={{ marginTop: "var(--sp-4)", color: "var(--text-2)" }}>
           Bem-vindo, {session.user.name ?? session.user.email}.
         </p>
       </div>

@@ -3,8 +3,8 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
-import { EditorialCanvas, Masthead } from "@/components/editorial";
-import styles from "@/components/editorial/editorial.module.css";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { listCidadaos, calcularIdade, type CidadaoStatus } from "@/lib/cidadao";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { formatCpf } from "@/lib/cpf";
@@ -17,11 +17,19 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   recreativo: "Recreativo",
 };
 
-const TONE_CLASS: Record<StatusTone, string> = {
-  red: styles.toneRed ?? "",
-  amber: styles.toneAmber ?? "",
-  emerald: styles.toneEmerald ?? "",
-  slate: styles.toneSlate ?? "",
+// Cor de dado: identidade da unidade (preservada do kit, token --u-*).
+const UNIT_COLOR: Record<UnitScope, string> = {
+  medico: "var(--u-medico)",
+  capacitacao: "var(--u-capacitacao)",
+  esportivo: "var(--u-esportivo)",
+  recreativo: "var(--u-recreativo)",
+};
+
+const TONE_VARIANT: Record<StatusTone, "danger" | "warning" | "success" | "default"> = {
+  red: "danger",
+  amber: "warning",
+  emerald: "success",
+  slate: "default",
 };
 
 type CicloFilter = "rascunho" | "ativo" | "inativo";
@@ -75,135 +83,159 @@ export default async function CidadaosPage({
 
   return (
     <AppShell session={session}>
-      <EditorialCanvas fullBleed>
-        <Masthead
-          kicker="Instituto Família Pôncio · Pessoas atendidas"
-          title="Cidadãos"
-          dateWeekday={dataWeekday}
-          dateFull={dataFull}
-          showClock={false}
-          action={
-            <Link href={"/app/cidadaos/novo" as Route} className={styles.btnPrimary}>
-              + Novo cidadão
-            </Link>
-          }
-        />
-
-        <form method="get" className={styles.toolbar}>
-          <div className={`${styles.field} ${styles.fieldGrow}`}>
-            <label className={styles.fieldLabel}>Buscar (nome, CPF, telefone)</label>
-            <input
-              type="search"
-              name="q"
-              defaultValue={params.q ?? ""}
-              placeholder="Ex: Maria Silva ou 123.456.789-09"
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.fieldLabel}>Unidade</label>
-            <select name="unidade" defaultValue={params.unidade ?? ""} className={styles.select}>
-              <option value="">Todas</option>
-              {UNIT_SCOPES.map((u) => (
-                <option key={u} value={u}>
-                  {UNIT_LABELS[u]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.fieldLabel}>Status</label>
-            <select name="status" defaultValue={params.status ?? "ativo"} className={styles.select}>
-              <option value="ativo">Ativos</option>
-              <option value="deletado">Excluídos</option>
-              <option value="anonimizado">Anonimizados (LGPD)</option>
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.fieldLabel}>Ciclo</label>
-            <select name="ciclo" defaultValue={params.ciclo ?? ""} className={styles.select}>
-              <option value="">Todos</option>
-              <option value="rascunho">Rascunho</option>
-              <option value="ativo">Ativo</option>
-              <option value="inativo">Inativo</option>
-            </select>
-          </div>
-          <button type="submit" className={styles.btnGhost}>
-            Filtrar
-          </button>
-        </form>
-
-        <p className={styles.fieldLabel} style={{ marginTop: "20px" }}>
-          {items.length} {items.length === 1 ? "pessoa encontrada" : "pessoas encontradas"}
-        </p>
-
-        <div className={styles.tableWrap}>
-          {items.length === 0 ? (
-            <p className={styles.tableEmpty}>Nenhum cidadão encontrado com esses filtros.</p>
-          ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.th}>Nome</th>
-                  <th className={styles.th}>CPF</th>
-                  <th className={styles.th}>Idade</th>
-                  <th className={styles.th}>Telefone</th>
-                  <th className={styles.th}>Unidade</th>
-                  <th className={styles.th}>Família</th>
-                  <th className={styles.th}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((c) => {
-                  const unit = c.unitIdOrigem as UnitScope;
-                  const status = statusDisplay(c);
-                  return (
-                    <tr key={c.id} className={styles.tr}>
-                      <td className={`${styles.td} ${styles.tdName}`}>
-                        <Link href={`/app/cidadaos/${c.id}` as Route} className={styles.panelLink}>
-                          {c.nomeCompleto}
-                        </Link>
-                        {c.nomeSocial && (
-                          <div className={styles.tdMuted}>Social: {c.nomeSocial}</div>
-                        )}
-                      </td>
-                      <td className={`${styles.td} ${styles.tdMono}`}>{formatCpf(c.cpf)}</td>
-                      <td className={`${styles.td} ${styles.tdMuted}`}>
-                        {calcularIdade(c.dataNascimento)} anos
-                      </td>
-                      <td className={`${styles.td} ${styles.tdMuted}`}>{c.telefonePrincipal}</td>
-                      <td className={styles.td}>
-                        <span
-                          className={styles.unitPill}
-                          style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
-                        >
-                          {UNIT_LABELS[unit]}
-                        </span>
-                      </td>
-                      <td className={`${styles.td} ${styles.tdMuted}`}>
-                        {c.familia?.nomeReferencia ?? "—"}
-                      </td>
-                      <td className={styles.td}>
-                        <span className={`${styles.tonePill} ${TONE_CLASS[status.tone]}`}>
-                          {status.label}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+      <div className="page-head">
+        <div>
+          <p className="micro" style={{ color: "var(--accent)" }}>
+            Instituto Família Pôncio · Pessoas atendidas
+          </p>
+          <h1 className="t-h1" style={{ color: "var(--text)" }}>
+            Cidadãos
+          </h1>
+          <p style={{ color: "var(--text-3)", fontSize: 13, marginTop: 4 }}>
+            {dataWeekday} · {dataFull}
+          </p>
         </div>
+        <div className="actions">
+          <Link href={"/app/cidadaos/novo" as Route} className="btn btn-primary">
+            + Novo cidadão
+          </Link>
+        </div>
+      </div>
 
-        {nextCursor && (
-          <div className={styles.loadMore}>
-            <Link href={`/app/cidadaos?cursor=${nextCursor}` as Route} className={styles.btnGhost}>
-              Carregar mais
-            </Link>
-          </div>
-        )}
-      </EditorialCanvas>
+      <form
+        method="get"
+        className="card"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-end",
+          gap: "var(--sp-3)",
+          padding: "16px 18px",
+          marginBottom: "var(--sp-4)",
+        }}
+      >
+        <div className="field-group" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
+          <label className="label">Buscar (nome, CPF, telefone)</label>
+          <input
+            type="search"
+            name="q"
+            defaultValue={params.q ?? ""}
+            placeholder="Ex: Maria Silva ou 123.456.789-09"
+            className="input"
+          />
+        </div>
+        <div className="field-group" style={{ marginBottom: 0 }}>
+          <label className="label">Unidade</label>
+          <select name="unidade" defaultValue={params.unidade ?? ""} className="select">
+            <option value="">Todas</option>
+            {UNIT_SCOPES.map((u) => (
+              <option key={u} value={u}>
+                {UNIT_LABELS[u]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field-group" style={{ marginBottom: 0 }}>
+          <label className="label">Status</label>
+          <select name="status" defaultValue={params.status ?? "ativo"} className="select">
+            <option value="ativo">Ativos</option>
+            <option value="deletado">Excluídos</option>
+            <option value="anonimizado">Anonimizados (LGPD)</option>
+          </select>
+        </div>
+        <div className="field-group" style={{ marginBottom: 0 }}>
+          <label className="label">Ciclo</label>
+          <select name="ciclo" defaultValue={params.ciclo ?? ""} className="select">
+            <option value="">Todos</option>
+            <option value="rascunho">Rascunho</option>
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+        <button type="submit" className="btn btn-secondary">
+          Filtrar
+        </button>
+      </form>
+
+      <p style={{ color: "var(--text-3)", fontSize: 13, margin: "0 0 12px" }}>
+        {items.length} {items.length === 1 ? "pessoa encontrada" : "pessoas encontradas"}
+      </p>
+
+      {items.length === 0 ? (
+        <EmptyState
+          titulo="Nenhum cidadão encontrado"
+          descricao="Nenhum cidadão corresponde a esses filtros. Ajuste a busca ou cadastre uma nova pessoa."
+        />
+      ) : (
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Idade</th>
+                <th>Telefone</th>
+                <th>Unidade</th>
+                <th>Família</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((c) => {
+                const unit = c.unitIdOrigem as UnitScope;
+                const status = statusDisplay(c);
+                return (
+                  <tr key={c.id}>
+                    <td>
+                      <Link
+                        href={`/app/cidadaos/${c.id}` as Route}
+                        className="cell-strong"
+                        style={{ color: "var(--text)", textDecoration: "none" }}
+                      >
+                        {c.nomeCompleto}
+                      </Link>
+                      {c.nomeSocial && (
+                        <div style={{ color: "var(--text-3)", fontSize: 12 }}>
+                          Social: {c.nomeSocial}
+                        </div>
+                      )}
+                    </td>
+                    <td className="cell-mono">{formatCpf(c.cpf)}</td>
+                    <td style={{ color: "var(--text-3)" }}>
+                      {calcularIdade(c.dataNascimento)} anos
+                    </td>
+                    <td style={{ color: "var(--text-3)" }}>{c.telefonePrincipal}</td>
+                    <td>
+                      <span
+                        className="badge"
+                        style={{
+                          color: "#fff",
+                          background: UNIT_COLOR[unit],
+                          borderColor: "transparent",
+                        }}
+                      >
+                        {UNIT_LABELS[unit]}
+                      </span>
+                    </td>
+                    <td style={{ color: "var(--text-3)" }}>{c.familia?.nomeReferencia ?? "—"}</td>
+                    <td>
+                      <Badge variant={TONE_VARIANT[status.tone]}>{status.label}</Badge>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {nextCursor && (
+        <div style={{ marginTop: "var(--sp-4)", textAlign: "center" }}>
+          <Link href={`/app/cidadaos?cursor=${nextCursor}` as Route} className="btn btn-secondary">
+            Carregar mais
+          </Link>
+        </div>
+      )}
     </AppShell>
   );
 }

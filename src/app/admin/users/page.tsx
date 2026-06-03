@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { hasAnyRole } from "@/lib/rbac";
 import { AppShell } from "@/components/app-shell";
-import { EditorialCanvas, Masthead, Colophon } from "@/components/editorial";
-import styles from "@/components/editorial/editorial.module.css";
+import { Badge } from "@/components/ui/badge";
 import { db } from "@/lib/db";
 import { ROLE_DESCRIPTIONS, type RoleName, type UnitScope } from "@/lib/rbac-types";
 
@@ -35,66 +34,91 @@ export default async function AdminUsersPage() {
 
   return (
     <AppShell session={session}>
-      <EditorialCanvas fullBleed>
-        <Masthead
-          kicker="Instituto Família Pôncio · Administração"
-          title="Usuários"
-          dateWeekday={dataWeekday}
-          dateFull={dataFull}
-          showClock={false}
-        />
-
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.th}>Nome</th>
-                <th className={styles.th}>E-mail</th>
-                <th className={styles.th}>Papel principal</th>
-                <th className={styles.th}>Unidade(s)</th>
-                <th className={styles.th}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => {
-                const primary = user.primaryRoleName as RoleName | null;
-                const primaryScope = user.primaryUnitScope as UnitScope | null;
-                const isCurrentUser = user.id === session.user.id;
-
-                return (
-                  <tr key={user.id} className={isCurrentUser ? styles.trCurrent : styles.tr}>
-                    <td className={`${styles.td} ${styles.tdName}`}>
-                      {user.name ?? "—"}
-                      {isCurrentUser && <span className={styles.youTag}>você</span>}
-                    </td>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>{user.email}</td>
-                    <td className={styles.td}>
-                      {primary ? (
-                        <span className={styles.rolePill}>
-                          {ROLE_DESCRIPTIONS[primary] ?? primary}
-                        </span>
-                      ) : (
-                        <span className={styles.tdMuted}>—</span>
-                      )}
-                    </td>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>
-                      {primaryScope ? UNIT_LABELS[primaryScope] : "Todas / nenhuma"}
-                    </td>
-                    <td className={styles.td}>
-                      <span className={styles.statusDot}>Ativo</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      <div className="page-head">
+        <div>
+          <p className="micro" style={{ color: "var(--accent)" }}>
+            Instituto Família Pôncio · Administração
+          </p>
+          <h1 className="t-h1" style={{ color: "var(--text)" }}>
+            Usuários
+          </h1>
+          <p style={{ color: "var(--text-3)", fontSize: 13, marginTop: 4 }}>
+            {dataWeekday} · {dataFull}
+          </p>
         </div>
+      </div>
 
-        <Colophon
-          left={`${users.length} pessoa${users.length === 1 ? "" : "s"} com acesso · edição em desenvolvimento`}
-          right="Administração"
-        />
-      </EditorialCanvas>
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Papel principal</th>
+              <th>Unidade(s)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => {
+              const primary = user.primaryRoleName as RoleName | null;
+              const primaryScope = user.primaryUnitScope as UnitScope | null;
+              const isCurrentUser = user.id === session.user.id;
+
+              return (
+                <tr
+                  key={user.id}
+                  style={isCurrentUser ? { background: "var(--accent-soft)" } : undefined}
+                >
+                  <td>
+                    <span className="cell-strong">{user.name ?? "—"}</span>
+                    {isCurrentUser && (
+                      <Badge variant="info" style={{ marginLeft: 8 }}>
+                        você
+                      </Badge>
+                    )}
+                  </td>
+                  <td style={{ color: "var(--text-3)" }}>{user.email}</td>
+                  <td>
+                    {primary ? (
+                      <Badge variant="default">{ROLE_DESCRIPTIONS[primary] ?? primary}</Badge>
+                    ) : (
+                      <span style={{ color: "var(--text-3)" }}>—</span>
+                    )}
+                  </td>
+                  <td style={{ color: "var(--text-3)" }}>
+                    {primaryScope ? UNIT_LABELS[primaryScope] : "Todas / nenhuma"}
+                  </td>
+                  <td>
+                    <Badge variant="success">
+                      <span className="dot" />
+                      Ativo
+                    </Badge>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <p
+        className="micro"
+        style={{
+          marginTop: "var(--sp-4)",
+          color: "var(--text-3)",
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <span>
+          {users.length} pessoa{users.length === 1 ? "" : "s"} com acesso · edição em
+          desenvolvimento
+        </span>
+        <span>Administração</span>
+      </p>
     </AppShell>
   );
 }

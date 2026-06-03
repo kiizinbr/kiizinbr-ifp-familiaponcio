@@ -10,7 +10,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded bg-[rgb(var(--ifp-orange-500))] py-2 text-white transition disabled:opacity-60"
+      className={`btn btn-primary btn-block${pending ? "is-loading" : ""}`}
     >
       {pending ? "Entrando..." : "Entrar"}
     </button>
@@ -19,57 +19,100 @@ function SubmitButton() {
 
 export function LoginForm({ error }: { error?: string }) {
   return (
-    <form action={signInAction} className="w-full max-w-sm rounded-xl bg-white p-8 shadow">
-      <div className="mb-6 flex flex-col items-center">
-        <Image
-          src="/logo/ifp-lockup.png"
-          alt="Instituto Família Pôncio"
-          width={160}
-          height={180}
-          priority
-        />
-        <div className="mt-4 flex h-1 w-20 overflow-hidden rounded">
-          <span className="flex-1 bg-[rgb(var(--ifp-filter-medico))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-filter-capacitacao))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-filter-esportivo))]" />
-          <span className="flex-1 bg-[rgb(var(--ifp-filter-recreativo))]" />
-        </div>
-        <p className="mt-3 text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
-          IFP Connect
-        </p>
-      </div>
-
-      {error === "invalid" && (
+    <form action={signInAction} className="card" style={{ width: "100%", maxWidth: 380 }}>
+      <div className="body" style={{ padding: "var(--sp-8)" }}>
         <div
-          role="alert"
-          className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginBottom: "var(--sp-6)",
+          }}
         >
-          E-mail ou senha incorretos.
+          <span
+            style={{
+              display: "grid",
+              placeItems: "center",
+              padding: 12,
+              borderRadius: "var(--r-lg)",
+              background: "var(--logo-bg)",
+              border: "1px solid var(--logo-ring)",
+            }}
+          >
+            <Image
+              src="/logo/ifp-lockup.png"
+              alt="Instituto Família Pôncio"
+              width={140}
+              height={158}
+              priority
+            />
+          </span>
+          <div
+            style={{
+              marginTop: "var(--sp-4)",
+              display: "flex",
+              height: 4,
+              width: 80,
+              overflow: "hidden",
+              borderRadius: "var(--r-full)",
+            }}
+          >
+            <span style={{ flex: 1, background: "var(--u-medico)" }} />
+            <span style={{ flex: 1, background: "var(--u-capacitacao)" }} />
+            <span style={{ flex: 1, background: "var(--u-esportivo)" }} />
+            <span style={{ flex: 1, background: "var(--u-recreativo)" }} />
+          </div>
+          <p className="micro" style={{ marginTop: "var(--sp-3)" }}>
+            IFP Connect
+          </p>
         </div>
-      )}
 
-      <label className="mb-3 block">
-        <span className="mb-1 block text-sm">E-mail</span>
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
-        />
-      </label>
-      <label className="mb-6 block">
-        <span className="mb-1 block text-sm">Senha</span>
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="w-full rounded border px-3 py-2 focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
-        />
-      </label>
+        {error === "invalid" && (
+          <div
+            role="alert"
+            className="badge badge-danger"
+            style={{
+              display: "flex",
+              width: "100%",
+              justifyContent: "center",
+              marginBottom: "var(--sp-4)",
+              padding: "10px 12px",
+              borderRadius: "var(--r-md)",
+            }}
+          >
+            E-mail ou senha incorretos.
+          </div>
+        )}
 
-      <SubmitButton />
+        <div className="field-group">
+          <label className="label" htmlFor="login-email">
+            E-mail
+          </label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            className="input"
+          />
+        </div>
+        <div className="field-group">
+          <label className="label" htmlFor="login-password">
+            Senha
+          </label>
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="input"
+          />
+        </div>
+
+        <SubmitButton />
+      </div>
     </form>
   );
 }
