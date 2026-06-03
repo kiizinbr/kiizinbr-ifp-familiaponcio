@@ -46,3 +46,7 @@ pnpm-debug.log*
 
 # samples de migração (podem conter PII)
 docs/migration-samples/
+
+# scripts de scratch de dev (verify/seed/rigor rodados via WSL; regeneráveis)
+/_*.sh
+/.verify-*.sh
