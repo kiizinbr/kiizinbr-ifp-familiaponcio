@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canAccessUnidade } from "@/lib/rbac";
 import { podeGerenciarEspecialidade } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
@@ -10,6 +11,7 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 
 export async function criarEspecialidadeAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeGerenciarEspecialidade(session)) throw new Error("Sem permissão");
 
   const nome = String(formData.get("nome") ?? "").trim();
@@ -31,6 +33,7 @@ export async function criarEspecialidadeAction(formData: FormData) {
 
 export async function toggleEspecialidadeAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeGerenciarEspecialidade(session)) throw new Error("Sem permissão");
 
   const id = String(formData.get("id") ?? "");

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canAccessUnidade } from "@/lib/rbac";
 import { podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
@@ -17,6 +18,7 @@ function parseEspecialidades(formData: FormData): string[] {
 
 export async function criarProfissionalAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeGerenciarProfissional(session)) throw new Error("Sem permissão");
 
   const userId = String(formData.get("userId") ?? "");
@@ -52,6 +54,7 @@ export async function criarProfissionalAction(formData: FormData) {
 
 export async function atualizarProfissionalAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   const id = String(formData.get("id") ?? "");
   const prof = await db.profissional.findUniqueOrThrow({ where: { id } });
   const ehProprio = session?.user.id === prof.userId;
@@ -86,6 +89,7 @@ export async function atualizarProfissionalAction(formData: FormData) {
 
 export async function toggleProfissionalAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeGerenciarProfissional(session)) throw new Error("Sem permissão");
   const id = String(formData.get("id") ?? "");
   const prof = await db.profissional.findUniqueOrThrow({ where: { id } });

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canAccessUnidade } from "@/lib/rbac";
 import { gerarSlots, bloquearSlot, liberarSlot } from "@/lib/medico/agenda";
 import { podeConfigurarAgendaProfissional } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
@@ -12,6 +13,7 @@ const DIAS_90 = 90 * 86_400_000;
 export async function criarTemplateAction(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Sem sessão");
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
 
   const prof = await db.profissional.findUnique({ where: { userId: session.user.id } });
   if (!prof) throw new Error("Profissional não encontrado");
@@ -86,6 +88,7 @@ export async function criarTemplateAction(formData: FormData) {
 export async function bloquearSlotAction(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Sem sessão");
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   const slotId = String(formData.get("slotId"));
   const motivo = String(formData.get("motivo") ?? "").trim() || "Bloqueado";
 
@@ -105,6 +108,7 @@ export async function bloquearSlotAction(formData: FormData) {
 export async function desbloquearSlotAction(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Sem sessão");
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   const slotId = String(formData.get("slotId"));
 
   const slot = await db.slot.findUniqueOrThrow({

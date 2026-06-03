@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { StatusConsulta } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canAccessUnidade } from "@/lib/rbac";
 import { transicionarConsulta, liberarSlot } from "@/lib/medico/agenda";
 import { podeTransicionarConsulta } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
@@ -18,6 +19,7 @@ const ACTION_MAP: Record<Exclude<StatusConsulta, "agendada" | "cancelada">, stri
 export async function transitionAction(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Sem sessão");
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
 
   const id = String(formData.get("id"));
   const para = String(formData.get("para")) as StatusConsulta;
@@ -42,6 +44,7 @@ export async function transitionAction(formData: FormData) {
 export async function cancelAction(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Sem sessão");
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
 
   const id = String(formData.get("id"));
   const motivo = String(formData.get("motivo") ?? "").trim() || "Cancelada";

@@ -6,7 +6,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
-import { hasAnyRole } from "@/lib/rbac";
+import { canAccessUnidade, hasAnyRole } from "@/lib/rbac";
 import { podeAssinarNota, podeEditarNota } from "@/lib/medico/rbac";
 import {
   adicionarAddendo,
@@ -28,6 +28,7 @@ function num(formData: FormData, key: string): number | null {
 export async function salvarRascunhoAction(formData: FormData) {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
 
   const consultaId = String(formData.get("consultaId"));
   const consulta = await db.consulta.findUniqueOrThrow({
@@ -88,6 +89,7 @@ export async function salvarRascunhoAction(formData: FormData) {
 export async function assinarNotaAction(formData: FormData) {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
 
   const consultaId = String(formData.get("consultaId"));
   const notaId = String(formData.get("notaId"));
@@ -120,6 +122,7 @@ export async function assinarNotaAction(formData: FormData) {
 export async function adicionarAddendoAction(formData: FormData) {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!hasAnyRole(session, "profissional")) {
     throw new Error("Apenas profissionais adicionam addendo");
   }
