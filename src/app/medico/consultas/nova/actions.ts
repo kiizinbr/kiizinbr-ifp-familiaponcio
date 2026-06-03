@@ -3,12 +3,14 @@
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
+import { canAccessUnidade } from "@/lib/rbac";
 import { reservarSlot, SlotIndisponivelError } from "@/lib/medico/agenda";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
 export async function reservarConsultaAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeMarcarConsulta(session)) throw new Error("Sem permissão");
 
   const slotId = String(formData.get("slotId"));
