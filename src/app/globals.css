@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "../styles/ifp-tokens.css";
+@import "../styles/ifp-components.css";
 
 /* IFP brand font - Garet (self-hosted) */
 /* CDN cdnfonts.com so disponibiliza Book (300) e Heavy (850) */

@@ -12,10 +12,11 @@ conta própria** para marcar. Quem esquece de voltar **some** entre o GP e o esp
 sistema não enxerga isso hoje.
 
 A Fase 1 fecha esse buraco com **busca ativa**: o pedido do GP vira um **Encaminhamento**
-rastreável que cai numa **fila no callcenter**. A instituição passa a *puxar* o paciente em vez de
+rastreável que cai numa **fila no callcenter**. A instituição passa a _puxar_ o paciente em vez de
 esperar ele lembrar de ligar. Sem WhatsApp (Fase 2), sem urgência (o centro só faz rotina).
 
 ### Fluxo-alvo
+
 ```
 GP atende → registra o PEDIDO "encaminhar para [especialidade]" (+ motivo)
           → Encaminhamento(status=aguardando_agendamento)
@@ -31,6 +32,7 @@ escolhe a data e agenda. O clínico NÃO define data nem prazo.
 ## Modelo de dados
 
 ### Enum
+
 ```prisma
 enum StatusEncaminhamento {
   aguardando_agendamento
@@ -40,23 +42,25 @@ enum StatusEncaminhamento {
 ```
 
 ### Modelo `Encaminhamento`
-| Campo | Tipo | Nota |
-|---|---|---|
-| `id` | String cuid | |
-| `cidadaoId` | String (FK Cidadao, Restrict) | o paciente |
-| `consultaOrigemId` | String (FK Consulta, Restrict) | consulta do GP onde nasceu |
-| `especialidadeId` | String (FK Especialidade, Restrict) | especialidade-alvo |
-| `motivo` | String? `@db.Text` | livre, ex.: "ansiedade e depressão" |
-| `status` | StatusEncaminhamento `@default(aguardando_agendamento)` | |
-| `createdBy` | String | userId do profissional que pediu |
-| `canceladoMotivo` | String? | |
-| `createdAt` / `updatedAt` | DateTime | |
+
+| Campo                     | Tipo                                                    | Nota                                |
+| ------------------------- | ------------------------------------------------------- | ----------------------------------- |
+| `id`                      | String cuid                                             |                                     |
+| `cidadaoId`               | String (FK Cidadao, Restrict)                           | o paciente                          |
+| `consultaOrigemId`        | String (FK Consulta, Restrict)                          | consulta do GP onde nasceu          |
+| `especialidadeId`         | String (FK Especialidade, Restrict)                     | especialidade-alvo                  |
+| `motivo`                  | String? `@db.Text`                                      | livre, ex.: "ansiedade e depressão" |
+| `status`                  | StatusEncaminhamento `@default(aguardando_agendamento)` |                                     |
+| `createdBy`               | String                                                  | userId do profissional que pediu    |
+| `canceladoMotivo`         | String?                                                 |                                     |
+| `createdAt` / `updatedAt` | DateTime                                                |                                     |
 
 Índices: `@@index([status, createdAt])` (a fila), `@@index([cidadaoId])`.
 Relações reversas novas: `Cidadao.encaminhamentos`, `Consulta.encaminhamentosOrigem`,
 `Especialidade.encaminhamentos`.
 
 ### Ligação com a consulta agendada
+
 Adicionar em `Consulta`: `origemEncaminhamentoId String?` **com relação FK** para
 `Encaminhamento` (espelha o `origemTriagemId` já existente, mas como FK de verdade). Reverso:
 `Encaminhamento.consultasAgendadas Consulta[]` (na prática 0 ou 1 ativa; lista evita travar
@@ -65,16 +69,19 @@ re-agendamento futuro). **Sem campo de prazo** — a data sai da disponibilidade
 ## Máquina de estados
 
 Espelha o padrão `TRANSICOES_MATRICULA` de `lib/capacitacao/matricula.ts`:
+
 ```
 aguardando_agendamento → { agendado, cancelado }
 agendado               → {}   (terminal)
 cancelado              → {}   (terminal)
 ```
+
 `agendado` é setado pela transação de agendamento; `cancelado` pelo GP/gestor.
 
 ## Núcleo lógico — `src/lib/medico/encaminhamento.ts` (puro + transacional)
 
 Espelha `lib/capacitacao/matricula.ts` (erros tipados + funções transacionais):
+
 - `TRANSICOES_ENCAMINHAMENTO: Record<StatusEncaminhamento, ReadonlySet<...>>`
 - `podeTransicionarEncaminhamento(de, para): boolean` (puro)
 - `criarEncaminhamento({ cidadaoId, consultaOrigemId, especialidadeId, motivo, createdBy })` →
@@ -89,6 +96,7 @@ Espelha `lib/capacitacao/matricula.ts` (erros tipados + funções transacionais)
 
 Todas as **server actions** chamam `canAccessUnidade(session, "medico")` na borda (regra fixada —
 ver memória `reference-server-action-unit-gate`), além do papel:
+
 - `podeEncaminhar(session)` → `super_admin | gestor_unidade | profissional`. (Criar/cancelar pedido.)
 - `podeAgendarEncaminhamento(session)` → reaproveita a regra de marcar consulta:
   `super_admin | gestor_unidade | recepcao` (callcenter). (Trabalhar a fila + agendar.)
@@ -97,16 +105,19 @@ ver memória `reference-server-action-unit-gate`), além do papel:
 ## Telas / fluxo
 
 ### 1. GP cria o pedido — na tela da consulta `/medico/consultas/[id]`
+
 A coluna 3 (hoje placeholder "Encaminhamento") vira funcional: form `especialidade` + `motivo` →
 `criarEncaminhamentoAction`. Permite N pedidos por consulta; lista os existentes com status. Não
 exige nota assinada. Visual no kit (accent teal do médico, padrão do prontuário).
 
 ### 2. Fila do callcenter — tela nova `/medico/encaminhamentos`
+
 Lista `aguardando_agendamento`, `orderBy createdAt asc`, cada linha: cidadão · especialidade ·
 motivo · pedido por · **"esperando há N dias"**. Entra na sidebar do médico (visível p/
 recepção/gestor). Botão **"Agendar"** por linha + ação **"Cancelar"** (gestor/profissional).
 
 ### 3. Agendar — reaproveita o wizard
+
 "Agendar" → `/medico/consultas/nova?encaminhamentoId=X`. O wizard detecta o param, **pré-preenche e
 trava** cidadão + especialidade (pula passos 1–2), vai direto para profissional + slot. Ao
 **reservar**, dentro da MESMA transação do `reservarSlot`: cria a `Consulta` com
@@ -114,6 +125,7 @@ trava** cidadão + especialidade (pula passos 1–2), vai direto para profission
 fila. Redireciona para o detalhe da consulta.
 
 ### 4. Rastro
+
 Na consulta de origem e na ficha do cidadão: "encaminhado para [especialidade] · agendado em
 [data] / aguardando". `logEvent`: `encaminhamento_criado` / `encaminhamento_agendado` /
 `encaminhamento_cancelado` (novas `AuditAction`).

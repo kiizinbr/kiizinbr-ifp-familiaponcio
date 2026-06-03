@@ -13,28 +13,39 @@
    Troca de tema:   <html data-theme="light">  |  data-theme="dark"
    Sotaque unidade: <body data-unit="medico"> (medico|capacitacao|esportivo|
                     recreativo|poncio|social) — define --unit p/ faixas e selos.
+
+   PONTE (migração visual global, 2026-06-03): a paleta crua --ifp-* é guardada
+   como TRIPLET RGB (paridade com globals.css → rgb(var(--ifp-*)) continua válido
+   no app legado). A camada semântica embrulha em rgb(). O body do kit está
+   escopado em `.ifp-kit` (não vaza grid+Hanken pras telas antigas).
    ============================================================================ */
 
-/* ---- Fontes (UI: Hanken Grotesk · Dados: IBM Plex Mono) -------------------- */
-@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+/* ---- Fontes (UI: Hanken Grotesk · Dados: IBM Plex Mono) --------------------
+   PONTE (F0): o @import remoto foi REMOVIDO daqui — quebrava o bundling do
+   Turbopack (dev) por não ficar no topo do bundle final. O carregamento da
+   fonte entra quando as telas adotarem `.ifp-kit` (F1/F2) e é self-hostado na
+   F-final. Até lá, `.ifp-kit`/`.mono` caem no fallback (ui-sans-serif / mono),
+   idêntico ao estado atual — mantém a F0 invisível. */
 
 :root {
-  /* === 1. PALETA CANÔNICA DO BRANDBOOK (apêndice A) ====================== */
-  --ifp-orange-500: #ff772e; /* ação primária, CTAs, estados ativos        */
-  --ifp-orange-700: #c24d0f; /* forte / hover                              */
-  --ifp-brown-900: #752c05; /* headlines, manchetes, mascote (leão)        */
-  --ifp-teal-500: #10c2bb; /* claro — success/info                        */
-  --ifp-teal-700: #007571; /* escuro — saúde/médico, success strong       */
-  --ifp-ink: #4a4a49; /* body text, cinza institucional               */
-  --ifp-muted: #6b6b6b; /* texto secundário                            */
-  --ifp-white: #ffffff;
-  --ifp-surface-50: #fafaf9; /* fundo de página                           */
-  --ifp-surface-100: #f4f4f2; /* fundo de card sutil                      */
-  --ifp-surface-200: #e5e4e1; /* bordas / divisores                       */
-  --ifp-danger: #ba1a1a; /* erro                                          */
-  --ifp-warning: #b45309; /* alerta                                        */
+  /* === 1. PALETA CANÔNICA DO BRANDBOOK (apêndice A) — TRIPLET RGB ======== */
+  --ifp-orange-500: 255 119 46; /* #ff772e ação primária, CTAs, estados ativos */
+  --ifp-orange-700: 194 77 15; /* #c24d0f forte / hover                       */
+  --ifp-brown-900: 117 44 5; /* #752c05 headlines, manchetes, mascote (leão)  */
+  --ifp-orange-900: 117 44 5; /* alias legado (globals.css usa esse nome)     */
+  --ifp-teal-500: 16 194 187; /* #10c2bb claro — success/info                 */
+  --ifp-teal-700: 0 117 113; /* #007571 escuro — saúde/médico, success strong */
+  --ifp-ink: 74 74 73; /* #4a4a49 body text, cinza institucional              */
+  --ifp-muted: 107 107 107; /* #6b6b6b texto secundário                       */
+  --ifp-white: 255 255 255;
+  --ifp-canvas: 255 255 255; /* alias legado (globals.css usa esse nome)       */
+  --ifp-surface-50: 250 250 249; /* #fafaf9 fundo de página                   */
+  --ifp-surface-100: 244 244 242; /* #f4f4f2 fundo de card sutil              */
+  --ifp-surface-200: 229 228 225; /* #e5e4e1 bordas / divisores               */
+  --ifp-danger: 186 26 26; /* #ba1a1a erro                                     */
+  --ifp-warning: 180 83 9; /* #b45309 alerta                                   */
 
-  /* RGB triplets (paridade com globals.css → rgb(var(--x) / .12)) --------- */
+  /* RGB triplets (paridade explicita; redundante com a paleta acima) ------- */
   --ifp-orange-500-rgb: 255 119 46;
   --ifp-orange-700-rgb: 194 77 15;
   --ifp-brown-900-rgb: 117 44 5;
@@ -55,8 +66,8 @@
   --u-poncio-2: #4a4a49;
   --u-social: #4a4a49; /* transversal                */
   --u-social-2: #6b6b6b;
-  --unit: var(--ifp-teal-700); /* default; sobrescrito por [data-unit] */
-  --unit-2: var(--ifp-teal-500);
+  --unit: rgb(var(--ifp-teal-700)); /* default; sobrescrito por [data-unit] */
+  --unit-2: rgb(var(--ifp-teal-500));
 
   /* === 4. ESCALAS ======================================================= */
   /* Espaçamento — base 4px */
@@ -101,16 +112,16 @@ html[data-theme="light"] {
   --text: #1b1d1d;
   --text-2: #4a4a49;
   --text-3: #82888a;
-  --accent: var(--ifp-teal-700); /* acento de SISTEMA (saúde/ativo)     */
+  --accent: rgb(var(--ifp-teal-700)); /* acento de SISTEMA (saúde/ativo)     */
   --accent-soft: rgba(0, 117, 113, 0.09);
   --accent-line: rgba(0, 117, 113, 0.28);
-  --live: var(--ifp-orange-500); /* sinal vivo: agora / urgência         */
+  --live: rgb(var(--ifp-orange-500)); /* sinal vivo: agora / urgência         */
   --live-soft: rgba(255, 119, 46, 0.12);
   --warn: #b45309;
   --warn-soft: rgba(180, 83, 9, 0.12);
   --danger: #ba1a1a;
   --danger-soft: rgba(186, 26, 26, 0.09);
-  --ok: var(--ifp-teal-700);
+  --ok: rgb(var(--ifp-teal-700));
   --ok-soft: rgba(0, 117, 113, 0.1);
   --shadow: 0 1px 2px rgba(20, 22, 22, 0.04), 0 8px 24px rgba(20, 22, 22, 0.05);
   --shadow-pop: 0 12px 40px rgba(20, 22, 22, 0.1);
@@ -131,7 +142,7 @@ html[data-theme="dark"] {
   --text: #ecefef;
   --text-2: #aab2b2;
   --text-3: #6f7878;
-  --accent: var(--ifp-teal-500);
+  --accent: rgb(var(--ifp-teal-500));
   --accent-soft: rgba(16, 194, 187, 0.12);
   --accent-line: rgba(16, 194, 187, 0.34);
   --live: #ff8c4d;
@@ -140,7 +151,7 @@ html[data-theme="dark"] {
   --warn-soft: rgba(240, 168, 80, 0.14);
   --danger: #ff6b6b;
   --danger-soft: rgba(255, 107, 107, 0.12);
-  --ok: var(--ifp-teal-500);
+  --ok: rgb(var(--ifp-teal-500));
   --ok-soft: rgba(16, 194, 187, 0.12);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45);
   --shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.6);
@@ -197,8 +208,11 @@ html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-body {
-  margin: 0;
+
+/* PONTE: o "corpo" do kit (grid bg + Hanken) é ESCOPADO em .ifp-kit — só as
+   telas novas/retrofitadas recebem essa classe no wrapper raiz. As telas
+   antigas seguem com o body { font Garet } do globals.css, intactas. */
+.ifp-kit {
   font-family: var(--font-ui);
   background-color: var(--bg);
   background-image:

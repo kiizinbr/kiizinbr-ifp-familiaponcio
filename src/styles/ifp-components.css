@@ -383,7 +383,7 @@ html[data-theme="dark"] .btn-primary {
   background: linear-gradient(
     135deg,
     var(--accent),
-    color-mix(in srgb, var(--accent) 55%, var(--ifp-brown-900))
+    color-mix(in srgb, var(--accent) 55%, rgb(var(--ifp-brown-900)))
   );
   color: #fff;
   display: grid;
