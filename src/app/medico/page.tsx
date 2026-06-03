@@ -186,7 +186,7 @@ export default async function MedicoHomePage() {
                 <Link
                   key={c.id}
                   href={`/medico/consultas/${c.id}` as Route}
-                  className={`tl-item${isNow ? " live" : ""}`}
+                  className={`tl-item${isNow ? "live" : ""}`}
                   style={{ display: "block", textDecoration: "none", color: "inherit" }}
                 >
                   <div

@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 /**
- * Toggle de tema claro/escuro do kit (`.toggle-pill`). Seta `data-theme` no
- * <html> e persiste em localStorage. Lê o tema atual no mount (que o script
- * inline do layout já aplicou) pra não piscar.
+ * Toggle de tema claro/escuro do kit (`.toggle-pill`). Dark é SECUNDÁRIO: o app
+ * sempre inicia no claro e NÃO persiste a escolha — o toggle muda `data-theme`
+ * no <html> só na sessão atual (vale entre navegações in-app; recarregar volta
+ * pro claro). Lê o tema vigente no mount pra refletir o estado real.
  */
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
@@ -21,11 +22,6 @@ export function ThemeToggle() {
     const next: Theme = theme === "light" ? "dark" : "light";
     setTheme(next);
     document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem("ifp-theme", next);
-    } catch {
-      // localStorage indisponível (modo privado) — toggle vale só na sessão
-    }
   }
 
   return (
