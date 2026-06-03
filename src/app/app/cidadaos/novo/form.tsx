@@ -231,7 +231,7 @@ export function NovoCidadaoForm({
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Tab navigation */}
-      <nav className="flex flex-wrap gap-1 border-b border-slate-200">
+      <nav className="flex flex-wrap gap-1 border-b border-[var(--line)]">
         {TABS.map((t) => {
           const hasError = Object.keys(errors).some((k) => findTabForField(k) === t.id);
           const isActive = tab === t.id;
@@ -242,14 +242,14 @@ export function NovoCidadaoForm({
               onClick={() => setTab(t.id)}
               className={`relative px-4 py-2 text-sm font-medium transition ${
                 isActive
-                  ? "border-b-2 border-[rgb(var(--ifp-orange-500))] text-[rgb(var(--ifp-orange-500))]"
-                  : "text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-ink))]"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--accent)]"
+                  : "text-[var(--text-3)] hover:text-[var(--text)]"
               }`}
             >
               {t.label}
-              {t.required && <span className="ml-1 text-[rgb(var(--ifp-orange-500))]">*</span>}
+              {t.required && <span className="ml-1 text-[var(--accent)]">*</span>}
               {hasError && (
-                <span className="absolute top-1 right-1 inline-block h-1.5 w-1.5 rounded-full bg-red-500" />
+                <span className="absolute top-1 right-1 inline-block h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
               )}
             </button>
           );
@@ -257,7 +257,7 @@ export function NovoCidadaoForm({
       </nav>
 
       {globalError && (
-        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">
           {globalError}
         </div>
       )}
@@ -388,9 +388,9 @@ export function NovoCidadaoForm({
               type="checkbox"
               checked={state.whatsappConsente}
               onChange={(e) => update("whatsappConsente", e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300"
+              className="h-4 w-4 rounded border-[var(--line-strong)] accent-[var(--accent)]"
             />
-            <label htmlFor="whatsapp" className="text-sm text-slate-700">
+            <label htmlFor="whatsapp" className="text-sm text-[var(--text-2)]">
               Consente contato via WhatsApp (LGPD)
             </label>
           </div>
@@ -409,7 +409,7 @@ export function NovoCidadaoForm({
             onBlur={onCepBlur}
             placeholder="00000-000"
           />
-          <div className="text-xs text-[rgb(var(--ifp-muted))] sm:col-span-1 sm:flex sm:items-end">
+          <div className="text-xs text-[var(--text-3)] sm:col-span-1 sm:flex sm:items-end">
             {cepLoading && <span>Buscando endereço…</span>}
           </div>
           <Input
@@ -538,7 +538,7 @@ export function NovoCidadaoForm({
 
       {tab === "anexos" && (
         <Panel title="Anexos">
-          <p className="text-sm text-[rgb(var(--ifp-muted))] sm:col-span-2">
+          <p className="text-sm text-[var(--text-3)] sm:col-span-2">
             Upload de PDF/JPG/PNG (max 10MB) ficará disponível após o cadastro inicial. Salve a
             Ficha primeiro e use a página de detalhe para anexar documentos.
           </p>
@@ -547,7 +547,7 @@ export function NovoCidadaoForm({
 
       {tab === "familia" && (
         <Panel title="Família">
-          <p className="text-sm text-[rgb(var(--ifp-muted))] sm:col-span-2">
+          <p className="text-sm text-[var(--text-3)] sm:col-span-2">
             Vincular a uma família existente ou criar nova família ficará disponível em breve. Por
             ora, salve a Ficha individualmente — a edição posterior permite vincular.
           </p>
@@ -555,24 +555,20 @@ export function NovoCidadaoForm({
       )}
 
       {/* Submit bar */}
-      <div className="flex items-center justify-between border-t border-slate-200 pt-6">
-        <div className="text-xs text-[rgb(var(--ifp-muted))]">
-          <span className="text-[rgb(var(--ifp-orange-500))]">*</span> Campos obrigatórios em
-          Identificação e Contato.
+      <div className="flex items-center justify-between border-t border-[var(--line)] pt-6">
+        <div className="text-xs text-[var(--text-3)]">
+          <span className="text-[var(--accent)]">*</span> Campos obrigatórios em Identificação e
+          Contato.
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => router.push("/app/cidadaos")}
-            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+            className="btn btn-secondary"
           >
             Cancelar
           </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="rounded bg-[rgb(var(--ifp-orange-500))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
-          >
+          <button type="submit" disabled={isPending} className="btn btn-primary">
             {isPending ? "Salvando…" : isEdit ? "Salvar alterações" : "Salvar Ficha"}
           </button>
         </div>
@@ -632,10 +628,12 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="ifp-card p-6">
+    <section className="card p-6">
       <header className="mb-4">
-        <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
-        {hint && <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">{hint}</p>}
+        <h2 className="text-sm font-medium tracking-wide text-[var(--text-2)] uppercase">
+          {title}
+        </h2>
+        {hint && <p className="mt-1 text-xs text-[var(--text-3)]">{hint}</p>}
       </header>
       <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">{children}</div>
     </section>
@@ -666,7 +664,7 @@ function Input({
   const id = useId();
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
+      <label htmlFor={id} className="label mb-1 block">
         {label}
       </label>
       <input
@@ -677,13 +675,9 @@ function Input({
         onBlur={onBlur}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full rounded border px-3 py-2 text-sm focus:outline-none disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))] ${
-          error
-            ? "border-red-300 focus:border-red-500"
-            : "border-slate-300 focus:border-[rgb(var(--ifp-orange-500))]"
-        }`}
+        className={`input ${error ? "is-error" : ""}`}
       />
-      {error && <p className="mt-1 text-xs text-red-600">{error[0]}</p>}
+      {error && <p className="field-error mt-1">{error[0]}</p>}
     </div>
   );
 }
@@ -702,7 +696,7 @@ function Textarea({
   const id = useId();
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
+      <label htmlFor={id} className="label mb-1 block">
         {label}
       </label>
       <textarea
@@ -710,7 +704,7 @@ function Textarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
+        className="textarea"
       />
     </div>
   );
@@ -730,15 +724,10 @@ function Select({
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[rgb(var(--ifp-muted))]">
+      <label htmlFor={id} className="label mb-1 block">
         {label}
       </label>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-[rgb(var(--ifp-orange-500))] focus:outline-none"
-      >
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="select">
         <option value="">— Selecione —</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>

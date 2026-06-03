@@ -57,12 +57,12 @@ export default async function EditarCidadaoPage({ params }: { params: Promise<{ 
       <header className="mb-6">
         <Link
           href={`/app/cidadaos/${cidadao.id}` as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
+          className="text-xs text-[var(--text-3)] hover:text-[var(--accent)]"
         >
           ← Voltar para a Ficha
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Editar ficha</h1>
-        <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
+        <h1 className="t-h2 mt-4 text-[var(--text)]">Editar ficha</h1>
+        <p className="mt-1 text-sm text-[var(--text-3)]">
           {cidadao.nomeCompleto} · o CPF não pode ser alterado. Endereços têm edição própria (em
           breve).
         </p>

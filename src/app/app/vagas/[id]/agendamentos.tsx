@@ -16,15 +16,14 @@ export interface AgendamentoView {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  agendado: "bg-slate-100 text-slate-600",
-  confirmado: "bg-sky-100 text-sky-700",
-  realizado: "bg-emerald-100 text-emerald-700",
-  cancelado: "bg-rose-100 text-rose-700",
-  faltou: "bg-amber-100 text-amber-700",
+  agendado: "badge badge-default",
+  confirmado: "badge badge-info",
+  realizado: "badge badge-success",
+  cancelado: "badge badge-danger",
+  faltou: "badge badge-warning",
 };
 
-const INPUT =
-  "w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none transition focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20";
+const INPUT = "input";
 
 function formatHorario(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -48,17 +47,15 @@ export function AgendamentosPanel({
 }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-      <section className="ifp-card p-6">
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">Agendamentos</h2>
-        <p className="mb-4 text-sm text-[rgb(var(--ifp-muted))]">
+      <section className="card p-6">
+        <h2 className="t-h3 mb-1">Agendamentos</h2>
+        <p className="mb-4 text-sm text-[var(--text-3)]">
           {agendamentos.length} {agendamentos.length === 1 ? "entrevista" : "entrevistas"}
         </p>
         {agendamentos.length === 0 ? (
-          <p className="py-8 text-center text-sm text-[rgb(var(--ifp-muted))]">
-            Nenhum agendamento ainda.
-          </p>
+          <p className="py-8 text-center text-sm text-[var(--text-3)]">Nenhum agendamento ainda.</p>
         ) : (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-[var(--line)]">
             {agendamentos.map((a) => (
               <AgendamentoRow key={a.id} ag={a} podeAgendar={podeAgendar} />
             ))}
@@ -89,14 +86,12 @@ function AgendamentoRow({ ag, podeAgendar }: { ag: AgendamentoView; podeAgendar:
   return (
     <li className="flex flex-wrap items-center gap-3 py-3">
       <div className="min-w-[180px] flex-1">
-        <p className="text-sm font-semibold">{ag.nomeInteressado}</p>
-        <p className="text-xs text-[rgb(var(--ifp-muted))]">
-          {ag.telefone} · {formatHorario(ag.horario)}
+        <p className="text-sm font-semibold text-[var(--text)]">{ag.nomeInteressado}</p>
+        <p className="text-xs text-[var(--text-3)]">
+          <span className="mono">{ag.telefone}</span> · {formatHorario(ag.horario)}
         </p>
       </div>
-      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[ag.status]}`}>
-        {ag.status}
-      </span>
+      <span className={STATUS_BADGE[ag.status]}>{ag.status}</span>
 
       {podeAgendar && !terminal && ag.status !== "realizado" && (
         <div className="flex flex-wrap gap-1.5">
@@ -112,7 +107,7 @@ function AgendamentoRow({ ag, podeAgendar }: { ag: AgendamentoView; podeAgendar:
       {ag.cidadao ? (
         <Link
           href={`/app/cidadaos/${ag.cidadao.id}` as Route}
-          className="text-xs font-semibold text-[rgb(var(--ifp-orange-500))] hover:underline"
+          className="text-xs font-semibold text-[var(--accent)] hover:underline"
         >
           Ver ficha →
         </Link>
@@ -122,13 +117,13 @@ function AgendamentoRow({ ag, podeAgendar }: { ag: AgendamentoView; podeAgendar:
             href={
               `/app/cidadaos/novo?nome=${encodeURIComponent(ag.nomeInteressado)}&tel=${encodeURIComponent(ag.telefone)}` as Route
             }
-            className="text-xs font-semibold text-[rgb(var(--ifp-orange-500))] hover:underline"
+            className="text-xs font-semibold text-[var(--accent)] hover:underline"
           >
             Criar ficha →
           </Link>
         )
       )}
-      {erro && <p className="w-full text-xs text-rose-600">{erro}</p>}
+      {erro && <p className="field-error w-full">{erro}</p>}
     </li>
   );
 }
@@ -148,11 +143,7 @@ function ActionBtn({
     <button
       onClick={onClick}
       disabled={pending}
-      className={`rounded-full px-3 py-1 text-xs font-semibold transition disabled:opacity-50 ${
-        primary
-          ? "bg-[rgb(var(--ifp-orange-500))] text-white hover:-translate-y-0.5"
-          : "border border-black/10 text-[rgb(var(--ifp-ink))] hover:bg-[#f3f3f5]"
-      }`}
+      className={`btn btn-sm ${primary ? "btn-primary" : "btn-secondary"}`}
     >
       {label}
     </button>
@@ -193,8 +184,8 @@ function NovoAgendamentoForm({ vagaId }: { vagaId: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="ifp-card h-fit space-y-3 p-6">
-      <h2 className="text-lg font-semibold tracking-tight">Novo agendamento</h2>
+    <form onSubmit={onSubmit} className="card h-fit space-y-3 p-6">
+      <h2 className="t-h3">Novo agendamento</h2>
       <input
         aria-label="Nome do interessado"
         value={nome}
@@ -223,16 +214,12 @@ function NovoAgendamentoForm({ vagaId }: { vagaId: string }) {
         placeholder="Observações (opcional)"
         className={INPUT}
       />
-      <label className="flex items-center gap-2 text-sm text-[rgb(var(--ifp-muted))]">
+      <label className="flex items-center gap-2 text-sm text-[var(--text-2)]">
         <input type="checkbox" checked={consente} onChange={(e) => setConsente(e.target.checked)} />
         Consente contato (WhatsApp/telefone)
       </label>
-      {erro && <p className="text-sm text-rose-600">{erro}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
-      >
+      {erro && <p className="field-error">{erro}</p>}
+      <button type="submit" disabled={pending} className="btn btn-primary btn-block">
         {pending ? "Agendando…" : "Agendar entrevista"}
       </button>
     </form>

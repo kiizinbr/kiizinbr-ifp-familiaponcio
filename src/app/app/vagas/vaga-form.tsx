@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react";
 import { criarVagaAndRedirect } from "./actions";
 
-const INPUT =
-  "w-full rounded-lg border border-black/10 px-3.5 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20";
-const LABEL =
-  "mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase";
+const INPUT = "input";
+const SELECT = "select";
+const TEXTAREA = "textarea";
+const LABEL = "label mb-1.5 block";
 
 export function VagaForm({ unidades }: { unidades: { value: string; label: string }[] }) {
   const [unidade, setUnidade] = useState(unidades[0]?.value ?? "");
@@ -35,7 +35,7 @@ export function VagaForm({ unidades }: { unidades: { value: string; label: strin
   }
 
   return (
-    <form onSubmit={onSubmit} className="ifp-card max-w-2xl space-y-5 p-7">
+    <form onSubmit={onSubmit} className="card max-w-2xl space-y-5 p-7">
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="unidade" className={LABEL}>
@@ -45,7 +45,7 @@ export function VagaForm({ unidades }: { unidades: { value: string; label: strin
             id="unidade"
             value={unidade}
             onChange={(e) => setUnidade(e.target.value)}
-            className={INPUT}
+            className={SELECT}
           >
             {unidades.map((u) => (
               <option key={u.value} value={u.value}>
@@ -91,7 +91,7 @@ export function VagaForm({ unidades }: { unidades: { value: string; label: strin
           rows={3}
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
-          className={INPUT}
+          className={TEXTAREA}
         />
       </div>
 
@@ -122,13 +122,9 @@ export function VagaForm({ unidades }: { unidades: { value: string; label: strin
         </div>
       </div>
 
-      {erro && <p className="text-sm text-rose-600">{erro}</p>}
+      {erro && <p className="field-error">{erro}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-[rgb(var(--ifp-orange-500))] px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className="btn btn-primary">
         {pending ? "Criando…" : "Criar vaga"}
       </button>
     </form>

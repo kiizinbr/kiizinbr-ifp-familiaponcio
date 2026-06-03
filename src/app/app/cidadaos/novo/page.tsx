@@ -40,9 +40,9 @@ export default async function NovoCidadaoPage({
   return (
     <AppShell session={session}>
       <header className="mb-6">
-        <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">Cadastro</p>
-        <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Novo cidadão</h1>
-        <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
+        <p className="micro">Cadastro</p>
+        <h1 className="t-h1 mt-1 text-[var(--text)]">Novo cidadão</h1>
+        <p className="mt-2 text-sm text-[var(--text-3)]">
           Preencha pelo menos os campos obrigatórios das abas Identificação e Contato. O resto pode
           ser completado depois pela equipe.
         </p>

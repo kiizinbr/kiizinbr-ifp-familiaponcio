@@ -15,9 +15,9 @@ const UNIT_LABELS: Record<UnitScope, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  aberta: "bg-emerald-100 text-emerald-700",
-  pausada: "bg-amber-100 text-amber-700",
-  encerrada: "bg-slate-100 text-slate-600",
+  aberta: "badge badge-success",
+  pausada: "badge badge-warning",
+  encerrada: "badge badge-default",
 };
 
 export default async function VagaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -45,19 +45,15 @@ export default async function VagaDetalhePage({ params }: { params: Promise<{ id
       <header className="mb-8">
         <Link
           href={"/app/vagas" as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
+          className="text-xs text-[var(--text-3)] transition hover:text-[var(--accent)]"
         >
           ← Voltar para Vagas
         </Link>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-bold tracking-tight">{vaga.titulo}</h1>
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[vaga.status]}`}
-          >
-            {vaga.status}
-          </span>
+          <h1 className="t-h1">{vaga.titulo}</h1>
+          <span className={STATUS_BADGE[vaga.status]}>{vaga.status}</span>
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[rgb(var(--ifp-muted))]">
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--text-3)]">
           <span
             className="rounded px-2 py-0.5 text-xs font-medium text-white"
             style={{ background: `rgb(var(--ifp-filter-${vaga.unidade}))` }}
@@ -66,12 +62,12 @@ export default async function VagaDetalhePage({ params }: { params: Promise<{ id
           </span>
           <span>•</span>
           <span>
-            <strong className="text-[rgb(var(--ifp-ink))]">{disp}</strong> de {vaga.slotsTotais}{" "}
-            slots livres
+            <strong className="mono text-[var(--text)]">{disp}</strong> de {vaga.slotsTotais} slots
+            livres
           </span>
         </div>
         {vaga.descricao && (
-          <p className="mt-3 max-w-2xl text-sm text-[rgb(var(--ifp-muted))]">{vaga.descricao}</p>
+          <p className="mt-3 max-w-2xl text-sm text-[var(--text-3)]">{vaga.descricao}</p>
         )}
       </header>
 

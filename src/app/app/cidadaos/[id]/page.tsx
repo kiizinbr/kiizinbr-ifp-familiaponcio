@@ -12,10 +12,10 @@ import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { AnexoUploader } from "./anexo-uploader";
 
 const TONE_BADGE: Record<StatusTone, string> = {
-  red: "bg-red-100 text-red-700",
-  amber: "bg-amber-100 text-amber-700",
-  emerald: "bg-emerald-100 text-emerald-700",
-  slate: "bg-slate-100 text-[rgb(var(--ifp-muted))]",
+  red: "badge badge-danger",
+  amber: "badge badge-warning",
+  emerald: "badge badge-success",
+  slate: "badge badge-default",
 };
 
 const UNIT_LABELS: Record<UnitScope, string> = {
@@ -78,7 +78,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
       <header className="mb-6">
         <Link
           href={"/app/cidadaos" as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
+          className="text-xs text-[var(--text-3)] hover:text-[var(--accent)]"
         >
           ← Voltar para Cidadãos
         </Link>
@@ -86,27 +86,21 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-semibold text-[rgb(var(--ifp-ink))]">
-                {cidadao.nomeCompleto}
-              </h1>
-              <span
-                className={`rounded px-2 py-0.5 text-xs font-medium ${TONE_BADGE[status.tone]}`}
-              >
-                {status.label}
-              </span>
+              <h1 className="t-h2 text-[var(--text)]">{cidadao.nomeCompleto}</h1>
+              <span className={TONE_BADGE[status.tone]}>{status.label}</span>
             </div>
             {cidadao.nomeSocial && (
-              <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
+              <p className="mt-1 text-sm text-[var(--text-3)]">
                 Nome social: <span className="font-medium">{cidadao.nomeSocial}</span>
               </p>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[rgb(var(--ifp-muted))]">
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--text-3)]">
               <span>{idade} anos</span>
               <span>•</span>
-              <span className="font-mono">{formatCpf(cidadao.cpf)}</span>
+              <span className="mono">{formatCpf(cidadao.cpf)}</span>
               <span>•</span>
               <span
-                className="rounded px-2 py-0.5 text-xs font-medium text-white"
+                className="rounded-[var(--r-sm)] px-2 py-0.5 text-xs font-medium text-white"
                 style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
               >
                 {UNIT_LABELS[unit]}
@@ -117,7 +111,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           {podeEditar && (
             <Link
               href={`/app/cidadaos/${cidadao.id}/editar` as Route}
-              className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+              className="btn btn-secondary btn-sm"
             >
               Editar
             </Link>
@@ -159,32 +153,28 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           {/* Endereços */}
           <Section title={`Endereços (${cidadao.enderecos.length})`}>
             {cidadao.enderecos.length === 0 ? (
-              <p className="text-sm text-[rgb(var(--ifp-muted))]">Nenhum endereço cadastrado.</p>
+              <p className="text-sm text-[var(--text-3)]">Nenhum endereço cadastrado.</p>
             ) : (
               <div className="space-y-4">
                 {cidadao.enderecos.map((end) => (
                   <div
                     key={end.id}
-                    className="rounded border border-slate-200 bg-slate-50 p-4 text-sm"
+                    className="rounded-[var(--r-md)] border border-[var(--line)] bg-[var(--surface-2)] p-4 text-sm"
                   >
-                    <div className="flex items-center gap-2 text-xs text-[rgb(var(--ifp-muted))]">
-                      <span className="rounded bg-white px-2 py-0.5 capitalize">{end.tipo}</span>
-                      {end.isPrincipal && (
-                        <span className="rounded bg-[rgb(var(--ifp-orange-500))]/10 px-2 py-0.5 text-[rgb(var(--ifp-orange-500))]">
-                          Principal
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <span className="chip capitalize">{end.tipo}</span>
+                      {end.isPrincipal && <span className="chip chip-accent">Principal</span>}
                     </div>
-                    <p className="mt-2 font-medium text-[rgb(var(--ifp-ink))]">
+                    <p className="mt-2 font-medium text-[var(--text)]">
                       {end.logradouro}, {end.numero ?? "s/n"}
                       {end.complemento && ` — ${end.complemento}`}
                     </p>
-                    <p className="text-[rgb(var(--ifp-muted))]">
+                    <p className="text-[var(--text-3)]">
                       {end.bairro && `${end.bairro}, `}
                       {end.cidade} — {end.uf} • CEP {formatCep(end.cep)}
                     </p>
                     {end.pontoReferencia && (
-                      <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">
+                      <p className="mt-1 text-xs text-[var(--text-3)]">
                         Ref: {end.pontoReferencia}
                       </p>
                     )}
@@ -259,13 +249,11 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
         <aside className="space-y-6">
           {cidadao.familia && (
             <Section title="Família">
-              <p className="text-sm font-medium text-[rgb(var(--ifp-ink))]">
+              <p className="text-sm font-medium text-[var(--text)]">
                 {cidadao.familia.nomeReferencia}
               </p>
               {cidadao.familia.observacoes && (
-                <p className="mt-2 text-xs text-[rgb(var(--ifp-muted))]">
-                  {cidadao.familia.observacoes}
-                </p>
+                <p className="mt-2 text-xs text-[var(--text-3)]">{cidadao.familia.observacoes}</p>
               )}
             </Section>
           )}
@@ -284,7 +272,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
             <Section title="Triagem social" hint="Entrevista e elegibilidade por unidade">
               <Link
                 href={`/app/cidadaos/${cidadao.id}/triagem` as Route}
-                className="text-sm font-medium text-[rgb(var(--ifp-orange-500))] hover:underline"
+                className="text-sm font-medium text-[var(--accent)] hover:underline"
               >
                 Abrir / ver triagem →
               </Link>
@@ -294,7 +282,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
           <Section title="Histórico" hint="Eventos de criação, edição e anexos desta ficha">
             <Link
               href={`/app/cidadaos/${cidadao.id}/historico` as Route}
-              className="text-sm font-medium text-[rgb(var(--ifp-orange-500))] hover:underline"
+              className="text-sm font-medium text-[var(--accent)] hover:underline"
             >
               Ver histórico completo →
             </Link>
@@ -315,10 +303,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="ifp-card p-6">
+    <section className="card p-6">
       <div className="mb-4">
-        <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
-        {hint && <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">{hint}</p>}
+        <h2 className="text-sm font-medium tracking-wide text-[var(--text-2)] uppercase">
+          {title}
+        </h2>
+        {hint && <p className="mt-1 text-xs text-[var(--text-3)]">{hint}</p>}
       </div>
       <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">{children}</dl>
     </section>
@@ -336,10 +326,10 @@ function Field({
 }) {
   return (
     <div className={multiline ? "sm:col-span-2" : ""}>
-      <dt className="text-xs tracking-wide text-[rgb(var(--ifp-muted))] uppercase">{label}</dt>
+      <dt className="text-xs tracking-wide text-[var(--text-3)] uppercase">{label}</dt>
       <dd
         className={`mt-0.5 text-sm ${
-          value ? "text-[rgb(var(--ifp-ink))]" : "text-slate-400"
+          value ? "text-[var(--text)]" : "text-[var(--text-3)]"
         } ${multiline ? "whitespace-pre-wrap" : ""}`}
       >
         {value || "—"}

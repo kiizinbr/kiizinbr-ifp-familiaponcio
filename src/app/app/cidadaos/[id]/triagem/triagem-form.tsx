@@ -24,10 +24,10 @@ const STATUS_OPS = [
 ];
 
 const STATUS_BADGE: Record<string, string> = {
-  pendente: "bg-slate-100 text-[rgb(var(--ifp-muted))] ring-slate-200",
-  aprovado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  negado: "bg-rose-50 text-rose-700 ring-rose-200",
-  encaminhado: "bg-amber-50 text-amber-700 ring-amber-200",
+  pendente: "badge-default",
+  aprovado: "badge-success",
+  negado: "badge-danger",
+  encaminhado: "badge-warning",
 };
 
 export interface TriagemData {
@@ -56,12 +56,12 @@ export function AbrirTriagemButton({ cidadaoId }: { cidadaoId: string }) {
             else setErro(r.error);
           })
         }
-        className="inline-flex items-center gap-2 rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-orange-500))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
+        className="btn btn-primary"
       >
         {pending ? "Abrindo…" : "Abrir triagem"}
         <span aria-hidden>→</span>
       </button>
-      {erro && <p className="mt-2 text-sm text-rose-600">{erro}</p>}
+      {erro && <p className="mt-2 text-sm text-[var(--danger)]">{erro}</p>}
     </div>
   );
 }
@@ -80,24 +80,15 @@ function Jornada({ triagem }: { triagem: TriagemData }) {
   ];
 
   return (
-    <ol className="flex items-center gap-1 text-xs">
+    <ol className="stepper">
       {passos.map((p, i) => (
-        <li key={p.label} className="flex flex-1 items-center gap-1">
-          <span
-            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-2 transition ${
-              p.done
-                ? "bg-[rgb(var(--ifp-orange-500))] text-white ring-[rgb(var(--ifp-orange-500))]"
-                : "bg-white text-slate-400 ring-slate-200"
-            }`}
-          >
-            {p.done ? "✓" : i + 1}
-          </span>
-          <span className={p.done ? "font-medium text-slate-700" : "text-slate-400"}>
-            {p.label}
-          </span>
+        <li key={p.label} className={`step${p.done ? "done" : ""}`}>
+          <span className="num">{p.done ? "✓" : i + 1}</span>
+          <span className="lbl">{p.label}</span>
           {i < passos.length - 1 && (
             <span
-              className={`mx-1 h-px flex-1 ${passos[i + 1]?.done ? "bg-[rgb(var(--ifp-orange-500))]" : "bg-slate-200"}`}
+              className="bar"
+              style={passos[i + 1]?.done ? { background: "var(--accent)" } : undefined}
             />
           )}
         </li>
@@ -136,58 +127,37 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
     });
   }
 
-  const inputCls =
-    "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20 disabled:bg-slate-50 disabled:text-[rgb(var(--ifp-muted))]";
-
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+      <div className="card px-5 py-4">
         <Jornada triagem={triagem} />
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-[rgb(var(--ifp-orange-500))]/8 to-transparent px-6 py-4">
+      <section className="card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-[var(--line)] bg-[linear-gradient(90deg,var(--accent-soft),transparent)] px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="h-8 w-1 rounded-full bg-[rgb(var(--ifp-orange-500))]" aria-hidden />
-            <h2 className="text-base font-semibold tracking-tight text-[rgb(var(--ifp-ink))]">
-              Entrevista
-            </h2>
+            <span className="h-8 w-1 rounded-full bg-[var(--accent)]" aria-hidden />
+            <h2 className="t-h3 text-[var(--text)]">Entrevista</h2>
           </div>
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-              concluida
-                ? "bg-violet-50 text-violet-700 ring-violet-200"
-                : "bg-emerald-50 text-emerald-700 ring-emerald-200"
-            }`}
-          >
+          <span className={`badge ${concluida ? "badge-info" : "badge-success"}`}>
             {concluida ? "Concluída" : "Aberta"}
           </span>
         </div>
 
         <div className="grid gap-5 px-6 py-6">
-          <div className="max-w-xs">
-            <label
-              htmlFor="data-entrevista"
-              className="mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase"
-            >
-              Data da entrevista
-            </label>
+          <label htmlFor="data-entrevista" className="field-group max-w-xs">
+            <span className="micro">Data da entrevista</span>
             <input
               id="data-entrevista"
               type="date"
               value={dataEntrevista}
               disabled={concluida}
               onChange={(e) => setDataEntrevista(e.target.value)}
-              className={inputCls}
+              className="input"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="parecer"
-              className="mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase"
-            >
-              Parecer
-            </label>
+          </label>
+          <label htmlFor="parecer" className="field-group">
+            <span className="micro">Parecer</span>
             <textarea
               id="parecer"
               rows={4}
@@ -195,46 +165,33 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
               disabled={concluida}
               onChange={(e) => setParecer(e.target.value)}
               placeholder="Avaliação socioeconômica e parecer da assistente social"
-              className={inputCls}
+              className="textarea"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="observacoes"
-              className="mb-1.5 block text-xs font-semibold tracking-wide text-[rgb(var(--ifp-muted))] uppercase"
-            >
-              Observações
-            </label>
+          </label>
+          <label htmlFor="observacoes" className="field-group">
+            <span className="micro">Observações</span>
             <textarea
               id="observacoes"
               rows={3}
               value={observacoes}
               disabled={concluida}
               onChange={(e) => setObservacoes(e.target.value)}
-              className={inputCls}
+              className="textarea"
             />
-          </div>
+          </label>
 
           {!concluida && (
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button
-                onClick={salvar}
-                disabled={saving}
-                className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
-              >
+              <button onClick={salvar} disabled={saving} className="btn btn-secondary">
                 {saving ? "Salvando…" : "Salvar entrevista"}
               </button>
-              <button
-                onClick={concluir}
-                disabled={closing}
-                className="rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[rgb(var(--ifp-orange-500))]/30 transition hover:-translate-y-0.5 hover:shadow-md disabled:translate-y-0 disabled:opacity-60"
-              >
+              <button onClick={concluir} disabled={closing} className="btn btn-primary">
                 {closing ? "Concluindo…" : "Concluir triagem"}
               </button>
-              {msg && <p className="text-sm text-[rgb(var(--ifp-muted))]">{msg}</p>}
+              {msg && <p className="text-sm text-[var(--text-3)]">{msg}</p>}
             </div>
           )}
-          {concluida && msg && <p className="text-sm text-[rgb(var(--ifp-muted))]">{msg}</p>}
+          {concluida && msg && <p className="text-sm text-[var(--text-3)]">{msg}</p>}
         </div>
       </section>
 
@@ -245,16 +202,14 @@ export function TriagemForm({ triagem }: { triagem: TriagemData }) {
 
 function ElegibilidadeGrid({ triagem }: { triagem: TriagemData }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-6 py-4">
-        <h2 className="text-base font-semibold tracking-tight text-[rgb(var(--ifp-ink))]">
-          Elegibilidade por unidade
-        </h2>
-        <p className="mt-1 text-xs text-[rgb(var(--ifp-muted))]">
+    <section className="card overflow-hidden">
+      <div className="border-b border-[var(--line)] px-6 py-4">
+        <h2 className="t-h3 text-[var(--text)]">Elegibilidade por unidade</h2>
+        <p className="mt-1 text-xs text-[var(--text-3)]">
           Decisão manual da assistente social. Aprovar ao menos uma unidade ativa o cadastro.
         </p>
       </div>
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-[var(--line)]">
         {UNIDADES.map((u) => {
           const atual = triagem.elegibilidades.find((e) => e.unidade === u.value);
           return (
@@ -304,7 +259,7 @@ function ElegibilidadeRow({
   return (
     <div
       data-testid={`eleg-row-${unidadeValue}`}
-      className="relative flex flex-wrap items-center gap-3 px-6 py-4 transition hover:bg-slate-50/60"
+      className="relative flex flex-wrap items-center gap-3 px-6 py-4 transition hover:bg-[var(--surface-sunken)]"
     >
       <span
         className="absolute top-0 bottom-0 left-0 w-1"
@@ -316,17 +271,13 @@ function ElegibilidadeRow({
         style={{ background: `rgb(var(--ifp-filter-${unidadeValue}))` }}
         aria-hidden
       />
-      <span className="w-40 text-sm font-semibold text-slate-800">{unidadeLabel}</span>
-      <span
-        className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ${STATUS_BADGE[statusInicial]}`}
-      >
-        {statusInicial}
-      </span>
+      <span className="w-40 text-sm font-semibold text-[var(--text)]">{unidadeLabel}</span>
+      <span className={`badge capitalize ${STATUS_BADGE[statusInicial]}`}>{statusInicial}</span>
       <select
         aria-label={`Status ${unidadeLabel}`}
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 outline-none focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20"
+        className="select w-auto"
       >
         {STATUS_OPS.map((o) => (
           <option key={o.value} value={o.value}>
@@ -339,16 +290,12 @@ function ElegibilidadeRow({
         value={motivo}
         onChange={(e) => setMotivo(e.target.value)}
         placeholder="Motivo (opcional)"
-        className="min-w-[160px] flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none placeholder:text-slate-400 focus:border-[rgb(var(--ifp-orange-500))] focus:ring-2 focus:ring-[rgb(var(--ifp-orange-500))]/20"
+        className="input min-w-[160px] flex-1"
       />
-      <button
-        onClick={salvar}
-        disabled={pending}
-        className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white disabled:opacity-60"
-      >
+      <button onClick={salvar} disabled={pending} className="btn btn-secondary btn-sm">
         {pending ? "…" : "Salvar"}
       </button>
-      {erro && <p className="w-full pl-4 text-xs text-rose-600">{erro}</p>}
+      {erro && <p className="w-full pl-4 text-xs text-[var(--danger)]">{erro}</p>}
     </div>
   );
 }

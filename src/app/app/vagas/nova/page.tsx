@@ -29,12 +29,12 @@ export default async function NovaVagaPage() {
       <header className="mb-6">
         <Link
           href={"/app/vagas" as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
+          className="text-xs text-[var(--text-3)] transition hover:text-[var(--accent)]"
         >
           ← Voltar para Vagas
         </Link>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight">Nova vaga</h1>
-        <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
+        <h1 className="t-h1 mt-4">Nova vaga</h1>
+        <p className="mt-1 text-sm text-[var(--text-3)]">
           Defina a unidade, a capacidade (slots) e a janela de divulgação.
         </p>
       </header>

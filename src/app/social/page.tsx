@@ -36,13 +36,9 @@ export default async function SocialDashboard() {
   return (
     <AppShell session={session}>
       <header className="mb-8">
-        <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">
-          Serviço Social
-        </p>
-        <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">
-          Triagens &amp; casos ativos
-        </h1>
-        <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
+        <p className="micro">Serviço Social</p>
+        <h1 className="t-h1 mt-1">Triagens &amp; casos ativos</h1>
+        <p className="text-3 mt-2 text-sm">
           Painel da equipe socioeconômica — Regina e equipe atendem casos das 4 unidades.
         </p>
       </header>
@@ -71,7 +67,7 @@ export default async function SocialDashboard() {
       <section className="mt-10 grid gap-6 lg:grid-cols-2">
         <Panel title="Triagens pendentes">
           {pendentes.length === 0 ? (
-            <li className="text-sm text-[rgb(var(--ifp-muted))]">Nenhuma triagem pendente. 🎉</li>
+            <li className="text-3 text-sm">Nenhuma triagem pendente. 🎉</li>
           ) : (
             pendentes.map((t) => (
               <TriagemItem
@@ -87,7 +83,7 @@ export default async function SocialDashboard() {
 
         <Panel title="Cidadãos ativos por unidade">
           {!stats || stats.porUnidade.length === 0 ? (
-            <li className="text-sm text-[rgb(var(--ifp-muted))]">Sem dados ainda.</li>
+            <li className="text-3 text-sm">Sem dados ainda.</li>
           ) : (
             stats.porUnidade.map((u) => (
               <UnitDistribution
@@ -107,9 +103,12 @@ export default async function SocialDashboard() {
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="ifp-card p-6">
-      <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
-      <ul className="mt-4 space-y-3">{children}</ul>
+    <div className="card">
+      <header>
+        <span className="tick" />
+        <h3>{title}</h3>
+      </header>
+      <ul className="body space-y-3">{children}</ul>
     </div>
   );
 }
@@ -126,7 +125,10 @@ function TriagemItem({
   abertaEm: Date;
 }) {
   return (
-    <li className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+    <li
+      className="flex items-start gap-3 pb-3 last:border-0 last:pb-0"
+      style={{ borderBottom: "1px solid var(--line)" }}
+    >
       <span
         className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full"
         style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
@@ -135,13 +137,14 @@ function TriagemItem({
         <div className="flex items-center justify-between gap-2">
           <Link
             href={`/app/cidadaos/${cidadaoId}/triagem` as Route}
-            className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
+            className="text-sm font-medium"
+            style={{ color: "var(--text)" }}
           >
             {nome}
           </Link>
-          <span className="text-xs text-slate-400">aberta {formatDate(abertaEm)}</span>
+          <span className="text-3 mono text-xs">aberta {formatDate(abertaEm)}</span>
         </div>
-        <p className="text-xs text-[rgb(var(--ifp-muted))]">{UNIT_LABELS[unit]}</p>
+        <p className="text-3 text-xs">{UNIT_LABELS[unit]}</p>
       </div>
     </li>
   );
@@ -159,12 +162,17 @@ function UnitDistribution({
   percent: number;
 }) {
   return (
-    <li className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+    <li className="pb-3 last:border-0 last:pb-0" style={{ borderBottom: "1px solid var(--line)" }}>
       <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-700">{label}</span>
-        <span className="font-medium text-[rgb(var(--ifp-ink))]">{count} casos</span>
+        <span className="text-2">{label}</span>
+        <span className="mono font-medium" style={{ color: "var(--text)" }}>
+          {count} casos
+        </span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded bg-slate-100">
+      <div
+        className="mt-2 h-1.5 w-full overflow-hidden rounded"
+        style={{ background: "var(--surface-sunken)" }}
+      >
         <div
           className="h-full rounded"
           style={{ width: `${percent}%`, background: `rgb(var(--ifp-filter-${unit}))` }}

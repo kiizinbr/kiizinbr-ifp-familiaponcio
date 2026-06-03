@@ -139,12 +139,20 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
   return (
     <AppShell session={session}>
       <header className="mb-8">
-        <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">Centro</p>
-        <h1 className="mt-1 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">{data.name}</h1>
-        <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">{data.tagline}</p>
+        <p className="micro">Centro</p>
+        <h1 className="t-h1 mt-1">{data.name}</h1>
+        <p className="text-3 mt-2 text-sm">{data.tagline}</p>
       </header>
 
-      <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+      <div
+        className="mb-6 px-4 py-2 text-xs"
+        style={{
+          borderRadius: "var(--r-md)",
+          border: "1px solid color-mix(in srgb, var(--warn) 32%, transparent)",
+          background: "var(--warn-soft)",
+          color: "var(--warn)",
+        }}
+      >
         KPIs, agenda e destaques abaixo são <strong>dados de exemplo</strong> — a integração com as
         fontes reais de cada unidade entra numa próxima fase. O painel{" "}
         <strong>Encaminhamentos da triagem</strong> já usa dados reais.
@@ -186,27 +194,25 @@ export default async function UnitDashboard({ params }: { params: Promise<{ unit
       <section className="mt-10">
         <Panel title="Encaminhamentos da triagem" accent={accent}>
           {encaminhamentos.length === 0 ? (
-            <li className="text-sm text-[rgb(var(--ifp-muted))]">
+            <li className="text-3 text-sm">
               Nenhum encaminhamento do Serviço Social para esta unidade ainda.
             </li>
           ) : (
             encaminhamentos.map((e) => (
               <li
                 key={e.id}
-                className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+                className="flex items-center justify-between gap-2 pb-3 last:border-0 last:pb-0"
+                style={{ borderBottom: "1px solid var(--line)" }}
               >
                 <Link
                   href={`/app/cidadaos/${e.triagem.cidadao.id}` as Route}
-                  className="text-sm font-medium text-[rgb(var(--ifp-ink))] hover:text-[rgb(var(--ifp-orange-500))]"
+                  className="text-sm font-medium"
+                  style={{ color: "var(--text)" }}
                 >
                   {e.triagem.cidadao.nomeCompleto}
                 </Link>
                 <span
-                  className={`rounded px-2 py-0.5 text-xs font-medium ${
-                    e.status === "aprovado"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
+                  className={`badge ${e.status === "aprovado" ? "badge-success" : "badge-warning"}`}
                 >
                   {e.status}
                 </span>
@@ -229,15 +235,12 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="ifp-card p-6">
-      <div className="flex items-center gap-2">
-        <span
-          className="inline-block h-1 w-6 rounded"
-          style={{ background: `rgb(var(--ifp-filter-${accent}))` }}
-        />
-        <h2 className="text-sm font-medium tracking-wide text-slate-700 uppercase">{title}</h2>
-      </div>
-      <ul className="mt-4 space-y-3">{children}</ul>
+    <div className="card">
+      <header>
+        <span className="tick" style={{ background: `rgb(var(--ifp-filter-${accent}))` }} />
+        <h3>{title}</h3>
+      </header>
+      <ul className="body space-y-3">{children}</ul>
     </div>
   );
 }
@@ -254,18 +257,19 @@ function AgendaItem({
   accent: UnitScope;
 }) {
   return (
-    <li className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+    <li
+      className="flex items-start gap-3 pb-3 last:border-0 last:pb-0"
+      style={{ borderBottom: "1px solid var(--line)" }}
+    >
       <span
-        className="rounded px-2 py-0.5 text-xs font-medium text-white tabular-nums"
-        style={{ background: `rgb(var(--ifp-filter-${accent}))` }}
+        className="mono rounded px-2 py-0.5 text-xs font-medium text-white tabular-nums"
+        style={{ background: `rgb(var(--ifp-filter-${accent}))`, borderRadius: "var(--r-sm)" }}
       >
         {hora}
       </span>
       <div className="flex-1">
-        <p className="text-sm text-slate-700">{descricao}</p>
-        {status && (
-          <p className="mt-0.5 text-xs text-[rgb(var(--ifp-muted))] capitalize">{status}</p>
-        )}
+        <p className="text-2 text-sm">{descricao}</p>
+        {status && <p className="text-3 mt-0.5 text-xs capitalize">{status}</p>}
       </div>
     </li>
   );
@@ -281,15 +285,17 @@ function HighlightItem({
   accent: UnitScope;
 }) {
   return (
-    <li className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+    <li className="pb-3 last:border-0 last:pb-0" style={{ borderBottom: "1px solid var(--line)" }}>
       <div className="flex items-start gap-2">
         <span
           className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full"
           style={{ background: `rgb(var(--ifp-filter-${accent}))` }}
         />
         <div>
-          <p className="text-sm font-medium text-[rgb(var(--ifp-ink))]">{titulo}</p>
-          <p className="mt-0.5 text-xs text-[rgb(var(--ifp-muted))]">{detalhe}</p>
+          <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+            {titulo}
+          </p>
+          <p className="text-3 mt-0.5 text-xs">{detalhe}</p>
         </div>
       </div>
     </li>

@@ -45,21 +45,22 @@ export default async function TriagemPage({ params }: { params: Promise<{ id: st
       <header className="mb-6">
         <Link
           href={`/app/cidadaos/${cidadao.id}` as Route}
-          className="text-xs text-[rgb(var(--ifp-muted))] hover:text-[rgb(var(--ifp-orange-500))]"
+          className="text-xs text-[var(--text-3)] hover:text-[var(--accent)]"
         >
           ← Voltar para a Ficha
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold text-[rgb(var(--ifp-ink))]">Triagem social</h1>
-        <p className="mt-1 text-sm text-[rgb(var(--ifp-muted))]">
-          Entrevista e elegibilidade de <span className="font-medium">{cidadao.nomeCompleto}</span>.
+        <h1 className="t-h1 mt-4 text-[var(--text)]">Triagem social</h1>
+        <p className="mt-1 text-sm text-[var(--text-3)]">
+          Entrevista e elegibilidade de{" "}
+          <span className="font-medium text-[var(--text-2)]">{cidadao.nomeCompleto}</span>.
         </p>
       </header>
 
       {triagem ? (
         <TriagemForm triagem={triagem} />
       ) : (
-        <section className="ifp-card p-6">
-          <p className="mb-4 text-sm text-[rgb(var(--ifp-muted))]">
+        <section className="card p-6">
+          <p className="mb-4 text-sm text-[var(--text-3)]">
             Nenhuma triagem para este cidadão ainda. Abra uma para registrar a entrevista.
           </p>
           <AbrirTriagemButton cidadaoId={cidadao.id} />

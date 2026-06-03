@@ -14,9 +14,9 @@ const UNIT_LABELS: Record<UnitScope, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  aberta: "bg-emerald-100 text-emerald-700",
-  pausada: "bg-amber-100 text-amber-700",
-  encerrada: "bg-slate-100 text-slate-600",
+  aberta: "badge badge-success",
+  pausada: "badge badge-warning",
+  encerrada: "badge badge-default",
 };
 
 export default async function VagasPage() {
@@ -31,25 +31,22 @@ export default async function VagasPage() {
     <AppShell session={session}>
       <header className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs tracking-widest text-[rgb(var(--ifp-muted))] uppercase">Captação</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Vagas</h1>
-          <p className="mt-2 text-sm text-[rgb(var(--ifp-muted))]">
+          <p className="micro">Captação</p>
+          <h1 className="t-h1 mt-1">Vagas</h1>
+          <p className="mt-2 text-sm text-[var(--text-3)]">
             {vagas.length} {vagas.length === 1 ? "vaga" : "vagas"} · entrevistas de triagem por
             unidade.
           </p>
         </div>
         {podeCriar && (
-          <Link
-            href={"/app/vagas/nova" as Route}
-            className="rounded-full bg-[rgb(var(--ifp-orange-500))] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
-          >
+          <Link href={"/app/vagas/nova" as Route} className="btn btn-primary">
             + Nova vaga
           </Link>
         )}
       </header>
 
       {vagas.length === 0 ? (
-        <div className="ifp-card p-10 text-center text-sm text-[rgb(var(--ifp-muted))]">
+        <div className="card p-10 text-center text-sm text-[var(--text-3)]">
           Nenhuma vaga ainda.{podeCriar && " Crie a primeira com “+ Nova vaga”."}
         </div>
       ) : (
@@ -60,29 +57,24 @@ export default async function VagasPage() {
               <Link
                 key={v.id}
                 href={`/app/vagas/${v.id}` as Route}
-                className="ifp-card ifp-card-hover block p-5"
+                className="card card-hover block p-5"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span
                     className="h-2 w-8 rounded"
                     style={{ background: `rgb(var(--ifp-filter-${v.unidade}))` }}
                   />
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[v.status]}`}
-                  >
-                    {v.status}
-                  </span>
+                  <span className={STATUS_BADGE[v.status]}>{v.status}</span>
                 </div>
-                <h2 className="mt-3 text-base font-semibold">{v.titulo}</h2>
-                <p className="text-sm text-[rgb(var(--ifp-muted))]">
+                <h2 className="t-h3 mt-3">{v.titulo}</h2>
+                <p className="text-sm text-[var(--text-3)]">
                   {UNIT_LABELS[v.unidade as UnitScope]}
                 </p>
                 <p className="mt-4 text-sm">
-                  <span className="text-2xl font-bold tracking-tight">{disp}</span>
-                  <span className="text-[rgb(var(--ifp-muted))]">
-                    {" "}
-                    de {v.slotsTotais} slots livres
+                  <span className="mono text-2xl font-bold tracking-tight text-[var(--text)]">
+                    {disp}
                   </span>
+                  <span className="text-[var(--text-3)]"> de {v.slotsTotais} slots livres</span>
                 </p>
               </Link>
             );

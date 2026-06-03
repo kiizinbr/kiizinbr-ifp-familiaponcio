@@ -133,7 +133,7 @@ export function AnexoUploader({
     <div className="space-y-4">
       {podeEditar && (
         <div
-          className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-[rgb(var(--ifp-orange-500))]"
+          className="rounded-[var(--r-md)] border-2 border-dashed border-[var(--line-strong)] bg-[var(--surface-2)] p-6 text-center transition hover:border-[var(--accent-line)]"
           onDragOver={(e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = "copy";
@@ -155,19 +155,19 @@ export function AnexoUploader({
           />
           <label
             htmlFor="anexo-input"
-            className={`inline-block cursor-pointer rounded bg-[rgb(var(--ifp-orange-500))] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 ${
+            className={`btn btn-primary btn-sm cursor-pointer ${
               uploading ? "pointer-events-none opacity-60" : ""
             }`}
           >
             {uploading ? "Enviando…" : "Escolher arquivos"}
           </label>
-          <p className="mt-3 text-xs text-[rgb(var(--ifp-muted))]">
+          <p className="mt-3 text-xs text-[var(--text-3)]">
             ou arraste e solte aqui. PDF, JPG, PNG. Máximo 10MB por arquivo.
           </p>
           {uploading && progress > 0 && (
-            <div className="mt-3 h-1.5 w-full overflow-hidden rounded bg-slate-200">
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded bg-[var(--surface-sunken)]">
               <div
-                className="h-full rounded bg-[rgb(var(--ifp-orange-500))] transition-all"
+                className="h-full rounded bg-[var(--accent)] transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -176,12 +176,12 @@ export function AnexoUploader({
       )}
 
       {error && (
-        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-[var(--r-sm)] border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">
           {error}
         </div>
       )}
 
-      <div className="flex items-center justify-between text-xs text-[rgb(var(--ifp-muted))]">
+      <div className="flex items-center justify-between text-xs text-[var(--text-3)]">
         <span>
           {anexos.length} {anexos.length === 1 ? "arquivo" : "arquivos"}
         </span>
@@ -195,15 +195,13 @@ export function AnexoUploader({
           {anexos.map((a) => (
             <li
               key={a.id}
-              className="flex items-center justify-between gap-3 rounded border border-slate-200 bg-white px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] px-4 py-3"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="text-2xl">{iconForMime(a.mimeType)}</span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[rgb(var(--ifp-ink))]">
-                    {a.fileName}
-                  </p>
-                  <p className="text-xs text-[rgb(var(--ifp-muted))]">
+                  <p className="truncate text-sm font-medium text-[var(--text)]">{a.fileName}</p>
+                  <p className="text-xs text-[var(--text-3)]">
                     {formatSize(a.sizeBytes)} •{" "}
                     {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(a.createdAt)}
                   </p>
@@ -214,7 +212,7 @@ export function AnexoUploader({
                   href={`/api/cidadao-anexo/${a.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded border border-slate-300 px-3 py-1 text-xs text-slate-700 transition hover:bg-slate-50"
+                  className="btn btn-secondary btn-sm"
                 >
                   Abrir
                 </a>
@@ -223,7 +221,7 @@ export function AnexoUploader({
                     type="button"
                     disabled={isPending}
                     onClick={() => handleRemove(a.id, a.fileName)}
-                    className="rounded border border-red-200 px-3 py-1 text-xs text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+                    className="btn btn-danger btn-sm"
                   >
                     Remover
                   </button>
