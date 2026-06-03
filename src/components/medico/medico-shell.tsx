@@ -41,29 +41,39 @@ export function MedicoHeader({
   acao?: React.ReactNode;
 }) {
   return (
-    <header className="mb-8 flex items-end justify-between gap-4">
+    <header
+      style={{
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "space-between",
+        gap: 16,
+        marginBottom: 24,
+      }}
+    >
       <div>
         {eyebrow && (
-          <p
-            className="text-[11px] font-bold tracking-[0.14em] uppercase"
-            style={{ color: "rgb(var(--ifp-teal-700))" }}
-          >
+          <p className="micro" style={{ color: "var(--accent)", marginBottom: 7 }}>
             {eyebrow}
           </p>
         )}
-        <h1
-          className="mt-1.5 text-[2rem] leading-tight font-extrabold tracking-tight"
-          style={{ color: "rgb(var(--ifp-ink))" }}
-        >
+        <h1 className="t-h1" style={{ color: "var(--text)" }}>
           {titulo}
         </h1>
         {descricao && (
-          <p className="mt-2 max-w-xl text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p
+            style={{
+              marginTop: 8,
+              maxWidth: "60ch",
+              fontSize: 13.5,
+              color: "var(--text-3)",
+              lineHeight: 1.55,
+            }}
+          >
             {descricao}
           </p>
         )}
       </div>
-      {acao && <div className="shrink-0">{acao}</div>}
+      {acao && <div style={{ flexShrink: 0 }}>{acao}</div>}
     </header>
   );
 }

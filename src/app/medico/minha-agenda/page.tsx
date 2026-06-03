@@ -11,8 +11,9 @@ import { formatarDiasSemana, SLOT_VISUAL } from "@/lib/medico/ui";
 import { criarTemplateAction, bloquearSlotAction, desbloquearSlotAction } from "./actions";
 
 const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-const fieldCls =
-  "mt-1 w-full rounded-[var(--ifp-radius-sm)] border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none";
+const fieldCls = "input mt-1";
+const dayChipCls =
+  "flex cursor-pointer items-center gap-1.5 rounded-[var(--r-sm)] border px-2.5 py-1.5 text-sm capitalize transition hover:bg-[var(--surface-sunken)]";
 
 export default async function MinhaAgendaPage() {
   const session = await auth();
@@ -80,14 +81,11 @@ export default async function MinhaAgendaPage() {
         {/* Coluna esquerda: templates + novo */}
         <div className="space-y-6">
           <Card accent="medico">
-            <h2
-              className="text-sm font-bold tracking-wide"
-              style={{ color: "rgb(var(--ifp-ink))" }}
-            >
+            <h2 className="t-h3 text-sm font-bold tracking-wide">
               Templates ativos ({prof.templates.length})
             </h2>
             {prof.templates.length === 0 ? (
-              <p className="mt-3 text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
+              <p className="text-3 mt-3 text-sm">
                 Nenhum template ainda. Crie abaixo para gerar slots.
               </p>
             ) : (
@@ -95,16 +93,14 @@ export default async function MinhaAgendaPage() {
                 {prof.templates.map((t) => (
                   <li
                     key={t.id}
-                    className="rounded-[var(--ifp-radius-sm)] border px-3 py-2 text-sm"
+                    className="rounded-[var(--r-sm)] border px-3 py-2 text-sm"
                     style={{
-                      borderColor: "rgb(var(--ifp-surface-200))",
+                      borderColor: "var(--line)",
                       borderLeft: `3px solid ${t.especialidade.corDestaque}`,
                     }}
                   >
-                    <p className="font-medium" style={{ color: "rgb(var(--ifp-ink))" }}>
-                      {t.especialidade.nome}
-                    </p>
-                    <p className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                    <p className="font-medium">{t.especialidade.nome}</p>
+                    <p className="text-3 text-xs">
                       {formatarDiasSemana(t.diasSemana)} · {t.faixaInicio}–{t.faixaFim} ·{" "}
                       {t.duracaoSlotMin}min
                     </p>
@@ -115,29 +111,18 @@ export default async function MinhaAgendaPage() {
           </Card>
 
           <Card>
-            <h2
-              className="mb-4 text-sm font-bold tracking-wide"
-              style={{ color: "rgb(var(--ifp-ink))" }}
-            >
-              Novo template
-            </h2>
+            <h2 className="t-h3 mb-4 text-sm font-bold tracking-wide">Novo template</h2>
             <form action={criarTemplateAction} className="space-y-4">
               <fieldset>
-                <legend className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Dias da semana
-                </legend>
+                <legend className="label">Dias da semana</legend>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {DIAS.map((label, idx) => (
-                    <label
-                      key={idx}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-[var(--ifp-radius-sm)] border px-2.5 py-1.5 text-sm capitalize transition hover:bg-[rgb(var(--ifp-surface-50))]"
-                      style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-                    >
+                    <label key={idx} className={dayChipCls} style={{ borderColor: "var(--line)" }}>
                       <input
                         type="checkbox"
                         name="diasSemana"
                         value={idx}
-                        className="accent-[rgb(var(--ifp-teal-700))]"
+                        className="accent-[var(--accent)]"
                       />
                       {label}
                     </label>
@@ -147,35 +132,27 @@ export default async function MinhaAgendaPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <label className="block">
-                  <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                    Início
-                  </span>
+                  <span className="label">Início</span>
                   <input
                     name="faixaInicio"
                     type="time"
                     required
                     defaultValue="14:00"
                     className={fieldCls}
-                    style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                    Fim
-                  </span>
+                  <span className="label">Fim</span>
                   <input
                     name="faixaFim"
                     type="time"
                     required
                     defaultValue="18:00"
                     className={fieldCls}
-                    style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                    Slot (min)
-                  </span>
+                  <span className="label">Slot (min)</span>
                   <input
                     name="duracaoSlotMin"
                     type="number"
@@ -184,22 +161,13 @@ export default async function MinhaAgendaPage() {
                     required
                     defaultValue={30}
                     className={fieldCls}
-                    style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
                   />
                 </label>
               </div>
 
               <label className="block">
-                <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Especialidade
-                </span>
-                <select
-                  name="especialidadeId"
-                  required
-                  defaultValue=""
-                  className={fieldCls}
-                  style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-                >
+                <span className="label">Especialidade</span>
+                <select name="especialidadeId" required defaultValue="" className="select mt-1">
                   <option value="" disabled>
                     — escolha —
                   </option>
@@ -213,36 +181,22 @@ export default async function MinhaAgendaPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                    Válido de
-                  </span>
+                  <span className="label">Válido de</span>
                   <input
                     name="validoDe"
                     type="date"
                     required
                     defaultValue={hoje}
                     className={fieldCls}
-                    style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                    Até (vazio = 90d)
-                  </span>
-                  <input
-                    name="validoAte"
-                    type="date"
-                    className={fieldCls}
-                    style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-                  />
+                  <span className="label">Até (vazio = 90d)</span>
+                  <input name="validoAte" type="date" className={fieldCls} />
                 </label>
               </div>
 
-              <button
-                type="submit"
-                className="w-full rounded-[var(--ifp-radius-md)] py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-                style={{ backgroundColor: "rgb(var(--ifp-teal-700))" }}
-              >
+              <button type="submit" className="btn btn-primary btn-block">
                 Criar template e gerar slots
               </button>
             </form>
@@ -251,16 +205,8 @@ export default async function MinhaAgendaPage() {
 
         {/* Coluna direita: próximos slots */}
         <Card className="!p-0">
-          <div
-            className="border-b px-6 py-4"
-            style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-          >
-            <h2
-              className="text-sm font-bold tracking-wide"
-              style={{ color: "rgb(var(--ifp-ink))" }}
-            >
-              Próximos slots
-            </h2>
+          <div className="border-b px-6 py-4" style={{ borderColor: "var(--line)" }}>
+            <h2 className="t-h3 text-sm font-bold tracking-wide">Próximos slots</h2>
           </div>
           {proxSlots.length === 0 ? (
             <EmptyState
@@ -268,7 +214,7 @@ export default async function MinhaAgendaPage() {
               descricao="Crie um template para gerar sua agenda."
             />
           ) : (
-            <ul className="divide-y" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+            <ul className="divide-y" style={{ borderColor: "var(--line)" }}>
               {proxSlots.map((s) => {
                 const visual = SLOT_VISUAL[s.status];
                 return (
@@ -280,10 +226,7 @@ export default async function MinhaAgendaPage() {
                         aria-hidden
                       />
                       <div>
-                        <p
-                          className="text-sm font-semibold tabular-nums"
-                          style={{ color: "rgb(var(--ifp-ink))" }}
-                        >
+                        <p className="mono text-sm font-semibold tabular-nums">
                           {s.dataHoraInicio.toLocaleString("pt-BR", {
                             day: "2-digit",
                             month: "2-digit",
@@ -291,7 +234,7 @@ export default async function MinhaAgendaPage() {
                             minute: "2-digit",
                           })}
                         </p>
-                        <p className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                        <p className="text-3 text-xs">
                           {s.consulta?.cidadao.nomeCompleto ?? s.especialidade.nome}
                         </p>
                       </div>
@@ -306,13 +249,12 @@ export default async function MinhaAgendaPage() {
                             name="motivo"
                             placeholder="motivo"
                             required
-                            className="w-24 rounded-[var(--ifp-radius-sm)] border px-2 py-1 text-xs focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none"
-                            style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                            className="input w-24 px-2 py-1 text-xs"
                           />
                           <button
                             type="submit"
-                            className="text-xs font-semibold"
-                            style={{ color: "rgb(var(--ifp-warning))" }}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: "var(--warn)" }}
                           >
                             Bloquear
                           </button>
@@ -323,8 +265,8 @@ export default async function MinhaAgendaPage() {
                           <input type="hidden" name="slotId" value={s.id} />
                           <button
                             type="submit"
-                            className="text-xs font-semibold"
-                            style={{ color: "rgb(var(--ifp-teal-700))" }}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: "var(--accent)" }}
                           >
                             Liberar
                           </button>

@@ -62,8 +62,7 @@ export default async function AgendaSemanalPage({
 
   const altura = (HORA_FIM - HORA_INICIO) * 60 * PX_POR_MIN;
   const hojeYmd = ymd(new Date());
-  const selectCls =
-    "rounded-[var(--ifp-radius-sm)] border px-2.5 py-1.5 text-sm focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none";
+  const selectCls = "select w-auto";
 
   const rotuloSemana = `${inicio.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} – ${new Date(fim.getTime() - 86400000).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}`;
 
@@ -82,15 +81,13 @@ export default async function AgendaSemanalPage({
             )}
             <a
               href={`/medico/agenda?semana=${ymd(semanaAnterior)}${sp.profissionalId ? `&profissionalId=${sp.profissionalId}` : ""}${sp.especialidadeId ? `&especialidadeId=${sp.especialidadeId}` : ""}`}
-              className="rounded-[var(--ifp-radius-sm)] border px-3 py-1.5 text-sm font-semibold transition hover:bg-[rgb(var(--ifp-surface-50))]"
-              style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              className="btn btn-secondary btn-sm"
             >
               ←
             </a>
             <a
               href={`/medico/agenda?semana=${ymd(semanaProxima)}${sp.profissionalId ? `&profissionalId=${sp.profissionalId}` : ""}${sp.especialidadeId ? `&especialidadeId=${sp.especialidadeId}` : ""}`}
-              className="rounded-[var(--ifp-radius-sm)] border px-3 py-1.5 text-sm font-semibold transition hover:bg-[rgb(var(--ifp-surface-50))]"
-              style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              className="btn btn-secondary btn-sm"
             >
               →
             </a>
@@ -101,12 +98,7 @@ export default async function AgendaSemanalPage({
       {/* Filtros */}
       <form method="get" className="mb-5 flex flex-wrap items-center gap-2">
         <input type="hidden" name="semana" value={ymd(inicio)} />
-        <select
-          name="profissionalId"
-          defaultValue={sp.profissionalId ?? ""}
-          className={selectCls}
-          style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-        >
+        <select name="profissionalId" defaultValue={sp.profissionalId ?? ""} className={selectCls}>
           <option value="">Todos os profissionais</option>
           {profs.map((p) => (
             <option key={p.id} value={p.id}>
@@ -118,7 +110,6 @@ export default async function AgendaSemanalPage({
           name="especialidadeId"
           defaultValue={sp.especialidadeId ?? ""}
           className={selectCls}
-          style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
         >
           <option value="">Todas as especialidades</option>
           {especialidades.map((e) => (
@@ -127,11 +118,7 @@ export default async function AgendaSemanalPage({
             </option>
           ))}
         </select>
-        <button
-          type="submit"
-          className="rounded-[var(--ifp-radius-sm)] px-3.5 py-1.5 text-sm font-bold text-white transition hover:opacity-90"
-          style={{ backgroundColor: "rgb(var(--ifp-teal-700))" }}
-        >
+        <button type="submit" className="btn btn-primary btn-sm">
           Filtrar
         </button>
         {/* legenda de cor por especialidade */}
@@ -140,7 +127,7 @@ export default async function AgendaSemanalPage({
             <span
               key={e.id}
               className="flex items-center gap-1.5 text-[11px]"
-              style={{ color: "rgb(var(--ifp-muted))" }}
+              style={{ color: "var(--text-3)" }}
             >
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: e.corDestaque }} />
               {e.nome}
@@ -156,7 +143,7 @@ export default async function AgendaSemanalPage({
             className="grid border-b"
             style={{
               gridTemplateColumns: "56px repeat(7, 1fr)",
-              borderColor: "rgb(var(--ifp-surface-200))",
+              borderColor: "var(--line)",
             }}
           >
             <div />
@@ -168,11 +155,11 @@ export default async function AgendaSemanalPage({
                 <div
                   key={i}
                   className="px-2 py-3 text-center"
-                  style={{ borderLeft: "1px solid rgb(var(--ifp-surface-200))" }}
+                  style={{ borderLeft: "1px solid var(--line)" }}
                 >
                   <p
                     className="text-[11px] font-semibold tracking-wide uppercase"
-                    style={{ color: "rgb(var(--ifp-muted))" }}
+                    style={{ color: "var(--text-3)" }}
                   >
                     {d}
                   </p>
@@ -180,8 +167,8 @@ export default async function AgendaSemanalPage({
                     className="mx-auto mt-0.5 grid h-7 w-7 place-items-center rounded-full text-sm font-bold"
                     style={
                       isHoje
-                        ? { background: "rgb(var(--ifp-teal-700))", color: "#fff" }
-                        : { color: "rgb(var(--ifp-ink))" }
+                        ? { background: "var(--accent)", color: "#fff" }
+                        : { color: "var(--text)" }
                     }
                   >
                     {dt.getDate()}
@@ -202,7 +189,7 @@ export default async function AgendaSemanalPage({
                     className="absolute right-1.5 -translate-y-1/2 text-[10px] tabular-nums"
                     style={{
                       top: (h - HORA_INICIO) * 60 * PX_POR_MIN,
-                      color: "rgb(var(--ifp-muted))",
+                      color: "var(--text-3)",
                     }}
                   >
                     {String(h).padStart(2, "0")}h
@@ -227,7 +214,7 @@ export default async function AgendaSemanalPage({
                 <div
                   key={dia}
                   className="relative"
-                  style={{ height: altura, borderLeft: "1px solid rgb(var(--ifp-surface-200))" }}
+                  style={{ height: altura, borderLeft: "1px solid var(--line)" }}
                 >
                   {/* linhas de hora */}
                   {Array.from(
@@ -239,7 +226,7 @@ export default async function AgendaSemanalPage({
                       className="absolute w-full border-t"
                       style={{
                         top: (h - HORA_INICIO) * 60 * PX_POR_MIN,
-                        borderColor: "rgb(var(--ifp-surface-100))",
+                        borderColor: "var(--surface-2)",
                       }}
                     />
                   ))}
@@ -286,7 +273,7 @@ export default async function AgendaSemanalPage({
                             : isReserved
                               ? cor
                               : cor + "26",
-                          color: isReserved ? "#fff" : "rgb(var(--ifp-ink))",
+                          color: isReserved ? "#fff" : "var(--text)",
                           borderLeft: `2px solid ${cor}`,
                         }}
                       >

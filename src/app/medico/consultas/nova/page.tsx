@@ -14,32 +14,17 @@ const STEPS = ["Cidadão", "Especialidade", "Horário", "Confirmar"] as const;
 
 function Stepper({ current }: { current: number }) {
   return (
-    <ol className="mb-8 flex items-center gap-2">
+    <ol className="stepper mb-8">
       {STEPS.map((label, i) => {
         const n = i + 1;
         const done = n < current;
         const active = n === current;
+        const cls = ["step", done ? "done" : "", active ? "active" : ""].filter(Boolean).join(" ");
         return (
-          <li key={label} className="flex items-center gap-2">
-            <span
-              className="grid h-7 w-7 place-items-center rounded-full text-xs font-bold transition"
-              style={
-                active
-                  ? { background: "rgb(var(--ifp-teal-700))", color: "#fff" }
-                  : done
-                    ? { background: "rgb(var(--ifp-teal-500))", color: "#fff" }
-                    : { background: "rgb(var(--ifp-surface-100))", color: "rgb(var(--ifp-muted))" }
-              }
-            >
-              {done ? "✓" : n}
-            </span>
-            <span
-              className="text-sm font-semibold"
-              style={{ color: active ? "rgb(var(--ifp-ink))" : "rgb(var(--ifp-muted))" }}
-            >
-              {label}
-            </span>
-            {n < STEPS.length && <span className="mx-1 text-[rgb(var(--ifp-surface-200))]">—</span>}
+          <li key={label} className={cls}>
+            <span className="num">{done ? "✓" : n}</span>
+            <span className="lbl">{label}</span>
+            {n < STEPS.length && <span className="bar" />}
           </li>
         );
       })}
@@ -63,8 +48,6 @@ export default async function NovaConsultaPage({
   if (!podeMarcarConsulta(session)) redirect("/medico" as Route);
 
   const sp = await searchParams;
-  const inputCls =
-    "w-full rounded-[var(--ifp-radius-sm)] border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none";
 
   // ---- Step 1: buscar cidadão ----
   if (!sp.cidadaoId) {
@@ -91,7 +74,7 @@ export default async function NovaConsultaPage({
         <MedicoHeader eyebrow="Nova consulta" titulo="Marcar consulta" />
         <Stepper current={1} />
         <Card accent="medico" className="max-w-2xl">
-          <p className="mb-3 text-sm font-semibold" style={{ color: "rgb(var(--ifp-ink))" }}>
+          <p className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>
             Quem será atendido?
           </p>
           <form method="get" className="flex gap-2">
@@ -100,25 +83,20 @@ export default async function NovaConsultaPage({
               defaultValue={sp.q ?? ""}
               autoFocus
               placeholder="Buscar por nome, CPF ou telefone"
-              className={inputCls}
-              style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+              className="input"
             />
-            <button
-              type="submit"
-              className="shrink-0 rounded-[var(--ifp-radius-md)] px-4 text-sm font-bold text-white"
-              style={{ backgroundColor: "rgb(var(--ifp-teal-700))" }}
-            >
+            <button type="submit" className="btn btn-primary shrink-0">
               Buscar
             </button>
           </form>
 
           {sp.q && matches.length === 0 && (
-            <p className="mt-4 text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
+            <p className="mt-4 text-sm" style={{ color: "var(--text-3)" }}>
               Ninguém encontrado para “{sp.q}”.{" "}
               <Link
                 href={"/app/cidadaos/novo" as Route}
                 className="underline"
-                style={{ color: "rgb(var(--ifp-teal-700))" }}
+                style={{ color: "var(--accent)" }}
               >
                 Cadastrar novo cidadão
               </Link>
@@ -126,17 +104,17 @@ export default async function NovaConsultaPage({
           )}
 
           {matches.length > 0 && (
-            <ul className="mt-4 divide-y" style={{ borderColor: "rgb(var(--ifp-surface-200))" }}>
+            <ul className="mt-4 divide-y" style={{ borderColor: "var(--line)" }}>
               {matches.map((c) => (
                 <li key={c.id}>
                   <Link
                     href={`/medico/consultas/nova?cidadaoId=${c.id}` as Route}
-                    className="flex items-center justify-between gap-3 py-3 transition hover:bg-[rgb(var(--ifp-surface-50))]"
+                    className="flex items-center justify-between gap-3 py-3 transition hover:bg-[var(--surface-2)]"
                   >
-                    <span className="font-medium" style={{ color: "rgb(var(--ifp-ink))" }}>
+                    <span className="font-medium" style={{ color: "var(--text)" }}>
                       {c.nomeCompleto}
                     </span>
-                    <span className="font-mono text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                    <span className="mono text-xs" style={{ color: "var(--text-3)" }}>
                       {formatCpf(c.cpf)} · {c.telefonePrincipal}
                     </span>
                   </Link>
@@ -161,7 +139,7 @@ export default async function NovaConsultaPage({
       <MedicoShell session={session}>
         <MedicoHeader eyebrow={`Cidadão · ${cidadao.nomeCompleto}`} titulo="Marcar consulta" />
         <Stepper current={2} />
-        <p className="mb-3 text-sm font-semibold" style={{ color: "rgb(var(--ifp-ink))" }}>
+        <p className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>
           Qual especialidade?
         </p>
         <div className="grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-3">
@@ -171,17 +149,18 @@ export default async function NovaConsultaPage({
               href={
                 `/medico/consultas/nova?cidadaoId=${cidadao.id}&especialidadeId=${e.id}` as Route
               }
-              className="group rounded-[var(--ifp-radius-lg)] border bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-[var(--ifp-shadow-md)]"
+              className="group rounded-[var(--r-lg)] border p-4 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow)]"
               style={{
-                borderColor: "rgb(var(--ifp-surface-200))",
+                background: "var(--surface)",
+                borderColor: "var(--line)",
                 borderLeft: `4px solid ${e.corDestaque}`,
               }}
             >
               <span className="block h-6 w-6 rounded-full" style={{ background: e.corDestaque }} />
-              <p className="mt-3 font-bold" style={{ color: "rgb(var(--ifp-ink))" }}>
+              <p className="mt-3 font-bold" style={{ color: "var(--text)" }}>
                 {e.nome}
               </p>
-              <p className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+              <p className="text-xs" style={{ color: "var(--text-3)" }}>
                 {e.duracaoPadraoMin} min
               </p>
             </Link>
@@ -190,7 +169,7 @@ export default async function NovaConsultaPage({
         <Link
           href={`/medico/consultas/nova` as Route}
           className="mt-6 inline-block text-sm font-semibold"
-          style={{ color: "rgb(var(--ifp-muted))" }}
+          style={{ color: "var(--text-3)" }}
         >
           ← Trocar cidadão
         </Link>
@@ -236,11 +215,11 @@ export default async function NovaConsultaPage({
 
       {sp.erro === "slot_indisponivel" && (
         <div
-          className="mb-4 rounded-[var(--ifp-radius-md)] border px-4 py-3 text-sm"
+          className="mb-4 rounded-[var(--r-md)] border px-4 py-3 text-sm"
           style={{
-            borderColor: "rgb(var(--ifp-danger))",
-            background: "rgb(var(--ifp-danger) / 0.08)",
-            color: "rgb(var(--ifp-danger))",
+            borderColor: "var(--danger)",
+            background: "var(--danger-soft)",
+            color: "var(--danger)",
           }}
         >
           Esse horário acabou de ser reservado por outra pessoa. Escolha outro abaixo.
@@ -249,7 +228,7 @@ export default async function NovaConsultaPage({
 
       {slots.length === 0 ? (
         <Card>
-          <p style={{ color: "rgb(var(--ifp-muted))" }}>
+          <p style={{ color: "var(--text-3)" }}>
             Nenhum horário disponível para {especialidade.nome} nos próximos dias.
           </p>
         </Card>
@@ -257,10 +236,7 @@ export default async function NovaConsultaPage({
         <div className="space-y-5">
           {[...porDia.entries()].map(([dia, slotsDoDia]) => (
             <Card key={dia}>
-              <p
-                className="mb-3 text-sm font-bold capitalize"
-                style={{ color: "rgb(var(--ifp-teal-700))" }}
-              >
+              <p className="mb-3 text-sm font-bold capitalize" style={{ color: "var(--accent)" }}>
                 {dia}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -272,23 +248,20 @@ export default async function NovaConsultaPage({
                     <input type="hidden" name="especialidadeId" value={especialidade.id} />
                     <button
                       type="submit"
-                      className="rounded-[var(--ifp-radius-md)] border px-3 py-2 text-left transition hover:border-[rgb(var(--ifp-teal-700))] hover:bg-[rgb(var(--ifp-surface-50))]"
-                      style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                      className="rounded-[var(--r-md)] border px-3 py-2 text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
+                      style={{ borderColor: "var(--line)" }}
                       title={`Reservar ${s.dataHoraInicio.toLocaleTimeString("pt-BR")} com ${s.profissional.nomeExibicao}`}
                     >
                       <span
-                        className="block text-sm font-bold tabular-nums"
-                        style={{ color: "rgb(var(--ifp-ink))" }}
+                        className="mono block text-sm font-bold tabular-nums"
+                        style={{ color: "var(--text)" }}
                       >
                         {s.dataHoraInicio.toLocaleTimeString("pt-BR", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
                       </span>
-                      <span
-                        className="block text-[11px]"
-                        style={{ color: "rgb(var(--ifp-muted))" }}
-                      >
+                      <span className="block text-[11px]" style={{ color: "var(--text-3)" }}>
                         {s.profissional.nomeExibicao}
                       </span>
                     </button>
@@ -303,7 +276,7 @@ export default async function NovaConsultaPage({
       <Link
         href={`/medico/consultas/nova?cidadaoId=${cidadao.id}` as Route}
         className="mt-6 inline-block text-sm font-semibold"
-        style={{ color: "rgb(var(--ifp-muted))" }}
+        style={{ color: "var(--text-3)" }}
       >
         ← Trocar especialidade
       </Link>

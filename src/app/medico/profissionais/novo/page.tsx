@@ -9,10 +9,6 @@ import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { criarProfissionalAction } from "../actions";
 
-const fieldCls =
-  "mt-1 w-full rounded-[var(--ifp-radius-sm)] border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none";
-const labelCls = "text-xs font-medium";
-
 export default async function NovoProfissionalPage() {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
@@ -40,18 +36,17 @@ export default async function NovoProfissionalPage() {
 
       <Card accent="medico" className="max-w-2xl">
         {usersElegiveis.length === 0 ? (
-          <div className="text-sm" style={{ color: "rgb(var(--ifp-muted))" }}>
-            <p className="font-semibold" style={{ color: "rgb(var(--ifp-ink))" }}>
+          <div className="text-3 text-sm">
+            <p className="font-semibold" style={{ color: "var(--text)" }}>
               Nenhum usuário elegível.
             </p>
             <p className="mt-2">
               Pra virar profissional, o usuário precisa ter o papel{" "}
-              <code className="rounded bg-[rgb(var(--ifp-surface-100))] px-1">profissional</code> na
-              unidade médica. Crie/ajuste em{" "}
+              <code className="chip chip-mono">profissional</code> na unidade médica. Crie/ajuste em{" "}
               <Link
                 href={"/admin/users" as Route}
                 className="underline"
-                style={{ color: "rgb(var(--ifp-teal-700))" }}
+                style={{ color: "var(--accent)" }}
               >
                 Admin · Usuários
               </Link>
@@ -60,17 +55,9 @@ export default async function NovoProfissionalPage() {
           </div>
         ) : (
           <form action={criarProfissionalAction} className="space-y-5">
-            <label className="block">
-              <span className={labelCls} style={{ color: "rgb(var(--ifp-muted))" }}>
-                Usuário vinculado
-              </span>
-              <select
-                name="userId"
-                required
-                defaultValue=""
-                className={fieldCls}
-                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-              >
+            <label className="field-group">
+              <span className="label">Usuário vinculado</span>
+              <select name="userId" required defaultValue="" className="select">
                 <option value="" disabled>
                   — escolha um usuário —
                 </option>
@@ -82,62 +69,41 @@ export default async function NovoProfissionalPage() {
               </select>
             </label>
 
-            <label className="block">
-              <span className={labelCls} style={{ color: "rgb(var(--ifp-muted))" }}>
-                Nome de exibição
-              </span>
-              <input
-                name="nomeExibicao"
-                required
-                placeholder="Dr. João Silva"
-                className={fieldCls}
-                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-              />
+            <label className="field-group">
+              <span className="label">Nome de exibição</span>
+              <input name="nomeExibicao" required placeholder="Dr. João Silva" className="input" />
             </label>
 
             <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className={labelCls} style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Conselho
-                </span>
-                <input
-                  name="conselho"
-                  required
-                  placeholder="CRM-RJ"
-                  className={fieldCls}
-                  style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-                />
+              <label className="field-group">
+                <span className="label">Conselho</span>
+                <input name="conselho" required placeholder="CRM-RJ" className="input" />
               </label>
-              <label className="block">
-                <span className={labelCls} style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Nº conselho
-                </span>
-                <input
-                  name="nroConselho"
-                  required
-                  placeholder="12345"
-                  className={fieldCls}
-                  style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-                />
+              <label className="field-group">
+                <span className="label">Nº conselho</span>
+                <input name="nroConselho" required placeholder="12345" className="input" />
               </label>
             </div>
 
             <fieldset>
-              <legend className={labelCls} style={{ color: "rgb(var(--ifp-muted))" }}>
-                Especialidades (1 ou mais)
-              </legend>
+              <legend className="label">Especialidades (1 ou mais)</legend>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {especialidades.map((e) => (
                   <label
                     key={e.id}
-                    className="flex cursor-pointer items-center gap-2 rounded-[var(--ifp-radius-sm)] border px-2.5 py-2 text-sm transition hover:bg-[rgb(var(--ifp-surface-50))]"
-                    style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                    className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm transition hover:[border-color:var(--line-strong)]"
+                    style={{
+                      border: "1px solid var(--line)",
+                      borderRadius: "var(--r-sm)",
+                      background: "var(--surface)",
+                      color: "var(--text)",
+                    }}
                   >
                     <input
                       type="checkbox"
                       name="especialidadeIds"
                       value={e.id}
-                      className="accent-[rgb(var(--ifp-teal-700))]"
+                      style={{ accentColor: "var(--accent)" }}
                     />
                     <span
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -149,30 +115,18 @@ export default async function NovoProfissionalPage() {
               </div>
             </fieldset>
 
-            <label className="block">
-              <span className={labelCls} style={{ color: "rgb(var(--ifp-muted))" }}>
-                Bio curta (opcional)
-              </span>
-              <textarea
-                name="bio"
-                rows={3}
-                className={fieldCls}
-                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-              />
+            <label className="field-group">
+              <span className="label">Bio curta (opcional)</span>
+              <textarea name="bio" rows={3} className="textarea" />
             </label>
 
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="submit"
-                className="rounded-[var(--ifp-radius-md)] px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-                style={{ backgroundColor: "rgb(var(--ifp-teal-700))" }}
-              >
+              <button type="submit" className="btn btn-primary">
                 Cadastrar profissional
               </button>
               <Link
                 href={"/medico/profissionais" as Route}
-                className="text-sm font-semibold"
-                style={{ color: "rgb(var(--ifp-muted))" }}
+                className="text-3 text-sm font-semibold"
               >
                 Cancelar
               </Link>

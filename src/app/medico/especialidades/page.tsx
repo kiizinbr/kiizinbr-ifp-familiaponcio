@@ -33,30 +33,18 @@ export default async function EspecialidadesPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
         {/* Formulário de criação — coluna fixa à esquerda */}
         <Card accent="medico" className="h-fit">
-          <h2 className="text-sm font-bold tracking-wide" style={{ color: "rgb(var(--ifp-ink))" }}>
-            Nova especialidade
-          </h2>
-          <p className="mt-1 mb-5 text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+          <h2 className="t-h3">Nova especialidade</h2>
+          <p className="text-3 mt-1 mb-5 text-xs">
             {ativas} ativas · {lista.length} no total
           </p>
-          <form action={criarEspecialidadeAction} className="space-y-4">
-            <label className="block">
-              <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                Nome
-              </span>
-              <input
-                name="nome"
-                required
-                placeholder="Ex: Cardiologia"
-                className="mt-1 w-full rounded-[var(--ifp-radius-sm)] border px-3 py-2 text-sm transition-colors focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none"
-                style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
-              />
+          <form action={criarEspecialidadeAction}>
+            <label className="field-group">
+              <span className="label">Nome</span>
+              <input name="nome" required placeholder="Ex: Cardiologia" className="input" />
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Duração (min)
-                </span>
+              <label className="field-group">
+                <span className="label">Duração (min)</span>
                 <input
                   name="duracaoPadraoMin"
                   type="number"
@@ -64,29 +52,21 @@ export default async function EspecialidadesPage() {
                   min={5}
                   step={5}
                   defaultValue={30}
-                  className="mt-1 w-full rounded-[var(--ifp-radius-sm)] border px-3 py-2 text-sm focus:border-[rgb(var(--ifp-teal-700))] focus:outline-none"
-                  style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                  className="input"
                 />
               </label>
-              <label className="block">
-                <span className="text-xs font-medium" style={{ color: "rgb(var(--ifp-muted))" }}>
-                  Cor
-                </span>
+              <label className="field-group">
+                <span className="label">Cor</span>
                 <input
                   name="corDestaque"
                   type="color"
                   required
                   defaultValue="#007571"
-                  className="mt-1 h-[38px] w-full cursor-pointer rounded-[var(--ifp-radius-sm)] border bg-white px-1"
-                  style={{ borderColor: "rgb(var(--ifp-surface-200))" }}
+                  className="input h-[38px] cursor-pointer px-1"
                 />
               </label>
             </div>
-            <button
-              type="submit"
-              className="w-full rounded-[var(--ifp-radius-md)] py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{ backgroundColor: "rgb(var(--ifp-teal-700))" }}
-            >
+            <button type="submit" className="btn btn-primary btn-block">
               Adicionar especialidade
             </button>
           </form>
@@ -97,9 +77,9 @@ export default async function EspecialidadesPage() {
           {lista.map((esp) => (
             <div
               key={esp.id}
-              className="group relative flex flex-col rounded-[var(--ifp-radius-lg)] border bg-white p-4 transition hover:shadow-[var(--ifp-shadow-md)]"
+              className="group relative flex flex-col rounded-[var(--r-lg)] border bg-[var(--surface)] p-4 shadow-[var(--shadow)] transition hover:border-[var(--line-strong)] hover:shadow-[var(--shadow-pop)]"
               style={{
-                borderColor: "rgb(var(--ifp-surface-200))",
+                borderColor: "var(--line)",
                 borderLeft: `4px solid ${esp.corDestaque}`,
                 opacity: esp.ativa ? 1 : 0.55,
               }}
@@ -112,10 +92,8 @@ export default async function EspecialidadesPage() {
                     aria-hidden
                   />
                   <div>
-                    <p className="font-bold" style={{ color: "rgb(var(--ifp-ink))" }}>
-                      {esp.nome}
-                    </p>
-                    <p className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
+                    <p className="font-bold">{esp.nome}</p>
+                    <p className="text-3 text-xs">
                       {esp.duracaoPadraoMin} min · {esp._count.profissionais}{" "}
                       {esp._count.profissionais === 1 ? "profissional" : "profissionais"}
                     </p>
@@ -124,15 +102,12 @@ export default async function EspecialidadesPage() {
                 {!esp.ativa && <Badge variant="default">Inativa</Badge>}
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <span className="font-mono text-[11px]" style={{ color: "rgb(var(--ifp-muted))" }}>
-                  {esp.corDestaque}
-                </span>
+                <span className="mono text-3 text-[11px]">{esp.corDestaque}</span>
                 <form action={toggleEspecialidadeAction}>
                   <input type="hidden" name="id" value={esp.id} />
                   <button
                     type="submit"
-                    className="text-xs font-semibold underline-offset-2 hover:underline"
-                    style={{ color: "rgb(var(--ifp-teal-700))" }}
+                    className="text-accent text-xs font-semibold underline-offset-2 hover:underline"
                   >
                     {esp.ativa ? "Desativar" : "Reativar"}
                   </button>
