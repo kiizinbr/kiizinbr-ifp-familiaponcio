@@ -1,34 +1,24 @@
-import type { CSSProperties, HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import type { UnidadeSlug } from "@/lib/unidades";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
-  /** Adiciona border-top 4px com a cor de filtro da unidade indicada. */
+  /** Faixa de identidade da unidade no topo (gradiente --unit). */
   accent?: UnidadeSlug;
-  /** Se true, eleva no hover. */
+  /** Eleva no hover. */
   hoverable?: boolean;
 }
 
 /**
- * Card universal canônico do DS v2.
- * Surface branca, borda fina, sombra suave, padding 24px, radius 16px.
- * accent="medico" adiciona uma faixa colorida no topo com a cor temática.
+ * Card universal — Design Kit. Surface + borda + sombra do kit.
+ * Padding padrão `p-6` (24px) embutido e SOBRESCREVÍVEL via className `!p-0`
+ * (usado por tabelas/listas densas). `accent` adiciona a faixa de unidade.
  */
-export function Card({ accent, hoverable, style, className = "", children, ...rest }: Props) {
-  const baseStyle: CSSProperties = {
-    backgroundColor: "rgb(var(--ifp-canvas))",
-    border: "1px solid rgb(var(--ifp-surface-200))",
-    borderRadius: "var(--ifp-radius-lg)",
-    boxShadow: "var(--ifp-shadow-sm)",
-    padding: "var(--ifp-space-6)",
-    transition: "box-shadow var(--ifp-transition-base), transform var(--ifp-transition-base)",
-    ...(accent ? { borderTop: `4px solid rgb(var(--ifp-filter-${accent}))` } : {}),
-    ...style,
-  };
-
-  const hoverClass = hoverable ? "hover:-translate-y-0.5 hover:shadow-md" : "";
-
+export function Card({ accent, hoverable, className = "", children, ...rest }: Props) {
+  const cls = ["card", "p-6", accent ? "unit-strip" : "", hoverable ? "card-hover" : "", className]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <div style={baseStyle} className={`${hoverClass} ${className}`} {...rest}>
+    <div className={cls} {...rest}>
       {children}
     </div>
   );

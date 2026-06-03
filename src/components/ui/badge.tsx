@@ -1,4 +1,4 @@
-import type { CSSProperties, HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 
 type Variant = "default" | "success" | "warning" | "danger" | "info";
 
@@ -6,48 +6,21 @@ interface Props extends HTMLAttributes<HTMLSpanElement> {
   variant?: Variant;
 }
 
-const VARIANTS: Record<Variant, CSSProperties> = {
-  default: {
-    backgroundColor: "rgb(var(--ifp-surface-100))",
-    color: "rgb(var(--ifp-muted))",
-  },
-  success: {
-    backgroundColor: "rgb(var(--ifp-teal-500) / 0.15)",
-    color: "rgb(var(--ifp-teal-700))",
-  },
-  warning: {
-    backgroundColor: "rgb(var(--ifp-orange-500) / 0.15)",
-    color: "rgb(var(--ifp-warning))",
-  },
-  danger: {
-    backgroundColor: "rgb(var(--ifp-danger) / 0.12)",
-    color: "rgb(var(--ifp-danger))",
-  },
-  info: {
-    backgroundColor: "rgb(var(--ifp-orange-900) / 0.10)",
-    color: "rgb(var(--ifp-orange-900))",
-  },
+const VARIANT_CLASS: Record<Variant, string> = {
+  default: "badge-default",
+  success: "badge-success",
+  warning: "badge-warning",
+  danger: "badge-danger",
+  info: "badge-info",
 };
 
 /**
- * Badge universal canônico do DS v2.
- * Pill uppercase, 5 variants: default/success/warning/danger/info.
+ * Badge universal — Design Kit. Pill com borda, 5 variants.
+ * `info` segue o acento (teal de sistema / cor da unidade), não mais laranja.
  */
-export function Badge({ variant = "default", style, className = "", children, ...rest }: Props) {
-  const composedStyle: CSSProperties = {
-    ...VARIANTS[variant],
-    padding: "2px 8px",
-    borderRadius: "var(--ifp-radius-full)",
-    fontSize: "11px",
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    display: "inline-block",
-    ...style,
-  };
-
+export function Badge({ variant = "default", className = "", children, ...rest }: Props) {
   return (
-    <span style={composedStyle} className={className} {...rest}>
+    <span className={`badge ${VARIANT_CLASS[variant]} ${className}`.trim()} {...rest}>
       {children}
     </span>
   );

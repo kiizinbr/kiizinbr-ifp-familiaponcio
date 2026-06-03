@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, CSSProperties } from "react";
+import type { ButtonHTMLAttributes } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -7,55 +7,38 @@ type Size = "sm" | "md" | "lg";
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  /** Mostra spinner e bloqueia interação (classe .is-loading do kit). */
+  loading?: boolean;
 }
 
-const VARIANT_STYLES: Record<Variant, CSSProperties> = {
-  primary: {
-    backgroundColor: "rgb(var(--ifp-orange-500))",
-    color: "rgb(var(--ifp-canvas))",
-  },
-  secondary: {
-    backgroundColor: "transparent",
-    color: "rgb(var(--ifp-orange-900))",
-    border: "1.5px solid rgb(var(--ifp-orange-900))",
-  },
-  ghost: {
-    backgroundColor: "transparent",
-    color: "rgb(var(--ifp-ink))",
-  },
-  danger: {
-    backgroundColor: "rgb(var(--ifp-danger))",
-    color: "rgb(var(--ifp-canvas))",
-  },
+const VARIANT_CLASS: Record<Variant, string> = {
+  primary: "btn-primary",
+  secondary: "btn-secondary",
+  ghost: "btn-ghost",
+  danger: "btn-danger",
 };
-
-const SIZE_STYLES: Record<Size, CSSProperties> = {
-  sm: { padding: "6px 12px", fontSize: "13px" },
-  md: { padding: "10px 16px", fontSize: "14px" },
-  lg: { padding: "12px 20px", fontSize: "16px" },
-};
+const SIZE_CLASS: Record<Size, string> = { sm: "btn-sm", md: "", lg: "btn-lg" };
 
 /**
- * Botão universal canônico do DS v2.
- * Variants: primary (laranja CTA), secondary (outline marrom), ghost (texto), danger (vermelho).
+ * Botão universal — Design Kit "Ferramenta Clínica Premium".
+ * `primary` = gradiente do acento (teal de sistema, ou cor da unidade sob
+ * [data-unit-accent]). Variants: primary | secondary | ghost | danger.
  */
 export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
-  { variant = "primary", size = "md", style, className = "", children, ...rest },
+  { variant = "primary", size = "md", loading = false, className = "", children, ...rest },
   ref,
 ) {
-  const composedStyle: CSSProperties = {
-    ...VARIANT_STYLES[variant],
-    ...SIZE_STYLES[size],
-    fontWeight: 700,
-    borderRadius: "var(--ifp-radius-md)",
-    transition: "opacity var(--ifp-transition-fast)",
-    cursor: rest.disabled ? "not-allowed" : "pointer",
-    opacity: rest.disabled ? 0.5 : 1,
-    ...style,
-  };
-
+  const cls = [
+    "btn",
+    VARIANT_CLASS[variant],
+    SIZE_CLASS[size],
+    loading ? "is-loading" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <button ref={ref} style={composedStyle} className={`font-bold ${className}`} {...rest}>
+    <button ref={ref} className={cls} aria-disabled={loading || undefined} {...rest}>
       {children}
     </button>
   );
