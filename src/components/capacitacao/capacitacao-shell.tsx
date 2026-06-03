@@ -18,7 +18,7 @@ export function CapacitacaoShell({
       session={session}
       items={capacitacaoNavItems(session)}
       sectionLabel="Capacitação"
-      sectionColor="rgb(var(--ifp-orange-500))"
+      unit="capacitacao"
     >
       {children}
     </AppShell>

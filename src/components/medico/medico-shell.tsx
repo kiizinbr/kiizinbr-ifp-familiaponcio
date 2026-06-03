@@ -18,7 +18,7 @@ export function MedicoShell({
       session={session}
       items={medicoNavItems(session)}
       sectionLabel="Centro Médico"
-      sectionColor="rgb(var(--ifp-teal-700))"
+      unit="medico"
     >
       {children}
     </AppShell>

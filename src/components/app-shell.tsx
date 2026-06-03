@@ -3,18 +3,20 @@ import type { Session } from "next-auth";
 import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { hasAnyRole } from "@/lib/rbac";
 import { podeAgendar } from "@/lib/funil";
+import type { UnidadeSlug } from "@/lib/unidades";
 
 interface AppShellProps {
   session: Session;
   children: React.ReactNode;
-  /** Override opcional da navegação (ex.: contexto da unidade médica). */
+  /** Override opcional da navegação (ex.: contexto da unidade). */
   items?: NavItem[];
-  /** Rótulo da seção mostrado acima da nav (ex.: "Centro Médico"). */
+  /** Rótulo da seção (grupo) acima da nav. */
   sectionLabel?: string;
-  /** Cor de accent da seção (hex) — pinta o título da seção. */
-  sectionColor?: string;
+  /** Slug da unidade — seta data-unit + data-unit-accent (acento por unidade). */
+  unit?: UnidadeSlug;
 }
 
 function initials(name: string): string {
@@ -42,74 +44,93 @@ function defaultItems(session: Session): NavItem[] {
   return items;
 }
 
+/**
+ * Shell base de toda tela autenticada — Design Kit (`.shell` + `.sidebar` +
+ * `.content`). `unit` seta o contrato `data-unit`/`data-unit-accent` (acento da
+ * unidade nos itens ativos, faixa da sidebar, botões). `.ifp-kit` aplica o
+ * canvas + tipografia do kit.
+ */
 export function AppShell({
   session,
   children,
   items: itemsOverride,
   sectionLabel,
-  sectionColor,
+  unit,
 }: AppShellProps) {
   const displayName = session.user.name ?? session.user.email ?? "Usuário";
-
   const items: NavItem[] = itemsOverride ?? defaultItems(session);
+  const isSuper = session.user.roles.some((r) => r.name === "super_admin");
 
   return (
-    <div className="flex min-h-screen bg-[rgb(var(--ifp-canvas))] text-[rgb(var(--ifp-ink))]">
-      <aside
-        className="sticky top-0 flex h-screen w-64 shrink-0 flex-col bg-white/85 px-4 py-7 backdrop-blur-xl"
-        style={{ borderRight: "1px solid rgb(var(--ifp-surface-200))" }}
-      >
-        <div className="flex items-center gap-2.5 px-3 pb-7">
-          <Image src="/logo/ifp-symbol.png" alt="IFP" width={32} height={32} priority />
-          <span className="text-[17px] font-extrabold tracking-tight">IFP Connect</span>
+    <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
+      <aside className="sidebar">
+        <div className="sb-brand">
+          <span className="symbol">
+            <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
+          </span>
+          <b>IFP Connect</b>
         </div>
 
-        {sectionLabel && (
-          <p
-            className="mb-2 px-3 text-[11px] font-bold tracking-wider uppercase"
-            style={{ color: sectionColor ?? "rgb(var(--ifp-muted))" }}
-          >
-            {sectionLabel}
-          </p>
-        )}
-
+        {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
         <SidebarNav items={items} />
 
-        {session.user.roles.some((r) => r.name === "super_admin") && (
+        {isSuper ? (
           <>
-            <p
-              className="mt-6 mb-2 px-3 text-[11px] font-bold tracking-wider uppercase"
-              style={{ color: "rgb(var(--ifp-muted))" }}
-            >
-              Unidades
-            </p>
+            <div className="sb-group">Unidades</div>
             <UnitSwitcher roles={session.user.roles} />
           </>
-        )}
+        ) : null}
 
         <div
-          className="mt-auto flex items-center gap-3 px-2 pt-4"
-          style={{ borderTop: "1px solid rgb(var(--ifp-surface-200))" }}
+          style={{
+            marginTop: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            paddingTop: 14,
+            borderTop: "1px solid var(--line)",
+          }}
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[rgb(var(--ifp-ink))] text-xs font-bold text-white">
-            {initials(displayName)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{displayName}</p>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="text-xs text-[rgb(var(--ifp-muted))] transition hover:text-[rgb(var(--ifp-orange-500))]"
+          <ThemeToggle />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span className="avatar sm">{initials(displayName)}</span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
               >
-                Sair
-              </button>
-            </form>
+                {displayName}
+              </p>
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  style={{
+                    background: "none",
+                    border: 0,
+                    padding: 0,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: "var(--text-3)",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Sair
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-[1180px] px-10 py-12 lg:px-14">{children}</div>
+      <main>
+        <div className="content">{children}</div>
       </main>
     </div>
   );
