@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import type { StatusMatricula } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import {
@@ -36,6 +37,7 @@ function num(formData: FormData, key: string, def: number): number {
 
 export async function criarCursoAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   if (!podeGerenciarCurso(session)) throw new Error("Sem permissão");
   const curso = await db.curso.create({
     data: {
@@ -60,6 +62,7 @@ export async function criarCursoAction(formData: FormData) {
 
 export async function criarTurmaAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   if (!podeCriarTurma(session)) throw new Error("Sem permissão");
   const cursoId = s(formData, "cursoId");
   const curso = await db.curso.findUniqueOrThrow({ where: { id: cursoId } });
@@ -86,6 +89,7 @@ export async function criarTurmaAction(formData: FormData) {
 
 export async function matricularAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   if (!podeMatricular(session)) throw new Error("Sem permissão");
   const turmaId = s(formData, "turmaId");
   const cidadaoId = s(formData, "cidadaoId");
@@ -111,6 +115,7 @@ export async function matricularAction(formData: FormData) {
 
 export async function transicionarMatriculaAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   const matriculaId = s(formData, "matriculaId");
   const turmaId = s(formData, "turmaId");
   const para = s(formData, "para") as StatusMatricula;
@@ -134,6 +139,7 @@ export async function transicionarMatriculaAction(formData: FormData) {
 
 export async function promoverListaEsperaAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   if (!podeCriarTurma(session)) throw new Error("Sem permissão");
   const turmaId = s(formData, "turmaId");
   try {
@@ -156,6 +162,7 @@ export async function promoverListaEsperaAction(formData: FormData) {
 
 export async function criarInstrutorAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   if (!podeGerenciarInstrutor(session)) throw new Error("Sem permissão");
   const inst = await db.instrutor.create({
     data: { nomeExibicao: s(formData, "nomeExibicao"), bio: sOpt(formData, "bio") },
@@ -172,9 +179,11 @@ export async function criarInstrutorAction(formData: FormData) {
 
 export async function toggleCursoAtivoAction(formData: FormData) {
   const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   if (!podeGerenciarCurso(session)) throw new Error("Sem permissão");
   const cursoId = s(formData, "cursoId");
-  const curso = await db.curso.findUniqueOrThrow({ where: { id: cursoId } });
+  const curso = await db.curso.findUnique({ where: { id: cursoId } });
+  if (!curso) redirect("/capacitacao/cursos" as Route);
   const ativo = !curso.ativo;
   await db.curso.update({ where: { id: cursoId }, data: { ativo } });
   await logEvent({
