@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview · Login com foto institucional — IFP Connect</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+      :root {
+        --teal: #007571; /* Centro Médico */
+        --teal-2: #10c2bb;
+        --teal-deep: #04201f;
+        --ink: #1b1d1d;
+        --muted: #6b6b6b;
+        --line: #dfe3e3;
+        --surface: #ffffff;
+        --surface-2: #f6f8f8;
+        --r-lg: 16px;
+        --r-md: 11px;
+        --font-ui: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+        --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-ui);
+        background: #0e1011;
+        color: #e7eaea;
+        -webkit-font-smoothing: antialiased;
+      }
+      .lab-head {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 40px 24px 8px;
+      }
+      .lab-head .kicker {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--teal-2);
+      }
+      .lab-head h1 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 8px 0 6px;
+      }
+      .lab-head p {
+        color: #aab2b2;
+        font-size: 14px;
+        max-width: 70ch;
+        line-height: 1.55;
+        margin: 0;
+      }
+      .wrap {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+      }
+      .case {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .case > .meta {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .case .tag {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #fff;
+        background: var(--teal);
+        padding: 3px 9px;
+        border-radius: 6px;
+      }
+      .case .title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #ecefef;
+      }
+      .case .why {
+        font-size: 13px;
+        color: #8b9393;
+      }
+
+      /* ===== moldura do preview (janela) ===== */
+      .frame {
+        position: relative;
+        height: 600px;
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        box-shadow:
+          0 2px 4px rgba(0, 0, 0, 0.4),
+          0 24px 60px rgba(0, 0, 0, 0.5);
+        border: 1px solid #262b2c;
+      }
+      .frame .photo {
+        position: absolute;
+        inset: 0;
+        background-image: url("./instituto.jpg");
+        background-size: cover;
+        background-position: center 38%;
+      }
+      .frame .veil {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* card base */
+      .card {
+        position: relative;
+        z-index: 2;
+        width: 360px;
+        padding: 34px 32px 30px;
+        border-radius: 18px;
+      }
+      .symbol {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .symbol img {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin: 22px 0 7px;
+      }
+      .card h2 {
+        font-size: 27px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin: 0 0 4px;
+      }
+      .card .sub {
+        font-size: 13px;
+        margin: 0 0 24px;
+      }
+      .field {
+        margin-bottom: 13px;
+      }
+      .field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .field input {
+        width: 100%;
+        font-family: inherit;
+        font-size: 14px;
+        padding: 11px 13px;
+        border-radius: var(--r-md);
+        outline: none;
+        border: 1px solid;
+      }
+      .btn {
+        width: 100%;
+        margin-top: 8px;
+        padding: 13px;
+        border: 0;
+        border-radius: var(--r-md);
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 14.5px;
+        color: #fff;
+        cursor: pointer;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--teal) 90%, #fff), var(--teal));
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--teal) 38%, transparent);
+      }
+      .forgot {
+        display: block;
+        text-align: center;
+        margin-top: 16px;
+        font-size: 12.5px;
+        text-decoration: none;
+      }
+
+      /* ===================== A — VITRINE (véu forte, vidro fosco escuro) ===================== */
+      .a .veil {
+        background: linear-gradient(
+          105deg,
+          rgba(4, 32, 31, 0.9) 0%,
+          rgba(0, 86, 83, 0.6) 40%,
+          rgba(0, 117, 113, 0.16) 74%,
+          rgba(0, 117, 113, 0.04) 100%
+        );
+      }
+      .a .stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        padding: 0 8% 0 7%;
+      }
+      .a .card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(22px) saturate(1.25);
+        -webkit-backdrop-filter: blur(22px) saturate(1.25);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        color: #fff;
+      }
+      .a .symbol {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .a .eyebrow {
+        color: var(--teal-2);
+      }
+      .a .card .sub {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .a .field label {
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .a .field input {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #fff;
+      }
+      .a .field input::placeholder {
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .a .forgot {
+        color: var(--teal-2);
+      }
+
+      /* ===================== B — SPLIT (foto-herói + painel claro) ===================== */
+      .b .frame-inner {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+      }
+      .b .hero {
+        position: relative;
+        overflow: hidden;
+      }
+      .b .hero .photo {
+        background-position: center 40%;
+      }
+      .b .hero .veil {
+        background: linear-gradient(
+          0deg,
+          rgba(4, 32, 31, 0.86) 0%,
+          rgba(0, 70, 68, 0.4) 45%,
+          rgba(0, 117, 113, 0.22) 100%
+        );
+      }
+      .b .hero .wordmark {
+        position: absolute;
+        z-index: 2;
+        left: 40px;
+        bottom: 40px;
+        right: 40px;
+        color: #fff;
+      }
+      .b .hero .wordmark .k {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--teal-2);
+      }
+      .b .hero .wordmark h3 {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin: 10px 0 0;
+        max-width: 14ch;
+      }
+      .b .panel {
+        background: var(--surface);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .b .card {
+        background: transparent;
+        color: var(--ink);
+        width: 320px;
+        padding: 0;
+      }
+      .b .symbol {
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+      }
+      .b .eyebrow {
+        color: var(--teal);
+      }
+      .b .card .sub {
+        color: var(--muted);
+      }
+      .b .field label {
+        color: #4a4a49;
+      }
+      .b .field input {
+        background: var(--surface-2);
+        border-color: var(--line);
+        color: var(--ink);
+      }
+      .b .forgot {
+        color: var(--teal);
+      }
+
+      /* ===================== C — RESPIRO (véu LEVE, prédio aparece, card compacto canto) ===================== */
+      .c .veil {
+        background:
+          radial-gradient(
+            120% 100% at 12% 88%,
+            rgba(4, 32, 31, 0.62) 0%,
+            rgba(4, 32, 31, 0.12) 42%,
+            transparent 70%
+          ),
+          linear-gradient(120deg, rgba(0, 117, 113, 0.26) 0%, rgba(0, 117, 113, 0.08) 55%, transparent 100%);
+      }
+      .c .stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: flex-end;
+        padding: 0 0 40px 44px;
+      }
+      .c .card {
+        width: 340px;
+        padding: 26px 26px 24px;
+        background: rgba(255, 255, 255, 0.93);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 18px 50px rgba(4, 32, 31, 0.4);
+        color: var(--ink);
+        border-radius: 16px;
+      }
+      .c .symbol {
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        width: 44px;
+        height: 44px;
+      }
+      .c .symbol img {
+        width: 30px;
+        height: 30px;
+      }
+      .c .eyebrow {
+        color: var(--teal);
+        margin-top: 16px;
+      }
+      .c .card h2 {
+        font-size: 23px;
+      }
+      .c .card .sub {
+        color: var(--muted);
+      }
+      .c .field label {
+        color: #4a4a49;
+      }
+      .c .field input {
+        background: var(--surface-2);
+        border-color: var(--line);
+        color: var(--ink);
+      }
+      .c .forgot {
+        color: var(--teal);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lab-head">
+      <div class="kicker">IFP Connect · Preview de design · não-produção</div>
+      <h1>Login com a foto aérea do instituto + véu da unidade</h1>
+      <p>
+        A mesma foto do Centro Médico, três tratamentos do véu teal (cor da unidade). Em produção,
+        cada unidade traz sua própria foto e seu acento (capacitação = laranja, etc.). Escolha o
+        tratamento e eu aplico no login real.
+      </p>
+    </div>
+
+    <div class="wrap">
+      <!-- A -->
+      <section class="case a">
+        <div class="meta">
+          <span class="tag">A · Vitrine</span>
+          <span class="title">Vidro fosco escuro, card à esquerda</span>
+          <span class="why">véu mais forte · dramático e premium · a foto aparece à direita</span>
+        </div>
+        <div class="frame">
+          <div class="photo"></div>
+          <div class="veil"></div>
+          <div class="stage">
+            <div class="card">
+              <div class="symbol"><img src="/logo/ifp-symbol.png" alt="IFP" /></div>
+              <div class="eyebrow">Centro Médico</div>
+              <h2>Bem-vindo de volta</h2>
+              <p class="sub">Instituto Família Pôncio</p>
+              <div class="field">
+                <label>E-mail</label><input type="email" placeholder="voce@familiaponcio.org.br" />
+              </div>
+              <div class="field"><label>Senha</label><input type="password" placeholder="••••••••" /></div>
+              <button class="btn">Entrar</button>
+              <a class="forgot" href="#">Esqueci a senha</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- B -->
+      <section class="case b">
+        <div class="meta">
+          <span class="tag">B · Split</span>
+          <span class="title">Foto-herói + painel claro</span>
+          <span class="why">foto de um lado, formulário limpo do outro · ar de SaaS premium</span>
+        </div>
+        <div class="frame">
+          <div class="frame-inner">
+            <div class="hero">
+              <div class="photo"></div>
+              <div class="veil"></div>
+              <div class="wordmark">
+                <div class="k">Centro Médico</div>
+                <h3>Cuidado que começa no bairro.</h3>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="card">
+                <div class="symbol"><img src="/logo/ifp-symbol.png" alt="IFP" /></div>
+                <div class="eyebrow">Acesso restrito</div>
+                <h2>Centro Médico</h2>
+                <p class="sub">Instituto Família Pôncio</p>
+                <div class="field">
+                  <label>E-mail</label
+                  ><input type="email" placeholder="voce@familiaponcio.org.br" />
+                </div>
+                <div class="field">
+                  <label>Senha</label><input type="password" placeholder="••••••••" />
+                </div>
+                <button class="btn">Entrar</button>
+                <a class="forgot" href="#">Esqueci a senha</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- C -->
+      <section class="case c">
+        <div class="meta">
+          <span class="tag">C · Respiro</span>
+          <span class="title">Véu leve, card compacto no canto</span>
+          <span class="why">o "filtro leve" que você pediu · o prédio e o céu respiram</span>
+        </div>
+        <div class="frame">
+          <div class="photo"></div>
+          <div class="veil"></div>
+          <div class="stage">
+            <div class="card">
+              <div class="symbol"><img src="/logo/ifp-symbol.png" alt="IFP" /></div>
+              <div class="eyebrow">Centro Médico</div>
+              <h2>Entrar</h2>
+              <p class="sub">Instituto Família Pôncio</p>
+              <div class="field">
+                <label>E-mail</label><input type="email" placeholder="voce@familiaponcio.org.br" />
+              </div>
+              <div class="field"><label>Senha</label><input type="password" placeholder="••••••••" /></div>
+              <button class="btn">Entrar</button>
+              <a class="forgot" href="#">Esqueci a senha</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
