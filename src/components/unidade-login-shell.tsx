@@ -5,12 +5,19 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { Route } from "next";
 import type { UnidadeConfig } from "@/lib/unidades";
+import styles from "./unidade-login-shell.module.css";
 
 interface Props {
   unidade: UnidadeConfig;
   loginAction: (formData: FormData) => Promise<{ error?: string } | void>;
 }
 
+/**
+ * Login da unidade — layout Split (foto-herói + painel claro), no Design Kit.
+ * `data-unit`/`data-unit-accent` no root fazem o acento (eyebrow, botão) e o
+ * véu seguirem a cor da unidade. Hero usa a foto institucional (ou o gradiente
+ * fallback quando a unidade ainda não tem foto).
+ */
 export function UnidadeLoginShell({ unidade, loginAction }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -25,133 +32,74 @@ export function UnidadeLoginShell({ unidade, loginAction }: Props) {
     });
   }
 
-  const background = unidade.fotoFundoLogin
+  const heroBg = unidade.fotoFundoLogin
     ? `url(${unidade.fotoFundoLogin})`
     : unidade.gradienteFallback;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center">
-      <div
-        className="absolute inset-0"
-        style={{
-          background,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-        aria-hidden
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: unidade.corFiltroLogin,
-          opacity: "var(--ifp-filter-opacity)",
-        }}
-        aria-hidden
-      />
-
-      <div
-        className="relative z-10 w-full max-w-sm bg-white/95 p-8 backdrop-blur"
-        style={{
-          borderRadius: "var(--ifp-radius-xl)",
-          boxShadow: "var(--ifp-shadow-xl)",
-        }}
-      >
-        <div className="flex flex-col items-center">
-          <Image src="/logo/ifp-symbol.png" alt="IFP" width={56} height={56} priority />
-          <h1 className="mt-4 text-lg font-bold" style={{ color: "rgb(var(--ifp-orange-900))" }}>
-            {unidade.nome}
-          </h1>
-          <p
-            className="mt-1 text-xs tracking-wider uppercase"
-            style={{ color: "rgb(var(--ifp-muted))" }}
-          >
-            Instituto Família Pôncio
-          </p>
-        </div>
-
-        <form action={onSubmit} className="mt-8 space-y-4">
-          <label className="block">
-            <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
-              E-mail
-            </span>
-            <input
-              required
-              name="email"
-              type="email"
-              autoComplete="email"
-              className="mt-1 w-full px-3 py-2 text-sm focus:outline-none"
-              style={{
-                backgroundColor: "rgb(var(--ifp-canvas))",
-                border: "1px solid rgb(var(--ifp-surface-200))",
-                borderRadius: "var(--ifp-radius-sm)",
-                color: "rgb(var(--ifp-ink))",
-              }}
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs" style={{ color: "rgb(var(--ifp-muted))" }}>
-              Senha
-            </span>
-            <input
-              required
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              className="mt-1 w-full px-3 py-2 text-sm focus:outline-none"
-              style={{
-                backgroundColor: "rgb(var(--ifp-canvas))",
-                border: "1px solid rgb(var(--ifp-surface-200))",
-                borderRadius: "var(--ifp-radius-sm)",
-                color: "rgb(var(--ifp-ink))",
-              }}
-            />
-          </label>
-
-          {error && (
-            <p
-              role="alert"
-              className="px-3 py-2 text-sm"
-              style={{
-                backgroundColor: "rgb(var(--ifp-danger) / 0.08)",
-                color: "rgb(var(--ifp-danger))",
-                borderRadius: "var(--ifp-radius-sm)",
-              }}
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{
-              backgroundColor: "rgb(var(--ifp-orange-500))",
-              borderRadius: "var(--ifp-radius-md)",
-            }}
-          >
-            {pending ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
-
+    <main className={`ifp-kit ${styles.split}`} data-unit={unidade.slug} data-unit-accent="">
+      <div className={styles.hero}>
         <div
-          className="mt-6 flex items-center justify-between text-xs"
-          style={{ color: "rgb(var(--ifp-muted))" }}
-        >
-          <Link
-            href={"/reset" as Route}
-            className="hover:opacity-70"
-            style={{ transition: "opacity var(--ifp-transition-fast)" }}
-          >
-            Esqueci a senha
-          </Link>
-          <Link
-            href={"/" as Route}
-            className="hover:opacity-70"
-            style={{ transition: "opacity var(--ifp-transition-fast)" }}
-          >
-            ← Voltar
-          </Link>
+          className={styles.heroPhoto}
+          style={{ background: heroBg, backgroundSize: "cover", backgroundPosition: "center 40%" }}
+          aria-hidden
+        />
+        <div className={styles.heroTint} aria-hidden />
+        <div className={styles.heroShade} aria-hidden />
+        <div className={styles.wordmark}>
+          <div className={styles.k}>{unidade.nome}</div>
+          {unidade.tagline ? <h2>{unidade.tagline}</h2> : null}
+        </div>
+      </div>
+
+      <div className={styles.panel}>
+        <div className={styles.card}>
+          <span className={styles.brand}>
+            <Image src="/logo/ifp-symbol.png" alt="IFP" width={38} height={38} priority />
+          </span>
+          <div className={styles.eyebrow}>Acesso restrito</div>
+          <h1 className={styles.title}>{unidade.nome}</h1>
+          <p className={styles.sub}>Instituto Família Pôncio</p>
+
+          <form action={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <label className="field-group">
+              <span className="label">E-mail</span>
+              <input
+                className="input"
+                required
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="voce@familiaponcio.org.br"
+              />
+            </label>
+            <label className="field-group">
+              <span className="label">Senha</span>
+              <input
+                className="input"
+                required
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••••"
+              />
+            </label>
+
+            {error ? (
+              <p role="alert" className="field-error" style={{ margin: "2px 0 10px" }}>
+                {error}
+              </p>
+            ) : null}
+
+            <button type="submit" disabled={pending} className="btn btn-primary btn-block">
+              {pending ? "Entrando…" : "Entrar"}
+            </button>
+          </form>
+
+          <div className={styles.foot}>
+            <Link href={"/reset" as Route}>Esqueci a senha</Link>
+            <Link href={"/" as Route}>← Voltar</Link>
+          </div>
         </div>
       </div>
     </main>

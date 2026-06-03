@@ -1,0 +1,142 @@
+/*
+  Login da unidade — layout Split (foto-herói + painel claro), escolha do Erick.
+  Tokens globais do kit + --unit/--accent via data-unit/data-unit-accent no root.
+  "Cola de layout" fina (sem redefinir tokens).
+*/
+
+.split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+}
+
+/* ===== HERO (foto + véu da unidade) ===== */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+.heroPhoto {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 40%;
+}
+/* véu LEVE da cor da unidade */
+.heroTint {
+  position: absolute;
+  inset: 0;
+  background: var(--unit);
+  opacity: 0.38;
+}
+/* escurece o rodapé pra legibilidade do wordmark (neutro) */
+.heroShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(6, 18, 17, 0.82) 0%,
+    rgba(6, 18, 17, 0.2) 45%,
+    transparent 72%
+  );
+}
+.wordmark {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 46px;
+  z-index: 2;
+  color: #fff;
+}
+.wordmark .k {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+.wordmark h2 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 12px 0 0;
+  max-width: 15ch;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== PAINEL (formulário) ===== */
+.panel {
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+.card {
+  width: 100%;
+  max-width: 340px;
+}
+.brand {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 22px 0 7px;
+}
+.title {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+.sub {
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 0 0 26px;
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 22px;
+  font-size: 12.5px;
+}
+.foot a {
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color var(--t-fast);
+}
+.foot a:hover {
+  color: var(--accent);
+}
+
+/* ===== responsivo: empilha (hero vira banner no topo) ===== */
+@media (max-width: 860px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    min-height: 210px;
+  }
+  .wordmark {
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+  }
+  .wordmark h2 {
+    font-size: 24px;
+  }
+  .panel {
+    padding: 32px 24px 48px;
+  }
+}

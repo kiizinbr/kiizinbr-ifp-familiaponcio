@@ -14,6 +14,8 @@ export type UnidadeSlug = (typeof UNIDADE_SLUGS)[number];
 export interface UnidadeConfig {
   slug: UnidadeSlug;
   nome: string;
+  /** Frase institucional curta exibida no hero do login (layout Split). */
+  tagline?: string;
   /** Hex do filtro temático aplicado como overlay sobre a foto de fundo do login. */
   corFiltroLogin: string;
   /** Path em /public da foto de fundo (drone ou institucional). null = usa gradiente. */
@@ -34,8 +36,9 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   medico: {
     slug: "medico",
     nome: "Centro Médico",
+    tagline: "Cuidado que começa no bairro.",
     corFiltroLogin: "#007571", // teal escuro — saúde/cuidado
-    fotoFundoLogin: null,
+    fotoFundoLogin: "/unidades/medico.jpg",
     gradienteFallback: "linear-gradient(135deg, #007571, #10C2BB)",
     rolesAceitas: [
       { name: "gestor_unidade", unitScope: "medico" },
@@ -47,6 +50,7 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   capacitacao: {
     slug: "capacitacao",
     nome: "Capacitação",
+    tagline: "Aprender é mudar de vida.",
     corFiltroLogin: "#FF772E", // laranja vibrante — aprendizado/energia
     fotoFundoLogin: null,
     gradienteFallback: "linear-gradient(135deg, #FF772E, #C24D0F)",
@@ -60,6 +64,7 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   esportivo: {
     slug: "esportivo",
     nome: "Esportivo",
+    tagline: "Movimento que transforma.",
     corFiltroLogin: "#C24D0F", // laranja escuro — movimento
     fotoFundoLogin: null,
     gradienteFallback: "linear-gradient(135deg, #C24D0F, #752C05)",
@@ -73,6 +78,7 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   recreativo: {
     slug: "recreativo",
     nome: "Recreativo",
+    tagline: "Onde a infância floresce.",
     corFiltroLogin: "#10C2BB", // teal claro — alegria/leveza
     fotoFundoLogin: null,
     gradienteFallback: "linear-gradient(135deg, #10C2BB, #007571)",
@@ -86,6 +92,7 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   poncio: {
     slug: "poncio",
     nome: "Pôncio Executivo",
+    tagline: "A visão de quem cuida de tudo.",
     corFiltroLogin: "#752C05", // marrom — sobriedade executiva
     fotoFundoLogin: null,
     gradienteFallback: "linear-gradient(135deg, #752C05, #4A4A49)",
@@ -95,6 +102,7 @@ export const UNIDADES: Record<UnidadeSlug, UnidadeConfig> = {
   social: {
     slug: "social",
     nome: "Serviço Social",
+    tagline: "Acolher é o primeiro passo.",
     corFiltroLogin: "#4A4A49", // cinza — transversal
     fotoFundoLogin: null,
     gradienteFallback: "linear-gradient(135deg, #4A4A49, #6B6B6B)",
