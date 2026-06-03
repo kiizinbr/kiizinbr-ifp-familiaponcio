@@ -12,7 +12,7 @@ import styles from "../capacitacao.module.css";
 
 export default async function CatalogoPage() {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const podeCriar = podeGerenciarCurso(session);

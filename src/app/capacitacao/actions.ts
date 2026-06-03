@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import type { StatusMatricula } from "@prisma/client";
@@ -167,4 +168,23 @@ export async function criarInstrutorAction(formData: FormData) {
     meta: { nome: inst.nomeExibicao },
   });
   redirect("/capacitacao/instrutores" as Route);
+}
+
+export async function toggleCursoAtivoAction(formData: FormData) {
+  const session = await auth();
+  if (!podeGerenciarCurso(session)) throw new Error("Sem permissão");
+  const cursoId = s(formData, "cursoId");
+  const curso = await db.curso.findUniqueOrThrow({ where: { id: cursoId } });
+  const ativo = !curso.ativo;
+  await db.curso.update({ where: { id: cursoId }, data: { ativo } });
+  await logEvent({
+    userId: session!.user.id,
+    action: ativo ? "curso_reativado" : "curso_desativado",
+    entityType: "curso",
+    entityId: cursoId,
+    meta: { nome: curso.nome, ativo },
+  });
+  revalidatePath(`/capacitacao/cursos/${cursoId}`);
+  revalidatePath("/capacitacao/cursos");
+  redirect(`/capacitacao/cursos/${cursoId}` as Route);
 }

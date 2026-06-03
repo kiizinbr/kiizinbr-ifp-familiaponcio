@@ -49,6 +49,7 @@ export type AuditAction =
   | "curso_criado"
   | "curso_atualizado"
   | "curso_desativado"
+  | "curso_reativado"
   | "turma_criada"
   | "turma_atualizada"
   | "turma_cancelada"

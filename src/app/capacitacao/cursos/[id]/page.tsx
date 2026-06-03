@@ -6,8 +6,9 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
-import { podeCriarTurma } from "@/lib/capacitacao/rbac";
+import { podeCriarTurma, podeGerenciarCurso } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge } from "../../_components/ui";
+import { toggleCursoAtivoAction } from "../../actions";
 import styles from "../../capacitacao.module.css";
 
 const ATIVAS = ["inscrito", "confirmado", "cursando"] as const;
@@ -15,7 +16,7 @@ const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", y
 
 export default async function CursoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const { id } = await params;
@@ -45,9 +46,25 @@ export default async function CursoDetalhePage({ params }: { params: Promise<{ i
           title={curso.nome}
           desc={curso.descricao ?? undefined}
           action={
-            <Link href={"/capacitacao/cursos" as Route} className={`${styles.btn} ${styles.btnGhost}`}>
-              ← Catálogo
-            </Link>
+            <>
+              {podeGerenciarCurso(session) ? (
+                <form action={toggleCursoAtivoAction}>
+                  <input type="hidden" name="cursoId" value={curso.id} />
+                  <button
+                    type="submit"
+                    className={`${styles.btn} ${curso.ativo ? styles.btnGhost : styles.btnPrimary}`}
+                  >
+                    {curso.ativo ? "Desativar curso" : "Reativar curso"}
+                  </button>
+                </form>
+              ) : null}
+              <Link
+                href={"/capacitacao/cursos" as Route}
+                className={`${styles.btn} ${styles.btnGhost}`}
+              >
+                ← Catálogo
+              </Link>
+            </>
           }
         />
 
@@ -106,7 +123,10 @@ export default async function CursoDetalhePage({ params }: { params: Promise<{ i
                       </div>
                     </div>
                     <div className={styles.rowRight}>
-                      <span className={styles.mono} style={{ fontSize: 12, color: "var(--text-3)" }}>
+                      <span
+                        className={styles.mono}
+                        style={{ fontSize: 12, color: "var(--text-3)" }}
+                      >
                         {ocupadas}/{t.capacidade}
                       </span>
                       <KitBadge variant={v.variant}>{v.label}</KitBadge>

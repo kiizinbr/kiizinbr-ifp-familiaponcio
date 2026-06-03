@@ -15,7 +15,7 @@ const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", y
 
 export default async function TurmasPage() {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const [turmas, ativasPorTurma] = await Promise.all([
@@ -96,7 +96,10 @@ export default async function TurmasPage() {
                       </div>
                     </div>
                     <div className={styles.rowRight}>
-                      <span className={styles.mono} style={{ fontSize: 12, color: "var(--text-3)" }}>
+                      <span
+                        className={styles.mono}
+                        style={{ fontSize: 12, color: "var(--text-3)" }}
+                      >
                         {ocupadas}/{t.capacidade}
                       </span>
                       <KitBadge variant={v.variant}>{v.label}</KitBadge>

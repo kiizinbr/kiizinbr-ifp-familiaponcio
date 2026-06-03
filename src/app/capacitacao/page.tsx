@@ -15,7 +15,7 @@ const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" })
 
 export default async function CapacitacaoHome() {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const [cursosAtivos, turmasAbertas, matriculasAtivas, proximas, ativasPorTurma] =
@@ -49,7 +49,10 @@ export default async function CapacitacaoHome() {
           desc="Cursos, turmas e matrículas da capacitação profissional. Acompanhe a ocupação das próximas turmas e abra novas inscrições."
           action={
             podeCriarTurma(session) ? (
-              <Link href={"/capacitacao/turmas/nova" as Route} className={`${styles.btn} ${styles.btnPrimary}`}>
+              <Link
+                href={"/capacitacao/turmas/nova" as Route}
+                className={`${styles.btn} ${styles.btnPrimary}`}
+              >
                 Nova turma
               </Link>
             ) : null
@@ -94,7 +97,11 @@ export default async function CapacitacaoHome() {
                 const v = STATUS_TURMA_VISUAL[t.status];
                 const ocupadas = ativasMap.get(t.id) ?? 0;
                 return (
-                  <Link key={t.id} href={`/capacitacao/turmas/${t.id}` as Route} className={styles.row}>
+                  <Link
+                    key={t.id}
+                    href={`/capacitacao/turmas/${t.id}` as Route}
+                    className={styles.row}
+                  >
                     <span className={styles.dot} />
                     <div className={styles.rowMain}>
                       <div className={styles.rowTitle}>{t.curso.nome}</div>

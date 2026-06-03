@@ -38,7 +38,7 @@ export default async function TurmaDetalhePage({
   searchParams: Promise<{ erro?: string }>;
 }) {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const { id } = await params;
@@ -90,7 +90,10 @@ export default async function TurmaDetalhePage({
             turma.local ? ` · ${turma.local}` : ""
           }${turma.instrutor ? ` · ${turma.instrutor.nomeExibicao}` : ""}`}
           action={
-            <Link href={"/capacitacao/turmas" as Route} className={`${styles.btn} ${styles.btnGhost}`}>
+            <Link
+              href={"/capacitacao/turmas" as Route}
+              className={`${styles.btn} ${styles.btnGhost}`}
+            >
               ← Turmas
             </Link>
           }

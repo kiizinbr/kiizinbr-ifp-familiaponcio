@@ -11,7 +11,7 @@ import styles from "../capacitacao.module.css";
 
 export default async function InstrutoresPage() {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
   if (!podeGerenciarInstrutor(session)) redirect("/capacitacao" as Route);
 
@@ -74,7 +74,11 @@ export default async function InstrutoresPage() {
               </div>
               <div className={styles.list}>
                 {instrutores.map((i) => (
-                  <div key={i.id} className={styles.row} style={i.ativo ? undefined : { opacity: 0.55 }}>
+                  <div
+                    key={i.id}
+                    className={styles.row}
+                    style={i.ativo ? undefined : { opacity: 0.55 }}
+                  >
                     <div className={styles.rowMain}>
                       <div className={styles.rowTitle}>{i.nomeExibicao}</div>
                       <div className={styles.rowMeta}>
@@ -89,7 +93,10 @@ export default async function InstrutoresPage() {
                     </div>
                     <div className={styles.rowRight}>
                       {!i.ativo ? <KitBadge variant="default">Inativo</KitBadge> : null}
-                      <span className={styles.mono} style={{ fontSize: 12, color: "var(--text-3)" }}>
+                      <span
+                        className={styles.mono}
+                        style={{ fontSize: 12, color: "var(--text-3)" }}
+                      >
                         {i._count.turmas} turma{i._count.turmas === 1 ? "" : "s"}
                       </span>
                     </div>

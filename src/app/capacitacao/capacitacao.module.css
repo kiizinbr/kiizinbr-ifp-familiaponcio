@@ -228,10 +228,14 @@ a.row:hover {
   padding: 16px;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.14s, transform 0.14s;
+  transition:
+    box-shadow 0.14s,
+    transform 0.14s;
 }
 .course:hover {
-  box-shadow: 0 4px 12px rgba(20, 22, 22, 0.07), 0 14px 34px rgba(20, 22, 22, 0.07);
+  box-shadow:
+    0 4px 12px rgba(20, 22, 22, 0.07),
+    0 14px 34px rgba(20, 22, 22, 0.07);
   transform: translateY(-1px);
 }
 .courseArea {
@@ -344,7 +348,10 @@ a.row:hover {
   font-size: 13.5px;
   color: var(--text);
   outline: none;
-  transition: border-color 0.12s, box-shadow 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s,
+    background 0.12s;
 }
 .textarea {
   min-height: 78px;
@@ -372,7 +379,10 @@ a.row:hover {
   padding: 10px 16px;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s,
+    opacity 0.12s;
 }
 .btn:active {
   transform: translateY(1px);

@@ -12,7 +12,7 @@ import styles from "../../capacitacao.module.css";
 
 export default async function NovaTurmaPage() {
   const session = await auth();
-  if (!session) redirect("/login" as Route);
+  if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
   if (!podeCriarTurma(session)) redirect("/capacitacao/turmas" as Route);
 
@@ -37,7 +37,10 @@ export default async function NovaTurmaPage() {
           title="Nova turma"
           desc="Uma turma é uma instância datada de um curso, com vagas próprias. As matrículas entram depois, pela tela da turma."
           action={
-            <Link href={"/capacitacao/turmas" as Route} className={`${styles.btn} ${styles.btnGhost}`}>
+            <Link
+              href={"/capacitacao/turmas" as Route}
+              className={`${styles.btn} ${styles.btnGhost}`}
+            >
               Cancelar
             </Link>
           }
@@ -109,11 +112,7 @@ export default async function NovaTurmaPage() {
 
                 <label className={styles.label}>
                   <span className={styles.labelText}>Local</span>
-                  <input
-                    name="local"
-                    placeholder="Ex: Sala 2 — Sede"
-                    className={styles.input}
-                  />
+                  <input name="local" placeholder="Ex: Sala 2 — Sede" className={styles.input} />
                 </label>
 
                 <label className={styles.label}>

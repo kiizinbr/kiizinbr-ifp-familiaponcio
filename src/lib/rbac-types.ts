@@ -64,6 +64,8 @@ export function getLandingPathFor(
     case "gestor_unidade":
     case "profissional":
     case "recepcao":
-      return primaryUnitScope ? `/app/${primaryUnitScope}` : "/app";
+      // Unit-roles aterrissam na raiz do módulo da unidade (/medico, /capacitacao…),
+      // não no alias legado /app/${scope} (que dependia do rewrite do proxy).
+      return primaryUnitScope ? `/${primaryUnitScope}` : "/app";
   }
 }
