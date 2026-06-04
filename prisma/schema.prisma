@@ -244,6 +244,7 @@ model Cidadao {
   consultas    Consulta[]
   notasEvolucao NotaEvolucao[]
   matriculas   Matricula[]
+  encaminhamentos Encaminhamento[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -433,6 +434,7 @@ model Especialidade {
   templates        AgendaTemplate[]
   slots            Slot[]
   consultas        Consulta[]
+  encaminhamentos  Encaminhamento[]
   createdAt        DateTime                     @default(now())
   updatedAt        DateTime                     @updatedAt
 }
@@ -527,6 +529,12 @@ enum StatusConsulta {
   cancelada
 }
 
+enum StatusEncaminhamento {
+  aguardando_agendamento
+  agendado
+  cancelado
+}
+
 model Consulta {
   id                     String         @id @default(cuid())
   slotId                 String         @unique
@@ -536,6 +544,7 @@ model Consulta {
   status                 StatusConsulta @default(agendada)
   observacoesAgendamento String?
   origemTriagemId        String?
+  origemEncaminhamentoId String?
   cancelMotivo           String?
   createdBy              String // userId
   slot                   Slot           @relation(fields: [slotId], references: [id], onDelete: Restrict)
@@ -543,12 +552,38 @@ model Consulta {
   profissional           Profissional   @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
   especialidade          Especialidade  @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
   notaEvolucao           NotaEvolucao?
+  origemEncaminhamento   Encaminhamento?  @relation("ConsultaOrigemEncaminhamento", fields: [origemEncaminhamentoId], references: [id], onDelete: SetNull)
+  encaminhamentosOrigem  Encaminhamento[] @relation("EncaminhamentoConsultaOrigem")
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
   @@index([profissionalId, status])
   @@index([cidadaoId])
   @@index([status, createdAt])
+}
+
+/// F1.B — pedido do GP para especialista. Vira fila de busca ativa no callcenter.
+/// Máquina de estados em lib/medico/encaminhamento.ts (espelha matricula.ts).
+model Encaminhamento {
+  id               String               @id @default(cuid())
+  cidadaoId        String
+  consultaOrigemId String
+  especialidadeId  String
+  motivo           String?              @db.Text
+  status           StatusEncaminhamento @default(aguardando_agendamento)
+  createdBy        String // userId do profissional que pediu
+  canceladoMotivo  String?
+
+  cidadao            Cidadao       @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
+  consultaOrigem     Consulta      @relation("EncaminhamentoConsultaOrigem", fields: [consultaOrigemId], references: [id], onDelete: Restrict)
+  especialidade      Especialidade @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
+  consultasAgendadas Consulta[]    @relation("ConsultaOrigemEncaminhamento")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([cidadaoId])
 }
 
 // ============================================================
