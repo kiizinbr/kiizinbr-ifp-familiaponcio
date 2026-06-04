@@ -1,0 +1,65 @@
+name: ifp-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ifp_pg_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    # SEM `ports:` — só acessível na rede interna do compose.
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ifp_minio_prod:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    # SEM `ports:` — o app cria o bucket sozinho (lib/minio.ts ensureBucketExists).
+
+  migrate:
+    build:
+      context: ../..
+      dockerfile: ops/vm/Dockerfile
+      target: build
+    env_file: .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "pnpm prisma migrate deploy"
+    restart: "no"
+
+  app:
+    build:
+      context: ../..
+      dockerfile: ops/vm/Dockerfile
+      target: runner
+    env_file: .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000" # só localhost da VM → o Tailscale Funnel aponta aqui
+    restart: unless-stopped
+
+volumes:
+  ifp_pg_prod:
+  ifp_minio_prod:

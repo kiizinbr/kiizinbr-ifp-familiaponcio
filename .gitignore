@@ -53,3 +53,6 @@ docs/migration-samples/
 
 # screenshots de verificação visual (descartáveis, regeneráveis pelo dev server)
 /public/lab/_verify-*/
+
+# segredos do deploy (ficam só na VM)
+ops/vm/.env.prod
