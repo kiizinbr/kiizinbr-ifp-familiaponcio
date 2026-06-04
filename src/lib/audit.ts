@@ -59,7 +59,11 @@ export type AuditAction =
   | "matricula_confirmada"
   | "matricula_transicionada"
   | "matricula_cancelada"
-  | "lista_espera_promovida";
+  | "lista_espera_promovida"
+  // Encaminhamento (F1.B)
+  | "encaminhamento_criado"
+  | "encaminhamento_agendado"
+  | "encaminhamento_cancelado";
 
 interface LogEventArgs {
   userId?: string | null;
