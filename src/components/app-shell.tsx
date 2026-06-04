@@ -4,6 +4,7 @@ import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { StagingBanner } from "@/components/staging-banner";
 import { hasAnyRole } from "@/lib/rbac";
 import { podeAgendar } from "@/lib/funil";
 import type { UnidadeSlug } from "@/lib/unidades";
@@ -62,76 +63,79 @@ export function AppShell({
   const isSuper = session.user.roles.some((r) => r.name === "super_admin");
 
   return (
-    <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
-      <aside className="sidebar">
-        <div className="sb-brand">
-          <span className="symbol">
-            <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
-          </span>
-          <b>IFP Connect</b>
-        </div>
+    <>
+      <StagingBanner />
+      <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
+        <aside className="sidebar">
+          <div className="sb-brand">
+            <span className="symbol">
+              <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
+            </span>
+            <b>IFP Connect</b>
+          </div>
 
-        {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
-        <SidebarNav items={items} />
+          {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
+          <SidebarNav items={items} />
 
-        {isSuper ? (
-          <>
-            <div className="sb-group">Unidades</div>
-            <UnitSwitcher roles={session.user.roles} />
-          </>
-        ) : null}
+          {isSuper ? (
+            <>
+              <div className="sb-group">Unidades</div>
+              <UnitSwitcher roles={session.user.roles} />
+            </>
+          ) : null}
 
-        <div
-          style={{
-            marginTop: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            paddingTop: 14,
-            borderTop: "1px solid var(--line)",
-          }}
-        >
-          <ThemeToggle />
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span className="avatar sm">{initials(displayName)}</span>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "var(--text)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {displayName}
-              </p>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
+          <div
+            style={{
+              marginTop: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              paddingTop: 14,
+              borderTop: "1px solid var(--line)",
+            }}
+          >
+            <ThemeToggle />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span className="avatar sm">{initials(displayName)}</span>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p
                   style={{
-                    background: "none",
-                    border: 0,
-                    padding: 0,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    color: "var(--text-3)",
-                    fontFamily: "inherit",
+                    margin: 0,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "var(--text)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
-                  Sair
-                </button>
-              </form>
+                  {displayName}
+                </p>
+                <form action={signOutAction}>
+                  <button
+                    type="submit"
+                    style={{
+                      background: "none",
+                      border: 0,
+                      padding: 0,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      color: "var(--text-3)",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Sair
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      <main>
-        <div className="content">{children}</div>
-      </main>
-    </div>
+        <main>
+          <div className="content">{children}</div>
+        </main>
+      </div>
+    </>
   );
 }
