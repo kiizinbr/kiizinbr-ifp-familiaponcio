@@ -8,3 +8,10 @@ coverage
 playwright-report
 test-results
 .superpowers
+
+# deploy F4: segredos NUNCA no context da imagem (env vem por env_file em runtime)
+ops/vm/.env*
+# context enxuto (não usados pelo `next build`)
+docs
+tests
+public/lab/_verify-*
