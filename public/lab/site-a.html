@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instituto Família Pôncio — Mudar realidades com abrigo, saúde, educação e amor</title>
+<meta name="description" content="Organização filantrópica sem fins lucrativos em Duque de Caxias / RJ. Cuidamos de famílias e crianças em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Brandbook — fonte única de cor */
+    --orange: #FF772E;
+    --orange-dark: #C24D0F;
+    --brown: #752C05;
+    --teal-dark: #007571;
+    --teal-light: #10C2BB;
+    --gray: #4A4A49;
+    --white: #FFFFFF;
+    --surface: #FAFAF9;
+    --surface-2: #F4F4F2;
+    --border: #E5E4E1;
+    --ink: #1B1D1D;
+    --ink-soft: #4A4A49;
+
+    /* Surfaces quentes derivadas só do brandbook */
+    --cream: color-mix(in srgb, var(--orange) 9%, var(--white));
+    --cream-2: color-mix(in srgb, var(--orange) 16%, var(--white));
+
+    --r-sm: 14px;
+    --r-md: 22px;
+    --r-lg: 30px;
+    --r-xl: 44px;
+    --r-2xl: 56px;
+    --pill: 999px;
+
+    --shadow-soft: 0 2px 4px rgba(27,29,29,.04), 0 18px 44px -24px rgba(117,44,5,.26);
+    --shadow-lift: 0 6px 12px rgba(27,29,29,.06), 0 40px 80px -36px rgba(117,44,5,.4);
+    --shadow-warm: 0 24px 60px -22px color-mix(in srgb, var(--orange) 55%, transparent);
+
+    --maxw: 1200px;
+    --gut: clamp(20px, 5vw, 68px);
+
+    --sans: "Hanken Grotesk", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--surface);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: color-mix(in srgb, var(--orange) 28%, transparent); }
+
+  .wrap {
+    width: 100%;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding-inline: var(--gut);
+  }
+
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--mono);
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--orange-dark);
+  }
+  .kicker::before {
+    content: "";
+    width: 22px; height: 2px;
+    background: currentColor;
+    border-radius: var(--pill);
+  }
+
+  /* ============ NAV ============ */
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    transition: background .3s ease, border-color .3s ease, box-shadow .3s ease;
+    border-bottom: 1px solid transparent;
+  }
+  .nav[data-scrolled="true"] {
+    background: color-mix(in srgb, var(--white) 86%, transparent);
+    backdrop-filter: saturate(160%) blur(16px);
+    border-bottom-color: color-mix(in srgb, var(--border) 80%, transparent);
+    box-shadow: 0 8px 30px -24px rgba(117,44,5,.5);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 74px;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand .brand-seal {
+    height: 42px; width: 42px;
+    border-radius: 12px;
+    background: var(--white);
+    display: grid; place-items: center;
+    box-shadow: 0 6px 18px -10px rgba(117,44,5,.5);
+    flex: none;
+  }
+  .brand .brand-seal img { height: 30px; width: auto; }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+  .brand-text b { font-weight: 800; font-size: 1rem; letter-spacing: -.01em; color: var(--ink); }
+  .brand-text span {
+    font-family: var(--mono);
+    font-size: .6rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  /* nav sobre o hero (antes do scroll) fica claro */
+  .nav:not([data-scrolled="true"]) .brand-text b { color: var(--white); }
+  .nav:not([data-scrolled="true"]) .brand-text span { color: color-mix(in srgb, var(--white) 78%, transparent); }
+
+  .access { position: relative; }
+  .access-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--mono);
+    font-size: .76rem;
+    font-weight: 500;
+    letter-spacing: .04em;
+    padding: 11px 18px;
+    border-radius: var(--pill);
+    border: 1px solid color-mix(in srgb, var(--white) 45%, transparent);
+    background: color-mix(in srgb, var(--white) 16%, transparent);
+    color: var(--white);
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background .2s ease, color .2s ease;
+  }
+  .nav[data-scrolled="true"] .access-btn {
+    background: var(--white);
+    color: var(--ink);
+    border-color: var(--border);
+  }
+  .access-btn:hover { border-color: var(--orange); box-shadow: var(--shadow-soft); }
+  .access-btn .chev { transition: transform .25s ease; }
+  .access[data-open="true"] .access-btn { border-color: var(--orange); box-shadow: var(--shadow-soft); background: var(--white); color: var(--ink); }
+  .access[data-open="true"] .chev { transform: rotate(180deg); }
+
+  .access-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    min-width: 280px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lift);
+    padding: 8px;
+    opacity: 0;
+    transform: translateY(-8px) scale(.98);
+    transform-origin: top right;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .access[data-open="true"] .access-menu { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .access-menu .menu-label {
+    font-family: var(--mono);
+    font-size: .6rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 8px 12px 6px;
+  }
+  .access-menu a {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: var(--r-sm);
+    font-size: .92rem;
+    font-weight: 600;
+    color: var(--ink);
+    transition: background .16s ease, transform .16s ease;
+  }
+  .access-menu a:hover { background: var(--cream); transform: translateX(2px); }
+  .access-menu a .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 0%, transparent); }
+  .access-menu hr { border: none; border-top: 1px solid var(--border); margin: 6px 4px; }
+  .access-menu a.exec { color: var(--brown); }
+  .access-menu a.exec .dot { background: var(--brown); }
+
+  /* ============ BUTTONS ============ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 16px 30px;
+    border-radius: var(--pill);
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: transform .2s ease, box-shadow .25s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    will-change: transform;
+  }
+  .btn-primary {
+    background: var(--orange);
+    color: var(--white);
+    box-shadow: 0 16px 34px -14px color-mix(in srgb, var(--orange) 85%, transparent);
+  }
+  .btn-primary:hover { background: color-mix(in srgb, var(--orange) 90%, var(--white)); transform: translateY(-3px); box-shadow: 0 24px 48px -16px color-mix(in srgb, var(--orange) 80%, transparent); }
+  .btn-light {
+    background: var(--white);
+    color: var(--brown);
+    box-shadow: 0 16px 34px -16px rgba(0,0,0,.4);
+  }
+  .btn-light:hover { transform: translateY(-3px); box-shadow: 0 24px 48px -18px rgba(0,0,0,.45); }
+  .btn-outline-light {
+    background: color-mix(in srgb, var(--white) 12%, transparent);
+    color: var(--white);
+    border-color: color-mix(in srgb, var(--white) 55%, transparent);
+    backdrop-filter: blur(4px);
+  }
+  .btn-outline-light:hover { background: color-mix(in srgb, var(--white) 22%, transparent); transform: translateY(-3px); border-color: var(--white); }
+  .btn-ghost {
+    background: var(--white);
+    color: var(--ink);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--orange); transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+  .btn .arrow { transition: transform .2s ease; }
+  .btn:hover .arrow { transform: translateX(4px); }
+
+  /* ============ HERO ============ */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: flex-end;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--white);
+  }
+  .hero-bg { position: absolute; inset: 0; z-index: -3; }
+  .hero-bg img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center 38%;
+    transform: scale(1.06);
+    filter: saturate(1.08) contrast(1.03);
+  }
+  /* gradiente quente FORTE laranja -> marrom */
+  .hero-grad {
+    position: absolute; inset: 0; z-index: -2;
+    background:
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--orange) 82%, transparent) 0%,
+        color-mix(in srgb, var(--orange-dark) 78%, transparent) 42%,
+        color-mix(in srgb, var(--brown) 86%, transparent) 100%);
+    mix-blend-mode: multiply;
+  }
+  .hero-grad-2 {
+    position: absolute; inset: 0; z-index: -2;
+    background:
+      radial-gradient(120% 90% at 78% 12%, color-mix(in srgb, var(--orange) 42%, transparent) 0%, transparent 55%),
+      linear-gradient(0deg, var(--brown) 0%, color-mix(in srgb, var(--brown) 10%, transparent) 48%);
+  }
+  /* textura de grão sutil */
+  .hero-grain {
+    position: absolute; inset: 0; z-index: -1;
+    opacity: .5; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  .hero-inner {
+    width: 100%;
+    padding-top: clamp(120px, 18vh, 200px);
+    padding-bottom: clamp(48px, 8vh, 96px);
+    position: relative;
+  }
+  .hero-leo {
+    position: absolute;
+    top: clamp(96px, 14vh, 150px);
+    right: var(--gut);
+    width: clamp(92px, 13vw, 132px);
+    height: clamp(92px, 13vw, 132px);
+    background: var(--white);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    box-shadow: 0 30px 70px -26px rgba(0,0,0,.6), inset 0 0 0 1px color-mix(in srgb, var(--orange) 30%, transparent);
+    z-index: 5;
+  }
+  .hero-leo::after {
+    content: "";
+    position: absolute; inset: -9px;
+    border-radius: 50%;
+    border: 1.5px dashed color-mix(in srgb, var(--white) 60%, transparent);
+  }
+  .hero-leo img { width: 64%; height: auto; }
+
+  .hero-copy { max-width: 16ch; }
+  .hero h1 {
+    font-size: clamp(2.7rem, 7.2vw, 5.2rem);
+    line-height: 1.0;
+    letter-spacing: -.03em;
+    font-weight: 900;
+    margin: 20px 0 0;
+    max-width: 17ch;
+    text-shadow: 0 2px 30px rgba(0,0,0,.22);
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: color-mix(in srgb, var(--orange) 60%, var(--white));
+    position: relative;
+    white-space: nowrap;
+  }
+  .hero h1 em::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: .08em;
+    height: .1em;
+    background: color-mix(in srgb, var(--orange) 70%, var(--white));
+    border-radius: var(--pill);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: underline 1s .6s ease forwards;
+  }
+  @keyframes underline { to { transform: scaleX(1); } }
+  .hero .kicker { color: color-mix(in srgb, var(--white) 92%, transparent); }
+  .hero .kicker::before { background: color-mix(in srgb, var(--orange) 80%, var(--white)); }
+  .hero-sub {
+    font-size: clamp(1.08rem, 1.7vw, 1.32rem);
+    color: color-mix(in srgb, var(--white) 92%, transparent);
+    margin: 24px 0 0;
+    max-width: 52ch;
+    font-weight: 500;
+    text-shadow: 0 2px 16px rgba(0,0,0,.25);
+  }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 36px; }
+
+  /* tira de unidades no rodapé do hero */
+  .hero-strip {
+    margin-top: clamp(40px, 7vh, 80px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--white) 78%, transparent);
+  }
+  .hero-strip .hs-item { display: inline-flex; align-items: center; gap: 8px; }
+  .hero-strip .hs-item .d { width: 8px; height: 8px; border-radius: 50%; }
+  .hero-strip .sep { width: 1px; height: 14px; background: color-mix(in srgb, var(--white) 30%, transparent); }
+
+  /* ============ SECTIONS ============ */
+  section { position: relative; }
+  .pad { padding-block: clamp(64px, 10vw, 130px); }
+  .section-head { max-width: 720px; margin-bottom: clamp(32px, 5vw, 56px); }
+  .section-head h2 {
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -.025em;
+    font-weight: 800;
+    margin: 14px 0 0;
+  }
+  .section-head h2 .hl { color: var(--orange-dark); }
+  .section-head p { color: var(--ink-soft); font-size: 1.12rem; margin: 16px 0 0; max-width: 56ch; }
+
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ============ UNIDADES ============ */
+  #unidades { background: var(--cream); }
+  #unidades::before {
+    content: "";
+    position: absolute; inset: 0; z-index: 0;
+    background-image: radial-gradient(color-mix(in srgb, var(--orange) 12%, transparent) 1.2px, transparent 1.3px);
+    background-size: 22px 22px;
+    opacity: .5;
+    mask-image: linear-gradient(180deg, transparent, black 18%, black 82%, transparent);
+  }
+  #unidades .wrap { position: relative; z-index: 1; }
+  .units-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 22px;
+  }
+  .unit {
+    --accent: var(--teal-dark);
+    grid-column: span 2;
+    position: relative;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .3s cubic-bezier(.2,.7,.2,1), box-shadow .3s ease;
+  }
+  .unit:nth-child(4) { grid-column: span 3; }
+  .unit:nth-child(5) { grid-column: span 3; }
+  .unit:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -30px color-mix(in srgb, var(--accent) 70%, transparent); }
+
+  /* TOPO/faixa vibrante no acento — campo de cor saturado */
+  .unit-top {
+    position: relative;
+    height: 148px;
+    background:
+      radial-gradient(130% 130% at 85% 0%, color-mix(in srgb, var(--accent) 60%, var(--white)) 0%, transparent 58%),
+      linear-gradient(140deg, color-mix(in srgb, var(--accent) 96%, black) 0%, var(--accent) 55%, color-mix(in srgb, var(--accent) 78%, var(--white)) 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 18px 22px;
+    overflow: hidden;
+  }
+  .unit-top::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: radial-gradient(color-mix(in srgb, var(--white) 24%, transparent) 1px, transparent 1.4px);
+    background-size: 15px 15px;
+    opacity: .4;
+    mix-blend-mode: overlay;
+  }
+  .unit-glyph {
+    position: absolute;
+    top: -14px; right: 4px;
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 6.2rem;
+    line-height: 1;
+    color: color-mix(in srgb, var(--white) 22%, transparent);
+    letter-spacing: -.04em;
+    user-select: none;
+  }
+  .unit-num {
+    position: relative;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--white) 92%, transparent);
+    font-weight: 600;
+    background: color-mix(in srgb, black 18%, transparent);
+    padding: 5px 11px;
+    border-radius: var(--pill);
+    backdrop-filter: blur(2px);
+  }
+  .unit-body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; }
+  .unit h3 { font-size: 1.34rem; font-weight: 800; letter-spacing: -.015em; margin: 0 0 8px; }
+  .unit p { color: var(--ink-soft); font-size: .98rem; margin: 0; flex: 1; }
+  .unit .u-foot {
+    margin-top: 18px;
+    display: flex; align-items: center; gap: 9px;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .unit .u-foot .line { height: 3px; width: 30px; border-radius: var(--pill); background: var(--accent); transition: width .3s ease; }
+  .unit:hover .u-foot .line { width: 52px; }
+
+  /* ============ QUEM SOMOS ============ */
+  #quem { background: var(--white); }
+  .quem-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 4vw, 44px);
+  }
+  .mvv {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .mvv-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 30px;
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  }
+  .mvv-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); border-color: color-mix(in srgb, var(--orange) 35%, var(--border)); }
+  .mvv-card .mono-num {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    color: var(--orange-dark);
+    text-transform: uppercase;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mvv-card .mono-num .ring { width: 22px; height: 22px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; font-size: .68rem; }
+  .mvv-card h4 { font-size: 1.2rem; margin: 14px 0 8px; font-weight: 800; letter-spacing: -.01em; }
+  .mvv-card p { margin: 0; color: var(--ink-soft); font-size: 1rem; }
+
+  /* origem + versículo lado a lado */
+  .origin-verse {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: clamp(22px, 3vw, 36px);
+    align-items: stretch;
+  }
+  .origin {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: clamp(30px, 4vw, 46px);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .origin .kicker { color: var(--teal-dark); }
+  .origin .kicker::before { background: var(--teal-dark); }
+  .origin h3 { font-size: clamp(1.5rem, 2.6vw, 2.1rem); letter-spacing: -.02em; font-weight: 800; margin: 16px 0 16px; line-height: 1.1; }
+  .origin p { color: var(--ink-soft); font-size: 1.06rem; margin: 0; }
+
+  /* VERSÍCULO — painel quente RICO, lugar de honra */
+  .verse {
+    position: relative;
+    background:
+      radial-gradient(140% 120% at 88% 8%, color-mix(in srgb, var(--orange) 55%, transparent) 0%, transparent 52%),
+      linear-gradient(155deg, var(--orange-dark) 0%, var(--brown) 100%);
+    color: var(--white);
+    border-radius: var(--r-xl);
+    padding: clamp(34px, 4.5vw, 54px);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: var(--shadow-warm);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .verse::before {
+    content: "\201C";
+    position: absolute;
+    top: -.18em; left: .1em;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16rem;
+    line-height: 1;
+    color: color-mix(in srgb, var(--white) 13%, transparent);
+    z-index: -1;
+  }
+  .verse::after {
+    content: "";
+    position: absolute; inset: 0; z-index: -1;
+    background-image: radial-gradient(color-mix(in srgb, var(--white) 14%, transparent) 1px, transparent 1.4px);
+    background-size: 17px 17px;
+    opacity: .35;
+    mask-image: radial-gradient(120% 120% at 80% 10%, black, transparent 70%);
+  }
+  .verse .v-tag {
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--white) 80%, transparent);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .verse .v-tag::before { content: ""; width: 22px; height: 1.5px; background: color-mix(in srgb, var(--white) 65%, transparent); }
+  .verse blockquote {
+    margin: 22px 0 0;
+    font-size: clamp(1.4rem, 2.8vw, 2.1rem);
+    line-height: 1.28;
+    font-weight: 700;
+    letter-spacing: -.015em;
+  }
+  .verse cite {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: .84rem;
+    letter-spacing: .04em;
+    color: color-mix(in srgb, var(--white) 88%, transparent);
+  }
+  .verse cite::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: color-mix(in srgb, var(--teal-light) 90%, white); box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal-light) 25%, transparent); }
+
+  /* ============ IMPACTO ============ */
+  #impacto {
+    background: linear-gradient(160deg, var(--brown) 0%, var(--orange-dark) 100%);
+    color: var(--white);
+    overflow: hidden;
+  }
+  #impacto::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(90% 60% at 10% 0%, color-mix(in srgb, var(--orange) 38%, transparent), transparent 60%),
+      radial-gradient(70% 50% at 95% 100%, color-mix(in srgb, var(--teal-dark) 30%, transparent), transparent 55%);
+    pointer-events: none;
+  }
+  #impacto .wrap { position: relative; }
+  #impacto .section-head h2 { color: var(--white); }
+  #impacto .section-head .kicker { color: color-mix(in srgb, var(--white) 88%, transparent); }
+  #impacto .section-head .kicker::before { background: var(--teal-light); }
+  #impacto .section-head p { color: color-mix(in srgb, var(--white) 82%, transparent); }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .stat {
+    background: color-mix(in srgb, var(--white) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--white) 18%, transparent);
+    border-radius: var(--r-lg);
+    padding: 32px 28px;
+    backdrop-filter: blur(3px);
+    transition: transform .25s ease, background .25s ease;
+  }
+  .stat:hover { transform: translateY(-4px); background: color-mix(in srgb, var(--white) 14%, transparent); }
+  .stat .num {
+    font-size: clamp(2.2rem, 4.4vw, 3.4rem);
+    font-weight: 900;
+    letter-spacing: -.04em;
+    line-height: .95;
+    color: var(--white);
+  }
+  .stat .num.word { font-size: clamp(1.6rem, 3vw, 2.3rem); }
+  .stat .num sup { color: var(--teal-light); font-size: .42em; top: -.9em; font-weight: 700; }
+  .stat .lbl { margin-top: 14px; color: color-mix(in srgb, var(--white) 82%, transparent); font-size: 1rem; }
+  .stat-note {
+    margin-top: 24px;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .04em;
+    color: color-mix(in srgb, var(--white) 70%, transparent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stat-note sup { color: var(--teal-light); }
+
+  /* ============ PARCERIAS ============ */
+  #parcerias { background: var(--cream-2); }
+  .partner {
+    position: relative;
+    background:
+      radial-gradient(120% 130% at 90% 0%, color-mix(in srgb, var(--orange) 40%, transparent) 0%, transparent 50%),
+      linear-gradient(150deg, var(--orange) 0%, var(--orange-dark) 70%, var(--brown) 130%);
+    color: var(--white);
+    border-radius: var(--r-2xl);
+    padding: clamp(40px, 6vw, 76px);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: var(--shadow-warm);
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+    gap: clamp(28px, 4vw, 56px);
+    align-items: center;
+  }
+  .partner::after {
+    content: "";
+    position: absolute; inset: 0; z-index: -1;
+    background-image: radial-gradient(color-mix(in srgb, var(--white) 16%, transparent) 1px, transparent 1.4px);
+    background-size: 18px 18px;
+    opacity: .35;
+    mask-image: linear-gradient(120deg, transparent, black);
+  }
+  .partner .kicker { color: color-mix(in srgb, var(--white) 90%, transparent); }
+  .partner .kicker::before { background: var(--teal-light); }
+  .partner h2 {
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: -.025em;
+    font-weight: 800;
+    margin: 16px 0 18px;
+    max-width: 16ch;
+  }
+  .partner p { color: color-mix(in srgb, var(--white) 92%, transparent); font-size: 1.12rem; margin: 0 0 30px; max-width: 50ch; }
+  .partner-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .partner-pill {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: color-mix(in srgb, var(--white) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--white) 24%, transparent);
+    border-radius: var(--r-md);
+    padding: 16px 18px;
+    backdrop-filter: blur(3px);
+  }
+  .partner-pill .pp-ico {
+    width: 42px; height: 42px; flex: none;
+    border-radius: 12px;
+    background: var(--white);
+    color: var(--orange-dark);
+    display: grid; place-items: center;
+  }
+  .partner-pill b { display: block; font-size: .98rem; font-weight: 800; }
+  .partner-pill span { font-size: .86rem; color: color-mix(in srgb, var(--white) 82%, transparent); }
+
+  /* ============ CONTATO / FOOTER ============ */
+  footer {
+    background: var(--ink);
+    color: color-mix(in srgb, var(--white) 80%, transparent);
+    padding-block: clamp(56px, 8vw, 96px) 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  footer::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--teal-dark), var(--teal-light), var(--orange), var(--orange-dark), var(--brown));
+  }
+  .foot-top {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 44px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid color-mix(in srgb, var(--white) 12%, transparent);
+  }
+  .foot-brand { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .foot-brand .fb-seal { height: 60px; width: 60px; border-radius: 16px; background: var(--white); display: grid; place-items: center; flex: none; }
+  .foot-brand .fb-seal img { height: 42px; width: auto; }
+  .foot-brand b { color: var(--white); font-size: 1.18rem; font-weight: 800; letter-spacing: -.01em; }
+  .foot-lead { max-width: 40ch; font-size: 1.02rem; line-height: 1.55; }
+  .foot-contact { margin-top: 22px; display: grid; gap: 8px; }
+  .foot-cta { margin-top: 24px; }
+  .foot-cta .btn { font-size: .94rem; padding: 13px 24px; }
+  .foot-col h5 {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--white) 58%, transparent);
+    margin: 0 0 18px;
+    font-weight: 500;
+  }
+  .foot-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .foot-col li { font-size: .96rem; }
+  .foot-col a { display: inline-flex; align-items: center; gap: 8px; transition: color .2s ease; }
+  .foot-col a:hover { color: var(--orange); }
+  .tbc {
+    font-family: var(--mono);
+    font-size: .64rem;
+    letter-spacing: .06em;
+    color: color-mix(in srgb, var(--white) 48%, transparent);
+    border: 1px solid color-mix(in srgb, var(--white) 18%, transparent);
+    border-radius: var(--pill);
+    padding: 2px 9px;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  .foot-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 30px;
+    font-size: .86rem;
+    color: color-mix(in srgb, var(--white) 56%, transparent);
+  }
+  .foot-bottom .place {
+    font-family: var(--mono);
+    letter-spacing: .04em;
+    display: inline-flex; align-items: center; gap: 9px;
+  }
+  .foot-bottom .place::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--teal-light); box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal-light) 22%, transparent); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1000px) {
+    .units-grid { grid-template-columns: repeat(2, 1fr); }
+    .unit, .unit:nth-child(4), .unit:nth-child(5) { grid-column: span 1; }
+    .origin-verse { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .partner { grid-template-columns: 1fr; }
+    .foot-top { grid-template-columns: 1fr 1fr; gap: 36px; }
+    .foot-top > :first-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .brand-text span { display: none; }
+    .access-btn .label-long { display: none; }
+    .mvv { grid-template-columns: 1fr; }
+    .units-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .hero-cta .btn { flex: 1; justify-content: center; }
+    .hero-leo { top: clamp(86px, 13vh, 120px); }
+    .foot-top { grid-template-columns: 1fr; gap: 30px; }
+    .foot-top > :first-child { grid-column: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+    .hero h1 em::after { transform: scaleX(1); }
+    .reveal { opacity: 1; transform: none; }
+    .hero-bg img { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="nav" id="nav" data-scrolled="false">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="Instituto Família Pôncio — início">
+      <span class="brand-seal"><img src="/logo/ifp-symbol.png" alt="Símbolo do Instituto Família Pôncio" /></span>
+      <span class="brand-text">
+        <b>Instituto Família Pôncio</b>
+        <span>Duque de Caxias / RJ</span>
+      </span>
+    </a>
+
+    <div class="access" id="access" data-open="false">
+      <button class="access-btn" id="accessBtn" aria-haspopup="true" aria-expanded="false" aria-controls="accessMenu">
+        <span class="label-long">Acesso ao</span> Sistema
+        <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="access-menu" id="accessMenu" role="menu" aria-label="Acesso ao sistema">
+        <div class="menu-label">Acesso por unidade</div>
+        <a role="menuitem" href="/medico/login"><span class="dot" style="background:#007571"></span>Centro Médico</a>
+        <a role="menuitem" href="/capacitacao/login"><span class="dot" style="background:#FF772E"></span>Capacitação</a>
+        <a role="menuitem" href="/esportivo/login"><span class="dot" style="background:#C24D0F"></span>Esportivo</a>
+        <a role="menuitem" href="/recreativo/login"><span class="dot" style="background:#10C2BB"></span>Recreativo</a>
+        <a role="menuitem" href="/social/login"><span class="dot" style="background:#4A4A49"></span>Serviço Social</a>
+        <hr />
+        <a role="menuitem" class="exec" href="/poncio/login"><span class="dot"></span>Acesso executivo</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <img src="/unidades/medico.jpg" alt="" />
+  </div>
+  <div class="hero-grad" aria-hidden="true"></div>
+  <div class="hero-grad-2" aria-hidden="true"></div>
+  <div class="hero-grain" aria-hidden="true"></div>
+
+  <div class="wrap hero-inner">
+    <div class="hero-leo" aria-hidden="true">
+      <img src="/logo/ifp-lockup.png" alt="" />
+    </div>
+
+    <div class="hero-copy">
+      <span class="kicker">Instituto Família Pôncio · Duque de Caxias / RJ</span>
+      <h1>Mudar realidades com abrigo, saúde, educação e <em>amor</em>.</h1>
+      <p class="hero-sub">Cuidamos de famílias e crianças de Duque de Caxias em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social.</p>
+      <div class="hero-cta">
+        <a class="btn btn-light" href="#unidades">Conheça nossas unidades <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-outline-light" href="#contato">Fale com a gente</a>
+      </div>
+    </div>
+
+    <div class="hero-strip" aria-hidden="true">
+      <span class="hs-item"><span class="d" style="background:#007571"></span>Saúde</span>
+      <span class="sep"></span>
+      <span class="hs-item"><span class="d" style="background:#FF772E"></span>Capacitação</span>
+      <span class="sep"></span>
+      <span class="hs-item"><span class="d" style="background:#C24D0F"></span>Esporte</span>
+      <span class="sep"></span>
+      <span class="hs-item"><span class="d" style="background:#10C2BB"></span>Recreação</span>
+      <span class="sep"></span>
+      <span class="hs-item"><span class="d" style="background:#4A4A49"></span>Acolhimento</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== UNIDADES ===== -->
+<section id="unidades" class="pad">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Cinco frentes de cuidado</span>
+      <h2>Cada unidade, um jeito de <span class="hl">transformar uma vida</span>.</h2>
+      <p>Do consultório à quadra, da sala de aula ao colo que acolhe — atendimento próximo, gratuito e com calor humano.</p>
+    </div>
+
+    <div class="units-grid">
+      <article class="unit reveal" style="--accent: var(--teal-dark)">
+        <div class="unit-top">
+          <span class="unit-glyph" aria-hidden="true">+</span>
+          <span class="unit-num">Unidade 01</span>
+        </div>
+        <div class="unit-body">
+          <h3>Centro Médico</h3>
+          <p>Atendimento em saúde e odontológico para a comunidade, com cuidado próximo.</p>
+          <div class="u-foot"><span class="line"></span>Saúde &amp; Odonto</div>
+        </div>
+      </article>
+
+      <article class="unit reveal" style="--accent: var(--orange)">
+        <div class="unit-top">
+          <span class="unit-glyph" aria-hidden="true">✎</span>
+          <span class="unit-num">Unidade 02</span>
+        </div>
+        <div class="unit-body">
+          <h3>Centro de Capacitação</h3>
+          <p>Cursos e capacitação profissional que abrem portas e transformam o futuro.</p>
+          <div class="u-foot"><span class="line"></span>Educação &amp; Trabalho</div>
+        </div>
+      </article>
+
+      <article class="unit reveal" style="--accent: var(--orange-dark)">
+        <div class="unit-top">
+          <span class="unit-glyph" aria-hidden="true">柔</span>
+          <span class="unit-num">Unidade 03</span>
+        </div>
+        <div class="unit-body">
+          <h3>Centro Esportivo</h3>
+          <p>Esporte e disciplina, incluindo Jiu-Jitsu — corpo, caráter e pertencimento.</p>
+          <div class="u-foot"><span class="line"></span>Esporte &amp; Disciplina</div>
+        </div>
+      </article>
+
+      <article class="unit reveal" style="--accent: var(--teal-light)">
+        <div class="unit-top">
+          <span class="unit-glyph" aria-hidden="true">☺</span>
+          <span class="unit-num">Unidade 04</span>
+        </div>
+        <div class="unit-body">
+          <h3>Centro Recreativo</h3>
+          <p>Recreação e cuidado infantil em um espaço seguro e alegre.</p>
+          <div class="u-foot"><span class="line"></span>Recreação Infantil</div>
+        </div>
+      </article>
+
+      <article class="unit reveal" style="--accent: var(--gray)">
+        <div class="unit-top">
+          <span class="unit-glyph" aria-hidden="true">♡</span>
+          <span class="unit-num">Unidade 05</span>
+        </div>
+        <div class="unit-body">
+          <h3>Serviço Social</h3>
+          <p>Acolhimento, entrevistas e suporte às famílias, com apoio a TEA e TDAH.</p>
+          <div class="u-foot"><span class="line"></span>Acolhimento &amp; Suporte</div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== QUEM SOMOS ===== -->
+<section id="quem" class="pad">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Quem somos</span>
+      <h2>Nascemos para <span class="hl">cuidar de gente</span>.</h2>
+    </div>
+
+    <div class="quem-grid">
+      <div class="mvv">
+        <div class="mvv-card reveal">
+          <span class="mono-num"><span class="ring">M</span>Missão</span>
+          <h4>Por que existimos</h4>
+          <p>Mudar realidades através de abrigo, amor, saúde, educação e capacitação profissional.</p>
+        </div>
+        <div class="mvv-card reveal">
+          <span class="mono-num"><span class="ring">V</span>Visão</span>
+          <h4>Onde queremos chegar</h4>
+          <p>Ser referência em todas as esferas de atendimento ao próximo.</p>
+        </div>
+        <div class="mvv-card reveal">
+          <span class="mono-num"><span class="ring">V</span>Valores</span>
+          <h4>O que nos guia</h4>
+          <p>Familiares e direcionados pelos princípios da palavra de Deus.</p>
+        </div>
+      </div>
+
+      <div class="origin-verse">
+        <div class="origin reveal">
+          <span class="kicker">Nossa origem</span>
+          <h3>De uma experiência espiritual para o coração da comunidade.</h3>
+          <p>Nascemos de uma experiência espiritual e do desejo de compreender e suprir as necessidades da nossa comunidade — capacitar, atender e cuidar, com atenção especial às crianças.</p>
+        </div>
+        <figure class="verse reveal" role="figure" aria-label="Versículo bíblico">
+          <span class="v-tag">Palavra que nos sustenta</span>
+          <blockquote>O generoso prosperará; quem dá alívio aos outros, alívio receberá.</blockquote>
+          <cite>Provérbios 11:25</cite>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== IMPACTO ===== -->
+<section id="impacto" class="pad">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Nosso impacto</span>
+      <h2>Números que viram histórias.</h2>
+      <p>O alcance do cuidado em Duque de Caxias — e o que ainda queremos confirmar e contar.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat reveal">
+        <div class="num">5</div>
+        <div class="lbl">unidades de atendimento</div>
+      </div>
+      <div class="stat reveal">
+        <div class="num">+500<sup>*</sup></div>
+        <div class="lbl">famílias acolhidas</div>
+      </div>
+      <div class="stat reveal">
+        <div class="num">+8<sup>*</sup></div>
+        <div class="lbl">anos de história</div>
+      </div>
+      <div class="stat reveal">
+        <div class="num word">Centenas<sup>*</sup></div>
+        <div class="lbl">de crianças atendidas</div>
+      </div>
+    </div>
+    <p class="stat-note"><sup>*</sup> Números em confirmação — a serem validados com o instituto.</p>
+  </div>
+</section>
+
+<!-- ===== PARCERIAS (institucional, SEM doação) ===== -->
+<section id="parcerias" class="pad">
+  <div class="wrap">
+    <div class="partner reveal">
+      <div>
+        <span class="kicker">Parcerias</span>
+        <h2>Construído com quem acredita.</h2>
+        <p>Empresas e parceiros que querem transformar Duque de Caxias caminham com o Instituto Família Pôncio. Juntos, ampliamos o cuidado a quem mais precisa.</p>
+        <a class="btn btn-light" href="#contato">Seja um parceiro <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="partner-side" aria-hidden="true">
+        <div class="partner-pill">
+          <span class="pp-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-7.5-10A4.5 4.5 0 0 1 12 8a4.5 4.5 0 0 1 7.5 3c0 5.4-7.5 10-7.5 10Z" fill="currentColor"/></svg></span>
+          <div><b>Relação de parceria</b><span>Impacto institucional contínuo</span></div>
+        </div>
+        <div class="partner-pill">
+          <span class="pp-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" fill="currentColor"/><path d="M3.5 19c0-3 2.4-5.2 5.5-5.2S14.5 16 14.5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17.5" cy="9" r="2.3" fill="currentColor"/></svg></span>
+          <div><b>Cuidado a famílias reais</b><span>Cada gesto vira presença</span></div>
+        </div>
+        <div class="partner-pill">
+          <span class="pp-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 12.5 11 15.5 16.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3.5" y="4.5" width="17" height="15" rx="3.5" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <div><b>Transparência</b><span>Filantropia sem fins lucrativos</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTATO / FOOTER ===== -->
+<footer id="contato">
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <div class="foot-brand">
+          <span class="fb-seal"><img src="/logo/ifp-lockup.png" alt="Instituto Família Pôncio" /></span>
+          <b>Instituto Família Pôncio</b>
+        </div>
+        <p class="foot-lead">Cuidando de famílias e crianças de Duque de Caxias com abrigo, saúde, educação e amor.</p>
+        <div class="foot-contact">
+          <div>Telefone / WhatsApp <span class="tbc">a confirmar</span></div>
+          <div>Endereço <span class="tbc">a confirmar</span></div>
+        </div>
+        <div class="foot-cta">
+          <a class="btn btn-primary" href="#contato">Fale com a gente <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <h5>Contato</h5>
+        <ul>
+          <li>Telefone <span class="tbc">a confirmar</span></li>
+          <li>WhatsApp <span class="tbc">a confirmar</span></li>
+          <li>E-mail <span class="tbc">a confirmar</span></li>
+          <li>Endereço <span class="tbc">a confirmar</span></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h5>Redes</h5>
+        <ul>
+          <li><a href="https://instagram.com/institutofamiliaponcio" target="_blank" rel="noopener">Instagram · @institutofamiliaponcio</a></li>
+          <li><a href="https://youtube.com/@institutofamiliaponcio" target="_blank" rel="noopener">YouTube · @institutofamiliaponcio</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <span class="place">Duque de Caxias · Rio de Janeiro</span>
+      <span>© Instituto Família Pôncio — organização filantrópica sem fins lucrativos.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    /* Dropdown "Acesso ao Sistema" */
+    var access = document.getElementById('access');
+    var btn = document.getElementById('accessBtn');
+    function setOpen(open) {
+      access.dataset.open = open ? 'true' : 'false';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setOpen(access.dataset.open !== 'true');
+    });
+    document.addEventListener('click', function (e) {
+      if (!access.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    /* Nav muda de aparência ao rolar para fora do hero */
+    var nav = document.getElementById('nav');
+    function onScroll() {
+      nav.dataset.scrolled = (window.scrollY > 40) ? 'true' : 'false';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    /* Reveal suave (respeitando reduced-motion via media query no CSS) */
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if ('IntersectionObserver' in window && !reduce) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en, i) {
+          if (en.isIntersecting) {
+            en.target.style.transitionDelay = (Math.min(i, 4) * 70) + 'ms';
+            en.target.classList.add('in');
+            io.unobserve(en.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+    } else {
+      document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+    }
+  })();
+</script>
+
+</body>
+</html>

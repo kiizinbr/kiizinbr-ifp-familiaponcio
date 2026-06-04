@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instituto Família Pôncio · Imersivo Color-Forward</title>
+<meta name="description" content="Mudar realidades com abrigo, saúde, educação e amor. Instituto Família Pôncio — organização filantrópica sem fins lucrativos, Duque de Caxias / RJ." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     INSTITUTO FAMÍLIA PÔNCIO — v2 "Imersivo Color-Forward"
+     Standalone one-pager. Zero build. Paleta SO do brandbook.
+     Cada unidade = uma faixa CHEIA de cor no seu acento.
+     ⚠️ NENHUM pedido de doação. Apoio institucional = "Parcerias".
+  ============================================================ */
+  :root{
+    /* Brandbook — únicas cores permitidas */
+    --laranja:#FF772E;
+    --laranja-escuro:#C24D0F;
+    --marrom:#752C05;
+    --teal-escuro:#007571;
+    --teal-claro:#10C2BB;
+    --cinza:#4A4A49;
+    --branco:#FFFFFF;
+    --surface-1:#FAFAF9;
+    --surface-2:#F4F4F2;
+    --borda:#E5E4E1;
+    --texto:#1B1D1D;
+    --texto-2:#4A4A49;
+
+    --sans:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+    --maxw:1200px;
+    --pad:clamp(20px,5vw,72px);
+    --nav-h:74px;
+    --r:18px;
+    --r-lg:30px;
+    --r-xl:42px;
+
+    --acento:var(--teal-escuro);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--texto);
+    background:var(--surface-1);
+    line-height:1.55;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  img{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--laranja);color:#fff;}
+
+  .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad);width:100%;}
+
+  /* grain overlay — textura sutil de ruído sobre a página inteira */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:200;pointer-events:none;
+    opacity:.035;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* shared micro-type */
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;font-weight:500;
+    letter-spacing:.18em;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:.6em;
+  }
+  .kicker::before{
+    content:"";width:26px;height:2px;background:currentColor;
+    display:inline-block;border-radius:2px;
+  }
+
+  h1,h2,h3{margin:0;line-height:1.03;letter-spacing:-0.025em;font-weight:800;}
+  h2{font-size:clamp(30px,4.8vw,52px);}
+  p{margin:0;}
+
+  /* reveal on scroll */
+  .rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1);}
+  .rv.in{opacity:1;transform:none;}
+  .rv.d1{transition-delay:.08s;}
+  .rv.d2{transition-delay:.16s;}
+  .rv.d3{transition-delay:.24s;}
+  .rv.d4{transition-delay:.32s;}
+
+  .btn{
+    --bg:var(--acento);--fg:#fff;
+    font-family:var(--sans);font-weight:700;font-size:15.5px;letter-spacing:-0.01em;
+    padding:15px 26px;border-radius:999px;border:1.6px solid transparent;
+    background:var(--bg);color:var(--fg);cursor:pointer;
+    display:inline-flex;align-items:center;gap:.55em;
+    transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,background .22s,color .22s;
+    box-shadow:0 2px 0 rgba(0,0,0,.05);will-change:transform;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px -14px color-mix(in srgb,var(--bg) 75%,transparent);}
+  .btn:active{transform:translateY(0);}
+  .btn .arr{transition:transform .22s;}
+  .btn:hover .arr{transform:translate(3px,-3px);}
+  .btn--ghost{--bg:transparent;--fg:var(--texto);border-color:var(--borda);background:var(--branco);}
+  .btn--ghost:hover{border-color:var(--acento);color:var(--acento);box-shadow:0 16px 34px -18px rgba(0,0,0,.3);}
+  /* on-color ghost (white outline over saturated bands) */
+  .btn--onlight{--bg:#fff;--fg:var(--acento);background:#fff;color:var(--acento);}
+  .btn--onlight:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.4);}
+  .btn--outline-w{--bg:transparent;--fg:#fff;border-color:color-mix(in srgb,#fff 60%,transparent);background:transparent;color:#fff;}
+  .btn--outline-w:hover{background:rgba(255,255,255,.14);border-color:#fff;}
+
+  /* ============================================================ NAV — LÁ EM CIMA */
+  .nav{
+    position:fixed;inset:0 0 auto 0;height:var(--nav-h);z-index:100;
+    display:flex;align-items:center;
+    backdrop-filter:saturate(150%) blur(14px);
+    background:color-mix(in srgb,var(--branco) 80%,transparent);
+    border-bottom:1px solid var(--borda);
+    transition:background .3s,box-shadow .3s,border-color .3s;
+  }
+  .nav.scrolled{box-shadow:0 12px 36px -22px rgba(27,29,29,.35);background:color-mix(in srgb,var(--branco) 92%,transparent);}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand{display:flex;align-items:center;gap:13px;min-width:0;}
+  .brand img{height:40px;width:auto;}
+  .brand b{font-weight:800;font-size:16px;letter-spacing:-0.02em;white-space:nowrap;}
+  .brand small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--texto-2);font-weight:500;}
+
+  .nav__right{display:flex;align-items:center;gap:18px;}
+  .nav__links{display:flex;gap:22px;}
+  .nav__links a{
+    font-size:14.5px;font-weight:600;color:var(--texto-2);
+    position:relative;transition:color .2s;
+  }
+  .nav__links a::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;background:var(--laranja);border-radius:2px;transition:width .25s;}
+  .nav__links a:hover{color:var(--texto);}
+  .nav__links a:hover::after{width:100%;}
+
+  .sys{position:relative;}
+  .sys__btn{
+    font-family:var(--sans);font-weight:700;font-size:14px;
+    padding:11px 20px;border-radius:999px;cursor:pointer;
+    border:none;color:#fff;
+    background:linear-gradient(120deg,var(--teal-escuro),var(--teal-claro));
+    display:inline-flex;align-items:center;gap:.55em;
+    box-shadow:0 8px 22px -12px color-mix(in srgb,var(--teal-escuro) 80%,transparent);
+    transition:box-shadow .2s,transform .15s,filter .2s;
+  }
+  .sys__btn:hover{transform:translateY(-1px);filter:saturate(115%);box-shadow:0 14px 30px -12px color-mix(in srgb,var(--teal-escuro) 80%,transparent);}
+  .sys__btn .chev{transition:transform .25s;}
+  .sys[data-open="true"] .chev{transform:rotate(180deg);}
+  .sys__menu{
+    position:absolute;top:calc(100% + 12px);right:0;min-width:280px;
+    background:var(--branco);border:1px solid var(--borda);border-radius:var(--r);
+    box-shadow:0 30px 70px -24px rgba(27,29,29,.34);padding:8px;
+    opacity:0;transform:translateY(-8px) scale(.98);transform-origin:top right;
+    pointer-events:none;transition:opacity .2s,transform .22s cubic-bezier(.2,.8,.2,1);
+  }
+  .sys[data-open="true"] .sys__menu{opacity:1;transform:none;pointer-events:auto;}
+  .sys__menu .grp{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-2);padding:11px 12px 5px;}
+  .sys__menu a{
+    display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;
+    font-size:14px;font-weight:600;transition:background .16s,color .16s,padding .16s;
+  }
+  .sys__menu a:hover{background:var(--surface-2);padding-left:16px;}
+  .sys__menu a .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--d,var(--cinza));box-shadow:0 0 0 3px color-mix(in srgb,var(--d,var(--cinza)) 20%,transparent);}
+  .sys__menu a .ar{margin-left:auto;color:var(--texto-2);font-family:var(--mono);font-size:12px;}
+  .sys__menu hr{border:0;border-top:1px solid var(--borda);margin:6px 4px;}
+  .sys__menu a.exec{color:var(--marrom);font-weight:800;}
+
+  /* ============================================================ HERO — imersivo, fita diagonal saturada */
+  .hero{
+    position:relative;overflow:hidden;
+    padding-top:calc(var(--nav-h) + clamp(48px,7vw,96px));
+    padding-bottom:clamp(56px,9vw,120px);
+    color:#fff;
+    background:
+      radial-gradient(120% 100% at 82% 6%, color-mix(in srgb,var(--teal-claro) 90%,#fff 4%), transparent 58%),
+      radial-gradient(110% 120% at -6% 96%, color-mix(in srgb,var(--laranja) 88%,#000 4%), transparent 56%),
+      linear-gradient(135deg,var(--teal-escuro) 4%, color-mix(in srgb,var(--teal-escuro) 70%,var(--marrom)) 96%);
+  }
+  /* fita diagonal de cor saturada cruzando o hero */
+  .hero__ribbon{
+    position:absolute;z-index:1;inset:auto;
+    top:-22%;left:-12%;width:135%;height:64%;
+    background:linear-gradient(100deg,var(--laranja),var(--laranja-escuro) 62%,var(--marrom));
+    transform:rotate(-7deg);
+    box-shadow:0 60px 120px -50px rgba(0,0,0,.6);
+    opacity:.96;
+  }
+  .hero__ribbon::after{
+    content:"";position:absolute;inset:0;opacity:.5;
+    background:repeating-linear-gradient(115deg,transparent 0 30px,rgba(255,255,255,.06) 30px 31px);
+  }
+  .hero__glow{position:absolute;z-index:0;border-radius:50%;filter:blur(70px);opacity:.6;pointer-events:none;}
+  .hero__glow.g1{width:520px;height:520px;top:-180px;right:-120px;background:var(--teal-claro);}
+  .hero__glow.g2{width:480px;height:480px;bottom:-220px;left:-140px;background:var(--laranja);opacity:.45;}
+
+  .hero .wrap{position:relative;z-index:3;display:grid;grid-template-columns:1.12fr .88fr;gap:clamp(32px,5vw,72px);align-items:center;}
+  .hero__eyebrow{color:color-mix(in srgb,var(--teal-claro) 70%,#fff);margin-bottom:26px;}
+  .hero h1{
+    font-size:clamp(40px,7vw,82px);font-weight:900;letter-spacing:-0.04em;line-height:.96;
+    text-shadow:0 4px 40px rgba(0,0,0,.18);
+  }
+  .hero h1 .accent{
+    color:transparent;-webkit-background-clip:text;background-clip:text;
+    background:linear-gradient(105deg,#fff,color-mix(in srgb,var(--teal-claro) 80%,#fff));
+  }
+  .hero p.sub{
+    margin-top:26px;font-size:clamp(17px,1.95vw,21px);
+    color:color-mix(in srgb,#fff 90%,transparent);max-width:40ch;font-weight:500;
+  }
+  .hero__cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px;}
+  .hero__cta .btn{--acento:var(--teal-escuro);}
+
+  /* hero visual — foto inclinada + chips flutuantes + moldura de cor */
+  .hero__visual{position:relative;}
+  .hero__frame{
+    position:absolute;inset:-16px -16px 16px 16px;border-radius:var(--r-xl);
+    background:linear-gradient(150deg,var(--teal-claro),var(--laranja));
+    transform:rotate(-3deg);opacity:.9;
+  }
+  .hero__photo{
+    position:relative;border-radius:var(--r-xl);overflow:hidden;
+    box-shadow:0 50px 90px -36px rgba(0,0,0,.6);
+    aspect-ratio:4/5;transform:rotate(1.6deg);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .hero__photo:hover{transform:rotate(0deg) scale(1.01);}
+  .hero__photo img{width:100%;height:100%;object-fit:cover;}
+  .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,color-mix(in srgb,var(--teal-escuro) 70%,#000) 100%);opacity:.5;}
+  .hero__photo .tag{
+    position:absolute;left:18px;bottom:18px;z-index:2;
+    background:color-mix(in srgb,#fff 16%,transparent);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:9px 15px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#fff;font-weight:600;
+  }
+  .hero__chip{
+    position:absolute;z-index:4;display:flex;align-items:center;gap:9px;
+    background:var(--branco);color:var(--texto);
+    border-radius:999px;padding:10px 16px;
+    box-shadow:0 22px 50px -20px rgba(0,0,0,.55);
+    font-weight:700;font-size:13px;animation:float 6s ease-in-out infinite;
+  }
+  .hero__chip .dot{width:11px;height:11px;border-radius:50%;}
+  .hero__chip.c1{top:-18px;left:-26px;}
+  .hero__chip.c2{bottom:30px;right:-30px;animation-delay:-3s;}
+  @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+  /* faixa-marquise de cores das 5 unidades logo abaixo do hero */
+  .spectrum{display:flex;height:10px;}
+  .spectrum span{flex:1;}
+  .spectrum span:nth-child(1){background:var(--teal-escuro);}
+  .spectrum span:nth-child(2){background:var(--laranja);}
+  .spectrum span:nth-child(3){background:var(--laranja-escuro);}
+  .spectrum span:nth-child(4){background:var(--teal-claro);}
+  .spectrum span:nth-child(5){background:var(--cinza);}
+
+  /* ============================================================ INTRO UNIDADES */
+  .units-intro{padding:clamp(56px,9vw,104px) 0 clamp(28px,4vw,44px);text-align:center;}
+  .units-intro .kicker{color:var(--laranja-escuro);justify-content:center;}
+  .units-intro h2{margin-top:18px;max-width:18ch;margin-inline:auto;}
+  .units-intro p{margin-top:18px;color:var(--texto-2);font-size:19px;max-width:56ch;margin-inline:auto;}
+
+  /* ============================================================ UNIDADES — faixas CHEIAS de cor */
+  .band{
+    position:relative;overflow:hidden;color:#fff;
+    --c1:var(--acento);--c2:var(--acento);
+    background:linear-gradient(135deg,var(--c1),var(--c2));
+  }
+  .band__noise{
+    position:absolute;inset:0;opacity:.5;pointer-events:none;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.16), transparent 55%),
+      radial-gradient(100% 80% at 0% 100%, rgba(0,0,0,.18), transparent 55%);
+  }
+  .band__pattern{
+    position:absolute;inset:0;opacity:.10;pointer-events:none;
+    background:repeating-linear-gradient(130deg,transparent 0 40px,rgba(255,255,255,.5) 40px 41px);
+  }
+  /* watermark glyph gigante */
+  .band__glyph{
+    position:absolute;z-index:0;pointer-events:none;
+    top:50%;right:clamp(-40px,-2vw,-10px);transform:translateY(-50%);
+    width:clamp(220px,34vw,420px);height:auto;color:#fff;opacity:.10;
+  }
+  .band__inner{
+    position:relative;z-index:2;
+    display:grid;grid-template-columns:auto 1fr auto;gap:clamp(20px,4vw,52px);align-items:center;
+    padding-block:clamp(40px,6vw,76px);
+  }
+  .band__no{
+    font-family:var(--mono);font-weight:600;font-size:clamp(40px,7vw,76px);
+    line-height:.8;letter-spacing:-0.04em;
+    color:color-mix(in srgb,#fff 30%,transparent);
+    -webkit-text-stroke:1.5px color-mix(in srgb,#fff 55%,transparent);
+    align-self:start;
+  }
+  .band__body{max-width:64ch;}
+  .band__tag{
+    font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:color-mix(in srgb,#fff 88%,transparent);font-weight:500;
+    display:inline-flex;align-items:center;gap:.6em;margin-bottom:14px;
+  }
+  .band__tag::before{content:"";width:24px;height:2px;background:currentColor;border-radius:2px;}
+  .band h3{font-size:clamp(28px,4.4vw,46px);font-weight:900;letter-spacing:-0.03em;}
+  .band__desc{margin-top:14px;font-size:clamp(16px,1.7vw,20px);color:color-mix(in srgb,#fff 92%,transparent);max-width:46ch;font-weight:500;line-height:1.5;}
+  /* lado direito: foto real (médico) ou painel-glyph elegante */
+  .band__visual{
+    width:clamp(200px,26vw,340px);aspect-ratio:4/3;flex:none;
+    border-radius:var(--r-lg);overflow:hidden;position:relative;
+    box-shadow:0 40px 80px -34px rgba(0,0,0,.6);
+    border:1px solid rgba(255,255,255,.22);
+    transition:transform .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .band:hover .band__visual{transform:translateY(-6px) rotate(-1deg);}
+  .band__visual img{width:100%;height:100%;object-fit:cover;}
+  .band__ph{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:
+      radial-gradient(120% 120% at 10% 0%, rgba(255,255,255,.22), transparent 55%),
+      color-mix(in srgb,#000 14%,transparent);
+  }
+  .band__ph::before{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(135deg,transparent 0 18px,rgba(255,255,255,.08) 18px 36px);
+  }
+  .band__ph svg{position:relative;z-index:1;width:34%;height:auto;color:#fff;opacity:.95;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35));}
+  .band__plabel{position:absolute;left:14px;bottom:12px;z-index:1;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.8);}
+
+  /* acentos por unidade — gradiente rico dentro da família do acento */
+  .band.medico{--c1:var(--teal-escuro);--c2:color-mix(in srgb,var(--teal-escuro) 62%,var(--teal-claro));}
+  .band.capacitacao{--c1:var(--laranja);--c2:var(--laranja-escuro);}
+  .band.esportivo{--c1:var(--laranja-escuro);--c2:var(--marrom);}
+  .band.recreativo{--c1:var(--teal-claro);--c2:var(--teal-escuro);}
+  .band.recreativo{color:#06302f;}
+  .band.recreativo .band__no{color:color-mix(in srgb,#06302f 26%,transparent);-webkit-text-stroke:1.5px color-mix(in srgb,#06302f 45%,transparent);}
+  .band.recreativo .band__tag,.band.recreativo .band__desc{color:color-mix(in srgb,#06302f 82%,transparent);}
+  .band.recreativo .band__glyph{color:#06302f;opacity:.12;}
+  .band.recreativo .band__noise{background:radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.28), transparent 55%),radial-gradient(100% 80% at 0% 100%, rgba(0,0,0,.10), transparent 55%);}
+  .band.social{--c1:var(--cinza);--c2:color-mix(in srgb,var(--cinza) 64%,#000);}
+
+  /* ============================================================ QUEM SOMOS */
+  .about{padding:clamp(64px,10vw,124px) 0;background:var(--surface-1);position:relative;overflow:hidden;}
+  .about__grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,72px);align-items:start;}
+  .about .kicker{color:var(--teal-escuro);}
+  .about h2{margin-top:18px;}
+  .about__origem{margin-top:20px;color:var(--texto-2);font-size:19px;line-height:1.62;max-width:46ch;}
+  .mv-list{display:flex;flex-direction:column;gap:16px;}
+  .mv{
+    position:relative;background:var(--branco);border:1px solid var(--borda);border-radius:var(--r);
+    padding:22px 24px 22px 28px;overflow:hidden;
+    transition:transform .25s,box-shadow .25s,border-color .25s;
+  }
+  .mv::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--mc,var(--teal-escuro));}
+  .mv:hover{transform:translateX(5px);box-shadow:0 22px 50px -28px rgba(0,0,0,.34);border-color:transparent;}
+  .mv .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mc,var(--teal-escuro));font-weight:600;}
+  .mv p{margin-top:8px;font-size:16.5px;color:var(--texto);font-weight:500;}
+  .mv:nth-child(1){--mc:var(--laranja-escuro);}
+  .mv:nth-child(2){--mc:var(--teal-escuro);}
+  .mv:nth-child(3){--mc:var(--cinza);}
+
+  /* versículo — lugar de honra, painel imersivo */
+  .verse{
+    margin-top:clamp(40px,6vw,68px);position:relative;overflow:hidden;color:#fff;
+    border-radius:var(--r-xl);
+    padding:clamp(44px,7vw,80px) clamp(32px,7vw,88px);
+    background:linear-gradient(135deg,var(--teal-escuro),color-mix(in srgb,var(--teal-escuro) 52%,var(--marrom)));
+    box-shadow:0 50px 100px -44px color-mix(in srgb,var(--teal-escuro) 85%,#000);
+  }
+  .verse__glow{position:absolute;right:-8%;top:-40%;width:50%;height:180%;border-radius:50%;filter:blur(40px);background:var(--teal-claro);opacity:.4;}
+  .verse__pattern{position:absolute;inset:0;opacity:.08;background:repeating-linear-gradient(125deg,transparent 0 38px,rgba(255,255,255,.6) 38px 39px);pointer-events:none;}
+  .verse .mark{font-family:Georgia,"Times New Roman",serif;font-size:200px;line-height:.2;position:absolute;left:22px;top:90px;opacity:.16;z-index:1;}
+  .verse .kicker{color:color-mix(in srgb,var(--teal-claro) 82%,#fff);position:relative;z-index:2;}
+  .verse blockquote{
+    margin:20px 0 0;position:relative;z-index:2;
+    font-size:clamp(24px,3.8vw,40px);font-weight:800;letter-spacing:-0.03em;line-height:1.16;max-width:22ch;
+  }
+  .verse cite{
+    display:block;margin-top:24px;position:relative;z-index:2;font-style:normal;
+    font-family:var(--mono);font-size:13px;letter-spacing:.06em;
+    color:color-mix(in srgb,var(--teal-claro) 78%,#fff);font-weight:500;
+  }
+
+  /* ============================================================ IMPACTO — campos cheios de cor */
+  .impact{padding:clamp(56px,9vw,112px) 0;background:var(--surface-2);}
+  .impact .kicker{color:var(--laranja-escuro);}
+  .impact h2{margin-top:18px;}
+  .impact .lead{margin-top:16px;color:var(--texto-2);font-size:19px;max-width:54ch;}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:clamp(32px,5vw,52px);}
+  .stat{
+    position:relative;overflow:hidden;border-radius:var(--r-lg);padding:34px 28px;color:#fff;
+    transition:transform .3s,box-shadow .3s;
+    box-shadow:0 26px 56px -34px rgba(27,29,29,.5);
+  }
+  .stat::after{content:"";position:absolute;inset:0;opacity:.5;background:radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.2), transparent 55%);pointer-events:none;}
+  .stat:hover{transform:translateY(-6px);box-shadow:0 36px 70px -32px rgba(27,29,29,.55);}
+  .stat:nth-child(1){background:linear-gradient(150deg,var(--teal-escuro),color-mix(in srgb,var(--teal-escuro) 58%,var(--teal-claro)));}
+  .stat:nth-child(2){background:linear-gradient(150deg,var(--laranja),var(--laranja-escuro));}
+  .stat:nth-child(3){background:linear-gradient(150deg,var(--teal-claro),var(--teal-escuro));}
+  .stat:nth-child(4){background:linear-gradient(150deg,var(--cinza),color-mix(in srgb,var(--cinza) 64%,#000));}
+  .stat .num{position:relative;z-index:1;font-size:clamp(36px,5vw,58px);font-weight:900;letter-spacing:-0.045em;line-height:1;}
+  .stat .num sup{font-size:.4em;font-weight:700;vertical-align:super;opacity:.85;margin-left:2px;}
+  .stat .lab{position:relative;z-index:1;margin-top:14px;font-size:15px;font-weight:600;opacity:.96;}
+  .stat .conf{position:relative;z-index:1;margin-top:12px;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.8;}
+  .stat .conf::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .impact .foot-note{margin-top:22px;font-family:var(--mono);font-size:12px;color:var(--texto-2);letter-spacing:.04em;}
+
+  /* ============================================================ PARCERIAS — institucional, SEM doação */
+  .partner{position:relative;overflow:hidden;color:#fff;padding:clamp(64px,10vw,128px) 0;
+    background:
+      radial-gradient(110% 120% at 6% 4%, color-mix(in srgb,var(--laranja) 92%,#000 4%), transparent 56%),
+      linear-gradient(135deg,var(--laranja-escuro),var(--marrom));
+  }
+  .partner__pattern{position:absolute;inset:0;opacity:.10;pointer-events:none;background:repeating-linear-gradient(125deg,transparent 0 44px,rgba(255,255,255,.5) 44px 45px);}
+  .partner__glow{position:absolute;width:560px;height:560px;border-radius:50%;filter:blur(80px);background:var(--laranja);opacity:.4;top:-200px;right:-120px;pointer-events:none;}
+  .partner .wrap{position:relative;z-index:2;}
+  .partner__grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(36px,6vw,80px);align-items:center;}
+  .partner .kicker{color:color-mix(in srgb,var(--laranja) 40%,#fff);}
+  .partner h2{margin-top:18px;font-size:clamp(32px,5vw,58px);font-weight:900;letter-spacing:-0.035em;max-width:14ch;}
+  .partner p{margin-top:22px;font-size:clamp(17px,1.9vw,21px);color:color-mix(in srgb,#fff 92%,transparent);max-width:48ch;font-weight:500;line-height:1.55;}
+  .partner__cta{margin-top:34px;display:flex;flex-wrap:wrap;gap:14px;}
+  .partner__cta .btn{--acento:var(--laranja-escuro);}
+  /* lado direito: cartão de "como caminhamos juntos" */
+  .partner__card{
+    background:color-mix(in srgb,#fff 12%,transparent);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.24);border-radius:var(--r-xl);
+    padding:clamp(28px,4vw,42px);
+  }
+  .partner__card h3{font-size:20px;font-weight:800;letter-spacing:-0.02em;}
+  .partner__list{list-style:none;margin:20px 0 0;padding:0;display:flex;flex-direction:column;gap:16px;}
+  .partner__list li{display:flex;gap:14px;align-items:flex-start;}
+  .partner__list .ic{width:42px;height:42px;border-radius:13px;flex:none;display:grid;place-items:center;background:rgba(255,255,255,.18);color:#fff;}
+  .partner__list .tx b{display:block;font-size:16px;font-weight:800;}
+  .partner__list .tx span{display:block;font-size:14px;color:color-mix(in srgb,#fff 80%,transparent);margin-top:2px;}
+
+  /* ============================================================ CONTATO / RODAPÉ */
+  .foot{background:var(--texto);color:color-mix(in srgb,#fff 78%,transparent);padding:clamp(56px,9vw,104px) 0 30px;position:relative;overflow:hidden;}
+  .foot::before{content:"";position:absolute;top:-40%;right:-8%;width:42%;height:180%;background:linear-gradient(160deg,var(--teal-escuro),var(--teal-claro));opacity:.16;transform:rotate(10deg);border-radius:80px;}
+  .foot::after{content:"";position:absolute;bottom:-40%;left:-10%;width:38%;height:160%;background:linear-gradient(160deg,var(--laranja),var(--laranja-escuro));opacity:.12;transform:rotate(-8deg);border-radius:80px;}
+  .foot .wrap{position:relative;z-index:1;}
+  .foot__top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:clamp(30px,5vw,60px);}
+  .foot__brand img{height:56px;width:auto;margin-bottom:20px;}
+  .foot__brand p{max-width:36ch;color:color-mix(in srgb,#fff 70%,transparent);font-size:15px;}
+  .foot__brand .loc{margin-top:18px;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--teal-claro);}
+  .foot h4{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:color-mix(in srgb,#fff 58%,transparent);margin:0 0 18px;font-weight:600;}
+  .foot ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  .foot li{font-size:15px;}
+  .foot a{transition:color .2s;}
+  .foot a:hover{color:#fff;}
+  .foot .ph{display:flex;flex-direction:column;gap:3px;}
+  .foot .ph .tba{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:color-mix(in srgb,#fff 45%,transparent);}
+  .foot .social a{display:inline-flex;align-items:center;gap:10px;transition:color .2s,transform .2s;}
+  .foot .social a:hover{transform:translateX(3px);color:var(--teal-claro);}
+  .foot__cta{margin-top:20px;}
+  .foot__cta .btn{--acento:var(--laranja);font-size:14px;padding:12px 20px;}
+  .foot__bottom{
+    margin-top:clamp(38px,5vw,60px);padding-top:24px;border-top:1px solid rgba(255,255,255,.12);
+    display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;
+    font-size:13px;color:color-mix(in srgb,#fff 55%,transparent);
+  }
+  .foot__bottom .badge{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;}
+  .foot__bottom .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal-claro);}
+
+  /* ============================================================ RESPONSIVE */
+  @media (max-width:980px){
+    .nav__links{display:none;}
+    .hero .wrap{grid-template-columns:1fr;}
+    .hero__visual{max-width:440px;margin:8px auto 0;}
+    .about__grid{grid-template-columns:1fr;}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .partner__grid{grid-template-columns:1fr;}
+    .band__inner{grid-template-columns:auto 1fr;}
+    .band__visual{grid-column:1/-1;width:100%;max-width:none;aspect-ratio:16/7;margin-top:4px;}
+    .foot__top{grid-template-columns:1fr 1fr;}
+    .foot__brand{grid-column:1/-1;}
+  }
+  @media (max-width:620px){
+    body{font-size:16px;}
+    .brand small{display:none;}
+    .sys__btn span.lbl-full{display:none;}
+    .sys__btn span.lbl-short{display:inline!important;}
+    .stats{grid-template-columns:1fr;}
+    .foot__top{grid-template-columns:1fr;}
+    .hero__chip.c1{left:-4px;}
+    .hero__chip.c2{right:-4px;}
+    .band__inner{grid-template-columns:1fr;}
+    .band__no{font-size:48px;}
+    .band__glyph{display:none;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
+    .rv{opacity:1!important;transform:none!important;}
+  }
+</style>
+</head>
+<body data-unit="poncio">
+
+  <!-- ====================== NAV — LÁ EM CIMA ====================== -->
+  <header class="nav" id="nav">
+    <div class="wrap">
+      <a class="brand" href="#topo" aria-label="Instituto Família Pôncio — início">
+        <img src="/logo/ifp-symbol.png" alt="Símbolo do Instituto Família Pôncio" />
+        <span>
+          <b>Instituto Família Pôncio</b>
+          <small>Duque de Caxias · RJ</small>
+        </span>
+      </a>
+
+      <div class="nav__right">
+        <nav class="nav__links" aria-label="Seções">
+          <a href="#unidades">Unidades</a>
+          <a href="#quem-somos">Quem somos</a>
+          <a href="#impacto">Impacto</a>
+          <a href="#parcerias">Parcerias</a>
+          <a href="#contato">Contato</a>
+        </nav>
+
+        <div class="sys" id="sys" data-open="false">
+          <button class="sys__btn" id="sysBtn" aria-haspopup="true" aria-expanded="false" aria-controls="sysMenu">
+            <span class="lbl-full">Acesso ao Sistema</span><span class="lbl-short" style="display:none">Acesso</span>
+            <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sys__menu" id="sysMenu" role="menu" aria-label="Acesso ao sistema por unidade">
+            <div class="grp">Unidades</div>
+            <a role="menuitem" href="/medico/login"><span class="dot" style="--d:#007571"></span> Centro Médico <span class="ar">↗</span></a>
+            <a role="menuitem" href="/capacitacao/login"><span class="dot" style="--d:#FF772E"></span> Capacitação <span class="ar">↗</span></a>
+            <a role="menuitem" href="/esportivo/login"><span class="dot" style="--d:#C24D0F"></span> Esportivo <span class="ar">↗</span></a>
+            <a role="menuitem" href="/recreativo/login"><span class="dot" style="--d:#10C2BB"></span> Recreativo <span class="ar">↗</span></a>
+            <a role="menuitem" href="/social/login"><span class="dot" style="--d:#4A4A49"></span> Serviço Social <span class="ar">↗</span></a>
+            <hr />
+            <a role="menuitem" class="exec" href="/poncio/login"><span class="dot" style="--d:#752C05"></span> Acesso executivo <span class="ar">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="topo">
+
+    <!-- ====================== HERO ====================== -->
+    <section class="hero">
+      <div class="hero__glow g1"></div>
+      <div class="hero__glow g2"></div>
+      <div class="hero__ribbon" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="hero__copy">
+          <span class="kicker hero__eyebrow rv in">Instituto Família Pôncio · Duque de Caxias / RJ</span>
+          <h1 class="rv in d1">Mudar realidades com abrigo, saúde, educação e <span class="accent">amor</span>.</h1>
+          <p class="sub rv in d2">Cuidamos de famílias e crianças de Duque de Caxias em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social.</p>
+          <div class="hero__cta rv in d3">
+            <a class="btn btn--onlight" href="#unidades">Conheça nossas unidades <span class="arr" aria-hidden="true">↗</span></a>
+            <a class="btn btn--outline-w" href="#contato">Fale com a gente</a>
+          </div>
+        </div>
+
+        <div class="hero__visual rv in d2">
+          <div class="hero__frame" aria-hidden="true"></div>
+          <div class="hero__photo">
+            <img src="/unidades/medico.jpg" alt="Sede do Instituto Família Pôncio em Duque de Caxias" loading="eager" />
+            <span class="tag">● Sede · Duque de Caxias / RJ</span>
+          </div>
+          <div class="hero__chip c1"><span class="dot" style="background:#007571"></span> Saúde &amp; cuidado</div>
+          <div class="hero__chip c2"><span class="dot" style="background:#FF772E"></span> Educação que transforma</div>
+        </div>
+      </div>
+    </section>
+    <div class="spectrum" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <!-- ====================== INTRO UNIDADES ====================== -->
+    <section class="units-intro" id="unidades">
+      <div class="wrap">
+        <span class="kicker rv">Cinco frentes, um movimento</span>
+        <h2 class="rv d1">Cada unidade, uma forma de cuidar.</h2>
+        <p class="rv d2">Da saúde ao esporte, da sala de aula ao acolhimento — cinco centros que trabalham juntos pela transformação social da nossa comunidade.</p>
+      </div>
+    </section>
+
+    <!-- ====================== UNIDADE 1 · CENTRO MÉDICO (teal) ====================== -->
+    <section class="band medico" aria-label="Centro Médico">
+      <div class="band__noise"></div><div class="band__pattern"></div>
+      <svg class="band__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21c5-4 8-7.2 8-11a4.2 4.2 0 0 0-8-1.8A4.2 4.2 0 0 0 4 10c0 3.8 3 7 8 11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M12 9v5M9.5 11.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <div class="wrap band__inner rv">
+        <div class="band__no">01</div>
+        <div class="band__body">
+          <span class="band__tag">Saúde &amp; Odontologia</span>
+          <h3>Centro Médico</h3>
+          <p class="band__desc">Atendimento em saúde e odontológico para a comunidade, com cuidado próximo.</p>
+        </div>
+        <div class="band__visual">
+          <img src="/unidades/medico.jpg" alt="Centro Médico do Instituto Família Pôncio" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== UNIDADE 2 · CAPACITAÇÃO (laranja) ====================== -->
+    <section class="band capacitacao" aria-label="Centro de Capacitação">
+      <div class="band__noise"></div><div class="band__pattern"></div>
+      <svg class="band__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8l9-4 9 4-9 4-9-4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M7 10.5V15c0 1.5 2.2 2.6 5 2.6s5-1.1 5-2.6v-4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 8v5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <div class="wrap band__inner rv">
+        <div class="band__no">02</div>
+        <div class="band__body">
+          <span class="band__tag">Cursos &amp; Profissionalização</span>
+          <h3>Centro de Capacitação</h3>
+          <p class="band__desc">Cursos e capacitação profissional que abrem portas e transformam o futuro.</p>
+        </div>
+        <div class="band__visual">
+          <div class="band__ph">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8l9-4 9 4-9 4-9-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 10.5V15c0 1.5 2.2 2.6 5 2.6s5-1.1 5-2.6v-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 8v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span class="band__plabel">Imagem a confirmar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== UNIDADE 3 · ESPORTIVO (laranja-escuro) ====================== -->
+    <section class="band esportivo" aria-label="Centro Esportivo">
+      <div class="band__noise"></div><div class="band__pattern"></div>
+      <svg class="band__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.1"/><path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="0.9" opacity=".8"/></svg>
+      <div class="wrap band__inner rv">
+        <div class="band__no">03</div>
+        <div class="band__body">
+          <span class="band__tag">Jiu-Jitsu &amp; Disciplina</span>
+          <h3>Centro Esportivo</h3>
+          <p class="band__desc">Esporte e disciplina, incluindo Jiu-Jitsu — corpo, caráter e pertencimento.</p>
+        </div>
+        <div class="band__visual">
+          <div class="band__ph">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.2" opacity=".75"/></svg>
+            <span class="band__plabel">Imagem a confirmar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== UNIDADE 4 · RECREATIVO (teal-claro) ====================== -->
+    <section class="band recreativo" aria-label="Centro Recreativo">
+      <div class="band__noise"></div><div class="band__pattern"></div>
+      <svg class="band__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21c5-4 8-7.2 8-11a4.2 4.2 0 0 0-8-1.8A4.2 4.2 0 0 0 4 10c0 3.8 3 7 8 11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      <div class="wrap band__inner rv">
+        <div class="band__no">04</div>
+        <div class="band__body">
+          <span class="band__tag">Recreação &amp; Cuidado Infantil</span>
+          <h3>Centro Recreativo</h3>
+          <p class="band__desc">Recreação e cuidado infantil em um espaço seguro e alegre.</p>
+        </div>
+        <div class="band__visual">
+          <div class="band__ph">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21c5-4 8-7.2 8-11a4.2 4.2 0 0 0-8-1.8A4.2 4.2 0 0 0 4 10c0 3.8 3 7 8 11z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            <span class="band__plabel">Imagem a confirmar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== UNIDADE 5 · SERVIÇO SOCIAL (cinza) ====================== -->
+    <section class="band social" aria-label="Serviço Social">
+      <div class="band__noise"></div><div class="band__pattern"></div>
+      <svg class="band__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="1.2"/><circle cx="16" cy="9.5" r="2.4" stroke="currentColor" stroke-width="1.2"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 19c0-2.2 1.6-3.8 3.8-3.8S22 16.8 22 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <div class="wrap band__inner rv">
+        <div class="band__no">05</div>
+        <div class="band__body">
+          <span class="band__tag">Acolhimento &amp; Apoio TEA / TDAH</span>
+          <h3>Serviço Social</h3>
+          <p class="band__desc">Acolhimento, entrevistas e suporte às famílias, com apoio a TEA e TDAH.</p>
+        </div>
+        <div class="band__visual">
+          <div class="band__ph">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="9.5" r="2.4" stroke="currentColor" stroke-width="1.6"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 19c0-2.2 1.6-3.8 3.8-3.8S22 16.8 22 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span class="band__plabel">Imagem a confirmar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== QUEM SOMOS ====================== -->
+    <section class="about" id="quem-somos">
+      <div class="wrap">
+        <div class="about__grid">
+          <div>
+            <span class="kicker rv">Quem somos</span>
+            <h2 class="rv d1">Nascemos para servir a nossa comunidade.</h2>
+            <p class="about__origem rv d2">Nascemos de uma experiência espiritual e do desejo de compreender e suprir as necessidades da nossa comunidade — capacitar, atender e cuidar, com atenção especial às crianças.</p>
+          </div>
+
+          <div class="mv-list">
+            <div class="mv rv d1">
+              <span class="lbl">Missão</span>
+              <p>Mudar realidades através de abrigo, amor, saúde, educação e capacitação profissional.</p>
+            </div>
+            <div class="mv rv d2">
+              <span class="lbl">Visão</span>
+              <p>Ser referência em todas as esferas de atendimento ao próximo.</p>
+            </div>
+            <div class="mv rv d3">
+              <span class="lbl">Valores</span>
+              <p>Familiares e direcionados pelos princípios da palavra de Deus.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERSÍCULO — lugar de honra -->
+        <figure class="verse rv">
+          <div class="verse__glow" aria-hidden="true"></div>
+          <div class="verse__pattern" aria-hidden="true"></div>
+          <span class="mark" aria-hidden="true">&ldquo;</span>
+          <span class="kicker">Palavra que nos guia</span>
+          <blockquote>O generoso prosperará; quem dá alívio aos outros, alívio receberá.</blockquote>
+          <cite>— Provérbios 11:25</cite>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ====================== IMPACTO ====================== -->
+    <section class="impact" id="impacto">
+      <div class="wrap">
+        <span class="kicker rv">Nosso impacto</span>
+        <h2 class="rv d1">Transformação em andamento.</h2>
+        <p class="lead rv d2">Um movimento que cresce a cada família acolhida e cada criança cuidada.</p>
+
+        <div class="stats">
+          <div class="stat rv">
+            <div class="num">5</div>
+            <div class="lab">unidades de atendimento</div>
+          </div>
+          <div class="stat rv d1">
+            <div class="num">+500<sup>*</sup></div>
+            <div class="lab">famílias acolhidas</div>
+            <span class="conf">a confirmar</span>
+          </div>
+          <div class="stat rv d2">
+            <div class="num">+8<sup>*</sup></div>
+            <div class="lab">anos de história</div>
+            <span class="conf">a confirmar</span>
+          </div>
+          <div class="stat rv d3">
+            <div class="num">centenas<sup>*</sup></div>
+            <div class="lab">de crianças atendidas</div>
+            <span class="conf">a confirmar</span>
+          </div>
+        </div>
+        <p class="foot-note rv">* Números a confirmar com a coordenação do Instituto.</p>
+      </div>
+    </section>
+
+    <!-- ====================== PARCERIAS — SEM doação ====================== -->
+    <section class="partner" id="parcerias">
+      <div class="partner__pattern" aria-hidden="true"></div>
+      <div class="partner__glow" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="partner__grid">
+          <div>
+            <span class="kicker rv">Parcerias</span>
+            <h2 class="rv d1">Construído com quem acredita.</h2>
+            <p class="rv d2">Empresas e parceiros que querem transformar Duque de Caxias caminham com o Instituto Família Pôncio. Juntos, ampliamos o cuidado a quem mais precisa.</p>
+            <div class="partner__cta rv d3">
+              <a class="btn btn--onlight" href="#contato">Seja um parceiro <span class="arr" aria-hidden="true">↗</span></a>
+              <a class="btn btn--outline-w" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+
+          <div class="partner__card rv d2">
+            <h3>Como caminhamos juntos</h3>
+            <ul class="partner__list">
+              <li>
+                <span class="ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8.5 8a3 3 0 1 1 6 0M16 9.5a2.4 2.4 0 1 1 4 0M4 9.5a2.4 2.4 0 1 1 4 0M3 19c0-2.8 2.4-4.6 5.5-4.6S14 16.2 14 19M14.5 19c0-2 1.5-3.4 3.8-3.4S22 17 22 19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                <span class="tx"><b>Parceria institucional</b><span>Relação de longo prazo entre empresas, empresários e o Instituto.</span></span>
+              </li>
+              <li>
+                <span class="ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21c5-4 8-7.2 8-11a4.2 4.2 0 0 0-8-1.8A4.2 4.2 0 0 0 4 10c0 3.8 3 7 8 11z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+                <span class="tx"><b>Impacto na comunidade</b><span>Mais famílias e crianças alcançadas nas cinco frentes de atendimento.</span></span>
+              </li>
+              <li>
+                <span class="ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="tx"><b>Transparência</b><span>Acompanhamento próximo do trabalho realizado em Duque de Caxias.</span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== CONTATO / RODAPÉ ====================== -->
+    <footer class="foot" id="contato">
+      <div class="wrap">
+        <div class="foot__top">
+          <div class="foot__brand">
+            <img src="/logo/ifp-lockup.png" alt="Instituto Família Pôncio" />
+            <p>Organização filantrópica sem fins lucrativos dedicada a mudar realidades em Duque de Caxias.</p>
+            <span class="loc">◉ Duque de Caxias · Rio de Janeiro</span>
+            <div class="foot__cta">
+              <a class="btn" href="#parcerias">Seja um parceiro <span class="arr" aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+
+          <div>
+            <h4>Contato</h4>
+            <ul>
+              <li class="ph">Telefone / WhatsApp <span class="tba">a confirmar</span></li>
+              <li class="ph">E-mail <span class="tba">a confirmar</span></li>
+              <li class="ph">Endereço <span class="tba">a confirmar</span></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Redes sociais</h4>
+            <ul class="social">
+              <li><a href="https://instagram.com/institutofamiliaponcio" target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg>
+                @institutofamiliaponcio</a></li>
+              <li><a href="https://youtube.com/@institutofamiliaponcio" target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M11 9.5l3.2 2.5L11 14.5v-5z" fill="currentColor"/></svg>
+                @institutofamiliaponcio</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="foot__bottom">
+          <span>© Instituto Família Pôncio — organização filantrópica sem fins lucrativos.</span>
+          <span class="badge">Transformação social · Duque de Caxias / RJ</span>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    /* (1) Dropdown "Acesso ao Sistema" */
+    (function(){
+      var sys = document.getElementById('sys');
+      var btn = document.getElementById('sysBtn');
+      if(!sys || !btn) return;
+      function setOpen(open){
+        sys.setAttribute('data-open', open ? 'true' : 'false');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        setOpen(sys.getAttribute('data-open') !== 'true');
+      });
+      document.addEventListener('click', function(e){ if(!sys.contains(e.target)) setOpen(false); });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') setOpen(false); });
+    })();
+
+    /* (2) Nav: sombra ao rolar */
+    (function(){
+      var nav = document.getElementById('nav');
+      if(!nav) return;
+      var onScroll = function(){ nav.classList.toggle('scrolled', window.scrollY > 12); };
+      onScroll();
+      window.addEventListener('scroll', onScroll, {passive:true});
+    })();
+
+    /* (3) Reveal-on-scroll (respeita prefers-reduced-motion) */
+    (function(){
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var els = document.querySelectorAll('.rv:not(.in)');
+      if(reduce || !('IntersectionObserver' in window)){
+        els.forEach(function(el){ el.classList.add('in'); });
+        return;
+      }
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+        });
+      }, {threshold:.14, rootMargin:'0px 0px -8% 0px'});
+      els.forEach(function(el){ io.observe(el); });
+    })();
+  </script>
+
+</body>
+</html>

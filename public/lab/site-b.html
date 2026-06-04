@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instituto Família Pôncio · Mudar realidades</title>
+<meta name="description" content="Organização filantrópica sem fins lucrativos em Duque de Caxias / RJ. Saúde, capacitação, esporte, recreação e acolhimento social." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+  /* ============================================================
+     INSTITUTO FAMÍLIA PÔNCIO — Direção "Editorial Cromático" (v2)
+     Mais vibrante: campos grandes de cor saturada + gradientes ricos.
+     Brandbook only. Tons intermediários via color-mix/opacidade.
+     ============================================================ */
+  :root {
+    /* Marca */
+    --laranja:        #FF772E;
+    --laranja-escuro: #C24D0F;
+    --marrom:         #752C05;
+    --teal-escuro:    #007571;
+    --teal-claro:     #10C2BB;
+    --cinza:          #4A4A49;
+
+    /* Neutros / superfícies */
+    --branco:    #FFFFFF;
+    --surface-1: #FAFAF9;
+    --surface-2: #F4F4F2;
+    --borda:     #E5E4E1;
+
+    /* Texto */
+    --ink:     #1B1D1D;
+    --ink-mut: #4A4A49;
+
+    /* Tipografia */
+    --sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+    /* Ritmo */
+    --maxw: 1280px;
+    --gut: clamp(20px, 5vw, 68px);
+    --rule: 1px solid var(--borda);
+    --rule-ink: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+
+    /* Gradiente assinatura (brandbook only) */
+    --grad-marca: linear-gradient(135deg, var(--teal-escuro) 0%, var(--teal-claro) 52%, var(--laranja) 100%);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--branco);
+    font-size: 17px;
+    line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--laranja); color: #fff; }
+
+  .wrap { max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gut); }
+
+  /* Grão sutil reutilizável (ruído via SVG data-uri, sem asset externo) */
+  .grain::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.06; mix-blend-mode: overlay;
+  }
+
+  /* Kicker / mono labels ------------------------------------- */
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--teal-escuro);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+  }
+  .kicker::before {
+    content: "";
+    width: 30px; height: 2px;
+    background: currentColor;
+    display: inline-block;
+    border-radius: 2px;
+  }
+  .kicker.on-dark { color: var(--teal-claro); }
+  .kicker.on-color { color: color-mix(in srgb, #fff 92%, transparent); }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: color-mix(in srgb, var(--ink) 42%, transparent);
+  }
+
+  /* Headlines ------------------------------------------------- */
+  h1, h2, h3 { font-family: var(--sans); font-weight: 800; line-height: 1.04; letter-spacing: -0.02em; margin: 0; }
+  .display {
+    font-size: clamp(2.7rem, 6.6vw, 5.6rem);
+    font-weight: 800;
+    letter-spacing: -0.038em;
+    line-height: 0.96;
+  }
+  .h2 { font-size: clamp(2rem, 3.8vw, 3.15rem); letter-spacing: -0.032em; }
+  .lead { font-size: clamp(1.06rem, 1.6vw, 1.32rem); line-height: 1.5; color: var(--ink-mut); font-weight: 400; }
+
+  /* Buttons --------------------------------------------------- */
+  .btn {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.96rem;
+    letter-spacing: -0.01em;
+    padding: 0.98em 1.7em;
+    border: 1.5px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+    line-height: 1;
+  }
+  .btn-primary {
+    background: var(--laranja); color: #fff;
+    box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--laranja) 80%, transparent);
+  }
+  .btn-primary:hover {
+    background: var(--laranja-escuro);
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px -12px color-mix(in srgb, var(--laranja-escuro) 78%, transparent);
+  }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: color-mix(in srgb, var(--ink) 28%, transparent); }
+  .btn-ghost:hover { border-color: var(--ink); transform: translateY(-2px); }
+  /* botões sobre fundo de cor / escuro */
+  .on-color .btn-primary, .btn-primary.invert { background: #fff; color: var(--marrom); box-shadow: 0 12px 30px -12px rgba(0,0,0,.4); }
+  .on-color .btn-primary:hover, .btn-primary.invert:hover { background: color-mix(in srgb, #fff 90%, var(--laranja)); color: var(--laranja-escuro); }
+  .btn-ghost.on-light-color { color: #fff; border-color: color-mix(in srgb, #fff 55%, transparent); }
+  .btn-ghost.on-light-color:hover { border-color: #fff; background: color-mix(in srgb, #fff 12%, transparent); }
+  .btn-arrow::after { content: "→"; font-family: var(--mono); font-weight: 400; }
+
+  /* ============================================================
+     NAV
+     ============================================================ */
+  .nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 100;
+    background: color-mix(in srgb, var(--branco) 84%, transparent);
+    backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: var(--rule);
+  }
+  /* fio cromático no topo da nav */
+  .nav::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: var(--grad-marca);
+  }
+  .nav-inner {
+    max-width: var(--maxw); margin-inline: auto;
+    padding: 14px var(--gut);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand img { height: 40px; width: auto; }
+  .brand-txt { display: flex; flex-direction: column; line-height: 1.05; }
+  .brand-txt b { font-weight: 800; font-size: 0.98rem; letter-spacing: -0.02em; }
+  .brand-txt span {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-mut);
+  }
+
+  /* Dropdown Acesso ao Sistema */
+  .access { position: relative; }
+  .access-toggle {
+    font-family: var(--sans); font-weight: 700; font-size: 0.9rem;
+    background: var(--teal-escuro); color: #fff;
+    border: none; border-radius: 3px;
+    padding: 0.74em 1.2em;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 0.55em;
+    transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+    box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--teal-escuro) 80%, transparent);
+  }
+  .access-toggle:hover { background: color-mix(in srgb, var(--teal-escuro) 88%, #000); transform: translateY(-1px); }
+  .access-toggle .chev { font-family: var(--mono); font-size: 0.7rem; transition: transform .2s ease; }
+  .access[data-open="true"] .chev { transform: rotate(180deg); }
+
+  .access-menu {
+    position: absolute; right: 0; top: calc(100% + 12px);
+    width: 280px;
+    background: var(--branco);
+    border: var(--rule);
+    border-radius: 6px;
+    box-shadow: 0 24px 56px -20px color-mix(in srgb, var(--ink) 46%, transparent);
+    padding: 8px;
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    overflow: hidden;
+  }
+  .access-menu::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--grad-marca);
+  }
+  .access[data-open="true"] .access-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+  .access-menu .menu-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-mut);
+    padding: 14px 10px 6px;
+  }
+  .access-menu a {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 10px; border-radius: 4px;
+    font-size: 0.93rem; font-weight: 600;
+    transition: background .14s ease, padding-left .14s ease;
+  }
+  .access-menu a:hover { background: var(--surface-2); padding-left: 14px; }
+  .access-menu a .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 12%, transparent); }
+  .access-menu .sep { height: 1px; background: var(--borda); margin: 6px 4px; }
+  .access-menu a.exec { font-weight: 800; }
+  .access-menu a.exec .dot { background: var(--marrom); }
+
+  /* ============================================================
+     HERO — bloco de cor saturada ao lado da foto
+     ============================================================ */
+  .hero { padding-top: 134px; padding-bottom: clamp(40px, 7vw, 88px); position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -2;
+    background:
+      radial-gradient(80% 70% at 100% 0%, color-mix(in srgb, var(--laranja) 16%, transparent), transparent 60%),
+      radial-gradient(70% 80% at -5% 100%, color-mix(in srgb, var(--teal-claro) 14%, transparent), transparent 58%),
+      var(--surface-1);
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.32fr 1fr; gap: clamp(28px, 4.5vw, 64px); align-items: stretch; }
+  .hero-copy { align-self: center; padding-block: clamp(8px, 2vw, 28px); }
+  .hero .display { margin-top: 26px; max-width: 15ch; }
+  .hero .display .hl { color: var(--laranja); }
+  .hero .lead { margin-top: 28px; max-width: 46ch; }
+  .hero-cta { margin-top: 38px; display: flex; flex-wrap: wrap; gap: 14px; }
+
+  /* coluna direita: foto + bloco de cor saturada empilhados */
+  .hero-stack { display: grid; grid-template-rows: 1.25fr 0.75fr; gap: 16px; min-height: 480px; }
+  .hero-photo {
+    position: relative; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 30px 60px -28px color-mix(in srgb, var(--marrom) 60%, transparent);
+  }
+  .hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-photo .veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--teal-escuro) 30%, transparent) 0%, transparent 42%, color-mix(in srgb, var(--marrom) 62%, transparent) 100%);
+    mix-blend-mode: multiply;
+  }
+  .hero-photo .cap {
+    position: absolute; left: 16px; bottom: 14px; z-index: 2;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    color: #fff; text-transform: uppercase;
+    text-shadow: 0 1px 8px rgba(0,0,0,.55);
+  }
+  /* bloco cromático "convite" */
+  .hero-block {
+    position: relative; overflow: hidden;
+    border-radius: 8px; padding: 22px 24px;
+    background: var(--grad-marca);
+    color: #fff;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 24px 50px -24px color-mix(in srgb, var(--teal-escuro) 70%, transparent);
+  }
+  .hero-block .hb-k {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: color-mix(in srgb, #fff 88%, transparent); position: relative; z-index: 1;
+  }
+  .hero-block .hb-stat {
+    position: relative; z-index: 1;
+    font-family: var(--mono); font-weight: 500;
+    font-size: clamp(2.2rem, 4.4vw, 3rem); line-height: 0.95; letter-spacing: -0.04em;
+    margin-top: 4px;
+  }
+  .hero-block .hb-sub {
+    position: relative; z-index: 1;
+    font-size: 0.96rem; font-weight: 600; line-height: 1.35;
+    color: color-mix(in srgb, #fff 94%, transparent);
+    max-width: 22ch;
+  }
+
+  /* ============================================================
+     SECTION SCAFFOLD
+     ============================================================ */
+  .section { padding-block: clamp(58px, 8vw, 110px); position: relative; }
+  .section-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 24px; padding-bottom: 26px; margin-bottom: 40px;
+    border-bottom: var(--rule-ink);
+  }
+  .section-head .l { max-width: 44ch; }
+  .section-head .h2 { margin-top: 14px; }
+  .section-head .r { text-align: right; flex: none; }
+
+  /* ============================================================
+     UNIDADES — cada uma com seu campo de cor
+     ============================================================ */
+  #unidades { background: var(--surface-2); border-top: var(--rule); border-bottom: var(--rule); }
+  .units {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  .unit {
+    position: relative; overflow: hidden;
+    border-radius: 8px;
+    padding: 26px clamp(22px, 2.4vw, 30px) 26px;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    display: flex; flex-direction: column; gap: 14px;
+    min-height: 252px;
+    transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  }
+  /* faixa de cor saturada no topo de cada card */
+  .unit::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 7px;
+    background: var(--accent);
+  }
+  /* halo de cor que cresce no hover */
+  .unit::after {
+    content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%);
+    opacity: 0; transition: opacity .25s ease, transform .25s ease; transform: scale(.6);
+  }
+  .unit:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--borda));
+    box-shadow: 0 22px 44px -22px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  .unit:hover::after { opacity: 1; transform: scale(1); }
+
+  /* unidade 5 (Serviço Social) ocupa linha inteira, layout horizontal */
+  .unit.span-2 { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 30px; min-height: auto; }
+  .unit.span-2 .u-body { flex: 1; }
+
+  .u-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; position: relative; z-index: 1; }
+  .u-glyph {
+    width: 56px; height: 56px; flex: none;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 600; font-size: 1.5rem;
+    color: #fff;
+    background: linear-gradient(150deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 62%, #000) 100%);
+    box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+  }
+  .u-glyph.glyph-photo { padding: 0; overflow: hidden; }
+  .u-glyph.glyph-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .u-no {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; font-weight: 500;
+    color: color-mix(in srgb, var(--accent) 80%, var(--ink));
+  }
+  .unit h3 { font-size: 1.36rem; letter-spacing: -0.025em; position: relative; z-index: 1; }
+  .unit p { margin: 0; color: var(--ink-mut); font-size: 0.98rem; line-height: 1.5; position: relative; z-index: 1; }
+  .u-tag {
+    margin-top: auto; position: relative; z-index: 1;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #fff; font-weight: 600;
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 0.5em;
+    padding: 6px 11px; border-radius: 100px;
+    background: var(--accent);
+  }
+
+  /* ============================================================
+     QUEM SOMOS + VERSÍCULO (bloco marrom)
+     ============================================================ */
+  .about-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(34px, 6vw, 84px); align-items: stretch; }
+  .mvv { display: grid; gap: 0; align-content: start; }
+  .mvv .item { padding: 22px 0; border-top: var(--rule-ink); }
+  .mvv .item:first-child { border-top: none; padding-top: 0; }
+  .mvv .item .lbl {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 0.6em;
+  }
+  .mvv .item .lbl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+  .mvv .item.m .lbl { color: var(--teal-escuro); } .mvv .item.m .lbl::before { background: var(--teal-escuro); }
+  .mvv .item.v .lbl { color: var(--laranja); }     .mvv .item.v .lbl::before { background: var(--laranja); }
+  .mvv .item.va .lbl { color: var(--laranja-escuro); } .mvv .item.va .lbl::before { background: var(--laranja-escuro); }
+  .mvv .item.origin .lbl { color: var(--cinza); }  .mvv .item.origin .lbl::before { background: var(--cinza); }
+  .mvv .item p { margin: 9px 0 0; font-size: 1.14rem; line-height: 1.45; font-weight: 600; color: var(--ink); }
+  .mvv .item.origin p { font-weight: 400; color: var(--ink-mut); font-size: 1.04rem; }
+
+  /* versículo em bloco marrom — lugar de honra */
+  .verse {
+    background: linear-gradient(155deg, var(--marrom) 0%, color-mix(in srgb, var(--marrom) 78%, #000) 100%);
+    color: #fff;
+    border-radius: 10px;
+    padding: clamp(36px, 4.2vw, 56px);
+    position: relative;
+    overflow: hidden;
+    align-self: stretch;
+    display: flex; flex-direction: column; justify-content: center;
+    box-shadow: 0 30px 60px -28px color-mix(in srgb, var(--marrom) 80%, transparent);
+  }
+  .verse::before {
+    content: "\201C";
+    position: absolute; top: -0.12em; left: 0.04em; z-index: 1;
+    font-family: var(--sans); font-weight: 800;
+    font-size: 15rem; line-height: 1;
+    color: color-mix(in srgb, var(--laranja) 30%, transparent);
+  }
+  /* brilho cromático canto inferior */
+  .verse::after {
+    content: ""; position: absolute; right: -60px; bottom: -60px; width: 240px; height: 240px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--laranja) 42%, transparent), transparent 68%);
+    z-index: 0;
+  }
+  .verse .vk {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--laranja);
+    position: relative; z-index: 2;
+    display: inline-flex; align-items: center; gap: 0.6em;
+  }
+  .verse .vk::before { content: ""; width: 24px; height: 2px; background: var(--laranja); border-radius: 2px; }
+  .verse blockquote {
+    margin: 20px 0 0; position: relative; z-index: 2;
+    font-family: var(--sans); font-weight: 800;
+    font-size: clamp(1.6rem, 2.8vw, 2.3rem); line-height: 1.16; letter-spacing: -0.025em;
+  }
+  .verse cite {
+    display: block; margin-top: 24px; position: relative; z-index: 2;
+    font-style: normal; font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.04em;
+    color: color-mix(in srgb, #fff 82%, transparent);
+  }
+
+  /* ============================================================
+     IMPACTO — fundo escuro, números gigantes mono, asteriscos laranja
+     ============================================================ */
+  #impacto { background: var(--ink); color: #fff; position: relative; overflow: hidden; }
+  #impacto::before {
+    content: ""; position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(60% 80% at 85% 0%, color-mix(in srgb, var(--teal-escuro) 38%, transparent), transparent 60%),
+      radial-gradient(55% 70% at 10% 100%, color-mix(in srgb, var(--laranja) 22%, transparent), transparent 60%);
+  }
+  #impacto .wrap { position: relative; z-index: 1; }
+  #impacto .section-head { border-color: color-mix(in srgb, #fff 20%, transparent); }
+  #impacto .section-num { color: color-mix(in srgb, #fff 50%, transparent); }
+  #impacto .lead { color: color-mix(in srgb, #fff 72%, transparent); }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid color-mix(in srgb, #fff 16%, transparent);
+  }
+  .stat {
+    padding: 38px 28px 34px 0;
+    border-right: 1px solid color-mix(in srgb, #fff 16%, transparent);
+  }
+  .stat:last-child { border-right: none; }
+  .stat .n {
+    font-family: var(--mono); font-weight: 500;
+    font-size: clamp(3rem, 5.6vw, 4.8rem);
+    line-height: 0.9; letter-spacing: -0.045em;
+    color: #fff;
+  }
+  .stat .n .ast { color: var(--laranja); font-size: 0.5em; vertical-align: super; }
+  .stat .lbl {
+    margin-top: 18px;
+    font-size: 1rem; line-height: 1.35; font-weight: 500;
+    color: color-mix(in srgb, #fff 80%, transparent);
+    max-width: 18ch;
+  }
+  .stat.confirm .n { color: color-mix(in srgb, #fff 82%, transparent); }
+  .impact-note {
+    margin-top: 30px; padding-top: 22px;
+    border-top: 1px solid color-mix(in srgb, #fff 16%, transparent);
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    color: color-mix(in srgb, #fff 58%, transparent);
+    display: flex; align-items: center; gap: 0.6em;
+  }
+  .impact-note .ast { color: var(--laranja); }
+
+  /* ============================================================
+     PARCERIAS — institucional, SEM doação. Bloco cromático cheio.
+     ============================================================ */
+  #parcerias { position: relative; overflow: hidden; color: #fff; }
+  #parcerias::before {
+    content: ""; position: absolute; inset: 0; z-index: 0;
+    background: linear-gradient(120deg, var(--teal-escuro) 0%, color-mix(in srgb, var(--teal-escuro) 60%, var(--teal-claro)) 60%, var(--teal-claro) 100%);
+  }
+  #parcerias .wrap { position: relative; z-index: 1; }
+  .partner-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: clamp(34px, 6vw, 80px); align-items: center; }
+  .partner-copy .kicker { color: color-mix(in srgb, #fff 92%, transparent); }
+  .partner-copy .kicker::before { background: var(--laranja); }
+  .partner-copy h2 { color: #fff; font-size: clamp(2.2rem, 4.6vw, 3.6rem); letter-spacing: -0.035em; line-height: 1; max-width: 16ch; margin-top: 18px; }
+  .partner-copy p { color: color-mix(in srgb, #fff 90%, transparent); font-size: clamp(1.06rem, 1.6vw, 1.28rem); line-height: 1.5; margin-top: 22px; max-width: 44ch; }
+  .partner-copy .partner-cta { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 14px; }
+  /* painel "como caminhamos juntos" */
+  .partner-panel {
+    background: color-mix(in srgb, #fff 12%, transparent);
+    border: 1px solid color-mix(in srgb, #fff 28%, transparent);
+    border-radius: 12px; padding: 8px;
+    backdrop-filter: blur(6px);
+  }
+  .partner-panel .pp-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 18px;
+    border-radius: 8px;
+    transition: background .16s ease;
+  }
+  .partner-panel .pp-row + .pp-row { border-top: 1px solid color-mix(in srgb, #fff 18%, transparent); }
+  .partner-panel .pp-row:hover { background: color-mix(in srgb, #fff 10%, transparent); }
+  .partner-panel .pp-no {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
+    color: var(--laranja); flex: none; width: 30px;
+  }
+  .partner-panel .pp-t { font-weight: 700; font-size: 1.04rem; color: #fff; }
+  .partner-panel .pp-s { font-size: 0.9rem; color: color-mix(in srgb, #fff 80%, transparent); margin-top: 2px; line-height: 1.4; }
+
+  /* ============================================================
+     CONTATO / RODAPÉ
+     ============================================================ */
+  .contact { background: var(--surface-1); border-top: var(--rule); }
+  .contact-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(36px, 6vw, 80px); align-items: start; }
+  .contact .display-sm { font-size: clamp(2.1rem, 4vw, 3.3rem); font-weight: 800; letter-spacing: -0.032em; line-height: 1; max-width: 16ch; }
+  .contact .display-sm .hl { color: var(--teal-escuro); }
+  .contact .lead { margin-top: 20px; max-width: 40ch; }
+  .contact-cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+  .info-table { border-top: var(--rule-ink); }
+  .info-table .row {
+    display: grid; grid-template-columns: 130px 1fr;
+    gap: 16px; padding: 16px 0; border-bottom: var(--rule);
+    align-items: baseline;
+  }
+  .info-table .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mut); }
+  .info-table .v { font-weight: 600; font-size: 1rem; }
+  .info-table .v.tbc { font-weight: 400; color: color-mix(in srgb, var(--ink) 52%, transparent); font-family: var(--mono); font-size: 0.85rem; }
+  .info-table .v a { color: var(--teal-escuro); font-weight: 700; }
+  .info-table .v a:hover { text-decoration: underline; }
+
+  .footer { background: var(--ink); color: #fff; padding-block: 44px; position: relative; }
+  .footer::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--grad-marca); }
+  .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .footer .fbrand { display: flex; align-items: center; gap: 14px; }
+  .footer .fbrand img { height: 42px; filter: brightness(0) invert(1); opacity: 0.95; }
+  .footer .fbrand span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: color-mix(in srgb, #fff 62%, transparent); max-width: 34ch; line-height: 1.5; }
+  .footer .social { display: flex; gap: 18px; font-family: var(--mono); font-size: 0.82rem; letter-spacing: 0.04em; }
+  .footer .social a { color: color-mix(in srgb, #fff 84%, transparent); display: inline-flex; gap: 0.5em; transition: color .14s ease; }
+  .footer .social a:hover { color: var(--laranja); }
+
+  /* ============================================================
+     ENTRADAS SUAVES (atrás de prefers-reduced-motion)
+     ============================================================ */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr; align-items: start; }
+    .hero-stack { min-height: 0; grid-template-rows: auto auto; max-width: 540px; }
+    .hero-photo { aspect-ratio: 4/3; }
+    .about-grid { grid-template-columns: 1fr; }
+    .partner-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat { padding-right: 24px; }
+    .stat:nth-child(2n) { border-right: none; }
+    .stat:nth-child(-n+2) { border-bottom: 1px solid color-mix(in srgb, #fff 16%, transparent); }
+  }
+  @media (max-width: 680px) {
+    body { font-size: 16px; }
+    .nav-inner { padding-block: 11px; }
+    .brand img { height: 34px; }
+    .brand-txt span { display: none; }
+    .access-toggle { font-size: 0.82rem; padding: 0.62em 0.95em; }
+    .hero { padding-top: 112px; }
+    .units { grid-template-columns: 1fr; }
+    .unit.span-2 { flex-direction: column; align-items: flex-start; }
+    .section-head { flex-direction: column; align-items: flex-start; }
+    .section-head .r { text-align: left; }
+    .info-table .row { grid-template-columns: 1fr; gap: 4px; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 420px) {
+    .stats { grid-template-columns: 1fr; }
+    .stat { border-right: none; border-bottom: 1px solid color-mix(in srgb, #fff 16%, transparent); padding-block: 28px; }
+    .stat:last-child { border-bottom: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================== NAV ===================== -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#topo" aria-label="Instituto Família Pôncio — início">
+        <img src="/logo/ifp-symbol.png" alt="Instituto Família Pôncio" />
+        <span class="brand-txt">
+          <b>Instituto Família Pôncio</b>
+          <span>Duque de Caxias / RJ</span>
+        </span>
+      </a>
+
+      <div class="access" id="access" data-open="false">
+        <button class="access-toggle" id="accessToggle" aria-haspopup="true" aria-expanded="false" aria-controls="accessMenu">
+          Acesso ao Sistema <span class="chev">▾</span>
+        </button>
+        <nav class="access-menu" id="accessMenu" role="menu" aria-label="Acesso ao sistema das unidades">
+          <div class="menu-label">Portais por unidade</div>
+          <a role="menuitem" href="/medico/login"><span class="dot" style="background:#007571"></span>Centro Médico</a>
+          <a role="menuitem" href="/capacitacao/login"><span class="dot" style="background:#FF772E"></span>Capacitação</a>
+          <a role="menuitem" href="/esportivo/login"><span class="dot" style="background:#C24D0F"></span>Esportivo</a>
+          <a role="menuitem" href="/recreativo/login"><span class="dot" style="background:#10C2BB"></span>Recreativo</a>
+          <a role="menuitem" href="/social/login"><span class="dot" style="background:#4A4A49"></span>Serviço Social</a>
+          <div class="sep"></div>
+          <a role="menuitem" class="exec" href="/poncio/login"><span class="dot"></span>Acesso executivo</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="topo">
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="kicker">Instituto Família Pôncio · Duque de Caxias / RJ</span>
+            <h1 class="display">Mudar realidades com abrigo, saúde, educação e <span class="hl">amor</span>.</h1>
+            <p class="lead">Cuidamos de famílias e crianças de Duque de Caxias em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary btn-arrow" href="#unidades">Conheça nossas unidades</a>
+              <a class="btn btn-ghost" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+
+          <aside class="hero-stack" aria-label="Instituto Família Pôncio em Duque de Caxias">
+            <div class="hero-photo">
+              <img src="/unidades/medico.jpg" alt="Unidade do Instituto Família Pôncio em Duque de Caxias" loading="lazy" />
+              <div class="veil" aria-hidden="true"></div>
+              <span class="cap">Duque de Caxias / RJ</span>
+            </div>
+            <div class="hero-block grain">
+              <span class="hb-k">Cinco frentes integradas</span>
+              <div>
+                <div class="hb-stat">5 unidades</div>
+                <p class="hb-sub">saúde · capacitação · esporte · recreação · acolhimento social</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== UNIDADES ===================== -->
+    <section class="section" id="unidades">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="l">
+            <span class="kicker">Nossas unidades</span>
+            <h2 class="h2">Cinco frentes, um só cuidado.</h2>
+          </div>
+          <div class="r"><span class="section-num">01 — 05</span></div>
+        </div>
+
+        <div class="units">
+
+          <article class="unit reveal" style="--accent:#007571">
+            <div class="u-top">
+              <div class="u-glyph glyph-photo"><img src="/unidades/medico.jpg" alt="" loading="lazy" /></div>
+              <span class="u-no">01</span>
+            </div>
+            <div class="u-body">
+              <h3>Centro Médico</h3>
+              <p>Atendimento em saúde e odontológico para a comunidade, com cuidado próximo.</p>
+            </div>
+            <span class="u-tag">Saúde &amp; Odontologia</span>
+          </article>
+
+          <article class="unit reveal" style="--accent:#FF772E">
+            <div class="u-top">
+              <div class="u-glyph" aria-hidden="true">C</div>
+              <span class="u-no">02</span>
+            </div>
+            <div class="u-body">
+              <h3>Centro de Capacitação</h3>
+              <p>Cursos e capacitação profissional que abrem portas e transformam o futuro.</p>
+            </div>
+            <span class="u-tag">Educação profissional</span>
+          </article>
+
+          <article class="unit reveal" style="--accent:#C24D0F">
+            <div class="u-top">
+              <div class="u-glyph" aria-hidden="true">E</div>
+              <span class="u-no">03</span>
+            </div>
+            <div class="u-body">
+              <h3>Centro Esportivo</h3>
+              <p>Esporte e disciplina, incluindo Jiu-Jitsu — corpo, caráter e pertencimento.</p>
+            </div>
+            <span class="u-tag">Esporte &amp; disciplina</span>
+          </article>
+
+          <article class="unit reveal" style="--accent:#10C2BB">
+            <div class="u-top">
+              <div class="u-glyph" aria-hidden="true">R</div>
+              <span class="u-no">04</span>
+            </div>
+            <div class="u-body">
+              <h3>Centro Recreativo</h3>
+              <p>Recreação e cuidado infantil em um espaço seguro e alegre.</p>
+            </div>
+            <span class="u-tag">Cuidado infantil</span>
+          </article>
+
+          <article class="unit span-2 reveal" style="--accent:#4A4A49">
+            <div class="u-glyph" aria-hidden="true">S</div>
+            <div class="u-body">
+              <div class="u-top" style="margin-bottom:8px"><h3>Serviço Social</h3><span class="u-no">05</span></div>
+              <p>Acolhimento, entrevistas e suporte às famílias, com apoio a TEA e TDAH.</p>
+            </div>
+            <span class="u-tag">Acolhimento · TEA &amp; TDAH</span>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== QUEM SOMOS ===================== -->
+    <section class="section" id="quem-somos">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="l">
+            <span class="kicker">Quem somos</span>
+            <h2 class="h2">Uma instituição que nasceu para servir.</h2>
+          </div>
+          <div class="r"><span class="section-num">Missão · Visão · Valores</span></div>
+        </div>
+
+        <div class="about-grid">
+          <div class="mvv reveal">
+            <div class="item m">
+              <span class="lbl">Missão</span>
+              <p>Mudar realidades através de abrigo, amor, saúde, educação e capacitação profissional.</p>
+            </div>
+            <div class="item v">
+              <span class="lbl">Visão</span>
+              <p>Ser referência em todas as esferas de atendimento ao próximo.</p>
+            </div>
+            <div class="item va">
+              <span class="lbl">Valores</span>
+              <p>Familiares e direcionados pelos princípios da palavra de Deus.</p>
+            </div>
+            <div class="item origin">
+              <span class="lbl">Nossa origem</span>
+              <p>Nascemos de uma experiência espiritual e do desejo de compreender e suprir as necessidades da nossa comunidade — capacitar, atender e cuidar, com atenção especial às crianças.</p>
+            </div>
+          </div>
+
+          <figure class="verse reveal grain">
+            <span class="vk">Palavra que nos guia</span>
+            <blockquote>O generoso prosperará; quem dá alívio aos outros, alívio receberá.</blockquote>
+            <cite>— Provérbios 11:25</cite>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== IMPACTO ===================== -->
+    <section class="section" id="impacto">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="l">
+            <span class="kicker on-dark">Nosso impacto</span>
+            <h2 class="h2">Transparência em números.</h2>
+          </div>
+          <div class="r"><span class="section-num">Dados em consolidação</span></div>
+        </div>
+
+        <div class="stats">
+          <div class="stat reveal">
+            <div class="n">5</div>
+            <div class="lbl">unidades de atendimento</div>
+          </div>
+          <div class="stat confirm reveal">
+            <div class="n">+500<span class="ast">*</span></div>
+            <div class="lbl">famílias acolhidas</div>
+          </div>
+          <div class="stat confirm reveal">
+            <div class="n">+8<span class="ast">*</span></div>
+            <div class="lbl">anos de história</div>
+          </div>
+          <div class="stat confirm reveal">
+            <div class="n">100s<span class="ast">*</span></div>
+            <div class="lbl">centenas de crianças atendidas</div>
+          </div>
+        </div>
+
+        <p class="impact-note"><span class="ast">*</span> Indicadores marcados estão em fase de consolidação — números a confirmar.</p>
+      </div>
+    </section>
+
+    <!-- ===================== PARCERIAS (institucional, SEM doação) ===================== -->
+    <section class="section" id="parcerias">
+      <div class="wrap">
+        <div class="partner-grid">
+          <div class="partner-copy reveal">
+            <span class="kicker">Parcerias</span>
+            <h2>Construído com quem acredita.</h2>
+            <p>Empresas e parceiros que querem transformar Duque de Caxias caminham com o Instituto Família Pôncio. Juntos, ampliamos o cuidado a quem mais precisa.</p>
+            <div class="partner-cta">
+              <a class="btn btn-primary invert btn-arrow" href="#contato">Seja um parceiro</a>
+              <a class="btn btn-ghost on-light-color" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+
+          <div class="partner-panel reveal" aria-label="Como caminhamos juntos">
+            <div class="pp-row">
+              <span class="pp-no">01</span>
+              <div><div class="pp-t">Apoio institucional</div><div class="pp-s">Empresas que sustentam frentes de atendimento na comunidade.</div></div>
+            </div>
+            <div class="pp-row">
+              <span class="pp-no">02</span>
+              <div><div class="pp-t">Projetos conjuntos</div><div class="pp-s">Capacitação, esporte e saúde realizados lado a lado.</div></div>
+            </div>
+            <div class="pp-row">
+              <span class="pp-no">03</span>
+              <div><div class="pp-t">Presença no território</div><div class="pp-s">Transformação real, perto de quem mais precisa em Duque de Caxias.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CONTATO ===================== -->
+    <section class="contact" id="contato">
+      <div class="wrap section">
+        <div class="contact-grid">
+          <div class="reveal">
+            <span class="kicker">Fale conosco</span>
+            <h2 class="display-sm" style="margin-top:16px">Vamos transformar realidades <span class="hl">juntos</span>.</h2>
+            <p class="lead">Parceiros, poder público e voluntários: entre em contato com o Instituto Família Pôncio.</p>
+            <div class="contact-cta">
+              <a class="btn btn-primary btn-arrow" href="#contato">Seja um parceiro</a>
+              <a class="btn btn-ghost" href="#unidades">Conheça as unidades</a>
+            </div>
+          </div>
+
+          <div class="info-table reveal" aria-label="Informações de contato">
+            <div class="row"><span class="k">Local</span><span class="v">Duque de Caxias · Rio de Janeiro</span></div>
+            <div class="row"><span class="k">Telefone</span><span class="v tbc">a confirmar</span></div>
+            <div class="row"><span class="k">WhatsApp</span><span class="v tbc">a confirmar</span></div>
+            <div class="row"><span class="k">E-mail</span><span class="v tbc">a confirmar</span></div>
+            <div class="row"><span class="k">Endereço</span><span class="v tbc">a confirmar</span></div>
+            <div class="row"><span class="k">Redes</span><span class="v"><a href="https://instagram.com/institutofamiliaponcio" target="_blank" rel="noopener">@institutofamiliaponcio</a> · <a href="https://youtube.com/@institutofamiliaponcio" target="_blank" rel="noopener">YouTube</a></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== RODAPÉ ===================== -->
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="fbrand">
+        <img src="/logo/ifp-lockup.png" alt="Instituto Família Pôncio" />
+        <span>© Instituto Família Pôncio — organização filantrópica sem fins lucrativos.</span>
+      </div>
+      <div class="social">
+        <a href="https://instagram.com/institutofamiliaponcio" target="_blank" rel="noopener">IG · @institutofamiliaponcio</a>
+        <a href="https://youtube.com/@institutofamiliaponcio" target="_blank" rel="noopener">YT · @institutofamiliaponcio</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Dropdown "Acesso ao Sistema" — toggle minimal, sem dependência.
+    (function () {
+      var access = document.getElementById('access');
+      var toggle = document.getElementById('accessToggle');
+      if (!access || !toggle) return;
+
+      function setOpen(open) {
+        access.setAttribute('data-open', open ? 'true' : 'false');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        setOpen(access.getAttribute('data-open') !== 'true');
+      });
+      document.addEventListener('click', function (e) {
+        if (!access.contains(e.target)) setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { setOpen(false); toggle.focus(); }
+      });
+    })();
+
+    // Entradas suaves (respeita prefers-reduced-motion).
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var els = document.querySelectorAll('.reveal');
+      if (reduce || !('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('in'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      els.forEach(function (el, i) {
+        el.style.transitionDelay = (Math.min(i % 5, 4) * 60) + 'ms';
+        io.observe(el);
+      });
+    })();
+  </script>
+
+</body>
+</html>
