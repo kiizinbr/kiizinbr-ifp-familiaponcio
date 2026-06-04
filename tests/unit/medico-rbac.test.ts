@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { Session } from "next-auth";
 import type { RoleName, UnitScope } from "@/lib/rbac-types";
 import {
+  podeAgendarEncaminhamento,
   podeAssinarNota,
   podeAtualizarSaudeCidadao,
   podeConfigurarAgendaProfissional,
   podeEditarNota,
+  podeEncaminhar,
   podeGerenciarEspecialidade,
   podeGerenciarProfissional,
   podeMarcarConsulta,
@@ -176,5 +178,53 @@ describe("podeAtualizarSaudeCidadao", () => {
   });
   it("sem sessão → false", () => {
     expect(podeAtualizarSaudeCidadao(null)).toBe(false);
+  });
+});
+
+// ── F1.B Encaminhamento ──────────────────────────────────────────────
+
+describe("podeEncaminhar (criar/cancelar pedido)", () => {
+  it("profissional pode", () => {
+    expect(podeEncaminhar(sessionWith([{ name: "profissional", unitScope: "medico" }]))).toBe(true);
+  });
+  it("gestor_unidade pode", () => {
+    expect(podeEncaminhar(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]))).toBe(
+      true,
+    );
+  });
+  it("super_admin pode", () => {
+    expect(podeEncaminhar(sessionWith([{ name: "super_admin", unitScope: null }]))).toBe(true);
+  });
+  it("recepcao NÃO cria pedido", () => {
+    expect(podeEncaminhar(sessionWith([{ name: "recepcao", unitScope: "medico" }]))).toBe(false);
+  });
+  it("sem sessão → false", () => {
+    expect(podeEncaminhar(null)).toBe(false);
+  });
+});
+
+describe("podeAgendarEncaminhamento (trabalhar a fila)", () => {
+  it("recepcao (callcenter) pode", () => {
+    expect(podeAgendarEncaminhamento(sessionWith([{ name: "recepcao", unitScope: "medico" }]))).toBe(
+      true,
+    );
+  });
+  it("gestor_unidade pode", () => {
+    expect(
+      podeAgendarEncaminhamento(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }])),
+    ).toBe(true);
+  });
+  it("super_admin pode", () => {
+    expect(podeAgendarEncaminhamento(sessionWith([{ name: "super_admin", unitScope: null }]))).toBe(
+      true,
+    );
+  });
+  it("profissional NÃO agenda", () => {
+    expect(
+      podeAgendarEncaminhamento(sessionWith([{ name: "profissional", unitScope: "medico" }])),
+    ).toBe(false);
+  });
+  it("sem sessão → false", () => {
+    expect(podeAgendarEncaminhamento(null)).toBe(false);
   });
 });

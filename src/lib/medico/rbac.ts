@@ -102,3 +102,17 @@ export function podeAtualizarSaudeCidadao(session: Session | null): boolean {
   if (!session) return false;
   return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
 }
+
+// ── F1.B Encaminhamento ───────────────────────────────────────────────
+
+/** Criar/cancelar pedido de encaminhamento: GP + gestão. NÃO recepção. */
+export function podeEncaminhar(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+}
+
+/** Trabalhar a fila "A agendar" e agendar (callcenter/recepção + gestão). */
+export function podeAgendarEncaminhamento(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "recepcao");
+}
