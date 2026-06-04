@@ -205,9 +205,9 @@ describe("podeEncaminhar (criar/cancelar pedido)", () => {
 
 describe("podeAgendarEncaminhamento (trabalhar a fila)", () => {
   it("recepcao (callcenter) pode", () => {
-    expect(podeAgendarEncaminhamento(sessionWith([{ name: "recepcao", unitScope: "medico" }]))).toBe(
-      true,
-    );
+    expect(
+      podeAgendarEncaminhamento(sessionWith([{ name: "recepcao", unitScope: "medico" }])),
+    ).toBe(true);
   });
   it("gestor_unidade pode", () => {
     expect(

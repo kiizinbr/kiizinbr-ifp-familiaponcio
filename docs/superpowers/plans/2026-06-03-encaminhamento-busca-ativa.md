@@ -27,6 +27,7 @@
 ## File Structure
 
 **Criar:**
+
 - `src/lib/medico/encaminhamento.ts` — núcleo puro + transacional (máquina de estados, erros tipados, criar/cancelar/agendar). Espelha `lib/capacitacao/matricula.ts`.
 - `tests/unit/encaminhamento-puro.test.ts` — máquina de estados pura.
 - `tests/unit/encaminhamento-mock.test.ts` — núcleo transacional (db mock via `vi.hoisted`).
@@ -38,6 +39,7 @@
 - `_verify-encaminhamento.sh` — script de ritual (gitignored).
 
 **Modificar:**
+
 - `prisma/schema.prisma` — enum `StatusEncaminhamento` + model `Encaminhamento` + FK `Consulta.origemEncaminhamentoId` + reversas.
 - `src/lib/audit.ts` — 3 novas `AuditAction`.
 - `src/lib/medico/rbac.ts` — `podeEncaminhar` + `podeAgendarEncaminhamento`.
@@ -54,6 +56,7 @@
 ## Task 0: Script de verify + branch
 
 **Files:**
+
 - Create: `_verify-encaminhamento.sh`
 
 - [ ] **Step 1: Criar o script de ritual** (gitignored por `/_*.sh`)
@@ -83,6 +86,7 @@ Expected: containers `ifp_postgres_dev` + `ifp_minio_dev` up.
 ## Task 1: Schema — model `Encaminhamento` + enum + FK + reversas
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 - [ ] **Step 1: Adicionar o enum** (junto dos outros enums do bloco Médico, após `enum StatusConsulta`)
@@ -136,10 +140,13 @@ model Encaminhamento {
 - [ ] **Step 4: Adicionar as reversas em `Cidadao` e `Especialidade`**
 
 Em `model Cidadao` (junto de `matriculas Matricula[]`):
+
 ```prisma
   encaminhamentos Encaminhamento[]
 ```
+
 Em `model Especialidade` (junto de `consultas Consulta[]`):
+
 ```prisma
   encaminhamentos Encaminhamento[]
 ```
@@ -166,6 +173,7 @@ git commit -m "feat(medico): schema Encaminhamento + FK Consulta.origemEncaminha
 ## Task 2: Audit actions
 
 **Files:**
+
 - Modify: `src/lib/audit.ts:62`
 
 - [ ] **Step 1: Adicionar as 3 actions ao union** (após `| "lista_espera_promovida"`, antes do `;`)
@@ -181,6 +189,7 @@ git commit -m "feat(medico): schema Encaminhamento + FK Consulta.origemEncaminha
 
 Run: `wsl -d Ubuntu -- bash -lc "cd /mnt/c/Users/Administrador/ifp-connect && pnpm typecheck"`
 Expected: PASS.
+
 ```bash
 git add src/lib/audit.ts
 git commit -m "feat(audit): AuditAction de encaminhamento (F1.B)"
@@ -191,6 +200,7 @@ git commit -m "feat(audit): AuditAction de encaminhamento (F1.B)"
 ## Task 3: Testes puros (máquina de estados) — VERMELHOS
 
 **Files:**
+
 - Create: `tests/unit/encaminhamento-puro.test.ts`
 
 - [ ] **Step 1: Escrever o teste falho**
@@ -240,6 +250,7 @@ git commit -m "test(medico): máquina de estados de encaminhamento (vermelho)"
 ## Task 4: Testes transacionais (mock db) — VERMELHOS
 
 **Files:**
+
 - Create: `tests/unit/encaminhamento-mock.test.ts`
 
 - [ ] **Step 1: Escrever o teste falho** (espelha `capacitacao-matricula-mock.test.ts`)
@@ -259,7 +270,9 @@ const { dbMock } = vi.hoisted(() => {
     $transaction: vi.fn(),
   };
   db.$transaction.mockImplementation((arg: unknown) =>
-    typeof arg === "function" ? (arg as (tx: unknown) => unknown)(db) : Promise.all(arg as unknown[]),
+    typeof arg === "function"
+      ? (arg as (tx: unknown) => unknown)(db)
+      : Promise.all(arg as unknown[]),
   );
   return { dbMock: db };
 });
@@ -282,7 +295,9 @@ function reset() {
   }
   dbMock.$transaction.mockReset();
   dbMock.$transaction.mockImplementation((arg: unknown) =>
-    typeof arg === "function" ? (arg as (tx: unknown) => unknown)(dbMock) : Promise.all(arg as unknown[]),
+    typeof arg === "function"
+      ? (arg as (tx: unknown) => unknown)(dbMock)
+      : Promise.all(arg as unknown[]),
   );
 }
 
@@ -298,7 +313,10 @@ describe("criarEncaminhamento", () => {
 
   it("consulta de origem do cidadão → cria aguardando_agendamento", async () => {
     dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ id: "co1", cidadaoId: "c1" });
-    dbMock.encaminhamento.create.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.create.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     await criarEncaminhamento(base);
     expect(dbMock.encaminhamento.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -318,7 +336,10 @@ describe("aplicarTransicaoEncaminhamento", () => {
   beforeEach(reset);
 
   it("transição válida → update com o novo status", async () => {
-    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     dbMock.encaminhamento.update.mockResolvedValue({ id: "enc1", status: "agendado" });
     await aplicarTransicaoEncaminhamento(dbMock as never, "enc1", "agendado");
     expect(dbMock.encaminhamento.update).toHaveBeenCalledWith(
@@ -335,7 +356,10 @@ describe("aplicarTransicaoEncaminhamento", () => {
   });
 
   it("cancelar passa canceladoMotivo no update", async () => {
-    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     dbMock.encaminhamento.update.mockResolvedValue({ id: "enc1", status: "cancelado" });
     await aplicarTransicaoEncaminhamento(dbMock as never, "enc1", "cancelado", "duplicado");
     expect(dbMock.encaminhamento.update).toHaveBeenCalledWith(
@@ -348,7 +372,10 @@ describe("agendarEncaminhamento (tx-aware)", () => {
   beforeEach(reset);
 
   it("pendente → flipa para agendado", async () => {
-    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     dbMock.encaminhamento.update.mockResolvedValue({ id: "enc1", status: "agendado" });
     await agendarEncaminhamento(dbMock as never, "enc1");
     expect(dbMock.encaminhamento.update).toHaveBeenCalledWith(
@@ -367,7 +394,10 @@ describe("agendarEncaminhamento (tx-aware)", () => {
 describe("cancelarEncaminhamento", () => {
   beforeEach(reset);
   it("abre $transaction 1x e flipa para cancelado", async () => {
-    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     dbMock.encaminhamento.update.mockResolvedValue({ id: "enc1", status: "cancelado" });
     await cancelarEncaminhamento("enc1", "paciente desistiu");
     expect(dbMock.$transaction).toHaveBeenCalledTimes(1);
@@ -392,11 +422,12 @@ git commit -m "test(medico): núcleo transacional de encaminhamento (vermelho)"
 
 ---
 
-## Task 5: Núcleo `encaminhamento.ts` — VERDE  `[ralph-loop]`
+## Task 5: Núcleo `encaminhamento.ts` — VERDE `[ralph-loop]`
 
 > **Execução recomendada:** ralph-loop com `--completion-promise ENCAMINHAMENTO-CORE-GREEN`, allowlist = só `src/lib/medico/encaminhamento.ts`. Verify por `wsl -d Ubuntu -- bash _verify-encaminhamento.sh` (só conta verde com `VERIFY=PASS`). NÃO editar os testes pra passar (é TDD).
 
 **Files:**
+
 - Create: `src/lib/medico/encaminhamento.ts`
 
 - [ ] **Step 1: Implementar o núcleo** (espelha `lib/capacitacao/matricula.ts`)
@@ -545,6 +576,7 @@ git commit -m "feat(medico): núcleo lógico de encaminhamento (máquina de esta
 ## Task 6: RBAC — `podeEncaminhar` + `podeAgendarEncaminhamento`
 
 **Files:**
+
 - Modify: `src/lib/medico/rbac.ts`
 - Modify: `tests/unit/medico-rbac.test.ts`
 
@@ -554,7 +586,9 @@ git commit -m "feat(medico): núcleo lógico de encaminhamento (máquina de esta
 import { podeEncaminhar, podeAgendarEncaminhamento } from "@/lib/medico/rbac";
 
 function sess(...roles: string[]) {
-  return { user: { id: "u1", roles: roles.map((name) => ({ name, unitScope: "medico" })) } } as never;
+  return {
+    user: { id: "u1", roles: roles.map((name) => ({ name, unitScope: "medico" })) },
+  } as never;
 }
 
 describe("podeEncaminhar (criar/cancelar pedido)", () => {
@@ -568,7 +602,8 @@ describe("podeEncaminhar (criar/cancelar pedido)", () => {
 describe("podeAgendarEncaminhamento (trabalhar a fila)", () => {
   it("recepcao (callcenter) pode", () =>
     expect(podeAgendarEncaminhamento(sess("recepcao"))).toBe(true));
-  it("gestor_unidade pode", () => expect(podeAgendarEncaminhamento(sess("gestor_unidade"))).toBe(true));
+  it("gestor_unidade pode", () =>
+    expect(podeAgendarEncaminhamento(sess("gestor_unidade"))).toBe(true));
   it("super_admin pode", () => expect(podeAgendarEncaminhamento(sess("super_admin"))).toBe(true));
   it("profissional NÃO agenda", () =>
     expect(podeAgendarEncaminhamento(sess("profissional"))).toBe(false));
@@ -605,6 +640,7 @@ export function podeAgendarEncaminhamento(session: Session | null): boolean {
 
 Run: `wsl -d Ubuntu -- bash -lc "cd /mnt/c/Users/Administrador/ifp-connect && pnpm test medico-rbac"`
 Expected: PASS.
+
 ```bash
 git add src/lib/medico/rbac.ts tests/unit/medico-rbac.test.ts
 git commit -m "feat(medico): RBAC podeEncaminhar + podeAgendarEncaminhamento (+ testes)"
@@ -615,38 +651,44 @@ git commit -m "feat(medico): RBAC podeEncaminhar + podeAgendarEncaminhamento (+ 
 ## Task 7: Enganchar o flip na transação de reserva
 
 **Files:**
+
 - Modify: `src/lib/medico/agenda.ts:96-133`
 - Modify: `tests/unit/encaminhamento-mock.test.ts` (1 caso novo)
 
 - [ ] **Step 1: Estender `ReservarSlotInput` + chamar `agendarEncaminhamento` na tx** (em `src/lib/medico/agenda.ts`)
 
 Adicionar o import no topo:
+
 ```ts
 import { agendarEncaminhamento } from "@/lib/medico/encaminhamento";
 ```
+
 Adicionar o campo na interface `ReservarSlotInput`:
+
 ```ts
   origemEncaminhamentoId?: string;
 ```
+
 Dentro de `reservarSlot`, persistir o FK no create e flipar o encaminhamento DENTRO da mesma `tx`:
+
 ```ts
-    const consulta = await tx.consulta.create({
-      data: {
-        slotId: input.slotId,
-        cidadaoId: input.cidadaoId,
-        profissionalId: input.profissionalId,
-        especialidadeId: input.especialidadeId,
-        createdBy: input.createdBy,
-        observacoesAgendamento: input.observacoesAgendamento,
-        origemTriagemId: input.origemTriagemId,
-        origemEncaminhamentoId: input.origemEncaminhamentoId,
-        status: "agendada",
-      },
-    });
-    if (input.origemEncaminhamentoId) {
-      await agendarEncaminhamento(tx, input.origemEncaminhamentoId);
-    }
-    return consulta;
+const consulta = await tx.consulta.create({
+  data: {
+    slotId: input.slotId,
+    cidadaoId: input.cidadaoId,
+    profissionalId: input.profissionalId,
+    especialidadeId: input.especialidadeId,
+    createdBy: input.createdBy,
+    observacoesAgendamento: input.observacoesAgendamento,
+    origemTriagemId: input.origemTriagemId,
+    origemEncaminhamentoId: input.origemEncaminhamentoId,
+    status: "agendada",
+  },
+});
+if (input.origemEncaminhamentoId) {
+  await agendarEncaminhamento(tx, input.origemEncaminhamentoId);
+}
+return consulta;
 ```
 
 > Sem aninhar `$transaction`: `agendarEncaminhamento` recebe a `tx` (padrão `aplicarTransicaoConsulta`). Se o encaminhamento não estiver mais pendente (corrida do duplo-Agendar), ele lança `EncaminhamentoNaoPendenteError` e a transação inteira reverte — o slot volta a `disponivel`. **Sem risco de circular import:** `encaminhamento.ts` não importa `agenda.ts`.
@@ -654,20 +696,30 @@ Dentro de `reservarSlot`, persistir o FK no create e flipar o encaminhamento DEN
 - [ ] **Step 2: Adicionar 1 caso ao `encaminhamento-mock.test.ts`** (reservarSlot flipa o encaminhamento)
 
 Estender o `dbMock` de `vi.hoisted` com `slot: { updateMany: f() }` e importar `reservarSlot`. Caso:
+
 ```ts
 describe("reservarSlot com origemEncaminhamentoId", () => {
   beforeEach(reset);
   it("cria consulta com o FK e flipa o encaminhamento para agendado", async () => {
     dbMock.slot.updateMany.mockResolvedValue({ count: 1 });
     dbMock.consulta.create.mockResolvedValue({ id: "cons1" });
-    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     dbMock.encaminhamento.update.mockResolvedValue({ id: "enc1", status: "agendado" });
     await reservarSlot({
-      slotId: "s1", cidadaoId: "c1", profissionalId: "p1", especialidadeId: "e1",
-      createdBy: "u1", origemEncaminhamentoId: "enc1",
+      slotId: "s1",
+      cidadaoId: "c1",
+      profissionalId: "p1",
+      especialidadeId: "e1",
+      createdBy: "u1",
+      origemEncaminhamentoId: "enc1",
     });
     expect(dbMock.consulta.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ origemEncaminhamentoId: "enc1" }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ origemEncaminhamentoId: "enc1" }),
+      }),
     );
     expect(dbMock.encaminhamento.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "agendado" }) }),
@@ -675,12 +727,14 @@ describe("reservarSlot com origemEncaminhamentoId", () => {
   });
 });
 ```
+
 > Ajuste o `reset()` pra incluir `dbMock.slot`. `reservarSlot` importado de `@/lib/medico/agenda`.
 
 - [ ] **Step 3: Rodar verify + commit**
 
 Run: `wsl -d Ubuntu -- bash _verify-encaminhamento.sh`
 Expected: `VERIFY=PASS`.
+
 ```bash
 git add src/lib/medico/agenda.ts tests/unit/encaminhamento-mock.test.ts
 git commit -m "feat(medico): reservarSlot liga consulta ao encaminhamento e flipa status na mesma tx"
@@ -691,6 +745,7 @@ git commit -m "feat(medico): reservarSlot liga consulta ao encaminhamento e flip
 ## Task 8: Server actions (criar/cancelar) + wizard repassa encaminhamentoId
 
 **Files:**
+
 - Create: `src/app/medico/consultas/[id]/encaminhamento-actions.ts`
 - Create: `src/app/medico/encaminhamentos/actions.ts`
 - Modify: `src/app/medico/consultas/nova/actions.ts`
@@ -771,33 +826,39 @@ export async function cancelarEncaminhamentoAction(formData: FormData) {
 - [ ] **Step 3: Estender `reservarConsultaAction`** (em `src/app/medico/consultas/nova/actions.ts`)
 
 Ler o param + repassar + logar o agendamento do encaminhamento:
+
 ```ts
-  const encaminhamentoId = String(formData.get("encaminhamentoId") ?? "").trim() || undefined;
+const encaminhamentoId = String(formData.get("encaminhamentoId") ?? "").trim() || undefined;
 ```
+
 No `reservarSlot({...})` adicionar `origemEncaminhamentoId: encaminhamentoId,`. Após o `logEvent` de `consulta_agendada`:
+
 ```ts
-    if (encaminhamentoId) {
-      await logEvent({
-        userId: session!.user.id,
-        action: "encaminhamento_agendado",
-        entityType: "encaminhamento",
-        entityId: encaminhamentoId,
-        meta: { consultaId: consulta.id },
-      });
-    }
+if (encaminhamentoId) {
+  await logEvent({
+    userId: session!.user.id,
+    action: "encaminhamento_agendado",
+    entityType: "encaminhamento",
+    entityId: encaminhamentoId,
+    meta: { consultaId: consulta.id },
+  });
+}
 ```
+
 No `catch` do `SlotIndisponivelError`, preservar o param no redirect de volta:
+
 ```ts
-      const enc = encaminhamentoId ? `&encaminhamentoId=${encaminhamentoId}` : "";
-      redirect(
-        `/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}${enc}&erro=slot_indisponivel` as Route,
-      );
+const enc = encaminhamentoId ? `&encaminhamentoId=${encaminhamentoId}` : "";
+redirect(
+  `/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}${enc}&erro=slot_indisponivel` as Route,
+);
 ```
 
 - [ ] **Step 4: Typecheck + commit**
 
 Run: `wsl -d Ubuntu -- bash -lc "cd /mnt/c/Users/Administrador/ifp-connect && pnpm typecheck && pnpm lint"`
 Expected: PASS.
+
 ```bash
 git add "src/app/medico/consultas/[id]/encaminhamento-actions.ts" src/app/medico/encaminhamentos/actions.ts src/app/medico/consultas/nova/actions.ts
 git commit -m "feat(medico): server actions de encaminhamento (criar/cancelar) + booking repassa encaminhamentoId"
@@ -805,9 +866,10 @@ git commit -m "feat(medico): server actions de encaminhamento (criar/cancelar) +
 
 ---
 
-## Task 9: GP cria o pedido — coluna 3 do prontuário  `[frontend-design]`
+## Task 9: GP cria o pedido — coluna 3 do prontuário `[frontend-design]`
 
 **Files:**
+
 - Create: `src/app/medico/consultas/[id]/_encaminhamento-panel.tsx`
 - Modify: `src/app/medico/consultas/[id]/page.tsx`
 
@@ -865,7 +927,10 @@ export function EncaminhamentoPanel({
         )}
 
         {podeEncaminhar ? (
-          <form action={criarEncaminhamentoAction} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <form
+            action={criarEncaminhamentoAction}
+            style={{ display: "flex", flexDirection: "column", gap: 10 }}
+          >
             <input type="hidden" name="consultaOrigemId" value={consultaId} />
             <input type="hidden" name="cidadaoId" value={cidadaoId} />
             <select name="especialidadeId" required defaultValue="" className={styles.cidInput}>
@@ -910,20 +975,27 @@ export function EncaminhamentoPanel({
 - [ ] **Step 2: Plugar na página** (`src/app/medico/consultas/[id]/page.tsx`)
 
 Após o fetch de `historico` (linha ~90), buscar especialidades ativas + encaminhamentos da consulta:
+
 ```ts
-  const [especialidadesAtivas, encaminhamentos] = await Promise.all([
-    db.especialidade.findMany({ where: { ativa: true }, orderBy: { nome: "asc" }, select: { id: true, nome: true } }),
-    db.encaminhamento.findMany({
-      where: { consultaOrigemId: consulta.id },
-      include: { especialidade: { select: { nome: true, corDestaque: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
-  const podeEnc = podeEncaminhar(session);
+const [especialidadesAtivas, encaminhamentos] = await Promise.all([
+  db.especialidade.findMany({
+    where: { ativa: true },
+    orderBy: { nome: "asc" },
+    select: { id: true, nome: true },
+  }),
+  db.encaminhamento.findMany({
+    where: { consultaOrigemId: consulta.id },
+    include: { especialidade: { select: { nome: true, corDestaque: true } } },
+    orderBy: { createdAt: "desc" },
+  }),
+]);
+const podeEnc = podeEncaminhar(session);
 ```
+
 Importar no topo: `import { podeEncaminhar } from "@/lib/medico/rbac";` (somar ao import existente de `@/lib/medico/rbac`) e `import { EncaminhamentoPanel } from "./_encaminhamento-panel";`.
 
 Na **coluna 3** (a `<div className={styles.col}>` final), **substituir o placeholder "Encaminhamento"** (item do array `SOON`/seção `.soon` "Chega no F1.B.3") por:
+
 ```tsx
 <EncaminhamentoPanel
   consultaId={consulta.id}
@@ -933,12 +1005,14 @@ Na **coluna 3** (a `<div className={styles.col}>` final), **substituir o placeho
   podeEncaminhar={podeEnc}
 />
 ```
+
 > Mantenha o card "Prescrição" como `.soon` (continua F1.B.3) e o card "Privacidade". Só o de Encaminhamento vira funcional.
 
 - [ ] **Step 3: Verify + commit**
 
 Run: `wsl -d Ubuntu -- bash _verify-encaminhamento.sh`
 Expected: `VERIFY=PASS`.
+
 ```bash
 git add "src/app/medico/consultas/[id]/_encaminhamento-panel.tsx" "src/app/medico/consultas/[id]/page.tsx"
 git commit -m "feat(medico): coluna 3 do prontuário cria encaminhamento (GP)"
@@ -946,9 +1020,10 @@ git commit -m "feat(medico): coluna 3 do prontuário cria encaminhamento (GP)"
 
 ---
 
-## Task 10: Fila "A agendar" + nav  `[frontend-design]`
+## Task 10: Fila "A agendar" + nav `[frontend-design]`
 
 **Files:**
+
 - Create: `src/app/medico/encaminhamentos/page.tsx`
 - Modify: `src/lib/medico/nav.ts`
 
@@ -1044,7 +1119,10 @@ export default async function EncaminhamentosPage() {
                         </Link>
                       ) : null}
                       {podeCancelar ? (
-                        <form action={cancelarEncaminhamentoAction} style={{ display: "inline", marginLeft: 8 }}>
+                        <form
+                          action={cancelarEncaminhamentoAction}
+                          style={{ display: "inline", marginLeft: 8 }}
+                        >
                           <input type="hidden" name="encaminhamentoId" value={e.id} />
                           <button type="submit" className="btn btn-ghost btn-sm">
                             Cancelar
@@ -1069,20 +1147,24 @@ export default async function EncaminhamentosPage() {
 - [ ] **Step 2: Adicionar o item na nav** (`src/lib/medico/nav.ts`)
 
 Importar a capability e inserir o item depois de "Agenda semanal", visível pra quem trabalha/cria a fila:
+
 ```ts
 import { podeAgendarEncaminhamento, podeEncaminhar } from "@/lib/medico/rbac";
 ```
+
 ```ts
-  if (podeAgendarEncaminhamento(session) || hasAnyRole(session, "profissional")) {
-    items.push({ label: "A agendar", href: "/medico/encaminhamentos" });
-  }
+if (podeAgendarEncaminhamento(session) || hasAnyRole(session, "profissional")) {
+  items.push({ label: "A agendar", href: "/medico/encaminhamentos" });
+}
 ```
+
 > `podeAgendarEncaminhamento` cobre recepção/gestão/admin; o `profissional` também enxerga a fila (rastro), conforme spec "leitura para os dois grupos". `podeEncaminhar` importado fica disponível caso prefira `|| podeEncaminhar(session)` no lugar do `hasAnyRole(... "profissional")`.
 
 - [ ] **Step 3: Verify + commit**
 
 Run: `wsl -d Ubuntu -- bash _verify-encaminhamento.sh`
 Expected: `VERIFY=PASS`.
+
 ```bash
 git add src/app/medico/encaminhamentos/page.tsx src/lib/medico/nav.ts
 git commit -m "feat(medico): fila A agendar (/medico/encaminhamentos) + item de nav"
@@ -1093,44 +1175,54 @@ git commit -m "feat(medico): fila A agendar (/medico/encaminhamentos) + item de 
 ## Task 11: Wizard pré-preenchido por `encaminhamentoId`
 
 **Files:**
+
 - Modify: `src/app/medico/consultas/nova/page.tsx`
 
 - [ ] **Step 1: Detectar o param e pular passos 1–2**
 
 Na assinatura de `searchParams`, adicionar `encaminhamentoId?: string`. No início do componente (após `const sp = await searchParams;`), se houver `encaminhamentoId`, carregar o encaminhamento e **derivar** `cidadaoId`+`especialidadeId` dele (sobrepondo o que vier na URL):
-```ts
-  let encaminhamentoId = sp.encaminhamentoId;
-  let cidadaoIdFixo = sp.cidadaoId;
-  let especialidadeIdFixo = sp.especialidadeId;
 
-  if (encaminhamentoId) {
-    const enc = await db.encaminhamento.findUnique({
-      where: { id: encaminhamentoId },
-      include: { cidadao: true, especialidade: true },
-    });
-    // Já agendado/cancelado, ou inexistente → ignora o atalho e segue o wizard normal.
-    if (!enc || enc.status !== "aguardando_agendamento") {
-      encaminhamentoId = undefined;
-    } else {
-      cidadaoIdFixo = enc.cidadaoId;
-      especialidadeIdFixo = enc.especialidadeId;
-    }
+```ts
+let encaminhamentoId = sp.encaminhamentoId;
+let cidadaoIdFixo = sp.cidadaoId;
+let especialidadeIdFixo = sp.especialidadeId;
+
+if (encaminhamentoId) {
+  const enc = await db.encaminhamento.findUnique({
+    where: { id: encaminhamentoId },
+    include: { cidadao: true, especialidade: true },
+  });
+  // Já agendado/cancelado, ou inexistente → ignora o atalho e segue o wizard normal.
+  if (!enc || enc.status !== "aguardando_agendamento") {
+    encaminhamentoId = undefined;
+  } else {
+    cidadaoIdFixo = enc.cidadaoId;
+    especialidadeIdFixo = enc.especialidadeId;
   }
+}
 ```
+
 Trocar os usos de `sp.cidadaoId`/`sp.especialidadeId` que controlam o passo do wizard por `cidadaoIdFixo`/`especialidadeIdFixo`, de modo que, com `encaminhamentoId` válido, o fluxo caia direto no **passo 3 (slots)**.
 
 - [ ] **Step 2: Propagar `encaminhamentoId` no form de reserva**
 
 No `<form action={reservarConsultaAction}>` do passo 3 (slots), adicionar (quando houver):
+
 ```tsx
-{encaminhamentoId ? <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} /> : null}
+{
+  encaminhamentoId ? (
+    <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
+  ) : null;
+}
 ```
+
 E no `MedicoHeader`/eyebrow do passo 3, sinalizar o contexto: `eyebrow={encaminhamentoId ? "Agendando encaminhamento" : ...}` mostrando cidadão + especialidade travados.
 
 - [ ] **Step 3: Verify + commit**
 
 Run: `wsl -d Ubuntu -- bash _verify-encaminhamento.sh`
 Expected: `VERIFY=PASS`.
+
 ```bash
 git add src/app/medico/consultas/nova/page.tsx
 git commit -m "feat(medico): wizard pré-preenche e trava cidadão+especialidade do encaminhamento"
@@ -1141,11 +1233,13 @@ git commit -m "feat(medico): wizard pré-preenche e trava cidadão+especialidade
 ## Task 12: Seed (consulta em_atendimento + encaminhamento + slots)
 
 **Files:**
+
 - Modify: `prisma/seed.ts`
 
 - [ ] **Step 1: Garantir dados de demo idempotentes**
 
 Adicionar ao seed (após o seed de consultas/slots médico existente), de forma idempotente (cheque por `findFirst` antes de criar):
+
 1. Uma `Consulta` `em_atendimento` de um cidadão demo com um profissional (a consulta do GP).
 2. Um `Encaminhamento` `aguardando_agendamento` desse cidadão, `consultaOrigemId` = a consulta acima, `especialidadeId` = uma especialidade que **tenha slots disponíveis futuros** (ex.: Psicologia/Psiquiatria), `createdBy` = userId do profissional.
 3. Confirmar que existem `Slot` `disponivel` futuros pra essa especialidade (o gerador de slots do seed já cria; senão, criar alguns seg–sex).
@@ -1169,6 +1263,7 @@ git commit -m "chore(seed): consulta em_atendimento + encaminhamento aguardando 
 ## Task 13: e2e smoke
 
 **Files:**
+
 - Create: `tests/e2e/encaminhamento.spec.ts`
 
 > Espelha o login per-unidade de `tests/e2e/capacitacao.spec.ts` (helper `tests/e2e/helpers/login.ts`). Senha demo `ifp-demo-2026`.
@@ -1176,6 +1271,7 @@ git commit -m "chore(seed): consulta em_atendimento + encaminhamento aguardando 
 - [ ] **Step 1: Escrever o smoke**
 
 Fluxo:
+
 1. Login como `dr.joao@familiaponcio.org.br` (profissional) → abrir a consulta `em_atendimento` seedada (`/medico` → clicar nela, ou navegar direto pelo id se o seed expõe um id estável) → na coluna 3, escolher especialidade + motivo → "Encaminhar". Asserir que o pedido aparece listado com "Aguardando agendamento".
 2. Login como `maria.callcenter@familiaponcio.org.br` (recepção) → `/medico/encaminhamentos` → asserir a linha do cidadão + "Agendar" visível.
 3. Clicar "Agendar" → wizard em `/medico/consultas/nova?encaminhamentoId=…` já no passo de slots (cidadão+especialidade travados) → reservar o 1º slot.
@@ -1205,6 +1301,7 @@ test("GP encaminha → fila → callcenter agenda → some da fila", async ({ pa
   // asserir que o pedido agendado não está mais listado
 });
 ```
+
 > Complete os passos elididos conforme os seletores reais (use `getByRole`/`getByText`; veja `capacitacao.spec.ts`). Se navegar pela consulta por id for frágil, exponha um id estável no seed ou navegue via UI.
 
 - [ ] **Step 2: Rodar o e2e**
@@ -1242,6 +1339,7 @@ Expected: `… main -> main`.
 ## Self-Review (preenchido)
 
 **Cobertura da spec:**
+
 - Modelo de dados (enum + model + FK + reversas) → Task 1. ✓
 - Máquina de estados + núcleo puro/transacional (`criar/cancelar/agendar`, erros tipados) → Tasks 3–5. ✓
 - RBAC `podeEncaminhar`/`podeAgendarEncaminhamento` + gate de unidade → Task 6 (+ actions Task 8). ✓

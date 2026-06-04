@@ -61,7 +61,10 @@ describe("criarEncaminhamento", () => {
 
   it("consulta de origem do cidadão → cria aguardando_agendamento", async () => {
     dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ id: "co1", cidadaoId: "c1" });
-    dbMock.encaminhamento.create.mockResolvedValue({ id: "enc1", status: "aguardando_agendamento" });
+    dbMock.encaminhamento.create.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
     await criarEncaminhamento(base);
     expect(dbMock.encaminhamento.create).toHaveBeenCalledWith(
       expect.objectContaining({
