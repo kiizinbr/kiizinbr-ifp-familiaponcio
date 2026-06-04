@@ -517,6 +517,72 @@ async function seedCapacitacao(createdById: string) {
   );
 }
 
+// ── Encaminhamento (F1.B) — consulta em_atendimento do GP + 1 pedido aguardando ──
+async function seedEncaminhamentoDemo() {
+  const cidadao = await db.cidadao.findFirst({
+    where: { deletedAt: null },
+    orderBy: { createdAt: "asc" },
+  });
+  const clinico = await db.especialidade.findUnique({ where: { nome: "Clínico Geral" } });
+  const psicologia = await db.especialidade.findUnique({ where: { nome: "Psicologia" } });
+  const drJoao = await db.user.findUnique({
+    where: { email: "dr.joao@familiaponcio.org.br" },
+    include: { profissional: true },
+  });
+  if (!cidadao || !clinico || !psicologia || !drJoao?.profissional) {
+    console.log("[seed] encaminhamento demo pulado (faltou cidadão/especialidade/profissional)");
+    return;
+  }
+  const prof = drJoao.profissional;
+
+  // 1. Slot + consulta em_atendimento do GP (ids fixos = idempotente)
+  const slotGpId = "seed-enc-slot-gp";
+  const dataGp = new Date();
+  dataGp.setHours(9, 0, 0, 0);
+  await db.slot.upsert({
+    where: { id: slotGpId },
+    update: {},
+    create: {
+      id: slotGpId,
+      profissionalId: prof.id,
+      especialidadeId: clinico.id,
+      dataHoraInicio: dataGp,
+      duracaoMin: clinico.duracaoPadraoMin,
+      status: "reservado",
+    },
+  });
+  const consultaGpId = "seed-enc-consulta-gp";
+  await db.consulta.upsert({
+    where: { id: consultaGpId },
+    update: {},
+    create: {
+      id: consultaGpId,
+      slotId: slotGpId,
+      cidadaoId: cidadao.id,
+      profissionalId: prof.id,
+      especialidadeId: clinico.id,
+      status: "em_atendimento",
+      createdBy: drJoao.id,
+    },
+  });
+
+  // 2. Encaminhamento aguardando_agendamento → Psicologia (tem slots futuros)
+  await db.encaminhamento.upsert({
+    where: { id: "seed-enc-demo" },
+    update: {},
+    create: {
+      id: "seed-enc-demo",
+      cidadaoId: cidadao.id,
+      consultaOrigemId: consultaGpId,
+      especialidadeId: psicologia.id,
+      motivo: "Ansiedade e quadro depressivo — avaliação com Psicologia.",
+      createdBy: drJoao.id,
+      status: "aguardando_agendamento",
+    },
+  });
+  console.log("[seed] encaminhamento demo ok (consulta em_atendimento + 1 pedido a Psicologia)");
+}
+
 async function main() {
   await seedRoles();
 
@@ -542,6 +608,9 @@ async function main() {
 
   // Centro Médico — especialidades + profissionais + slots (F1.B.1)
   await seedMedico();
+
+  // Encaminhamento demo (F1.B) — consulta em_atendimento + 1 pedido aguardando
+  await seedEncaminhamentoDemo();
 
   // Capacitação — cursos + instrutores + turmas + matrículas (F1.A.1)
   await seedCapacitacao(erick.id);
