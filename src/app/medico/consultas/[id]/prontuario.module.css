@@ -6,33 +6,11 @@
 */
 
 .root {
-  /* --- tokens do kit (claro), escopados --- */
-  --surface: #ffffff;
-  --surface-2: #f6f8f8;
-  --surface-sunken: #edf0f0;
-  --line: #dfe3e3;
-  --line-strong: #ccd2d2;
-  --text: #1b1d1d;
-  --text-2: #4a4a49;
-  --text-3: #82888a;
-  --accent: #007571; /* teal — saúde/médico */
-  --accent-soft: rgba(0, 117, 113, 0.09);
-  --accent-line: rgba(0, 117, 113, 0.28);
-  --live: #ff772e; /* laranja — agora/urgência */
-  --live-soft: rgba(255, 119, 46, 0.12);
-  --warn: #b45309;
-  --warn-soft: rgba(180, 83, 9, 0.12);
-  --danger: #ba1a1a;
-  --danger-soft: rgba(186, 26, 26, 0.09);
-  --r-sm: 7px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --shadow: 0 1px 2px rgba(20, 22, 22, 0.04), 0 8px 24px rgba(20, 22, 22, 0.05);
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-
-  font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  /* HERDA do kit (via .ifp-kit + data-unit-accent=medico=teal do AppShell):
+     surface, line, text, accent, live, warn, danger, raios, sombra, fonte e
+     tipografia, no tema CLARO e ESCURO. Os valores claros eram idênticos aos do
+     kit, então o claro não muda — e agora o prontuário responde ao dark. */
   color: var(--text);
-  letter-spacing: -0.01em;
 }
 
 .mono {

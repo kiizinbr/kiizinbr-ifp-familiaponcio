@@ -6,36 +6,16 @@
 */
 
 .root {
-  /* --- tokens do kit (claro), escopados --- */
-  --surface: #ffffff;
-  --surface-2: #f6f8f8;
-  --surface-sunken: #edf0f0;
-  --line: #dfe3e3;
-  --line-strong: #ccd2d2;
-  --text: #1b1d1d;
-  --text-2: #4a4a49;
-  --text-3: #82888a;
-  --accent: #ff772e; /* laranja — capacitação */
-  --accent-strong: #d9531a;
-  --accent-soft: rgba(255, 119, 46, 0.1);
-  --accent-line: rgba(255, 119, 46, 0.3);
+  /* HERDA do kit (via .ifp-kit + data-unit-accent=capacitacao=laranja do
+     AppShell): surface, line, text, accent, warn, danger, raios, sombra, fonte e
+     tipografia, no tema CLARO e ESCURO. Os valores claros eram idênticos aos do
+     kit, então o visual claro não muda — e agora capacitação responde ao dark.
+     Mantidos só os tokens que o kit não fornece. */
+  --accent-strong: #d9531a; /* fim do gradiente do .meterFill (laranja escuro) */
   --info: #2563eb;
   --info-soft: rgba(37, 99, 235, 0.1);
   --success: #15803d;
   --success-soft: rgba(21, 128, 61, 0.1);
-  --warn: #b45309;
-  --warn-soft: rgba(180, 83, 9, 0.12);
-  --danger: #ba1a1a;
-  --danger-soft: rgba(186, 26, 26, 0.09);
-  --r-sm: 7px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --shadow: 0 1px 2px rgba(20, 22, 22, 0.04), 0 8px 24px rgba(20, 22, 22, 0.05);
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-
-  font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
-  color: var(--text);
-  letter-spacing: -0.01em;
 }
 
 .mono {
