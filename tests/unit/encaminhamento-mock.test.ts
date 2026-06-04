@@ -12,7 +12,8 @@ const { dbMock } = vi.hoisted(() => {
       create: f(),
       update: f(),
     },
-    consulta: { findUniqueOrThrow: f() },
+    consulta: { findUniqueOrThrow: f(), create: f() },
+    slot: { updateMany: f() },
     $transaction: vi.fn(),
   };
   db.$transaction.mockImplementation((arg: unknown) =>
@@ -34,9 +35,10 @@ import {
   EncaminhamentoNaoPendenteError,
   TransicaoEncaminhamentoInvalidaError,
 } from "@/lib/medico/encaminhamento";
+import { reservarSlot } from "@/lib/medico/agenda";
 
 function reset() {
-  for (const m of [dbMock.encaminhamento, dbMock.consulta]) {
+  for (const m of [dbMock.encaminhamento, dbMock.consulta, dbMock.slot]) {
     for (const fn of Object.values(m)) fn.mockReset();
   }
   dbMock.$transaction.mockReset();
@@ -146,6 +148,35 @@ describe("cancelarEncaminhamento", () => {
     expect(dbMock.$transaction).toHaveBeenCalledTimes(1);
     expect(dbMock.encaminhamento.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "cancelado" }) }),
+    );
+  });
+});
+
+describe("reservarSlot com origemEncaminhamentoId", () => {
+  beforeEach(reset);
+  it("cria consulta com o FK e flipa o encaminhamento para agendado", async () => {
+    dbMock.slot.updateMany.mockResolvedValue({ count: 1 });
+    dbMock.consulta.create.mockResolvedValue({ id: "cons1" });
+    dbMock.encaminhamento.findUniqueOrThrow.mockResolvedValue({
+      id: "enc1",
+      status: "aguardando_agendamento",
+    });
+    dbMock.encaminhamento.update.mockResolvedValue({ id: "enc1", status: "agendado" });
+    await reservarSlot({
+      slotId: "s1",
+      cidadaoId: "c1",
+      profissionalId: "p1",
+      especialidadeId: "e1",
+      createdBy: "u1",
+      origemEncaminhamentoId: "enc1",
+    });
+    expect(dbMock.consulta.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ origemEncaminhamentoId: "enc1" }),
+      }),
+    );
+    expect(dbMock.encaminhamento.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "agendado" }) }),
     );
   });
 });

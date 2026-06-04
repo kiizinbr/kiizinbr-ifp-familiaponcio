@@ -1,5 +1,6 @@
 import type { Prisma, StatusConsulta } from "@prisma/client";
 import { db } from "@/lib/db";
+import { agendarEncaminhamento } from "@/lib/medico/encaminhamento";
 
 export interface TemplateInput {
   profissionalId: string;
@@ -101,6 +102,7 @@ export interface ReservarSlotInput {
   createdBy: string;
   observacoesAgendamento?: string;
   origemTriagemId?: string;
+  origemEncaminhamentoId?: string;
 }
 
 /**
@@ -117,7 +119,7 @@ export async function reservarSlot(input: ReservarSlotInput) {
     if (upd.count === 0) {
       throw new SlotIndisponivelError(input.slotId);
     }
-    return tx.consulta.create({
+    const consulta = await tx.consulta.create({
       data: {
         slotId: input.slotId,
         cidadaoId: input.cidadaoId,
@@ -126,9 +128,14 @@ export async function reservarSlot(input: ReservarSlotInput) {
         createdBy: input.createdBy,
         observacoesAgendamento: input.observacoesAgendamento,
         origemTriagemId: input.origemTriagemId,
+        origemEncaminhamentoId: input.origemEncaminhamentoId,
         status: "agendada",
       },
     });
+    if (input.origemEncaminhamentoId) {
+      await agendarEncaminhamento(tx, input.origemEncaminhamentoId);
+    }
+    return consulta;
   });
 }
 
