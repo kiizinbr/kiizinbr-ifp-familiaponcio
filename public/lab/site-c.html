@@ -208,7 +208,8 @@
   }
   .hero h1 .accent{
     color:transparent;-webkit-background-clip:text;background-clip:text;
-    background:linear-gradient(105deg,#fff,color-mix(in srgb,var(--teal-claro) 80%,#fff));
+    background:linear-gradient(105deg,#fff,color-mix(in srgb,var(--teal-claro) 85%,#fff));
+    text-shadow:none; /* sem o halo herdado do h1 — senão "amor" fica borrado */
   }
   .hero p.sub{
     margin-top:26px;font-size:clamp(17px,1.95vw,21px);
@@ -402,7 +403,7 @@
   .stat:nth-child(1){background:linear-gradient(150deg,var(--teal-escuro),color-mix(in srgb,var(--teal-escuro) 58%,var(--teal-claro)));}
   .stat:nth-child(2){background:linear-gradient(150deg,var(--laranja),var(--laranja-escuro));}
   .stat:nth-child(3){background:linear-gradient(150deg,var(--teal-claro),var(--teal-escuro));}
-  .stat:nth-child(4){background:linear-gradient(150deg,var(--cinza),color-mix(in srgb,var(--cinza) 64%,#000));}
+  .stat:nth-child(4){background:linear-gradient(150deg,var(--marrom),color-mix(in srgb,var(--marrom) 58%,var(--laranja-escuro)));}
   .stat .num{position:relative;z-index:1;font-size:clamp(36px,5vw,58px);font-weight:900;letter-spacing:-0.045em;line-height:1;}
   .stat .num sup{font-size:.4em;font-weight:700;vertical-align:super;opacity:.85;margin-left:2px;}
   .stat .lab{position:relative;z-index:1;margin-top:14px;font-size:15px;font-weight:600;opacity:.96;}
@@ -554,6 +555,15 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
     .rv{opacity:1!important;transform:none!important;}
+    /* EXCEÇÃO: o mascote mantém um movimento gentil e localizado (identidade viva).
+       Movimento grande/parallax/reveals continuam desligados. */
+    .mascot .ring{animation:spin 2s linear infinite!important;}
+    .band.medico      .mascot .lion{animation:heartbeat 1.8s ease-in-out infinite!important;}
+    .band.capacitacao .mascot .lion{animation:bob 1.4s ease-in-out infinite!important;}
+    .band.esportivo   .mascot .lion{animation:hustle .8s ease-in-out infinite!important;}
+    .band.recreativo  .mascot .lion{animation:wobble 1.3s ease-in-out infinite!important;}
+    .t-overlay .tring{animation:spin 1s linear infinite!important;}
+    .t-overlay .tlion{animation:bob 1s ease-in-out infinite!important;}
   }
 </style>
 </head>
@@ -590,8 +600,9 @@
             <a role="menuitem" href="/capacitacao/login"><span class="dot" style="--d:#FF772E"></span> Capacitação <span class="ar">↗</span></a>
             <a role="menuitem" href="/esportivo/login"><span class="dot" style="--d:#C24D0F"></span> Esportivo <span class="ar">↗</span></a>
             <a role="menuitem" href="/recreativo/login"><span class="dot" style="--d:#10C2BB"></span> Recreativo <span class="ar">↗</span></a>
-            <a role="menuitem" href="/social/login"><span class="dot" style="--d:#4A4A49"></span> Serviço Social <span class="ar">↗</span></a>
             <hr />
+            <div class="grp">Equipe interna</div>
+            <a role="menuitem" href="/social/login"><span class="dot" style="--d:#4A4A49"></span> Serviço Social <span class="ar">↗</span></a>
             <a role="menuitem" class="exec" href="/poncio/login"><span class="dot" style="--d:#752C05"></span> Acesso executivo <span class="ar">↗</span></a>
           </div>
         </div>
@@ -610,7 +621,7 @@
         <div class="hero__copy">
           <span class="kicker hero__eyebrow rv in">Instituto Família Pôncio · Duque de Caxias / RJ</span>
           <h1 class="rv in d1">Mudar realidades com abrigo, saúde, educação e <span class="accent">amor</span>.</h1>
-          <p class="sub rv in d2">Cuidamos de famílias e crianças de Duque de Caxias em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social.</p>
+          <p class="sub rv in d2">Cuidamos de famílias e crianças de Duque de Caxias em quatro frentes — saúde, capacitação, esporte e recreação.</p>
           <div class="hero__cta rv in d3">
             <a class="btn btn--onlight" href="#unidades">Conheça nossas unidades <span class="arr" aria-hidden="true">↗</span></a>
             <a class="btn btn--outline-w" href="#contato">Fale com a gente</a>
@@ -628,14 +639,14 @@
         </div>
       </div>
     </section>
-    <div class="spectrum" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="spectrum" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
 
     <!-- ====================== INTRO UNIDADES ====================== -->
     <section class="units-intro" id="unidades">
       <div class="wrap">
-        <span class="kicker rv">Cinco frentes, um movimento</span>
+        <span class="kicker rv">Quatro frentes, um movimento</span>
         <h2 class="rv d1">Cada unidade, uma forma de cuidar.</h2>
-        <p class="rv d2">Da saúde ao esporte, da sala de aula ao acolhimento — cinco centros que trabalham juntos pela transformação social da nossa comunidade.</p>
+        <p class="rv d2">Da saúde ao esporte, da sala de aula ao recreio — quatro centros que trabalham juntos pela transformação social da nossa comunidade.</p>
       </div>
     </section>
 
@@ -744,32 +755,8 @@
       </div>
     </section>
 
-    <!-- ====================== UNIDADE 5 · SERVIÇO SOCIAL (cinza) ====================== -->
-    <section class="band social" aria-label="Serviço Social">
-      <div class="band__noise"></div><div class="band__pattern"></div>
-      <svg class="band__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="1.2"/><circle cx="16" cy="9.5" r="2.4" stroke="currentColor" stroke-width="1.2"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 19c0-2.2 1.6-3.8 3.8-3.8S22 16.8 22 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-      <div class="wrap band__inner rv">
-        <div class="band__emblem">
-          <div class="mascot">
-            <span class="ring"></span>
-            <span class="disc"><img class="lion" src="/logo/ifp-symbol.png" alt="" /></span>
-            <span class="prop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.6"/><path d="M4 18c0-2.5 2.2-4 5-4s5 1.5 5 4"/><circle cx="16.5" cy="10" r="2"/><path d="M14.5 18c0-1.8 1.4-3 3.2-3"/></svg></span>
-          </div>
-          <div class="band__no">05</div>
-        </div>
-        <div class="band__body">
-          <span class="band__tag">Acolhimento &amp; Apoio TEA / TDAH</span>
-          <h3>Serviço Social</h3>
-          <p class="band__desc">Acolhimento, entrevistas e suporte às famílias, com apoio a TEA e TDAH.</p>
-        </div>
-        <div class="band__visual">
-          <div class="band__ph">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="9.5" r="2.4" stroke="currentColor" stroke-width="1.6"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 19c0-2.2 1.6-3.8 3.8-3.8S22 16.8 22 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <span class="band__plabel">Imagem a confirmar</span>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- Serviço Social NÃO é unidade pública — é apoio interno/triagem (saber quem pode ser atendido).
+         Acesso ao sistema fica no dropdown "Acesso ao Sistema", grupo "Equipe interna". -->
 
     <!-- ====================== QUEM SOMOS ====================== -->
     <section class="about" id="quem-somos">
@@ -818,7 +805,7 @@
 
         <div class="stats">
           <div class="stat rv">
-            <div class="num">5</div>
+            <div class="num">4</div>
             <div class="lab">unidades de atendimento</div>
           </div>
           <div class="stat rv d1">
