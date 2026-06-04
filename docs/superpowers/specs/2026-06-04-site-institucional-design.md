@@ -28,6 +28,14 @@ Referência viva: **`public/lab/site-c.html`** (a implementação real recria is
 - **Versículo** (Provérbios 11:25) e **Parcerias** como painéis imersivos de cor; **Impacto** em campos/cards de cor cheia.
 - **Acabamento:** Hanken Grotesk (títulos/UI) + IBM Plex Mono (kickers/números), grão sutil, profundidade (sombras/camadas), **reveals no scroll** e micro-interações — tudo atrás de `prefers-reduced-motion`. Responsivo mobile-first.
 
+## Mascote animado — "o leão veste a unidade" (asset do Erick)
+
+Erick criou (export `C:\Dev\Mascote Loaders (offline).html`) uma família de **loaders do leão por unidade**: o **leão real** (a logo existente) entra num **medalhão da cor da unidade**, com um adereço em ícone e uma **personalidade de movimento** própria — "mesmo mascote, muda a cor e o jeito". Técnica confirmada na sondagem: **CSS keyframes puro** (14 animações), leão = `<img>` da logo existente, anel/medalhão em SVG+CSS — **sem Lottie/canvas** → trivial de portar.
+
+- **Componente:** `src/components/site/leao-mascote.tsx` (+ estilos no `site.module.css`) — **parametrizado por unidade/acento** (`<LeaoMascote unit="medico" />`); a cor vem do acento da unidade. O CSS (keyframes + classes) é **extraído do export do Erick** (renderizar no browser → capturar CSS/markup) e adaptado pro React. Leão = `/logo/ifp-symbol.png`. **Respeita `prefers-reduced-motion`** (medalhão estático como fallback).
+- **Uso 1 (recomendado — emblema vivo):** em cada faixa full-bleed de unidade (direção C), o leão animado na cor da unidade vira o emblema central — anima ao entrar na viewport / no hover.
+- **Uso 2 (loader de transição):** ao clicar "Acesso ao Sistema → [unidade]", mostra o leão **na cor daquela unidade** enquanto o login carrega — ponte poética site↔sistema (aparece no clique, antes da navegação).
+
 ## Arquitetura / implementação
 
 A página é construída **de verdade no app** (não fica como HTML do lab):
@@ -35,6 +43,7 @@ A página é construída **de verdade no app** (não fica como HTML do lab):
 - **`src/components/site/site.module.css`** — CSS Module com o estilo imersivo do site público (é uma cara PRÓPRIA, distinta da "ferramenta clínica" do kit). Reusa as **fontes self-hostadas** (Hanken/IBM Plex já em `/public/fonts`) e a **paleta do brandbook** (`--ifp-*` / hexes), mas o layout/seções são do site. NÃO depende do `.ifp-kit`. Os componentes de `src/components/site/` importam ele.
 - **`src/components/site/acesso-sistema.tsx`** (client) — o botão "Acesso ao Sistema" + dropdown (toggle), com os links `/${slug}/login` (medico, capacitacao, esportivo, recreativo, social) + "Acesso executivo" `/poncio/login`. Fecha no clique-fora/Esc.
 - **`src/components/site/reveal.tsx`** (client, opcional) — wrapper de reveal-on-scroll via IntersectionObserver, respeitando `prefers-reduced-motion`. Ou um único client component de "site interactions".
+- **`src/components/site/leao-mascote.tsx`** (+ CSS no module) — o **mascote animado parametrizado por unidade** (ver seção "Mascote animado"); usado como emblema vivo nas faixas de unidade e como loader de transição pro login.
 - **Seções** como componentes server pequenos (Hero, UnidadesBands, QuemSomos, Impacto, Parcerias, ContatoRodape) em `src/components/site/` — cada um uma responsabilidade, fáceis de editar/testar.
 - **Dados das unidades** reusam `src/lib/unidades.ts` (nomes, slugs, cores) onde fizer sentido; a copy descritiva fica no componente/numa const.
 - **Não** quebra o sistema: `/medico`, `/login`, etc. seguem iguais; só a `/` muda. O `getLandingPath`/proxy não é afetado (a `/` pública é aberta).
@@ -54,7 +63,7 @@ A página é construída **de verdade no app** (não fica como HTML do lab):
 
 ## Verificação
 
-- Build verde (ritual). `/` renderiza o site novo; dropdown "Acesso ao Sistema" leva a cada `/${slug}/login`. Responsivo (mobile/desktop). Sem nenhuma menção a doação. Visual fiel à direção C (screenshots before/after). Deploy: entra no próximo update da VM staging.
+- Build verde (ritual). `/` renderiza o site novo; dropdown "Acesso ao Sistema" leva a cada `/${slug}/login`. **O mascote (leão) anima na cor de cada unidade** e fica estático com `prefers-reduced-motion`. Responsivo (mobile/desktop). Sem nenhuma menção a doação. Visual fiel à direção C (screenshots before/after). Deploy: entra no próximo update da VM staging.
 
 ## Fora de escopo (agora)
 
