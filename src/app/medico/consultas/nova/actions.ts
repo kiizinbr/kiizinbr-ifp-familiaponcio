@@ -18,6 +18,7 @@ export async function reservarConsultaAction(formData: FormData) {
   const profissionalId = String(formData.get("profissionalId"));
   const especialidadeId = String(formData.get("especialidadeId"));
   const observacoesAgendamento = String(formData.get("observacoes") ?? "").trim() || undefined;
+  const encaminhamentoId = String(formData.get("encaminhamentoId") ?? "").trim() || undefined;
 
   try {
     const consulta = await reservarSlot({
@@ -27,17 +28,28 @@ export async function reservarConsultaAction(formData: FormData) {
       especialidadeId,
       createdBy: session!.user.id,
       observacoesAgendamento,
+      origemEncaminhamentoId: encaminhamentoId,
     });
     await logEvent({
       userId: session!.user.id,
       action: "consulta_agendada",
       meta: { consultaId: consulta.id, slotId, cidadaoId },
     });
+    if (encaminhamentoId) {
+      await logEvent({
+        userId: session!.user.id,
+        action: "encaminhamento_agendado",
+        entityType: "encaminhamento",
+        entityId: encaminhamentoId,
+        meta: { consultaId: consulta.id },
+      });
+    }
     redirect(`/medico/consultas/${consulta.id}` as Route);
   } catch (e) {
     if (e instanceof SlotIndisponivelError) {
+      const enc = encaminhamentoId ? `&encaminhamentoId=${encaminhamentoId}` : "";
       redirect(
-        `/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}&erro=slot_indisponivel` as Route,
+        `/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}${enc}&erro=slot_indisponivel` as Route,
       );
     }
     throw e;
