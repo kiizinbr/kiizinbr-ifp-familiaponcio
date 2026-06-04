@@ -24,6 +24,7 @@
 ## File Structure
 
 **Criar:**
+
 - `src/components/staging-banner.tsx` — banner "STAGING", server component, gated em `process.env.STAGING_BANNER`.
 - `ops/vm/Dockerfile` — multi-stage do Next (deps → build → runner standalone); o stage `build` também serve o `migrate`.
 - `ops/vm/docker-compose.prod.yml` — serviços `postgres` + `minio` + `migrate` (one-shot) + `app`.
@@ -33,6 +34,7 @@
 - `ops/vm/.dockerignore` — enxuga o context do build.
 
 **Modificar:**
+
 - `next.config.ts` — adicionar `output: "standalone"`.
 - `src/components/app-shell.tsx` — renderizar `<StagingBanner />` no topo.
 - `.gitignore` — ignorar `ops/vm/.env.prod`.
@@ -42,6 +44,7 @@
 ## Task 1: `output: standalone` no Next
 
 **Files:**
+
 - Modify: `next.config.ts`
 
 - [ ] **Step 1: Adicionar a opção**
@@ -79,6 +82,7 @@ git commit -m "build: output standalone p/ empacotamento Docker (deploy F4)"
 ## Task 2: Banner STAGING
 
 **Files:**
+
 - Create: `src/components/staging-banner.tsx`
 - Modify: `src/components/app-shell.tsx`
 
@@ -116,20 +120,24 @@ export function StagingBanner() {
 - [ ] **Step 2: Renderizar no topo do AppShell** (`src/components/app-shell.tsx`)
 
 Importar no topo:
+
 ```ts
 import { StagingBanner } from "@/components/staging-banner";
 ```
+
 Envolver o retorno: trocar `return (\n    <div className="shell ifp-kit" …>` por um fragment com o banner ANTES do shell:
+
 ```tsx
-  return (
-    <>
-      <StagingBanner />
-      <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
-        {/* …conteúdo atual do shell… */}
-      </div>
-    </>
-  );
+return (
+  <>
+    <StagingBanner />
+    <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
+      {/* …conteúdo atual do shell… */}
+    </div>
+  </>
+);
 ```
+
 > O `</div>` de fechamento do `.shell` passa a ser seguido de `</>`. Não muda mais nada do shell.
 
 - [ ] **Step 3: Verificar localmente que o banner aparece só com a env**
@@ -149,6 +157,7 @@ git commit -m "feat: banner STAGING gated em env de runtime no AppShell"
 ## Task 3: Dockerfile (Next standalone)
 
 **Files:**
+
 - Create: `ops/vm/Dockerfile`
 - Create: `ops/vm/.dockerignore`
 
@@ -215,6 +224,7 @@ git commit -m "ops: Dockerfile multi-stage do Next standalone (deploy F4)"
 ## Task 4: docker-compose.prod.yml
 
 **Files:**
+
 - Create: `ops/vm/docker-compose.prod.yml`
 
 - [ ] **Step 1: Escrever o compose**
@@ -301,6 +311,7 @@ git commit -m "ops: docker-compose.prod (postgres+minio+migrate+app, sem expor d
 ## Task 5: deploy.sh + .env.prod.example + .gitignore
 
 **Files:**
+
 - Create: `ops/vm/deploy.sh`
 - Create: `ops/vm/.env.prod.example`
 - Modify: `.gitignore`
@@ -374,6 +385,7 @@ ops/vm/.env.prod
 - [ ] **Step 4: Tornar o deploy.sh executável + commit**
 
 Run: `wsl -d Ubuntu -- bash -lc "cd /mnt/c/Users/Administrador/ifp-connect && chmod +x ops/vm/deploy.sh"`
+
 ```bash
 git add ops/vm/deploy.sh ops/vm/.env.prod.example .gitignore
 git commit -m "ops: deploy.sh + .env.prod.example + gitignore do .env.prod"
@@ -384,6 +396,7 @@ git commit -m "ops: deploy.sh + .env.prod.example + gitignore do .env.prod"
 ## Task 6: Runbook da VM (`ops/vm/README.md`)
 
 **Files:**
+
 - Create: `ops/vm/README.md`
 
 - [ ] **Step 1: Escrever o runbook** (passos T8–T11, com comandos exatos)
@@ -394,6 +407,7 @@ git commit -m "ops: deploy.sh + .env.prod.example + gitignore do .env.prod"
 Ambiente de **demonstração** (dados de seed). Não usar com paciente real.
 
 ## 1. Provisionar a VM (host Hyper-V)
+
 - Criar VM **IFP-APP**: Ubuntu Server 24.04 LTS, **≥4 GB RAM / 2 vCPU / ~40 GB disco**, rede com saída à internet.
   - PowerShell (host), ajuste o caminho do ISO/switch:
     ```powershell
@@ -405,6 +419,7 @@ Ambiente de **demonstração** (dados de seed). Não usar com paciente real.
   - Instalar o Ubuntu pelo console (usuário `erickramos`, OpenSSH server marcado).
 
 ## 2. Na VM: Docker + git + Tailscale
+
 ```bash
 sudo apt update && sudo apt install -y git ca-certificates curl
 # Docker (script oficial)
@@ -416,6 +431,7 @@ sudo tailscale up    # autentica no tailnet do grupo
 ```
 
 ## 3. Código + segredos
+
 ```bash
 sudo mkdir -p /opt/ifp-connect && sudo chown $USER /opt/ifp-connect
 git clone <REPO_URL> /opt/ifp-connect        # deploy key read-only
@@ -426,6 +442,7 @@ nano .env.prod                                # preencher senhas + AUTH_URL (pas
 ```
 
 ## 4. Subir a stack
+
 ```bash
 cd /opt/ifp-connect/ops/vm
 ./deploy.sh
@@ -434,13 +451,16 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm migrate 
 ```
 
 ## 5. Publicar com Tailscale Funnel (TCP)
+
 ```bash
 sudo tailscale funnel --bg 3000
 sudo tailscale funnel status        # mostra a URL https://ifp-app.<tailnet>.ts.net
 ```
+
 - Pegue a URL e coloque em `AUTH_URL` no `.env.prod`, depois `./deploy.sh` de novo (o app precisa da URL pública certa pros cookies).
 
 ## 6. Verificar
+
 - Abrir a URL `https://…ts.net` de **fora da rede** (celular em 4G) → cadeado TLS válido.
 - Login demo: `raquel.barros@familiaponcio.org.br` / `ifp-demo-2026` → `/medico`.
 - Banner laranja "STAGING" no topo.
@@ -448,11 +468,13 @@ sudo tailscale funnel status        # mostra a URL https://ifp-app.<tailnet>.ts.
 - `curl http://<IP-LAN-da-VM>:3000` de outra máquina **falha/recusa** (só `127.0.0.1` + funnel) — confirma que não vazou.
 
 ## Atualizar (deploys seguintes)
+
 ```bash
 cd /opt/ifp-connect/ops/vm && ./deploy.sh
 ```
 
 ## Parar / logs
+
 ```bash
 docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f app
 docker compose -f docker-compose.prod.yml --env-file .env.prod down       # mantém volumes
@@ -473,6 +495,7 @@ git commit -m "docs(ops): runbook de provisionamento + deploy da VM staging"
 > Valida Dockerfile + compose + **engine do Prisma no standalone** + o banner, ANTES de tocar na VM. Roda no Docker do WSL, em portas separadas pra não bater com o dev.
 
 **Files:**
+
 - (nenhum novo; usa um `.env.prod` temporário local, gitignored)
 
 - [ ] **Step 1: `.env.prod` local de teste** (em `ops/vm/.env.prod`, já gitignored)
@@ -497,6 +520,7 @@ POSTGRES_DB=ifp_connect
 - [ ] **Step 2: Build + up com o app na porta 3001** (override só do smoke)
 
 Run:
+
 ```bash
 wsl -d Ubuntu -- bash -lc 'cd /mnt/c/Users/Administrador/ifp-connect/ops/vm && \
   C="docker compose -f docker-compose.prod.yml --env-file .env.prod" && \
@@ -506,6 +530,7 @@ wsl -d Ubuntu -- bash -lc 'cd /mnt/c/Users/Administrador/ifp-connect/ops/vm && \
   $C run -d --service-ports -p 127.0.0.1:3001:3000 app && sleep 6 && \
   curl -fsS -o /dev/null -w "HTTP %{http_code}\n" http://localhost:3001/medico/login'
 ```
+
 Expected: build OK; migrate OK; seed OK; `HTTP 200` no `/medico/login`. **Se o engine do Prisma faltar**, o app loga erro de query no `logs app` — aí o `COPY` defensivo do Dockerfile (T3) é o que resolve.
 
 - [ ] **Step 3: Conferir o banner + login no browser local** (opcional, visual)
@@ -515,10 +540,12 @@ Abrir `http://localhost:3001/medico/login`, logar `raquel.barros@familiaponcio.o
 - [ ] **Step 4: Derrubar a stack de smoke**
 
 Run:
+
 ```bash
 wsl -d Ubuntu -- bash -lc 'cd /mnt/c/Users/Administrador/ifp-connect/ops/vm && \
   docker compose -f docker-compose.prod.yml --env-file .env.prod down -v && rm -f .env.prod'
 ```
+
 Expected: stack derrubada + volumes de smoke removidos + `.env.prod` de teste apagado.
 
 - [ ] **Step 5: Push de tudo** (T1–T7 já commitados localmente)
@@ -543,6 +570,7 @@ git -C "C:\Users\Administrador\ifp-connect" push origin main
 ## Self-Review (preenchido)
 
 **Cobertura da spec:**
+
 - §D1 staging/demo → seed na T7/runbook; §D2 Tailscale Funnel TCP → README §5; §D3 VM dedicada IFP-APP → README §1; §D4 Docker 3 serviços → T3/T4; §D5 ≥4GB → README §1; §D6 banner STAGING → T2. ✓
 - Topologia (só :3000 exposto, dados internos) → compose sem `ports` em postgres/minio + app em `127.0.0.1` (T4). ✓
 - Build/deploy (`ops/vm/`, Dockerfile standalone, deploy.sh, migrate one-shot) → T3–T6. ✓
