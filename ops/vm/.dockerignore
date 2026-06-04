@@ -1,8 +1,0 @@
-node_modules
-.next
-.git
-docs
-tests
-*.md
-ops/vm/.env*
-public/lab/_verify-*
