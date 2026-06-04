@@ -39,6 +39,7 @@ export default async function NovaConsultaPage({
     q?: string;
     cidadaoId?: string;
     especialidadeId?: string;
+    encaminhamentoId?: string;
     erro?: string;
   }>;
 }) {
@@ -48,6 +49,19 @@ export default async function NovaConsultaPage({
   if (!podeMarcarConsulta(session)) redirect("/medico" as Route);
 
   const sp = await searchParams;
+
+  // Atalho da fila de encaminhamento: se vier um encaminhamento pendente,
+  // pré-preenche e TRAVA cidadão + especialidade (pula os passos 1–2).
+  let encaminhamentoId = sp.encaminhamentoId;
+  if (encaminhamentoId) {
+    const enc = await db.encaminhamento.findUnique({ where: { id: encaminhamentoId } });
+    if (enc && enc.status === "aguardando_agendamento") {
+      sp.cidadaoId = enc.cidadaoId;
+      sp.especialidadeId = enc.especialidadeId;
+    } else {
+      encaminhamentoId = undefined; // já agendado/cancelado/inexistente → fluxo normal
+    }
+  }
 
   // ---- Step 1: buscar cidadão ----
   if (!sp.cidadaoId) {
@@ -208,7 +222,11 @@ export default async function NovaConsultaPage({
   return (
     <MedicoShell session={session}>
       <MedicoHeader
-        eyebrow={`${cidadao.nomeCompleto} · ${especialidade.nome}`}
+        eyebrow={
+          encaminhamentoId
+            ? `Encaminhamento · ${cidadao.nomeCompleto} · ${especialidade.nome}`
+            : `${cidadao.nomeCompleto} · ${especialidade.nome}`
+        }
         titulo="Marcar consulta"
       />
       <Stepper current={3} />
@@ -246,6 +264,9 @@ export default async function NovaConsultaPage({
                     <input type="hidden" name="cidadaoId" value={cidadao.id} />
                     <input type="hidden" name="profissionalId" value={s.profissionalId} />
                     <input type="hidden" name="especialidadeId" value={especialidade.id} />
+                    {encaminhamentoId ? (
+                      <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
+                    ) : null}
                     <button
                       type="submit"
                       className="rounded-[var(--r-md)] border px-3 py-2 text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
@@ -273,13 +294,15 @@ export default async function NovaConsultaPage({
         </div>
       )}
 
-      <Link
-        href={`/medico/consultas/nova?cidadaoId=${cidadao.id}` as Route}
-        className="mt-6 inline-block text-sm font-semibold"
-        style={{ color: "var(--text-3)" }}
-      >
-        ← Trocar especialidade
-      </Link>
+      {!encaminhamentoId && (
+        <Link
+          href={`/medico/consultas/nova?cidadaoId=${cidadao.id}` as Route}
+          className="mt-6 inline-block text-sm font-semibold"
+          style={{ color: "var(--text-3)" }}
+        >
+          ← Trocar especialidade
+        </Link>
+      )}
     </MedicoShell>
   );
 }

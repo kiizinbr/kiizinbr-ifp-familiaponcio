@@ -6,7 +6,12 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell } from "@/components/medico/medico-shell";
-import { podeTransicionarConsulta, podeEditarNota, podeVerProntuario } from "@/lib/medico/rbac";
+import {
+  podeTransicionarConsulta,
+  podeEditarNota,
+  podeVerProntuario,
+  podeEncaminhar,
+} from "@/lib/medico/rbac";
 import { CONSULTA_VISUAL, PROXIMOS_STATUS_CONSULTA } from "@/lib/medico/ui";
 import { calcularImc } from "@/lib/medico/prontuario";
 import { transitionAction, cancelAction } from "./actions";
@@ -16,6 +21,7 @@ import {
   salvarRascunhoAction,
 } from "./prontuario-actions";
 import styles from "./prontuario.module.css";
+import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 
 const ACAO_LABEL: Record<string, string> = {
   confirmada: "Confirmar",
@@ -88,6 +94,20 @@ export default async function ConsultaDetalhePage({
     orderBy: { createdAt: "desc" },
     take: 5,
   });
+
+  const [especialidadesAtivas, encaminhamentos] = await Promise.all([
+    db.especialidade.findMany({
+      where: { ativa: true },
+      orderBy: { nome: "asc" },
+      select: { id: true, nome: true },
+    }),
+    db.encaminhamento.findMany({
+      where: { consultaOrigemId: consulta.id },
+      include: { especialidade: { select: { nome: true, corDestaque: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+  const podeEnc = podeEncaminhar(session);
 
   // Registra acesso a dado de saúde (LGPD §0.8) — só quem pode ver conteúdo clínico.
   const podeVer = podeVerProntuario(session);
@@ -504,11 +524,17 @@ export default async function ConsultaDetalhePage({
               </section>
             </div>
 
-            {/* COLUNA 3 — AÇÕES (F1.B.3) */}
+            {/* COLUNA 3 — AÇÕES */}
             <div className={styles.col}>
+              <EncaminhamentoPanel
+                consultaId={consulta.id}
+                cidadaoId={consulta.cidadaoId}
+                especialidades={especialidadesAtivas}
+                encaminhamentos={encaminhamentos}
+                podeEncaminhar={podeEnc}
+              />
               {[
                 { ico: "℞", t: "Prescrição" },
-                { ico: "⇄", t: "Encaminhamento" },
                 { ico: "✓", t: "Atestado" },
               ].map((a) => (
                 <section key={a.t} className={`${styles.card} ${styles.soon}`}>
