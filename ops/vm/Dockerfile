@@ -5,7 +5,7 @@ WORKDIR /app
 
 # --- deps: instala todas as deps (com lockfile) ---
 FROM base AS deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # --- build: gera o Prisma Client + o build standalone do Next ---
@@ -13,6 +13,12 @@ FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm prisma generate
+# env.ts valida process.env no import; o `next build` avalia os módulos de
+# servidor ("collect page data") → precisa de valores VÁLIDOS de formato no
+# build. São dummies de build-time; o runtime usa o env_file real (sobrescreve),
+# e env de servidor não é "baked" — é lida do process.env em runtime.
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build" \
+    AUTH_SECRET="build_time_placeholder_secret_min_32_chars"
 RUN pnpm build
 
 # --- runner: imagem enxuta com o servidor standalone ---
@@ -23,9 +29,6 @@ RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-# Defensivo: garante o engine do Prisma na imagem (o standalone às vezes não traça o .so)
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/node_modules/@prisma/client ./node_modules/@prisma/client
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]

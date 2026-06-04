@@ -6,3 +6,14 @@ allowBuilds:
   unrs-resolver: true
   esbuild: true
   bcrypt: true
+
+# Forma documentada do pnpm 11 (array) — aprova os postinstall scripts.
+# Sem isto, pnpm install num ambiente limpo (Docker) aborta com
+# ERR_PNPM_IGNORED_BUILDS. O Dockerfile copia este arquivo pro stage de deps.
+onlyBuiltDependencies:
+  - sharp
+  - prisma
+  - "@prisma/client"
+  - "@prisma/engines"
+  - unrs-resolver
+  - esbuild
