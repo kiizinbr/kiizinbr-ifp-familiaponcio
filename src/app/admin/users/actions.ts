@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { hasAnyRole } from "@/lib/rbac";
 import { logEvent } from "@/lib/audit";
 import { criarUsuarioSchema } from "@/lib/admin/user-schema";
+import { gerarTokenRaw, hashToken, RESET_TOKEN_TTL_MIN } from "@/lib/reset-token";
 
 export type CriarUsuarioResult = { ok: true; email: string } | { ok: false; error: string };
 
@@ -69,4 +70,45 @@ export async function criarUsuarioAction(
 
   revalidatePath("/admin/users");
   return { ok: true, email: d.email };
+}
+
+export type LinkResetResult = { ok: true; link: string } | { ok: false; error: string };
+
+/**
+ * Gera um link de redefinição de senha (admin-driven, sem e-mail/SMTP). Só super_admin:
+ * invalida tokens antigos não usados do usuário, cria um novo (guarda só o hash) e
+ * devolve o link `/reset/<raw>` para o super_admin entregar à pessoa. TTL curto.
+ */
+export async function gerarLinkResetAction(
+  _prev: LinkResetResult | null,
+  formData: FormData,
+): Promise<LinkResetResult> {
+  const session = await auth();
+  if (!hasAnyRole(session, "super_admin")) return { ok: false, error: "Sem permissão" };
+
+  const userId = String(formData.get("userId") ?? "");
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return { ok: false, error: "Usuário não encontrado." };
+
+  const raw = gerarTokenRaw();
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MIN * 60_000);
+  await db.$transaction(async (tx) => {
+    await tx.passwordResetToken.updateMany({
+      where: { userId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    await tx.passwordResetToken.create({
+      data: { userId, tokenHash: hashToken(raw), expiresAt },
+    });
+  });
+
+  await logEvent({
+    userId: session!.user.id,
+    action: "password_reset",
+    entityType: "user",
+    entityId: userId,
+    meta: { email: user.email, via: "admin_link" },
+  });
+
+  return { ok: true, link: `/reset/${raw}` };
 }

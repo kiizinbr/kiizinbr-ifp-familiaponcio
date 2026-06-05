@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { db } from "@/lib/db";
 import { ROLE_DESCRIPTIONS, type RoleName, type UnitScope } from "@/lib/rbac-types";
 import { CriarUsuarioForm } from "./criar-usuario-form";
+import { ResetLinkButton } from "./reset-link-button";
 
 const UNIT_LABELS: Record<UnitScope, string> = {
   medico: "Médico",
@@ -60,6 +61,7 @@ export default async function AdminUsersPage() {
               <th>Papel principal</th>
               <th>Unidade(s)</th>
               <th>Status</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -97,6 +99,9 @@ export default async function AdminUsersPage() {
                       <span className="dot" />
                       Ativo
                     </Badge>
+                  </td>
+                  <td>
+                    <ResetLinkButton userId={user.id} />
                   </td>
                 </tr>
               );

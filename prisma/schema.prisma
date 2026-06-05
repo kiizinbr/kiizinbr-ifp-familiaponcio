@@ -22,6 +22,7 @@ model User {
   primaryRoleName  String?    // 'super_admin' | 'presidencia' | 'gestor_unidade' | ...
   primaryUnitScope String?    // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo' | null
   auditLogs        AuditLog[]
+  passwordResetTokens PasswordResetToken[]
 
   // Cidadao (Plano 3) — reverse relations
   cidadaosCriados Cidadao[]      @relation("CidadaoCreatedBy")
@@ -79,6 +80,20 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+/// Token de redefinição de senha (admin-driven, Fase 1). Guarda só o HASH (sha256)
+/// do token — o raw só existe no link entregue ao usuário. Expira; uso único (usedAt).
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 // RBAC tables (Plano 2)
