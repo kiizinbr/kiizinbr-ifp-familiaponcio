@@ -236,7 +236,7 @@
     start();
   })();
 
-  /* ---- PALAVRA DO DIA (popup de boas-vindas, 1x por dia) ---- */
+  /* ---- PALAVRA DO DIA (popup de boas-vindas, 1x por sessão) ---- */
   (function () {
     var scrim = document.getElementById("dailyScrim");
     if (!scrim) return;
@@ -311,7 +311,7 @@
       "-" +
       ("0" + now.getDate()).slice(-2);
     function open() {
-      if (localStorage.getItem(key)) return;
+      if (sessionStorage.getItem(key)) return;
       scrim.classList.add("open");
       scrim.setAttribute("aria-hidden", "false");
       document.body.classList.add("locked");
@@ -321,7 +321,7 @@
       scrim.setAttribute("aria-hidden", "true");
       document.body.classList.remove("locked");
       try {
-        localStorage.setItem(key, "1");
+        sessionStorage.setItem(key, "1");
       } catch (e) {}
     }
     document.getElementById("dailyClose").addEventListener("click", close);
@@ -333,7 +333,7 @@
       if (e.key === "Escape" && scrim.classList.contains("open")) close();
     });
 
-    if (localStorage.getItem(key)) return; // já viu hoje
+    if (sessionStorage.getItem(key)) return; // já viu nesta sessão
     function trigger() {
       setTimeout(open, 450);
     }
