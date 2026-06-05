@@ -10,6 +10,7 @@ import { hasAnyRole, podeVerSaudeCidadao, podeVerSocioCidadao } from "@/lib/rbac
 import type { UnitScope } from "@/lib/rbac-types";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { AnexoUploader } from "./anexo-uploader";
+import { AnonimizarButton } from "./anonimizar-button";
 
 const TONE_BADGE: Record<StatusTone, string> = {
   red: "badge badge-danger",
@@ -109,14 +110,19 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
             </div>
           </div>
 
-          {podeEditar && (
-            <Link
-              href={`/app/cidadaos/${cidadao.id}/editar` as Route}
-              className="btn btn-secondary btn-sm"
-            >
-              Editar
-            </Link>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {podeEditar && (
+              <Link
+                href={`/app/cidadaos/${cidadao.id}/editar` as Route}
+                className="btn btn-secondary btn-sm"
+              >
+                Editar
+              </Link>
+            )}
+            {hasAnyRole(session, "super_admin") && !cidadao.anonimizadoEm && (
+              <AnonimizarButton cidadaoId={cidadao.id} />
+            )}
+          </div>
         </div>
       </header>
 

@@ -8,6 +8,7 @@ export type AuditAction =
   | "signout"
   | "role_changed"
   | "data_exported"
+  | "cidadao_anonimizado"
   | "medical_data_accessed"
   | "ficha_created"
   | "ficha_updated"

@@ -252,6 +252,57 @@ export function omitCamposSensiveisSemPermissao<T extends Record<string, unknown
 }
 
 /**
+ * Pura: valores de anonimização IRREVERSÍVEL da Ficha (D1 / direito ao esquecimento).
+ * Mascara os obrigatórios identificáveis, reduz a dataNascimento ao 1º de janeiro do
+ * ano (mantém faixa etária pra estatística, perde a data exata) e nula PII opcional +
+ * foto + saúde + socioeconômico. NÃO grava `anonimizadoEm` (a action põe o timestamp,
+ * mantendo a função determinística). Preserva só agregados (unitIdOrigem, statusCadastro).
+ */
+export function dadosAnonimizadosCidadao(cidadao: { id: string; dataNascimento: Date }) {
+  return {
+    nomeCompleto: "[anonimizado]",
+    cpf: `ANON-${cidadao.id}`,
+    dataNascimento: new Date(Date.UTC(cidadao.dataNascimento.getUTCFullYear(), 0, 1)),
+    telefonePrincipal: "[anonimizado]",
+    nomeSocial: null,
+    rg: null,
+    documentoAlternativo: null,
+    corRaca: null,
+    estadoCivil: null,
+    naturalidade: null,
+    nomeMae: null,
+    nomePai: null,
+    escolaAtual: null,
+    telefoneSecundario: null,
+    email: null,
+    whatsappConsente: false,
+    fotoUrl: null,
+    tipoSanguineo: null,
+    alergias: null,
+    medicamentosEmUso: null,
+    condicoesCronicas: null,
+    rendaFamiliar: null,
+    pessoasNaCasa: null,
+    beneficioSocial: null,
+    escolaridade: null,
+    trabalha: null,
+    trabalhoDescricao: null,
+  };
+}
+
+/** Pura: anonimização de Endereço — mascara logradouro/cep, nula o resto, mantém cidade/uf. */
+export function dadosAnonimizadosEndereco() {
+  return {
+    logradouro: "[anonimizado]",
+    numero: null,
+    complemento: null,
+    bairro: null,
+    cep: "00000000",
+    pontoReferencia: null,
+  };
+}
+
+/**
  * Estatísticas agregadas pra dashboard (cards de KPI).
  * Respeitando RBAC: usuário com acesso restrito vê só dados da sua unidade.
  */
