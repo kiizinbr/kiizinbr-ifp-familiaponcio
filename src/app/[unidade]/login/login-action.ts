@@ -6,6 +6,7 @@ import { signIn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { unidadeFromSlug } from "@/lib/unidades";
 import { logEvent } from "@/lib/audit";
+import { loginRateLimited, LOGIN_JANELA_MIN } from "@/lib/rate-limit";
 import type { RoleAssignment, RoleName, UnitScope } from "@/lib/rbac-types";
 
 /**
@@ -37,6 +38,13 @@ export async function unidadeLoginAction(
 
   if (!email || !password) {
     return { error: "E-mail ou senha incorretos." };
+  }
+
+  // Rate-limit: bloqueia brute-force por (email, IP) na janela (reusa signin_failed).
+  if (await loginRateLimited(email, new Date())) {
+    return {
+      error: `Muitas tentativas de login. Aguarde ${LOGIN_JANELA_MIN} minutos e tente novamente.`,
+    };
   }
 
   // Pre-flight 1: usuário existe + senha confere

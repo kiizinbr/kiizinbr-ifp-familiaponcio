@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import clsx from "clsx";
 import { useFormStatus } from "react-dom";
 import { signInAction } from "./actions";
 
@@ -10,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className={`btn btn-primary btn-block${pending ? "is-loading" : ""}`}
+      className={clsx("btn btn-primary btn-block", pending && "is-loading")}
     >
       {pending ? "Entrando..." : "Entrar"}
     </button>
@@ -67,7 +68,7 @@ export function LoginForm({ error }: { error?: string }) {
           </p>
         </div>
 
-        {error === "invalid" && (
+        {(error === "invalid" || error === "rate_limited") && (
           <div
             role="alert"
             className="badge badge-danger"
@@ -80,7 +81,9 @@ export function LoginForm({ error }: { error?: string }) {
               borderRadius: "var(--r-md)",
             }}
           >
-            E-mail ou senha incorretos.
+            {error === "rate_limited"
+              ? "Muitas tentativas de login. Aguarde alguns minutos e tente novamente."
+              : "E-mail ou senha incorretos."}
           </div>
         )}
 

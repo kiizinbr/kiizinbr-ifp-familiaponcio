@@ -4,6 +4,7 @@ import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
 import { logEvent } from "@/lib/audit";
+import { loginRateLimited } from "@/lib/rate-limit";
 
 /**
  * Sign in com role-based landing.
@@ -13,8 +14,13 @@ import { logEvent } from "@/lib/audit";
  * { redirect: false } sempre lancando, e funciona ponta-a-ponta.
  */
 export async function signInAction(formData: FormData) {
-  const email = formData.get("email");
+  const emailRaw = formData.get("email");
+  const email = typeof emailRaw === "string" ? emailRaw.trim().toLowerCase() : "";
   const password = formData.get("password");
+
+  if (await loginRateLimited(email, new Date())) {
+    redirect("/login?error=rate_limited");
+  }
 
   try {
     await signIn("credentials", {
@@ -26,7 +32,7 @@ export async function signInAction(formData: FormData) {
     if (error instanceof AuthError) {
       await logEvent({
         action: "signin_failed",
-        meta: { email: typeof email === "string" ? email : null },
+        meta: { email },
       });
       redirect("/login?error=invalid");
     }
