@@ -106,6 +106,22 @@ export function podeVerSocioCidadao(session: Session | null): boolean {
 }
 
 /**
+ * ESCRITA dos campos clínicos (saúde) da Ficha: gestão e profissional.
+ * Subconjunto de quem vê (podeVerSaudeCidadao). NÃO recepção, NÃO social.
+ */
+export function podeEditarSaudeCidadao(session: Session | null): boolean {
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+}
+
+/**
+ * ESCRITA dos campos socioeconômicos da Ficha: super_admin e social (domínio do
+ * Serviço Social). Presidência só VÊ (view-only), não escreve.
+ */
+export function podeEditarSocioCidadao(session: Session | null): boolean {
+  return hasAnyRole(session, "super_admin", "social");
+}
+
+/**
  * Para usar em Server Components: lança redirect pra /login se não autorizado.
  * Inspirado no pattern de Next.js "auth + redirect" nos boundaries.
  */

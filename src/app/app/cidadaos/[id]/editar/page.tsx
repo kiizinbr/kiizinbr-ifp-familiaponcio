@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
-import { getCidadao } from "@/lib/cidadao";
+import { getCidadaoView } from "@/lib/cidadao";
 import { can } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 import { NovoCidadaoForm } from "../../novo/form";
@@ -13,7 +13,9 @@ export default async function EditarCidadaoPage({ params }: { params: Promise<{ 
   if (!session) redirect("/login");
 
   const { id } = await params;
-  const cidadao = await getCidadao(id, session);
+  // getCidadaoView redige saúde/socio: o form de edição não pré-preenche (nem vaza
+  // no HTML) campos que o caller não pode ver — e a action descarta a escrita deles.
+  const cidadao = await getCidadaoView(id, session);
   if (!cidadao) notFound();
 
   const unit = cidadao.unitIdOrigem as UnitScope;

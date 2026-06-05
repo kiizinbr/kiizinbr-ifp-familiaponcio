@@ -5,9 +5,10 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cidadaoCreateSchema, type CidadaoCreateInput } from "@/lib/cidadao-schema";
-import { can, hasAnyRole } from "@/lib/rbac";
+import { can, hasAnyRole, podeEditarSaudeCidadao, podeEditarSocioCidadao } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 import { changedFields } from "@/lib/cidadao-diff";
+import { omitCamposSensiveisSemPermissao } from "@/lib/cidadao";
 import { logEvent } from "@/lib/audit";
 
 export type CreateCidadaoResult =
@@ -138,7 +139,7 @@ export async function updateCidadaoAction(
   }
 
   const d = parsed.data;
-  const data = {
+  const dataCompleto = {
     nomeCompleto: d.nomeCompleto,
     dataNascimento: new Date(d.dataNascimento),
     telefonePrincipal: d.telefonePrincipal,
@@ -167,6 +168,13 @@ export async function updateCidadaoAction(
     medicamentosEmUso: d.medicamentosEmUso,
     condicoesCronicas: d.condicoesCronicas,
   };
+
+  // B2: remove os blocos sensíveis que o caller não pode escrever ANTES do update
+  // (preserva o valor atual no banco; recepção não zera saúde/socio que nem vê).
+  const data = omitCamposSensiveisSemPermissao(dataCompleto, {
+    podeEscreverSaude: podeEditarSaudeCidadao(session),
+    podeEscreverSocio: podeEditarSocioCidadao(session),
+  });
 
   const antigoSubset: Record<string, unknown> = {};
   const atualRec = atual as unknown as Record<string, unknown>;

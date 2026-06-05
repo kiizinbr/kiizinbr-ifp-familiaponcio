@@ -215,6 +215,42 @@ export async function getCidadaoView(id: string, session: Session | null) {
   });
 }
 
+/** Chaves dos blocos sensíveis — usadas pela omissão de escrita (B2). */
+const CAMPOS_SAUDE_CIDADAO = [
+  "tipoSanguineo",
+  "alergias",
+  "medicamentosEmUso",
+  "condicoesCronicas",
+] as const;
+const CAMPOS_SOCIO_CIDADAO = [
+  "rendaFamiliar",
+  "pessoasNaCasa",
+  "beneficioSocial",
+  "escolaridade",
+  "trabalha",
+  "trabalhoDescricao",
+] as const;
+
+/**
+ * Pura: devolve uma CÓPIA do payload de update SEM os campos sensíveis que o
+ * caller não pode escrever. Remover a chave (vs nular) preserva o valor atual no
+ * banco — recepção editando o básico não zera saúde/socio que ela nem vê.
+ * Não muta a entrada.
+ */
+export function omitCamposSensiveisSemPermissao<T extends Record<string, unknown>>(
+  data: T,
+  caps: { podeEscreverSaude: boolean; podeEscreverSocio: boolean },
+): Partial<T> {
+  const out: Partial<T> = { ...data };
+  if (!caps.podeEscreverSaude) {
+    for (const campo of CAMPOS_SAUDE_CIDADAO) delete out[campo];
+  }
+  if (!caps.podeEscreverSocio) {
+    for (const campo of CAMPOS_SOCIO_CIDADAO) delete out[campo];
+  }
+  return out;
+}
+
 /**
  * Estatísticas agregadas pra dashboard (cards de KPI).
  * Respeitando RBAC: usuário com acesso restrito vê só dados da sua unidade.
