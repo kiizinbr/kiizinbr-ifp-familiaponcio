@@ -9,7 +9,7 @@
 Substituir a landing mínima atual (`src/app/page.tsx`, hoje um grid de cards-de-login) por um **site institucional one-page, novo e vibrante** — a cara pública do Instituto Família Pôncio. O mesmo deploy Next.js serve o site público (em `/`) e o sistema interno (atrás do login). Um **"Acesso ao Sistema"** no topo abre um dropdown com as unidades, levando ao login de cada uma.
 
 ### Sucesso =
-Um visitante (comunidade, parceiro, empresa) abre `/`, entende em segundos o que o Instituto é e faz, navega pelas 5 unidades, sente a identidade (acolhimento + fé equilibrada + transformação social) e, se for da equipe, acessa o sistema pelo dropdown.
+Um visitante (comunidade, parceiro, empresa) abre `/`, entende em segundos o que o Instituto é e faz, navega pelas 4 unidades, sente a identidade (acolhimento + fé equilibrada + transformação social) e, se for da equipe, acessa o sistema pelo dropdown.
 
 ## Decisões fechadas (com Erick, 2026-06-04)
 
@@ -19,11 +19,12 @@ Um visitante (comunidade, parceiro, empresa) abre `/`, entende em segundos o que
 - **§D4 SEM doação:** **nenhum** pedido público de doação. Apoiadores são empresas/empresários → a relação é de **Parceria** institucional. A seção de apoio chama-se "Parcerias".
 - **§D5 Direção visual: C — Imersivo Color-Forward** (vibrante, cor saturada do brandbook, faixas por unidade). Mockup de referência: **`public/lab/site-c.html`**.
 - **§D6 Acesso ao Sistema:** dropdown no topo (não tela intermediária) → login de cada unidade.
+- **§D7 Serviço Social NÃO é unidade:** é apoio interno/triagem (define quem pode ser atendido), transversal ao instituto — não é uma frente de atendimento ao público. Sai das faixas públicas e da contagem de "unidades" (passam a ser **4**: médico, capacitação, esportivo, recreativo). Mantém acesso ao sistema (`/social/login`) no dropdown, sob um grupo **"Equipe interna"** (junto do acesso executivo). Obs.: a mesma imprecisão existe no sistema (tratar `/social` como "unidade") — revisar fora deste escopo.
 
 ## Direção visual (C — Imersivo Color-Forward)
 
 Referência viva: **`public/lab/site-c.html`** (a implementação real recria isto como página Next). Características:
-- **Cor protagonista:** campos saturados do brandbook; **cada unidade é uma faixa full-bleed no seu acento** (médico=teal `#007571`, capacitação=laranja `#FF772E`, esportivo=laranja-escuro `#C24D0F`, recreativo=teal-claro `#10C2BB`, social=cinza `#4A4A49`), com gradiente rico dentro da própria família de cor, watermark-glyph gigante, numeração mono (01–05) e padrão diagonal sutil.
+- **Cor protagonista:** campos saturados do brandbook; **cada unidade é uma faixa full-bleed no seu acento** (médico=teal `#007571`, capacitação=laranja `#FF772E`, esportivo=laranja-escuro `#C24D0F`, recreativo=teal-claro `#10C2BB`), com gradiente rico dentro da própria família de cor, watermark-glyph gigante, numeração mono (01–04) e padrão diagonal sutil. (Cinza saiu — era do Serviço Social, que não é unidade.)
 - **Hero imersivo:** cena de cor cheia (gradiente teal-escuro→marrom) + fita diagonal laranja + foto (`/unidades/medico.jpg`) + glows desfocados; "spectrum bar" das 5 cores logo abaixo.
 - **Versículo** (Provérbios 11:25) e **Parcerias** como painéis imersivos de cor; **Impacto** em campos/cards de cor cheia.
 - **Acabamento:** Hanken Grotesk (títulos/UI) + IBM Plex Mono (kickers/números), grão sutil, profundidade (sombras/camadas), **reveals no scroll** e micro-interações — tudo atrás de `prefers-reduced-motion`. Responsivo mobile-first.
@@ -41,7 +42,7 @@ Erick criou (export `C:\Dev\Mascote Loaders (offline).html`) uma família de **l
 A página é construída **de verdade no app** (não fica como HTML do lab):
 - **`src/app/page.tsx`** (server component) — reescrita: renderiza as seções do site. Substitui o conteúdo atual.
 - **`src/components/site/site.module.css`** — CSS Module com o estilo imersivo do site público (é uma cara PRÓPRIA, distinta da "ferramenta clínica" do kit). Reusa as **fontes self-hostadas** (Hanken/IBM Plex já em `/public/fonts`) e a **paleta do brandbook** (`--ifp-*` / hexes), mas o layout/seções são do site. NÃO depende do `.ifp-kit`. Os componentes de `src/components/site/` importam ele.
-- **`src/components/site/acesso-sistema.tsx`** (client) — o botão "Acesso ao Sistema" + dropdown (toggle), com os links `/${slug}/login` (medico, capacitacao, esportivo, recreativo, social) + "Acesso executivo" `/poncio/login`. Fecha no clique-fora/Esc.
+- **`src/components/site/acesso-sistema.tsx`** (client) — o botão "Acesso ao Sistema" + dropdown (toggle), com os links das 4 unidades `/${slug}/login` (medico, capacitacao, esportivo, recreativo) sob "Unidades", e um grupo **"Equipe interna"** com Serviço Social (`/social/login`) + "Acesso executivo" (`/poncio/login`). Fecha no clique-fora/Esc.
 - **`src/components/site/reveal.tsx`** (client, opcional) — wrapper de reveal-on-scroll via IntersectionObserver, respeitando `prefers-reduced-motion`. Ou um único client component de "site interactions".
 - **`src/components/site/leao-mascote.tsx`** (+ CSS no module) — o **mascote animado parametrizado por unidade** (ver seção "Mascote animado"); usado como emblema vivo nas faixas de unidade e como loader de transição pro login.
 - **Seções** como componentes server pequenos (Hero, UnidadesBands, QuemSomos, Impacto, Parcerias, ContatoRodape) em `src/components/site/` — cada um uma responsabilidade, fáceis de editar/testar.
@@ -51,9 +52,9 @@ A página é construída **de verdade no app** (não fica como HTML do lab):
 ## Conteúdo (copy aprovada — placeholders marcados)
 
 - **Hero:** eyebrow "Instituto Família Pôncio · Duque de Caxias / RJ"; título "Mudar realidades com abrigo, saúde, educação e amor."; subtítulo "Cuidamos de famílias e crianças de Duque de Caxias em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social."; CTAs "Conheça nossas unidades" + "Fale com a gente" (**sem doação**).
-- **Unidades (5):** Centro Médico (saúde + odontológico), Centro de Capacitação (cursos/capacitação profissional), Centro Esportivo (esporte + Jiu-Jitsu), Centro Recreativo (recreação/cuidado infantil), Serviço Social (acolhimento + apoio a TEA/TDAH) — descrições no mockup.
+- **Unidades (4):** Centro Médico (saúde + odontológico), Centro de Capacitação (cursos/capacitação profissional), Centro Esportivo (esporte + Jiu-Jitsu), Centro Recreativo (recreação/cuidado infantil) — descrições no mockup. **Serviço Social NÃO entra como unidade** (é apoio interno/triagem); fica fora das faixas públicas, só com acesso ao sistema no dropdown ("Equipe interna").
 - **Quem Somos:** Missão "Mudar realidades através de abrigo, amor, saúde, educação e capacitação profissional."; Visão "Ser referência em todas as esferas de atendimento ao próximo."; Valores "Familiares e direcionados pelos princípios da palavra de Deus."; origem (experiência espiritual, cuidar de crianças); **Versículo** Provérbios 11:25 em destaque.
-- **Impacto (placeholder*):** 5 unidades · +500 famílias* · +8 anos* · centenas de crianças* (marcados "a confirmar").
+- **Impacto (placeholder*):** 4 unidades · +500 famílias* · +8 anos* · centenas de crianças* (marcados "a confirmar").
 - **Parcerias:** "Construído com quem acredita." — empresas/parceiros caminham com o instituto; CTA "Seja um parceiro"/"Fale com a gente" → contato. **Nunca "doar".**
 - **Contato/rodapé:** Duque de Caxias / RJ; telefone/WhatsApp/e-mail/endereço = placeholder "a confirmar"; redes Instagram + YouTube @institutofamiliaponcio; rodapé "© Instituto Família Pôncio — organização filantrópica sem fins lucrativos".
 

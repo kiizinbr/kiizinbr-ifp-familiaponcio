@@ -33,7 +33,7 @@
     --sans:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 
-    --maxw:1200px;
+    --maxw:1600px; /* widescreen — usa a largura da tela, não coluna estreita centralizada */
     --pad:clamp(20px,5vw,72px);
     --nav-h:74px;
     --r:18px;
@@ -207,9 +207,9 @@
     text-shadow:0 4px 40px rgba(0,0,0,.18);
   }
   .hero h1 .accent{
-    color:transparent;-webkit-background-clip:text;background-clip:text;
-    background:linear-gradient(105deg,#fff,color-mix(in srgb,var(--teal-claro) 85%,#fff));
-    text-shadow:none; /* sem o halo herdado do h1 — senão "amor" fica borrado */
+    color:var(--teal-claro);
+    -webkit-text-fill-color:var(--teal-claro);
+    text-shadow:none; /* sólido e legível — o gradiente claro virava blob e o text-shadow herdado borrava */
   }
   .hero p.sub{
     margin-top:26px;font-size:clamp(17px,1.95vw,21px);
