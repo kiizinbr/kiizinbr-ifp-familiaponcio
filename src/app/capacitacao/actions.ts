@@ -14,6 +14,7 @@ import {
   podeGerenciarCurso,
   podeGerenciarInstrutor,
   podeMatricular,
+  podeRegistrarPresenca,
   podeTransicionarMatricula as rbacPodeTransicionarMatricula,
 } from "@/lib/capacitacao/rbac";
 import {
@@ -293,4 +294,45 @@ export async function buscarCandidatosAction(
     id: c.id,
     nome: c.nomeSocial?.trim() ? c.nomeSocial : c.nomeCompleto,
   }));
+}
+
+/** Registra a presença do dia para a turma (upsert por matrícula+data; idempotente). */
+export async function registrarPresencasAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeRegistrarPresenca(session)) throw new Error("Sem permissão");
+
+  const turmaId = s(formData, "turmaId");
+  const dataStr = s(formData, "data");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
+    redirect(`/capacitacao/turmas/${turmaId}?erro=presenca` as Route);
+  }
+  const data = new Date(dataStr);
+  const roster = s(formData, "roster")
+    .split(",")
+    .filter((id) => id.length > 0);
+
+  await db.$transaction(
+    roster.map((matriculaId) =>
+      db.presenca.upsert({
+        where: { matriculaId_data: { matriculaId, data } },
+        create: {
+          matriculaId,
+          data,
+          presente: formData.has(`p_${matriculaId}`),
+          registradoPor: session!.user.id,
+        },
+        update: { presente: formData.has(`p_${matriculaId}`) },
+      }),
+    ),
+  );
+
+  await logEvent({
+    userId: session!.user.id,
+    action: "presenca_registrada",
+    entityType: "turma",
+    entityId: turmaId,
+    meta: { data: dataStr, alunos: roster.length },
+  });
+  redirect(`/capacitacao/turmas/${turmaId}?presenca=ok` as Route);
 }

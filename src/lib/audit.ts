@@ -63,6 +63,7 @@ export type AuditAction =
   | "matricula_transicionada"
   | "matricula_cancelada"
   | "lista_espera_promovida"
+  | "presenca_registrada"
   // Encaminhamento (F1.B)
   | "encaminhamento_criado"
   | "encaminhamento_agendado"

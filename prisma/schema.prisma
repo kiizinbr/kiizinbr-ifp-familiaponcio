@@ -777,6 +777,7 @@ model Matricula {
   turma           Turma           @relation(fields: [turmaId], references: [id], onDelete: Restrict)
   cidadaoId       String
   cidadao         Cidadao         @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
+  presencas       Presenca[]
   status          StatusMatricula @default(inscrito)
   origemTriagemId String?
   observacoes     String?         @db.Text
@@ -790,4 +791,19 @@ model Matricula {
   @@index([cidadaoId])
   @@index([createdBy])
   @@index([origemTriagemId])
+}
+
+/// F1.A.2 — Presença na aula. Uma marcação por matrícula por dia (upsert idempotente).
+model Presenca {
+  id            String    @id @default(cuid())
+  matriculaId   String
+  matricula     Matricula @relation(fields: [matriculaId], references: [id], onDelete: Cascade)
+  data          DateTime  @db.Date
+  presente      Boolean   @default(true)
+  registradoPor String // userId
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([matriculaId, data])
+  @@index([matriculaId])
 }

@@ -59,3 +59,9 @@ export function podeTransicionarMatricula(
   }
   return false;
 }
+
+/** Registrar presença na aula (F1.A.2): gestão e instrutor (profissional). NÃO recepção. */
+export function podeRegistrarPresenca(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+}

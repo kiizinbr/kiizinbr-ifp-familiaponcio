@@ -9,7 +9,7 @@ import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { proximosStatusTurma } from "@/lib/capacitacao/turma";
-import { podeCriarTurma, podeMatricular } from "@/lib/capacitacao/rbac";
+import { podeCriarTurma, podeMatricular, podeRegistrarPresenca } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge, VagasMeter } from "../../_components/ui";
 import {
   promoverListaEsperaAction,
@@ -18,6 +18,7 @@ import {
 } from "../../actions";
 import styles from "../../capacitacao.module.css";
 import { MatricularCombobox } from "./matricular-combobox";
+import { PresencaCard } from "./presenca-card";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
@@ -27,6 +28,7 @@ const ERROS: Record<string, string> = {
   transicao: "Não foi possível mudar o status dessa matrícula.",
   promocao: "Não há ninguém na lista de espera ou a turma está lotada.",
   status: "Não foi possível mudar o status da turma.",
+  presenca: "Não foi possível registrar a presença (data inválida).",
 };
 
 function nome(c: { nomeCompleto: string; nomeSocial: string | null }): string {
@@ -38,14 +40,14 @@ export default async function TurmaDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string }>;
+  searchParams: Promise<{ erro?: string; presenca?: string }>;
 }) {
   const session = await auth();
   if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const { id } = await params;
-  const { erro } = await searchParams;
+  const { erro, presenca } = await searchParams;
 
   const turma = await db.turma.findUnique({
     where: { id },
@@ -53,7 +55,10 @@ export default async function TurmaDetalhePage({
       curso: { select: { id: true, nome: true, area: true } },
       instrutor: { select: { nomeExibicao: true } },
       matriculas: {
-        include: { cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } } },
+        include: {
+          cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
+          presencas: { select: { presente: true } },
+        },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -71,6 +76,13 @@ export default async function TurmaDetalhePage({
 
   const vt = STATUS_TURMA_VISUAL[turma.status];
   const proximosStatus = podeGerir ? proximosStatusTurma(turma.status) : [];
+  const podeReg = podeRegistrarPresenca(session);
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const presencaRoster = matriculados.map((m) => ({
+    id: m.id,
+    nome: nome(m.cidadao),
+    presencas: m.presencas,
+  }));
 
   return (
     <CapacitacaoShell session={session}>
@@ -94,6 +106,7 @@ export default async function TurmaDetalhePage({
         {erro && ERROS[erro] ? (
           <div className={`${styles.alert} ${styles.alertError}`}>{ERROS[erro]}</div>
         ) : null}
+        {presenca === "ok" ? <div className={styles.alert}>Presença do dia registrada.</div> : null}
 
         <div className={styles.grid2}>
           {/* coluna esquerda: vagas + matricular */}
@@ -256,6 +269,10 @@ export default async function TurmaDetalhePage({
             ) : null}
           </div>
         </div>
+
+        {podeReg && presencaRoster.length > 0 ? (
+          <PresencaCard turmaId={turma.id} matriculados={presencaRoster} hoje={hojeISO} />
+        ) : null}
       </div>
     </CapacitacaoShell>
   );
