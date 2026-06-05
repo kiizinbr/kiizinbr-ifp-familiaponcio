@@ -29,6 +29,12 @@ export default auth((req) => {
     return Response.redirect(new URL("/", origin));
   }
 
+  // Troca de senha obrigatória (1º acesso / senha provisória): tranca o app inteiro
+  // até a pessoa definir uma senha própria. /conta/senha fica fora do matcher → sem loop.
+  if (session.user.mustChangePassword) {
+    return Response.redirect(new URL("/conta/senha", origin));
+  }
+
   // /admin/audit → só super_admin (existente)
   if (path.startsWith("/admin/audit")) {
     if (!hasAnyRole(session, "super_admin")) {

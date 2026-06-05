@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { hashToken, tokenExpirado } from "@/lib/reset-token";
 import { logEvent } from "@/lib/audit";
+import { validarTrocaSenha } from "@/lib/senha";
 
 export type DefinirSenhaResult = { ok: false; error: string };
 
@@ -22,8 +23,8 @@ export async function definirNovaSenhaAction(
 ): Promise<DefinirSenhaResult> {
   const senha = String(formData.get("password") ?? "");
   const confirma = String(formData.get("confirm") ?? "");
-  if (senha.length < 8) return { ok: false, error: "A senha deve ter ao menos 8 caracteres." };
-  if (senha !== confirma) return { ok: false, error: "As senhas não conferem." };
+  const erroSenha = validarTrocaSenha(senha, confirma);
+  if (erroSenha) return { ok: false, error: erroSenha };
 
   const reg = await db.passwordResetToken.findUnique({
     where: { tokenHash: hashToken(token) },
@@ -35,7 +36,10 @@ export async function definirNovaSenhaAction(
 
   const hashedPassword = await bcrypt.hash(senha, 12);
   await db.$transaction(async (tx) => {
-    await tx.user.update({ where: { id: reg.userId }, data: { hashedPassword } });
+    await tx.user.update({
+      where: { id: reg.userId },
+      data: { hashedPassword, mustChangePassword: false },
+    });
     await tx.passwordResetToken.updateMany({
       where: { userId: reg.userId, usedAt: null },
       data: { usedAt: new Date() },

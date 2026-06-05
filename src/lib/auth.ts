@@ -36,22 +36,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         roles?: RoleAssignment[];
         primaryRoleName?: RoleName | null;
         primaryUnitScope?: UnitScope | null;
+        mustChangePassword?: boolean;
       };
       if (user?.id || trigger === "update") {
         const userId = user?.id ?? token.sub;
         if (userId) {
           const dbUser = await db.user.findUnique({
             where: { id: userId },
-            select: { primaryRoleName: true, primaryUnitScope: true },
+            select: { primaryRoleName: true, primaryUnitScope: true, mustChangePassword: true },
           });
           t.roles = await loadUserRoles(userId);
           t.primaryRoleName = (dbUser?.primaryRoleName as RoleName | null) ?? null;
           t.primaryUnitScope = (dbUser?.primaryUnitScope as UnitScope | null) ?? null;
+          t.mustChangePassword = dbUser?.mustChangePassword ?? false;
         }
       }
       t.roles ??= [];
       t.primaryRoleName ??= null;
       t.primaryUnitScope ??= null;
+      t.mustChangePassword ??= false;
       return t;
     },
     async session({ session, token }) {
@@ -59,6 +62,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         roles?: RoleAssignment[];
         primaryRoleName?: RoleName | null;
         primaryUnitScope?: UnitScope | null;
+        mustChangePassword?: boolean;
       };
       const roles = t.roles ?? [];
       const primaryRoleName = t.primaryRoleName ?? null;
@@ -72,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           primaryRole: primaryRoleName
             ? { name: primaryRoleName, unitScope: primaryUnitScope }
             : null,
+          mustChangePassword: t.mustChangePassword ?? false,
         },
       };
     },

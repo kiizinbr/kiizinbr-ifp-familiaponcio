@@ -50,6 +50,8 @@ export async function criarUsuarioAction(
         name: d.name,
         email: d.email,
         hashedPassword,
+        // Senha definida pelo admin é provisória: força troca no 1º login (proxy.ts).
+        mustChangePassword: true,
         primaryRoleName: d.roleName,
         primaryUnitScope: d.unitScope,
       },

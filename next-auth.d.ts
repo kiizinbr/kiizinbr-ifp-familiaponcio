@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       roles: RoleAssignment[];
       primaryRole: RoleAssignment | null;
+      mustChangePassword: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -16,5 +17,6 @@ declare module "next-auth/jwt" {
     roles: RoleAssignment[];
     primaryRoleName: RoleName | null;
     primaryUnitScope: UnitScope | null;
+    mustChangePassword: boolean;
   }
 }
