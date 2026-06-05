@@ -51,6 +51,10 @@ services:
       dockerfile: ops/vm/Dockerfile
       target: runner
     env_file: .env.prod
+    environment:
+      # Next standalone precisa bindar 0.0.0.0; sem isso ele escuta no hostname do
+      # container (ID injetado pelo Docker) e o healthcheck via 127.0.0.1 não alcança.
+      HOSTNAME: "0.0.0.0"
     depends_on:
       postgres:
         condition: service_healthy
