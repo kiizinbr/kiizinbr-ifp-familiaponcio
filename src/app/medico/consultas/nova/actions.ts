@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { reservarSlot, SlotIndisponivelError } from "@/lib/medico/agenda";
+import { reservarConsultaSchema } from "@/lib/medico/agenda-schema";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
@@ -19,6 +20,14 @@ export async function reservarConsultaAction(formData: FormData) {
   const especialidadeId = String(formData.get("especialidadeId"));
   const observacoesAgendamento = String(formData.get("observacoes") ?? "").trim() || undefined;
   const encaminhamentoId = String(formData.get("encaminhamentoId") ?? "").trim() || undefined;
+
+  const ids = reservarConsultaSchema.safeParse({
+    slotId,
+    cidadaoId,
+    profissionalId,
+    especialidadeId,
+  });
+  if (!ids.success) throw new Error("Dados de agendamento inválidos");
 
   try {
     const consulta = await reservarSlot({

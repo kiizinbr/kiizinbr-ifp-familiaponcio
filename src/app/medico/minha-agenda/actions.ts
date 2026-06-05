@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessUnidade } from "@/lib/rbac";
 import { gerarSlots, bloquearSlot, liberarSlot } from "@/lib/medico/agenda";
+import { criarTemplateSchema } from "@/lib/medico/agenda-schema";
 import { podeConfigurarAgendaProfissional } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
@@ -19,17 +20,23 @@ export async function criarTemplateAction(formData: FormData) {
   if (!prof) throw new Error("Profissional não encontrado");
   if (!podeConfigurarAgendaProfissional(session, prof.userId)) throw new Error("Sem permissão");
 
-  const diasSemana = formData.getAll("diasSemana").map((v) => Number(v));
-  const faixaInicio = String(formData.get("faixaInicio"));
-  const faixaFim = String(formData.get("faixaFim"));
-  const duracaoSlotMin = Number(formData.get("duracaoSlotMin"));
-  const especialidadeId = String(formData.get("especialidadeId"));
-  const validoDe = new Date(String(formData.get("validoDe")));
-  const validoAteRaw = String(formData.get("validoAte") ?? "");
-  const validoAte = validoAteRaw ? new Date(validoAteRaw) : new Date(validoDe.getTime() + DIAS_90);
-
-  if (diasSemana.length === 0) throw new Error("Selecione ao menos 1 dia da semana");
-  if (!especialidadeId) throw new Error("Selecione a especialidade");
+  const parsed = criarTemplateSchema.safeParse({
+    diasSemana: formData.getAll("diasSemana").map((v) => Number(v)),
+    faixaInicio: String(formData.get("faixaInicio") ?? ""),
+    faixaFim: String(formData.get("faixaFim") ?? ""),
+    duracaoSlotMin: Number(formData.get("duracaoSlotMin")),
+    especialidadeId: String(formData.get("especialidadeId") ?? ""),
+    validoDe: String(formData.get("validoDe") ?? ""),
+    validoAte: String(formData.get("validoAte") ?? ""),
+  });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Dados do template inválidos");
+  }
+  const { diasSemana, faixaInicio, faixaFim, duracaoSlotMin, especialidadeId } = parsed.data;
+  const validoDe = new Date(parsed.data.validoDe);
+  const validoAte = parsed.data.validoAte
+    ? new Date(parsed.data.validoAte)
+    : new Date(validoDe.getTime() + DIAS_90);
 
   const template = await db.agendaTemplate.create({
     data: {

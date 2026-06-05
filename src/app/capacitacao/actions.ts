@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import type { StatusMatricula } from "@prisma/client";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -35,6 +35,18 @@ function num(formData: FormData, key: string, def: number): number {
   const v = Number(s(formData, key));
   return Number.isFinite(v) && v > 0 ? v : def;
 }
+
+/** Valida a transição vinda do form (antes era um cast cego `as StatusMatricula`). */
+const statusMatriculaSchema = z.enum([
+  "lista_espera",
+  "inscrito",
+  "confirmado",
+  "cursando",
+  "concluido",
+  "reprovado",
+  "desistente",
+  "cancelado",
+]);
 
 export async function criarCursoAction(formData: FormData) {
   const session = await auth();
@@ -119,7 +131,11 @@ export async function transicionarMatriculaAction(formData: FormData) {
   if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
   const matriculaId = s(formData, "matriculaId");
   const turmaId = s(formData, "turmaId");
-  const para = s(formData, "para") as StatusMatricula;
+  const paraParsed = statusMatriculaSchema.safeParse(s(formData, "para"));
+  if (!paraParsed.success) {
+    redirect(`/capacitacao/turmas/${turmaId}?erro=transicao` as Route);
+  }
+  const para = paraParsed.data;
   const motivoSaida = sOpt(formData, "motivoSaida") ?? undefined;
   const m = await db.matricula.findUniqueOrThrow({ where: { id: matriculaId } });
   if (!rbacPodeTransicionarMatricula(session, m.status, para)) throw new Error("Sem permissão");
