@@ -24,6 +24,7 @@
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
     "db:generate": "dotenv -e .env.local -- prisma generate",
+    "import:alunos:dry": "tsx scripts/import-alunos-dryrun.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
