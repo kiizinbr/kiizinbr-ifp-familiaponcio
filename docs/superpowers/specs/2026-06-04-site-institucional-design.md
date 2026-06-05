@@ -2,14 +2,26 @@
 
 **Data:** 2026-06-04
 **Onde:** app IFP Connect (Next.js) — a rota pública `/`
-**Status:** direção visual **C (Imersivo Color-Forward)** aprovada por Erick via mockup; conteúdo/tom definidos.
+**Status:** ✅ **IMPLEMENTADO no `/` do app (2026-06-04)** — pivot para o **handoff do Claude Designer** (`ProjetoVisualIFP`). A direção C descrita abaixo virou referência histórica do brainstorming; ver **"Implementação real"** logo abaixo.
 
 ## Objetivo
 
 Substituir a landing mínima atual (`src/app/page.tsx`, hoje um grid de cards-de-login) por um **site institucional one-page, novo e vibrante** — a cara pública do Instituto Família Pôncio. O mesmo deploy Next.js serve o site público (em `/`) e o sistema interno (atrás do login). Um **"Acesso ao Sistema"** no topo abre um dropdown com as unidades, levando ao login de cada uma.
 
 ### Sucesso =
+
 Um visitante (comunidade, parceiro, empresa) abre `/`, entende em segundos o que o Instituto é e faz, navega pelas 4 unidades, sente a identidade (acolhimento + fé equilibrada + transformação social) e, se for da equipe, acessa o sistema pelo dropdown.
+
+## Implementação real (2026-06-04) — handoff do Designer
+
+**Pivot:** em vez de construir a direção C do zero, Erick gerou o site no **Claude Designer** (pacote `C:\Dev\ProjetoVisualIFP (1).zip`), gostou mais que os mocks, e pediu pra implementar. O que está **no ar em `/`**:
+
+- **Site one-page do Designer:** splash com leão · nav · dropdown "Acesso ao Sistema" · hero com **emblema central + 4 medalhões de unidade orbitando** (slideshow das fotos aéreas) · cards de unidade com medalhão temático + adereço · banner aéreo · Quem Somos · galeria "Momentos" · Impacto (count-up) · **"Faça parte"** (voluntário/compartilhe/indique — **sem doação**) · **Palavra do Dia** (versículo diário) · rodapé · **transição de leão** ao entrar no sistema.
+- **Mascote/leão resolvido pelo Designer** (dispensou o "mascote-em-faixas" da direção C): `lion-white.png` (sobre disco colorido) + `lion-brown.png` (sobre claro), medalhão na cor da unidade + anel girando + adereço por unidade = o "leão veste a unidade".
+- **Arquitetura real (≠ componentes React planejados abaixo):** `src/app/page.tsx` (server) renderiza o markup via `dangerouslySetInnerHTML` a partir da **constante de build** `src/components/site/site-content.ts` (markup estático do Designer, sem input de usuário → sem XSS); estilos em `src/styles/site.css` (importado só na `/`); comportamentos vanilla em `/public/site/site.js` + `image-slot.js` (via `next/script`); assets em `/public/{loaders,fotos}`. `data-go` reescrito pras rotas reais `/<unidade>/login`. `public/**` adicionado ao ignore do ESLint (scripts vendados).
+- **Serviço Social = transversal** (atende DENTRO de todas as unidades, visita todas dia a dia): fora dos cards públicos; no dropdown vira grupo "Equipe interna" com texto "Atende em todas as unidades, dia a dia".
+- **Gates verdes:** format + typecheck + lint + build. **Pendências:** otimizar fotos aéreas (~2–3MB cada); fotos externas (Wix) → trocar por locais/placeholder; e2e; a transição/animações de leão são suprimidas sob `prefers-reduced-motion` (servidor do Erick tem isso ligado → ele não vê a transição; visitante normal vê — avaliar exceção como no `site-c`).
+- **Gotcha de ambiente:** dev server roda no WSL observando `/mnt/c` (FS Windows) → **inotify não pega edições do lado Windows**; mudança em arquivo compilado exige **reiniciar o `pnpm dev`** (arquivos estáticos do `public/` atualizam sozinhos). Verify/build via `wsl ... bash /mnt/c/.../script.sh` **pelo PowerShell** (o Bash-tool/Git-Bash mangla o path `/mnt/c`).
 
 ## Decisões fechadas (com Erick, 2026-06-04)
 
@@ -24,6 +36,7 @@ Um visitante (comunidade, parceiro, empresa) abre `/`, entende em segundos o que
 ## Direção visual (C — Imersivo Color-Forward)
 
 Referência viva: **`public/lab/site-c.html`** (a implementação real recria isto como página Next). Características:
+
 - **Cor protagonista:** campos saturados do brandbook; **cada unidade é uma faixa full-bleed no seu acento** (médico=teal `#007571`, capacitação=laranja `#FF772E`, esportivo=laranja-escuro `#C24D0F`, recreativo=teal-claro `#10C2BB`), com gradiente rico dentro da própria família de cor, watermark-glyph gigante, numeração mono (01–04) e padrão diagonal sutil. (Cinza saiu — era do Serviço Social, que não é unidade.)
 - **Hero imersivo:** cena de cor cheia (gradiente teal-escuro→marrom) + fita diagonal laranja + foto (`/unidades/medico.jpg`) + glows desfocados; "spectrum bar" das 5 cores logo abaixo.
 - **Versículo** (Provérbios 11:25) e **Parcerias** como painéis imersivos de cor; **Impacto** em campos/cards de cor cheia.
@@ -40,6 +53,7 @@ Erick criou (export `C:\Dev\Mascote Loaders (offline).html`) uma família de **l
 ## Arquitetura / implementação
 
 A página é construída **de verdade no app** (não fica como HTML do lab):
+
 - **`src/app/page.tsx`** (server component) — reescrita: renderiza as seções do site. Substitui o conteúdo atual.
 - **`src/components/site/site.module.css`** — CSS Module com o estilo imersivo do site público (é uma cara PRÓPRIA, distinta da "ferramenta clínica" do kit). Reusa as **fontes self-hostadas** (Hanken/IBM Plex já em `/public/fonts`) e a **paleta do brandbook** (`--ifp-*` / hexes), mas o layout/seções são do site. NÃO depende do `.ifp-kit`. Os componentes de `src/components/site/` importam ele.
 - **`src/components/site/acesso-sistema.tsx`** (client) — o botão "Acesso ao Sistema" + dropdown (toggle), com os links das 4 unidades `/${slug}/login` (medico, capacitacao, esportivo, recreativo) sob "Unidades", e um grupo **"Equipe interna"** com Serviço Social (`/social/login`) + "Acesso executivo" (`/poncio/login`). Fecha no clique-fora/Esc.
@@ -54,7 +68,7 @@ A página é construída **de verdade no app** (não fica como HTML do lab):
 - **Hero:** eyebrow "Instituto Família Pôncio · Duque de Caxias / RJ"; título "Mudar realidades com abrigo, saúde, educação e amor."; subtítulo "Cuidamos de famílias e crianças de Duque de Caxias em cinco frentes — saúde, capacitação, esporte, recreação e acolhimento social."; CTAs "Conheça nossas unidades" + "Fale com a gente" (**sem doação**).
 - **Unidades (4):** Centro Médico (saúde + odontológico), Centro de Capacitação (cursos/capacitação profissional), Centro Esportivo (esporte + Jiu-Jitsu), Centro Recreativo (recreação/cuidado infantil) — descrições no mockup. **Serviço Social NÃO entra como unidade** (é apoio interno/triagem); fica fora das faixas públicas, só com acesso ao sistema no dropdown ("Equipe interna").
 - **Quem Somos:** Missão "Mudar realidades através de abrigo, amor, saúde, educação e capacitação profissional."; Visão "Ser referência em todas as esferas de atendimento ao próximo."; Valores "Familiares e direcionados pelos princípios da palavra de Deus."; origem (experiência espiritual, cuidar de crianças); **Versículo** Provérbios 11:25 em destaque.
-- **Impacto (placeholder*):** 4 unidades · +500 famílias* · +8 anos* · centenas de crianças* (marcados "a confirmar").
+- **Impacto (placeholder\*):** 4 unidades · +500 famílias* · +8 anos* · centenas de crianças\* (marcados "a confirmar").
 - **Parcerias:** "Construído com quem acredita." — empresas/parceiros caminham com o instituto; CTA "Seja um parceiro"/"Fale com a gente" → contato. **Nunca "doar".**
 - **Contato/rodapé:** Duque de Caxias / RJ; telefone/WhatsApp/e-mail/endereço = placeholder "a confirmar"; redes Instagram + YouTube @institutofamiliaponcio; rodapé "© Instituto Família Pôncio — organização filantrópica sem fins lucrativos".
 

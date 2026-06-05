@@ -14,6 +14,7 @@ export default tseslint.config(
       "*.config.{ts,mjs,js}",
       "tests/**",
       "docs/**",
+      "public/**",
     ],
   },
   js.configs.recommended,

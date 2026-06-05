@@ -1,1041 +1,1284 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR" data-theme="light">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>IFP - Hero - variantes de gradiente</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-<style>
-:root{
-  --laranja:#FF772E;--laranja-escuro:#C24D0F;--marrom:#752C05;--teal-escuro:#007571;--teal-claro:#10C2BB;--branco:#fff;
-  --sans:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-}
-*,*::before,*::after{box-sizing:border-box;}
-body{margin:0;background:#0e1414;font-family:var(--sans);color:#fff;-webkit-font-smoothing:antialiased;}
-.page{max-width:1680px;margin-inline:auto;padding:34px clamp(16px,3vw,44px) 90px;}
-.page > header{padding:14px 4px 24px;border-bottom:1px solid rgba(255,255,255,.1);}
-.page h1{font-size:26px;font-weight:900;letter-spacing:-0.02em;margin:0 0 8px;}
-.page .lede{color:#9fb0b0;font-size:14.5px;max-width:80ch;line-height:1.5;}
-.vlabel{display:flex;align-items:baseline;gap:14px;margin:46px 2px 14px;flex-wrap:wrap;}
-.vlabel .tag{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#10C2BB;background:rgba(16,194,187,.12);border:1px solid rgba(16,194,187,.32);padding:5px 12px;border-radius:999px;}
-.vlabel .nm{font-size:19px;font-weight:800;}
-.vlabel .ap{color:#90a0a0;font-size:13.5px;flex:1 1 320px;line-height:1.45;}
-.vstage{width:100%;}
-</style>
-</head>
-<body>
-<div class="page">
-<header>
-<h1>Hero - 5 tratamentos de gradiente (largura ampla / widescreen)</h1>
-<p class="lede">Mesma estrutura e conteudo, so muda a paleta/gradiente do brandbook. Cada bloco ocupa a largura cheia - sem coluna estreita centralizada. Escolha 1, ou diga algo tipo "mistura a V2 com a V5". O leao animado e as 4 faixas de unidade ja estao no site principal (site-c.html).</p>
-</header>
-<div class="vlabel"><span class="tag">V1</span><span class="nm">Aurora Mesh</span><span class="ap">Mesh de gradientes radiais sobrepostos (teal-escuro de base, blooms de laranja, teal-claro e marrom) formando uma aurora premium sem bordas duras, com camadas de blur e sombras profundas, foto ausente.</span></div>
-<div class="vstage"><style>
-  .hv1-hero {
-    --hv1-laranja: #FF772E;
-    --hv1-laranja-escuro: #C24D0F;
-    --hv1-marrom: #752C05;
-    --hv1-teal-escuro: #007571;
-    --hv1-teal-claro: #10C2BB;
-    --hv1-branco: #fff;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IFP - Hero - variantes de gradiente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --laranja: #ff772e;
+        --laranja-escuro: #c24d0f;
+        --marrom: #752c05;
+        --teal-escuro: #007571;
+        --teal-claro: #10c2bb;
+        --branco: #fff;
+        --sans: "Hanken Grotesk", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #0e1414;
+        font-family: var(--sans);
+        color: #fff;
+        -webkit-font-smoothing: antialiased;
+      }
+      .page {
+        max-width: 1680px;
+        margin-inline: auto;
+        padding: 34px clamp(16px, 3vw, 44px) 90px;
+      }
+      .page > header {
+        padding: 14px 4px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .page h1 {
+        font-size: 26px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+      }
+      .page .lede {
+        color: #9fb0b0;
+        font-size: 14.5px;
+        max-width: 80ch;
+        line-height: 1.5;
+      }
+      .vlabel {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        margin: 46px 2px 14px;
+        flex-wrap: wrap;
+      }
+      .vlabel .tag {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #10c2bb;
+        background: rgba(16, 194, 187, 0.12);
+        border: 1px solid rgba(16, 194, 187, 0.32);
+        padding: 5px 12px;
+        border-radius: 999px;
+      }
+      .vlabel .nm {
+        font-size: 19px;
+        font-weight: 800;
+      }
+      .vlabel .ap {
+        color: #90a0a0;
+        font-size: 13.5px;
+        flex: 1 1 320px;
+        line-height: 1.45;
+      }
+      .vstage {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Hero - 5 tratamentos de gradiente (largura ampla / widescreen)</h1>
+        <p class="lede">
+          Mesma estrutura e conteudo, so muda a paleta/gradiente do brandbook. Cada bloco ocupa a
+          largura cheia - sem coluna estreita centralizada. Escolha 1, ou diga algo tipo "mistura a
+          V2 com a V5". O leao animado e as 4 faixas de unidade ja estao no site principal
+          (site-c.html).
+        </p>
+      </header>
+      <div class="vlabel">
+        <span class="tag">V1</span><span class="nm">Aurora Mesh</span
+        ><span class="ap"
+          >Mesh de gradientes radiais sobrepostos (teal-escuro de base, blooms de laranja,
+          teal-claro e marrom) formando uma aurora premium sem bordas duras, com camadas de blur e
+          sombras profundas, foto ausente.</span
+        >
+      </div>
+      <div class="vstage">
+        <style>
+          .hv1-hero {
+            --hv1-laranja: #ff772e;
+            --hv1-laranja-escuro: #c24d0f;
+            --hv1-marrom: #752c05;
+            --hv1-teal-escuro: #007571;
+            --hv1-teal-claro: #10c2bb;
+            --hv1-branco: #fff;
 
-    position: relative;
-    overflow: hidden;
-    min-height: clamp(440px, 58vh, 560px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 28px;
-    padding: clamp(32px, 5vw, 64px);
-    box-sizing: border-box;
-    font-family: var(--sans), "Hanken Grotesk", system-ui, sans-serif;
-    color: var(--hv1-branco);
-    isolation: isolate;
-    /* base profunda teal-escuro -> marrom para ancorar a aurora */
-    background-color: #003f3d;
-    background-image:
-      radial-gradient(125% 95% at 8% -10%, rgba(16, 194, 187, 0.55) 0%, rgba(16, 194, 187, 0) 55%),
-      radial-gradient(120% 110% at 95% 8%, rgba(255, 119, 46, 0.62) 0%, rgba(255, 119, 46, 0) 52%),
-      radial-gradient(140% 130% at 78% 120%, rgba(194, 77, 15, 0.55) 0%, rgba(194, 77, 15, 0) 50%),
-      radial-gradient(150% 120% at 18% 118%, rgba(117, 44, 5, 0.55) 0%, rgba(117, 44, 5, 0) 48%),
-      radial-gradient(130% 120% at 50% 50%, rgba(0, 117, 113, 0.45) 0%, rgba(0, 117, 113, 0) 60%),
-      linear-gradient(155deg, #00514f 0%, #006c69 38%, #5a2207 100%);
-    box-shadow:
-      0 32px 70px -28px rgba(0, 49, 47, 0.7),
-      0 8px 24px -12px rgba(117, 44, 5, 0.45);
-  }
+            position: relative;
+            overflow: hidden;
+            min-height: clamp(440px, 58vh, 560px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-radius: 28px;
+            padding: clamp(32px, 5vw, 64px);
+            box-sizing: border-box;
+            font-family: var(--sans), "Hanken Grotesk", system-ui, sans-serif;
+            color: var(--hv1-branco);
+            isolation: isolate;
+            /* base profunda teal-escuro -> marrom para ancorar a aurora */
+            background-color: #003f3d;
+            background-image:
+              radial-gradient(
+                125% 95% at 8% -10%,
+                rgba(16, 194, 187, 0.55) 0%,
+                rgba(16, 194, 187, 0) 55%
+              ),
+              radial-gradient(
+                120% 110% at 95% 8%,
+                rgba(255, 119, 46, 0.62) 0%,
+                rgba(255, 119, 46, 0) 52%
+              ),
+              radial-gradient(
+                140% 130% at 78% 120%,
+                rgba(194, 77, 15, 0.55) 0%,
+                rgba(194, 77, 15, 0) 50%
+              ),
+              radial-gradient(
+                150% 120% at 18% 118%,
+                rgba(117, 44, 5, 0.55) 0%,
+                rgba(117, 44, 5, 0) 48%
+              ),
+              radial-gradient(
+                130% 120% at 50% 50%,
+                rgba(0, 117, 113, 0.45) 0%,
+                rgba(0, 117, 113, 0) 60%
+              ),
+              linear-gradient(155deg, #00514f 0%, #006c69 38%, #5a2207 100%);
+            box-shadow:
+              0 32px 70px -28px rgba(0, 49, 47, 0.7),
+              0 8px 24px -12px rgba(117, 44, 5, 0.45);
+          }
 
-  /* camada de blooms extra com blur para suavizar e dar profundidade de aurora */
-  .hv1-hero::before {
-    content: "";
-    position: absolute;
-    inset: -25%;
-    z-index: 0;
-    pointer-events: none;
-    background-image:
-      radial-gradient(38% 46% at 30% 22%, rgba(16, 194, 187, 0.75) 0%, rgba(16, 194, 187, 0) 70%),
-      radial-gradient(42% 50% at 82% 30%, rgba(255, 119, 46, 0.70) 0%, rgba(255, 119, 46, 0) 70%),
-      radial-gradient(46% 54% at 60% 88%, rgba(194, 77, 15, 0.60) 0%, rgba(194, 77, 15, 0) 72%),
-      radial-gradient(40% 48% at 12% 78%, rgba(0, 117, 113, 0.65) 0%, rgba(0, 117, 113, 0) 70%);
-    filter: blur(48px) saturate(118%);
-    opacity: 0.9;
-  }
+          /* camada de blooms extra com blur para suavizar e dar profundidade de aurora */
+          .hv1-hero::before {
+            content: "";
+            position: absolute;
+            inset: -25%;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+              radial-gradient(
+                38% 46% at 30% 22%,
+                rgba(16, 194, 187, 0.75) 0%,
+                rgba(16, 194, 187, 0) 70%
+              ),
+              radial-gradient(
+                42% 50% at 82% 30%,
+                rgba(255, 119, 46, 0.7) 0%,
+                rgba(255, 119, 46, 0) 70%
+              ),
+              radial-gradient(
+                46% 54% at 60% 88%,
+                rgba(194, 77, 15, 0.6) 0%,
+                rgba(194, 77, 15, 0) 72%
+              ),
+              radial-gradient(
+                40% 48% at 12% 78%,
+                rgba(0, 117, 113, 0.65) 0%,
+                rgba(0, 117, 113, 0) 70%
+              );
+            filter: blur(48px) saturate(118%);
+            opacity: 0.9;
+          }
 
-  /* véu sutil para garantir contraste AA do texto sobre a aurora */
-  .hv1-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background:
-      radial-gradient(120% 120% at 18% 30%, rgba(0, 40, 38, 0.42) 0%, rgba(0, 40, 38, 0) 58%),
-      linear-gradient(100deg, rgba(0, 38, 36, 0.5) 0%, rgba(0, 38, 36, 0.12) 46%, rgba(0, 38, 36, 0) 70%);
-    mix-blend-mode: multiply;
-  }
+          /* véu sutil para garantir contraste AA do texto sobre a aurora */
+          .hv1-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+              radial-gradient(
+                120% 120% at 18% 30%,
+                rgba(0, 40, 38, 0.42) 0%,
+                rgba(0, 40, 38, 0) 58%
+              ),
+              linear-gradient(
+                100deg,
+                rgba(0, 38, 36, 0.5) 0%,
+                rgba(0, 38, 36, 0.12) 46%,
+                rgba(0, 38, 36, 0) 70%
+              );
+            mix-blend-mode: multiply;
+          }
 
-  .hv1-inner {
-    position: relative;
-    z-index: 2;
-    max-width: 720px;
-  }
+          .hv1-inner {
+            position: relative;
+            z-index: 2;
+            max-width: 720px;
+          }
 
-  .hv1-eyebrow {
-    font-family: var(--mono), "IBM Plex Mono", ui-monospace, monospace;
-    font-size: clamp(11px, 1.05vw, 13px);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    margin: 0 0 22px;
-    color: var(--hv1-branco);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  }
+          .hv1-eyebrow {
+            font-family: var(--mono), "IBM Plex Mono", ui-monospace, monospace;
+            font-size: clamp(11px, 1.05vw, 13px);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin: 0 0 22px;
+            color: var(--hv1-branco);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+          }
 
-  .hv1-eyebrow::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--hv1-teal-claro);
-    box-shadow: 0 0 12px 2px rgba(16, 194, 187, 0.9);
-  }
+          .hv1-eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--hv1-teal-claro);
+            box-shadow: 0 0 12px 2px rgba(16, 194, 187, 0.9);
+          }
 
-  .hv1-titulo {
-    font-family: var(--sans), "Hanken Grotesk", system-ui, sans-serif;
-    font-weight: 800;
-    font-size: clamp(32px, 5.4vw, 60px);
-    line-height: 1.04;
-    letter-spacing: -0.02em;
-    margin: 0 0 20px;
-    color: var(--hv1-branco);
-    text-shadow: 0 2px 24px rgba(0, 36, 34, 0.45);
-    text-wrap: balance;
-  }
+          .hv1-titulo {
+            font-family: var(--sans), "Hanken Grotesk", system-ui, sans-serif;
+            font-weight: 800;
+            font-size: clamp(32px, 5.4vw, 60px);
+            line-height: 1.04;
+            letter-spacing: -0.02em;
+            margin: 0 0 20px;
+            color: var(--hv1-branco);
+            text-shadow: 0 2px 24px rgba(0, 36, 34, 0.45);
+            text-wrap: balance;
+          }
 
-  .hv1-amor {
-    background: linear-gradient(92deg, #ffd9a0 0%, var(--hv1-laranja) 45%, var(--hv1-teal-claro) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none;
-  }
+          .hv1-amor {
+            background: linear-gradient(
+              92deg,
+              #ffd9a0 0%,
+              var(--hv1-laranja) 45%,
+              var(--hv1-teal-claro) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: none;
+          }
 
-  .hv1-sub {
-    font-size: clamp(15px, 1.7vw, 19px);
-    line-height: 1.55;
-    margin: 0 0 34px;
-    max-width: 620px;
-    color: rgba(255, 255, 255, 0.94);
-    text-shadow: 0 1px 14px rgba(0, 36, 34, 0.4);
-  }
+          .hv1-sub {
+            font-size: clamp(15px, 1.7vw, 19px);
+            line-height: 1.55;
+            margin: 0 0 34px;
+            max-width: 620px;
+            color: rgba(255, 255, 255, 0.94);
+            text-shadow: 0 1px 14px rgba(0, 36, 34, 0.4);
+          }
 
-  .hv1-ctas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-  }
+          .hv1-ctas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+          }
 
-  .hv1-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    font-family: var(--sans), "Hanken Grotesk", system-ui, sans-serif;
-    font-weight: 700;
-    font-size: clamp(14px, 1.4vw, 16px);
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    padding: 15px 28px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    cursor: pointer;
-  }
+          .hv1-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            font-family: var(--sans), "Hanken Grotesk", system-ui, sans-serif;
+            font-weight: 700;
+            font-size: clamp(14px, 1.4vw, 16px);
+            letter-spacing: 0.01em;
+            text-decoration: none;
+            padding: 15px 28px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            cursor: pointer;
+          }
 
-  .hv1-cta-primaria {
-    color: var(--hv1-marrom);
-    background: linear-gradient(180deg, #ffffff 0%, #fff1e4 100%);
-    box-shadow:
-      0 14px 30px -10px rgba(255, 119, 46, 0.55),
-      0 4px 10px -4px rgba(0, 36, 34, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  }
+          .hv1-cta-primaria {
+            color: var(--hv1-marrom);
+            background: linear-gradient(180deg, #ffffff 0%, #fff1e4 100%);
+            box-shadow:
+              0 14px 30px -10px rgba(255, 119, 46, 0.55),
+              0 4px 10px -4px rgba(0, 36, 34, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          }
 
-  .hv1-cta-primaria::after {
-    content: "\2192";
-    font-weight: 700;
-  }
+          .hv1-cta-primaria::after {
+            content: "\2192";
+            font-weight: 700;
+          }
 
-  .hv1-cta-secundaria {
-    color: var(--hv1-branco);
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.42);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      0 10px 24px -14px rgba(0, 36, 34, 0.6);
-  }
+          .hv1-cta-secundaria {
+            color: var(--hv1-branco);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.42);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.25),
+              0 10px 24px -14px rgba(0, 36, 34, 0.6);
+          }
 
-  @media (max-width: 540px) {
-    .hv1-cta {
-      flex: 1 1 auto;
-    }
-  }
-</style>
+          @media (max-width: 540px) {
+            .hv1-cta {
+              flex: 1 1 auto;
+            }
+          }
+        </style>
 
-<section class="hv1-hero" aria-label="Instituto Familia Poncio">
-  <div class="hv1-inner">
-    <p class="hv1-eyebrow">Instituto Familia Poncio · Duque de Caxias / RJ</p>
-    <h1 class="hv1-titulo">Mudar realidades com abrigo, saude, educacao e <span class="hv1-amor">amor</span>.</h1>
-    <p class="hv1-sub">Cuidamos de familias e criancas de Duque de Caxias em quatro frentes — saude, capacitacao, esporte e recreacao.</p>
-    <div class="hv1-ctas">
-      <a class="hv1-cta hv1-cta-primaria" href="#unidades">Conheca nossas unidades</a>
-      <a class="hv1-cta hv1-cta-secundaria" href="#contato">Fale com a gente</a>
+        <section class="hv1-hero" aria-label="Instituto Familia Poncio">
+          <div class="hv1-inner">
+            <p class="hv1-eyebrow">Instituto Familia Poncio · Duque de Caxias / RJ</p>
+            <h1 class="hv1-titulo">
+              Mudar realidades com abrigo, saude, educacao e <span class="hv1-amor">amor</span>.
+            </h1>
+            <p class="hv1-sub">
+              Cuidamos de familias e criancas de Duque de Caxias em quatro frentes — saude,
+              capacitacao, esporte e recreacao.
+            </p>
+            <div class="hv1-ctas">
+              <a class="hv1-cta hv1-cta-primaria" href="#unidades">Conheca nossas unidades</a>
+              <a class="hv1-cta hv1-cta-secundaria" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="vlabel">
+        <span class="tag">V2</span><span class="nm">Corte Diagonal Pôster</span
+        ><span class="ap"
+          >Dois campos de cor chapada do brandbook (teal-escuro e laranja) encontrando-se num corte
+          diagonal duro via clip-path, com tipografia grande editorial em camadas e foto encaixada
+          no campo laranja.</span
+        >
+      </div>
+      <div class="vstage">
+        <style>
+          .hv2-hero {
+            --hv2-cut: 58%;
+            position: relative;
+            isolation: isolate;
+            min-height: clamp(440px, 58vh, 560px);
+            border-radius: 28px;
+            overflow: hidden;
+            padding: clamp(2rem, 5vw, 4.5rem);
+            display: grid;
+            align-content: center;
+            background: var(--marrom);
+            font-family: var(--sans);
+            box-shadow:
+              0 2px 4px rgba(60, 18, 0, 0.12),
+              0 24px 60px -20px rgba(60, 18, 0, 0.55),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+          }
+
+          /* Campo de baixo: laranja (full bleed) */
+          .hv2-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(
+              120% 140% at 85% 90%,
+              var(--laranja) 0%,
+              var(--laranja-escuro) 70%,
+              var(--marrom) 100%
+            );
+          }
+
+          /* Campo de cima: teal-escuro cortado na diagonal dura */
+          .hv2-campo-teal {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(
+              155deg,
+              var(--teal-claro) -10%,
+              var(--teal-escuro) 55%,
+              #014b48 105%
+            );
+            clip-path: polygon(0 0, 100% 0, 100% var(--hv2-cut), 0 100%);
+            box-shadow: 0 18px 40px -16px rgba(0, 40, 38, 0.6);
+          }
+
+          /* Filete de luz no corte (linha dura editorial) */
+          .hv2-campo-teal::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              155deg,
+              transparent 0%,
+              transparent 55%,
+              rgba(255, 255, 255, 0.85) 55.4%,
+              transparent 56%
+            );
+            clip-path: polygon(0 0, 100% 0, 100% var(--hv2-cut), 0 100%);
+            mix-blend-mode: overlay;
+            opacity: 0.9;
+          }
+
+          /* Foto encaixada no campo laranja (canto inferior direito) */
+          .hv2-foto {
+            position: absolute;
+            z-index: 2;
+            right: clamp(-2rem, -2vw, 1.5rem);
+            bottom: clamp(-1.5rem, -1vw, 1.5rem);
+            width: clamp(180px, 34%, 360px);
+            aspect-ratio: 4 / 5;
+            object-fit: cover;
+            border-radius: 22px;
+            border: 4px solid var(--branco);
+            box-shadow:
+              0 18px 50px -12px rgba(60, 18, 0, 0.65),
+              0 4px 10px rgba(60, 18, 0, 0.3);
+            transform: rotate(3deg);
+          }
+
+          /* Conteúdo */
+          .hv2-conteudo {
+            position: relative;
+            z-index: 3;
+            max-width: 38ch;
+            color: var(--branco);
+          }
+
+          .hv2-eyebrow {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: clamp(0.62rem, 1.3vw, 0.78rem);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--branco);
+            background: rgba(0, 49, 47, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            padding: 0.5rem 0.85rem;
+            border-radius: 999px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            margin-bottom: clamp(1rem, 2.5vw, 1.6rem);
+            text-shadow: 0 1px 2px rgba(0, 30, 28, 0.5);
+          }
+
+          .hv2-titulo {
+            margin: 0;
+            font-size: clamp(2.1rem, 6vw, 3.9rem);
+            line-height: 0.98;
+            letter-spacing: -0.025em;
+            font-weight: 800;
+            color: var(--branco);
+            text-shadow: 0 2px 14px rgba(0, 30, 28, 0.45);
+          }
+
+          .hv2-amor {
+            display: inline-block;
+            background: linear-gradient(
+              100deg,
+              #ffe9a8 0%,
+              var(--laranja) 60%,
+              var(--laranja-escuro) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: none;
+            font-style: italic;
+          }
+
+          .hv2-sub {
+            margin: clamp(1rem, 2.4vw, 1.5rem) 0 0;
+            max-width: 40ch;
+            font-size: clamp(0.95rem, 1.7vw, 1.12rem);
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.94);
+            text-shadow: 0 1px 8px rgba(0, 30, 28, 0.4);
+          }
+
+          .hv2-ctas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+            margin-top: clamp(1.5rem, 3vw, 2.2rem);
+          }
+
+          .hv2-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--sans);
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            text-decoration: none;
+            padding: 0.85rem 1.5rem;
+            border-radius: 999px;
+            transition: none;
+          }
+
+          .hv2-cta-primaria {
+            color: var(--marrom);
+            background: var(--branco);
+            box-shadow:
+              0 10px 24px -8px rgba(0, 0, 0, 0.45),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+          }
+
+          .hv2-cta-secundaria {
+            color: var(--branco);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1.5px solid rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+          }
+
+          @media (max-width: 640px) {
+            .hv2-hero {
+              --hv2-cut: 70%;
+            }
+            .hv2-foto {
+              opacity: 0.85;
+              width: 46%;
+            }
+            .hv2-conteudo {
+              max-width: 100%;
+            }
+          }
+        </style>
+
+        <section class="hv2-hero">
+          <div class="hv2-campo-teal" aria-hidden="true"></div>
+          <img class="hv2-foto" src="/unidades/medico.jpg" alt="Sede do Instituto Família Pôncio" />
+
+          <div class="hv2-conteudo">
+            <span class="hv2-eyebrow">Instituto Família Pôncio · Duque de Caxias / RJ</span>
+            <h1 class="hv2-titulo">
+              Mudar realidades com abrigo, saúde, educação e <span class="hv2-amor">amor</span>.
+            </h1>
+            <p class="hv2-sub">
+              Cuidamos de famílias e crianças de Duque de Caxias em quatro frentes — saúde,
+              capacitação, esporte e recreação.
+            </p>
+            <div class="hv2-ctas">
+              <a class="hv2-cta hv2-cta-primaria" href="#unidades">Conheça nossas unidades</a>
+              <a class="hv2-cta hv2-cta-secundaria" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="vlabel">
+        <span class="tag">V3</span><span class="nm">Fitas em Camadas</span
+        ><span class="ap"
+          >Base teal-escuro com 3 fitas diagonais translucidas sobrepostas (laranja, teal-claro,
+          marrom) usando gradientes e blur, separadas por sombras internas para gerar profundidade e
+          movimento estatico.</span
+        >
+      </div>
+      <div class="vstage">
+        <style>
+          .hv3-hero {
+            --hv3-base: var(--teal-escuro, #007571);
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: clamp(440px, 58vh, 560px);
+            border-radius: 28px;
+            padding: clamp(32px, 5vw, 64px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: clamp(18px, 2.4vw, 26px);
+            background:
+              radial-gradient(120% 140% at 8% 0%, #00908b 0%, rgba(0, 144, 139, 0) 55%),
+              radial-gradient(130% 150% at 100% 100%, #00605d 0%, rgba(0, 96, 93, 0) 60%),
+              linear-gradient(150deg, #007571 0%, #00524f 100%);
+            color: var(--branco, #fff);
+            font-family: var(--sans, "Hanken Grotesk"), system-ui, sans-serif;
+            box-shadow:
+              0 30px 70px -28px rgba(20, 12, 4, 0.55),
+              inset 0 1px 0 rgba(255, 255, 255, 0.12);
+          }
+
+          /* camada de fitas diagonais sobrepostas */
+          .hv3-ribbons {
+            position: absolute;
+            inset: -20% -10%;
+            z-index: -2;
+            pointer-events: none;
+          }
+          .hv3-ribbon {
+            position: absolute;
+            left: -25%;
+            right: -25%;
+            height: clamp(150px, 24vh, 230px);
+            transform: rotate(-19deg);
+            transform-origin: center;
+            border-radius: 999px;
+            filter: blur(2px);
+            mix-blend-mode: screen;
+          }
+          /* fita marrom — mais ao fundo */
+          .hv3-ribbon--marrom {
+            top: 6%;
+            background: linear-gradient(
+              90deg,
+              rgba(117, 44, 5, 0) 0%,
+              rgba(117, 44, 5, 0.55) 30%,
+              rgba(194, 77, 15, 0.62) 60%,
+              rgba(117, 44, 5, 0) 100%
+            );
+            height: clamp(180px, 30vh, 280px);
+            filter: blur(6px);
+            opacity: 0.85;
+          }
+          /* fita teal-claro — camada intermediaria */
+          .hv3-ribbon--teal {
+            top: 34%;
+            background: linear-gradient(
+              90deg,
+              rgba(16, 194, 187, 0) 0%,
+              rgba(16, 194, 187, 0.5) 35%,
+              rgba(16, 194, 187, 0.72) 65%,
+              rgba(16, 194, 187, 0) 100%
+            );
+            transform: rotate(-15deg);
+            box-shadow: 0 24px 50px -20px rgba(0, 40, 38, 0.7);
+          }
+          /* fita laranja — camada da frente, mais viva */
+          .hv3-ribbon--laranja {
+            top: 58%;
+            height: clamp(160px, 26vh, 250px);
+            background: linear-gradient(
+              90deg,
+              rgba(255, 119, 46, 0) 0%,
+              rgba(255, 119, 46, 0.68) 32%,
+              rgba(255, 119, 46, 0.9) 58%,
+              rgba(194, 77, 15, 0.6) 80%,
+              rgba(255, 119, 46, 0) 100%
+            );
+            transform: rotate(-22deg);
+            filter: blur(1px);
+            box-shadow: 0 30px 60px -22px rgba(120, 40, 0, 0.65);
+            opacity: 0.95;
+          }
+
+          /* veu escuro para garantir contraste AA do texto branco */
+          .hv3-veil {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+              linear-gradient(
+                105deg,
+                rgba(8, 36, 34, 0.78) 0%,
+                rgba(8, 36, 34, 0.28) 48%,
+                rgba(8, 36, 34, 0.05) 72%
+              ),
+              linear-gradient(0deg, rgba(6, 30, 28, 0.55) 0%, rgba(6, 30, 28, 0) 55%);
+          }
+
+          .hv3-content {
+            position: relative;
+            z-index: 1;
+            max-width: 60ch;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(16px, 2vw, 22px);
+          }
+
+          .hv3-eyebrow {
+            font-family: var(--mono, "IBM Plex Mono"), ui-monospace, monospace;
+            font-size: clamp(11px, 1.05vw, 13px);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.86);
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+          }
+          .hv3-eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--laranja, #ff772e);
+            box-shadow: 0 0 12px 2px rgba(255, 119, 46, 0.8);
+          }
+
+          .hv3-titulo {
+            margin: 0;
+            font-size: clamp(30px, 5.2vw, 56px);
+            line-height: 1.04;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--branco, #fff);
+            text-shadow: 0 2px 24px rgba(6, 30, 28, 0.55);
+            text-wrap: balance;
+          }
+          .hv3-amor {
+            background: linear-gradient(
+              92deg,
+              var(--laranja, #ff772e) 0%,
+              var(--teal-claro, #10c2bb) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: none;
+          }
+
+          .hv3-sub {
+            margin: 0;
+            font-size: clamp(15px, 1.75vw, 19px);
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.92);
+            max-width: 52ch;
+            text-shadow: 0 1px 12px rgba(6, 30, 28, 0.45);
+          }
+
+          .hv3-ctas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: clamp(6px, 1vw, 12px);
+          }
+          .hv3-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 14px 26px;
+            border-radius: 999px;
+            font-size: clamp(14px, 1.4vw, 16px);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            text-decoration: none;
+            line-height: 1;
+            border: 1px solid transparent;
+          }
+          .hv3-cta--primary {
+            color: var(--marrom, #752c05);
+            background: var(--branco, #fff);
+            box-shadow:
+              0 14px 32px -12px rgba(255, 119, 46, 0.55),
+              0 4px 12px -4px rgba(8, 36, 34, 0.5);
+          }
+          .hv3-cta--ghost {
+            color: var(--branco, #fff);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+          }
+          .hv3-cta--primary::after,
+          .hv3-cta--ghost::after {
+            content: "→";
+            font-family: var(--mono, "IBM Plex Mono"), ui-monospace, monospace;
+            font-weight: 600;
+          }
+
+          @media (max-width: 540px) {
+            .hv3-cta {
+              flex: 1 1 100%;
+              justify-content: center;
+            }
+          }
+        </style>
+        <section class="hv3-hero" aria-label="Instituto Familia Poncio">
+          <div class="hv3-ribbons" aria-hidden="true">
+            <div class="hv3-ribbon hv3-ribbon--marrom"></div>
+            <div class="hv3-ribbon hv3-ribbon--teal"></div>
+            <div class="hv3-ribbon hv3-ribbon--laranja"></div>
+          </div>
+          <div class="hv3-veil" aria-hidden="true"></div>
+          <div class="hv3-content">
+            <p class="hv3-eyebrow">Instituto Familia Poncio · Duque de Caxias / RJ</p>
+            <h1 class="hv3-titulo">
+              Mudar realidades com abrigo, saude, educacao e <span class="hv3-amor">amor</span>.
+            </h1>
+            <p class="hv3-sub">
+              Cuidamos de familias e criancas de Duque de Caxias em quatro frentes — saude,
+              capacitacao, esporte e recreacao.
+            </p>
+            <div class="hv3-ctas">
+              <a class="hv3-cta hv3-cta--primary" href="#unidades">Conheca nossas unidades</a>
+              <a class="hv3-cta hv3-cta--ghost" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="vlabel">
+        <span class="tag">V4</span><span class="nm">Duotone de Marca</span
+        ><span class="ap"
+          >Foto full-bleed coberta por uma lavagem duotone teal-escuro→laranja com mix-blend-mode
+          color, mais um gradiente escuro diagonal para legibilidade AA do texto branco.</span
+        >
+      </div>
+      <div class="vstage">
+        <style>
+          .hv4-hero {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: clamp(440px, 58vh, 560px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            border-radius: 28px;
+            padding: clamp(28px, 5vw, 64px);
+            background: var(--marrom, #752c05);
+            color: var(--branco, #fff);
+            font-family: var(--sans, "Hanken Grotesk", system-ui, sans-serif);
+            box-shadow:
+              0 2px 4px rgba(45, 16, 2, 0.28),
+              0 24px 56px -20px rgba(45, 16, 2, 0.62),
+              0 48px 96px -40px rgba(0, 0, 0, 0.5);
+          }
+
+          /* Camada 1 — a foto, protagonista, em escala de luz para o duotone pegar */
+          .hv4-hero__photo {
+            position: absolute;
+            inset: 0;
+            z-index: -3;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 38%;
+            filter: grayscale(1) contrast(1.08) brightness(0.96);
+          }
+
+          /* Camada 2 — lavagem DUOTONE da marca: teal-escuro -> laranja, em blend color */
+          .hv4-hero__duotone {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background: linear-gradient(
+              125deg,
+              var(--teal-escuro, #007571) 0%,
+              var(--teal-claro, #10c2bb) 34%,
+              var(--laranja, #ff772e) 72%,
+              var(--laranja-escuro, #c24d0f) 100%
+            );
+            mix-blend-mode: color;
+            opacity: 0.92;
+          }
+
+          /* Camada 2b — reforço de saturação/profundidade do duotone */
+          .hv4-hero__tint {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background:
+              radial-gradient(
+                120% 90% at 78% 12%,
+                rgba(255, 119, 46, 0.42) 0%,
+                rgba(255, 119, 46, 0) 52%
+              ),
+              radial-gradient(
+                130% 100% at 8% 100%,
+                rgba(0, 117, 113, 0.5) 0%,
+                rgba(0, 117, 113, 0) 55%
+              );
+            mix-blend-mode: overlay;
+          }
+
+          /* Camada 3 — gradiente escuro de legibilidade (contraste AA do texto) */
+          .hv4-hero__scrim {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background:
+              linear-gradient(
+                90deg,
+                rgba(58, 20, 4, 0.9) 0%,
+                rgba(58, 20, 4, 0.55) 38%,
+                rgba(58, 20, 4, 0.1) 100%
+              ),
+              linear-gradient(
+                0deg,
+                rgba(40, 13, 2, 0.92) 0%,
+                rgba(40, 13, 2, 0.42) 34%,
+                rgba(40, 13, 2, 0) 64%
+              );
+          }
+
+          .hv4-hero__content {
+            position: relative;
+            z-index: 1;
+            max-width: 38rem;
+          }
+
+          .hv4-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55em;
+            margin: 0 0 clamp(14px, 2vw, 22px);
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+            font-size: clamp(11px, 1.1vw, 12.5px);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #fff;
+            background: rgba(40, 13, 2, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            backdrop-filter: blur(8px) saturate(1.2);
+            -webkit-backdrop-filter: blur(8px) saturate(1.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+          }
+
+          .hv4-eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--teal-claro, #10c2bb);
+            box-shadow: 0 0 0 3px rgba(16, 194, 187, 0.28);
+          }
+
+          .hv4-title {
+            margin: 0 0 clamp(16px, 2.4vw, 24px);
+            font-size: clamp(2rem, 5.4vw, 3.4rem);
+            line-height: 1.04;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
+            text-shadow:
+              0 1px 2px rgba(30, 10, 2, 0.45),
+              0 14px 40px rgba(30, 10, 2, 0.35);
+          }
+
+          .hv4-title__accent {
+            background: linear-gradient(
+              96deg,
+              var(--laranja, #ff772e) 0%,
+              var(--teal-claro, #10c2bb) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: none;
+          }
+
+          .hv4-sub {
+            margin: 0 0 clamp(26px, 3.4vw, 36px);
+            max-width: 34rem;
+            font-size: clamp(1rem, 1.55vw, 1.18rem);
+            line-height: 1.55;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.94);
+            text-shadow: 0 1px 3px rgba(30, 10, 2, 0.5);
+          }
+
+          .hv4-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+          }
+
+          .hv4-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5em;
+            padding: 14px 26px;
+            border-radius: 999px;
+            font-family: var(--sans, "Hanken Grotesk", system-ui, sans-serif);
+            font-size: clamp(0.95rem, 1.2vw, 1.02rem);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+          }
+
+          .hv4-cta--primary {
+            color: var(--marrom, #752c05);
+            background: linear-gradient(180deg, #fff 0%, #ffe9dc 100%);
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.6) inset,
+              0 10px 24px -8px rgba(255, 119, 46, 0.55),
+              0 4px 10px -4px rgba(30, 10, 2, 0.5);
+          }
+
+          .hv4-cta--ghost {
+            color: #fff;
+            background: rgba(58, 20, 4, 0.34);
+            border-color: rgba(255, 255, 255, 0.42);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+          }
+
+          .hv4-cta__arrow {
+            font-size: 1.05em;
+            line-height: 1;
+            transform: translateY(0.02em);
+          }
+        </style>
+        <section class="hv4-hero" aria-label="Instituto Familia Poncio">
+          <img
+            class="hv4-hero__photo"
+            src="/unidades/medico.jpg"
+            alt="Sede do Instituto Familia Poncio"
+            loading="eager"
+            decoding="async"
+          />
+          <div class="hv4-hero__duotone" aria-hidden="true"></div>
+          <div class="hv4-hero__tint" aria-hidden="true"></div>
+          <div class="hv4-hero__scrim" aria-hidden="true"></div>
+          <div class="hv4-hero__content">
+            <p class="hv4-eyebrow">Instituto Familia Poncio · Duque de Caxias / RJ</p>
+            <h1 class="hv4-title">
+              Mudar realidades com abrigo, saude, educacao e
+              <span class="hv4-title__accent">amor</span>.
+            </h1>
+            <p class="hv4-sub">
+              Cuidamos de familias e criancas de Duque de Caxias em quatro frentes — saude,
+              capacitacao, esporte e recreacao.
+            </p>
+            <div class="hv4-actions">
+              <a class="hv4-cta hv4-cta--primary" href="#unidades"
+                >Conheca nossas unidades <span class="hv4-cta__arrow" aria-hidden="true">→</span></a
+              >
+              <a class="hv4-cta hv4-cta--ghost" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="vlabel">
+        <span class="tag">V5</span><span class="nm">Amanhecer Radial</span
+        ><span class="ap"
+          >Um único bloom radial cinematográfico com núcleo quente (laranja→teal-claro) desbotando
+          para teal-escuro e marrom profundo nas bordas, sobre vasto espaço negativo e camadas de
+          profundidade real.</span
+        >
+      </div>
+      <div class="vstage">
+        <style>
+          .hv5-hero {
+            --hv5-text: #ffffff;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: clamp(440px, 58vh, 560px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-radius: 28px;
+            padding: clamp(2.25rem, 5vw, 4.5rem);
+            font-family: var(--sans);
+            color: var(--hv5-text);
+            /* Base: deep tobacco-to-teal night, núcleo quente do amanhecer */
+            background:
+              radial-gradient(
+                120% 130% at 22% 30%,
+                rgba(255, 119, 46, 0.95) 0%,
+                rgba(255, 119, 46, 0.55) 14%,
+                rgba(16, 194, 187, 0.42) 30%,
+                rgba(0, 117, 113, 0.28) 46%,
+                rgba(0, 117, 113, 0.05) 62%,
+                rgba(117, 44, 5, 0) 78%
+              ),
+              radial-gradient(
+                160% 150% at 18% 24%,
+                rgba(16, 194, 187, 0.18) 0%,
+                rgba(0, 117, 113, 0) 40%
+              ),
+              linear-gradient(135deg, #0a1b1a 0%, #07302e 34%, #3a1604 74%, #1c0a02 100%);
+            box-shadow:
+              0 40px 90px -30px rgba(28, 10, 2, 0.7),
+              inset 0 1px 0 rgba(255, 255, 255, 0.06),
+              inset 0 0 140px rgba(28, 10, 2, 0.55);
+          }
+
+          /* Camada 1: holofote / bloom nuclear superbrilhante */
+          .hv5-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(
+              38% 42% at 22% 30%,
+              rgba(255, 244, 230, 0.55) 0%,
+              rgba(255, 168, 92, 0.32) 24%,
+              rgba(255, 119, 46, 0) 60%
+            );
+            filter: blur(8px);
+            mix-blend-mode: screen;
+          }
+
+          /* Camada 2: vinheta profunda marrom/teal nas bordas pra cravar o contraste */
+          .hv5-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(
+              115% 120% at 22% 30%,
+              rgba(0, 0, 0, 0) 40%,
+              rgba(28, 10, 2, 0.32) 72%,
+              rgba(10, 4, 1, 0.62) 100%
+            );
+          }
+
+          .hv5-stage {
+            position: relative;
+            z-index: 2;
+            max-width: 40rem;
+          }
+
+          .hv5-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0 0 1.4rem;
+            padding: 0.4rem 0.85rem;
+            font-family: var(--mono);
+            font-size: clamp(0.62rem, 1.1vw, 0.72rem);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.92);
+            background: rgba(10, 27, 26, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          }
+
+          .hv5-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: var(--laranja);
+            box-shadow: 0 0 12px 2px rgba(255, 119, 46, 0.85);
+            flex: none;
+          }
+
+          .hv5-titulo {
+            margin: 0 0 1.25rem;
+            font-size: clamp(2rem, 5.4vw, 3.5rem);
+            line-height: 1.04;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            text-shadow:
+              0 2px 28px rgba(10, 27, 26, 0.55),
+              0 1px 3px rgba(0, 0, 0, 0.35);
+          }
+
+          .hv5-amor {
+            position: relative;
+            background: linear-gradient(
+              100deg,
+              #ffd9b0 0%,
+              var(--laranja) 42%,
+              var(--teal-claro) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: none;
+          }
+
+          .hv5-sub {
+            margin: 0 0 2rem;
+            max-width: 34rem;
+            font-size: clamp(1rem, 1.7vw, 1.18rem);
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 14px rgba(10, 27, 26, 0.45);
+          }
+
+          .hv5-ctas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+          }
+
+          .hv5-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.85rem 1.6rem;
+            border-radius: 999px;
+            font-size: clamp(0.9rem, 1.4vw, 1rem);
+            font-weight: 650;
+            text-decoration: none;
+            letter-spacing: 0.005em;
+            border: 1px solid transparent;
+          }
+
+          .hv5-cta-primary {
+            color: var(--marrom);
+            background: linear-gradient(180deg, #ffe7cf 0%, #ff9a5e 55%, var(--laranja) 100%);
+            box-shadow:
+              0 14px 30px -10px rgba(194, 77, 15, 0.65),
+              inset 0 1px 0 rgba(255, 255, 255, 0.7);
+          }
+
+          .hv5-cta-ghost {
+            color: #ffffff;
+            background: rgba(7, 48, 46, 0.4);
+            border-color: rgba(255, 255, 255, 0.32);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+          }
+
+          @media (max-width: 480px) {
+            .hv5-hero {
+              border-radius: 22px;
+            }
+          }
+        </style>
+
+        <section class="hv5-hero" aria-label="Apresentação do Instituto Família Pôncio">
+          <div class="hv5-stage">
+            <p class="hv5-eyebrow">
+              <span class="hv5-dot" aria-hidden="true"></span>
+              Instituto Família Pôncio · Duque de Caxias / RJ
+            </p>
+            <h1 class="hv5-titulo">
+              Mudar realidades com abrigo, saúde, educação e <span class="hv5-amor">amor</span>.
+            </h1>
+            <p class="hv5-sub">
+              Cuidamos de famílias e crianças de Duque de Caxias em quatro frentes — saúde,
+              capacitação, esporte e recreação.
+            </p>
+            <div class="hv5-ctas">
+              <a class="hv5-cta hv5-cta-primary" href="#unidades">Conheça nossas unidades</a>
+              <a class="hv5-cta hv5-cta-ghost" href="#contato">Fale com a gente</a>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
-  </div>
-</section></div>
-<div class="vlabel"><span class="tag">V2</span><span class="nm">Corte Diagonal Pôster</span><span class="ap">Dois campos de cor chapada do brandbook (teal-escuro e laranja) encontrando-se num corte diagonal duro via clip-path, com tipografia grande editorial em camadas e foto encaixada no campo laranja.</span></div>
-<div class="vstage"><style>
-  .hv2-hero {
-    --hv2-cut: 58%;
-    position: relative;
-    isolation: isolate;
-    min-height: clamp(440px, 58vh, 560px);
-    border-radius: 28px;
-    overflow: hidden;
-    padding: clamp(2rem, 5vw, 4.5rem);
-    display: grid;
-    align-content: center;
-    background: var(--marrom);
-    font-family: var(--sans);
-    box-shadow:
-      0 2px 4px rgba(60, 18, 0, 0.12),
-      0 24px 60px -20px rgba(60, 18, 0, 0.55),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-  }
-
-  /* Campo de baixo: laranja (full bleed) */
-  .hv2-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background:
-      radial-gradient(120% 140% at 85% 90%, var(--laranja) 0%, var(--laranja-escuro) 70%, var(--marrom) 100%);
-  }
-
-  /* Campo de cima: teal-escuro cortado na diagonal dura */
-  .hv2-campo-teal {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background:
-      linear-gradient(155deg, var(--teal-claro) -10%, var(--teal-escuro) 55%, #014b48 105%);
-    clip-path: polygon(0 0, 100% 0, 100% var(--hv2-cut), 0 100%);
-    box-shadow: 0 18px 40px -16px rgba(0, 40, 38, 0.6);
-  }
-
-  /* Filete de luz no corte (linha dura editorial) */
-  .hv2-campo-teal::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(155deg, transparent 0%, transparent 55%, rgba(255, 255, 255, 0.85) 55.4%, transparent 56%);
-    clip-path: polygon(0 0, 100% 0, 100% var(--hv2-cut), 0 100%);
-    mix-blend-mode: overlay;
-    opacity: 0.9;
-  }
-
-  /* Foto encaixada no campo laranja (canto inferior direito) */
-  .hv2-foto {
-    position: absolute;
-    z-index: 2;
-    right: clamp(-2rem, -2vw, 1.5rem);
-    bottom: clamp(-1.5rem, -1vw, 1.5rem);
-    width: clamp(180px, 34%, 360px);
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    border-radius: 22px;
-    border: 4px solid var(--branco);
-    box-shadow:
-      0 18px 50px -12px rgba(60, 18, 0, 0.65),
-      0 4px 10px rgba(60, 18, 0, 0.3);
-    transform: rotate(3deg);
-  }
-
-  /* Conteúdo */
-  .hv2-conteudo {
-    position: relative;
-    z-index: 3;
-    max-width: 38ch;
-    color: var(--branco);
-  }
-
-  .hv2-eyebrow {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: clamp(0.62rem, 1.3vw, 0.78rem);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--branco);
-    background: rgba(0, 49, 47, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    padding: 0.5rem 0.85rem;
-    border-radius: 999px;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    margin-bottom: clamp(1rem, 2.5vw, 1.6rem);
-    text-shadow: 0 1px 2px rgba(0, 30, 28, 0.5);
-  }
-
-  .hv2-titulo {
-    margin: 0;
-    font-size: clamp(2.1rem, 6vw, 3.9rem);
-    line-height: 0.98;
-    letter-spacing: -0.025em;
-    font-weight: 800;
-    color: var(--branco);
-    text-shadow: 0 2px 14px rgba(0, 30, 28, 0.45);
-  }
-
-  .hv2-amor {
-    display: inline-block;
-    background: linear-gradient(100deg, #ffe9a8 0%, var(--laranja) 60%, var(--laranja-escuro) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none;
-    font-style: italic;
-  }
-
-  .hv2-sub {
-    margin: clamp(1rem, 2.4vw, 1.5rem) 0 0;
-    max-width: 40ch;
-    font-size: clamp(0.95rem, 1.7vw, 1.12rem);
-    line-height: 1.5;
-    color: rgba(255, 255, 255, 0.94);
-    text-shadow: 0 1px 8px rgba(0, 30, 28, 0.4);
-  }
-
-  .hv2-ctas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-    margin-top: clamp(1.5rem, 3vw, 2.2rem);
-  }
-
-  .hv2-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: var(--sans);
-    font-size: clamp(0.9rem, 1.5vw, 1rem);
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    padding: 0.85rem 1.5rem;
-    border-radius: 999px;
-    transition: none;
-  }
-
-  .hv2-cta-primaria {
-    color: var(--marrom);
-    background: var(--branco);
-    box-shadow:
-      0 10px 24px -8px rgba(0, 0, 0, 0.45),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  }
-
-  .hv2-cta-secundaria {
-    color: var(--branco);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1.5px solid rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-
-  @media (max-width: 640px) {
-    .hv2-hero { --hv2-cut: 70%; }
-    .hv2-foto { opacity: 0.85; width: 46%; }
-    .hv2-conteudo { max-width: 100%; }
-  }
-</style>
-
-<section class="hv2-hero">
-  <div class="hv2-campo-teal" aria-hidden="true"></div>
-  <img class="hv2-foto" src="/unidades/medico.jpg" alt="Sede do Instituto Família Pôncio">
-
-  <div class="hv2-conteudo">
-    <span class="hv2-eyebrow">Instituto Família Pôncio · Duque de Caxias / RJ</span>
-    <h1 class="hv2-titulo">Mudar realidades com abrigo, saúde, educação e <span class="hv2-amor">amor</span>.</h1>
-    <p class="hv2-sub">Cuidamos de famílias e crianças de Duque de Caxias em quatro frentes — saúde, capacitação, esporte e recreação.</p>
-    <div class="hv2-ctas">
-      <a class="hv2-cta hv2-cta-primaria" href="#unidades">Conheça nossas unidades</a>
-      <a class="hv2-cta hv2-cta-secundaria" href="#contato">Fale com a gente</a>
-    </div>
-  </div>
-</section></div>
-<div class="vlabel"><span class="tag">V3</span><span class="nm">Fitas em Camadas</span><span class="ap">Base teal-escuro com 3 fitas diagonais translucidas sobrepostas (laranja, teal-claro, marrom) usando gradientes e blur, separadas por sombras internas para gerar profundidade e movimento estatico.</span></div>
-<div class="vstage"><style>
-  .hv3-hero {
-    --hv3-base: var(--teal-escuro, #007571);
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    min-height: clamp(440px, 58vh, 560px);
-    border-radius: 28px;
-    padding: clamp(32px, 5vw, 64px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: clamp(18px, 2.4vw, 26px);
-    background:
-      radial-gradient(120% 140% at 8% 0%, #00908b 0%, rgba(0,144,139,0) 55%),
-      radial-gradient(130% 150% at 100% 100%, #00605d 0%, rgba(0,96,93,0) 60%),
-      linear-gradient(150deg, #007571 0%, #00524f 100%);
-    color: var(--branco, #fff);
-    font-family: var(--sans, "Hanken Grotesk"), system-ui, sans-serif;
-    box-shadow:
-      0 30px 70px -28px rgba(20, 12, 4, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  }
-
-  /* camada de fitas diagonais sobrepostas */
-  .hv3-ribbons {
-    position: absolute;
-    inset: -20% -10%;
-    z-index: -2;
-    pointer-events: none;
-  }
-  .hv3-ribbon {
-    position: absolute;
-    left: -25%;
-    right: -25%;
-    height: clamp(150px, 24vh, 230px);
-    transform: rotate(-19deg);
-    transform-origin: center;
-    border-radius: 999px;
-    filter: blur(2px);
-    mix-blend-mode: screen;
-  }
-  /* fita marrom — mais ao fundo */
-  .hv3-ribbon--marrom {
-    top: 6%;
-    background: linear-gradient(
-      90deg,
-      rgba(117, 44, 5, 0) 0%,
-      rgba(117, 44, 5, 0.55) 30%,
-      rgba(194, 77, 15, 0.62) 60%,
-      rgba(117, 44, 5, 0) 100%
-    );
-    height: clamp(180px, 30vh, 280px);
-    filter: blur(6px);
-    opacity: 0.85;
-  }
-  /* fita teal-claro — camada intermediaria */
-  .hv3-ribbon--teal {
-    top: 34%;
-    background: linear-gradient(
-      90deg,
-      rgba(16, 194, 187, 0) 0%,
-      rgba(16, 194, 187, 0.5) 35%,
-      rgba(16, 194, 187, 0.72) 65%,
-      rgba(16, 194, 187, 0) 100%
-    );
-    transform: rotate(-15deg);
-    box-shadow: 0 24px 50px -20px rgba(0, 40, 38, 0.7);
-  }
-  /* fita laranja — camada da frente, mais viva */
-  .hv3-ribbon--laranja {
-    top: 58%;
-    height: clamp(160px, 26vh, 250px);
-    background: linear-gradient(
-      90deg,
-      rgba(255, 119, 46, 0) 0%,
-      rgba(255, 119, 46, 0.68) 32%,
-      rgba(255, 119, 46, 0.9) 58%,
-      rgba(194, 77, 15, 0.6) 80%,
-      rgba(255, 119, 46, 0) 100%
-    );
-    transform: rotate(-22deg);
-    filter: blur(1px);
-    box-shadow: 0 30px 60px -22px rgba(120, 40, 0, 0.65);
-    opacity: 0.95;
-  }
-
-  /* veu escuro para garantir contraste AA do texto branco */
-  .hv3-veil {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      linear-gradient(105deg, rgba(8, 36, 34, 0.78) 0%, rgba(8, 36, 34, 0.28) 48%, rgba(8, 36, 34, 0.05) 72%),
-      linear-gradient(0deg, rgba(6, 30, 28, 0.55) 0%, rgba(6, 30, 28, 0) 55%);
-  }
-
-  .hv3-content {
-    position: relative;
-    z-index: 1;
-    max-width: 60ch;
-    display: flex;
-    flex-direction: column;
-    gap: clamp(16px, 2vw, 22px);
-  }
-
-  .hv3-eyebrow {
-    font-family: var(--mono, "IBM Plex Mono"), ui-monospace, monospace;
-    font-size: clamp(11px, 1.05vw, 13px);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.86);
-    margin: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    width: fit-content;
-    padding: 7px 14px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-  .hv3-eyebrow::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--laranja, #FF772E);
-    box-shadow: 0 0 12px 2px rgba(255, 119, 46, 0.8);
-  }
-
-  .hv3-titulo {
-    margin: 0;
-    font-size: clamp(30px, 5.2vw, 56px);
-    line-height: 1.04;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--branco, #fff);
-    text-shadow: 0 2px 24px rgba(6, 30, 28, 0.55);
-    text-wrap: balance;
-  }
-  .hv3-amor {
-    background: linear-gradient(92deg, var(--laranja, #FF772E) 0%, var(--teal-claro, #10C2BB) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none;
-  }
-
-  .hv3-sub {
-    margin: 0;
-    font-size: clamp(15px, 1.75vw, 19px);
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.92);
-    max-width: 52ch;
-    text-shadow: 0 1px 12px rgba(6, 30, 28, 0.45);
-  }
-
-  .hv3-ctas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-top: clamp(6px, 1vw, 12px);
-  }
-  .hv3-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 14px 26px;
-    border-radius: 999px;
-    font-size: clamp(14px, 1.4vw, 16px);
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    line-height: 1;
-    border: 1px solid transparent;
-  }
-  .hv3-cta--primary {
-    color: var(--marrom, #752C05);
-    background: var(--branco, #fff);
-    box-shadow:
-      0 14px 32px -12px rgba(255, 119, 46, 0.55),
-      0 4px 12px -4px rgba(8, 36, 34, 0.5);
-  }
-  .hv3-cta--ghost {
-    color: var(--branco, #fff);
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-  .hv3-cta--primary::after,
-  .hv3-cta--ghost::after {
-    content: "→";
-    font-family: var(--mono, "IBM Plex Mono"), ui-monospace, monospace;
-    font-weight: 600;
-  }
-
-  @media (max-width: 540px) {
-    .hv3-cta { flex: 1 1 100%; justify-content: center; }
-  }
-</style>
-<section class="hv3-hero" aria-label="Instituto Familia Poncio">
-  <div class="hv3-ribbons" aria-hidden="true">
-    <div class="hv3-ribbon hv3-ribbon--marrom"></div>
-    <div class="hv3-ribbon hv3-ribbon--teal"></div>
-    <div class="hv3-ribbon hv3-ribbon--laranja"></div>
-  </div>
-  <div class="hv3-veil" aria-hidden="true"></div>
-  <div class="hv3-content">
-    <p class="hv3-eyebrow">Instituto Familia Poncio · Duque de Caxias / RJ</p>
-    <h1 class="hv3-titulo">Mudar realidades com abrigo, saude, educacao e <span class="hv3-amor">amor</span>.</h1>
-    <p class="hv3-sub">Cuidamos de familias e criancas de Duque de Caxias em quatro frentes — saude, capacitacao, esporte e recreacao.</p>
-    <div class="hv3-ctas">
-      <a class="hv3-cta hv3-cta--primary" href="#unidades">Conheca nossas unidades</a>
-      <a class="hv3-cta hv3-cta--ghost" href="#contato">Fale com a gente</a>
-    </div>
-  </div>
-</section></div>
-<div class="vlabel"><span class="tag">V4</span><span class="nm">Duotone de Marca</span><span class="ap">Foto full-bleed coberta por uma lavagem duotone teal-escuro→laranja com mix-blend-mode color, mais um gradiente escuro diagonal para legibilidade AA do texto branco.</span></div>
-<div class="vstage"><style>
-  .hv4-hero {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    min-height: clamp(440px, 58vh, 560px);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    border-radius: 28px;
-    padding: clamp(28px, 5vw, 64px);
-    background: var(--marrom, #752C05);
-    color: var(--branco, #fff);
-    font-family: var(--sans, "Hanken Grotesk", system-ui, sans-serif);
-    box-shadow:
-      0 2px 4px rgba(45, 16, 2, .28),
-      0 24px 56px -20px rgba(45, 16, 2, .62),
-      0 48px 96px -40px rgba(0, 0, 0, .5);
-  }
-
-  /* Camada 1 — a foto, protagonista, em escala de luz para o duotone pegar */
-  .hv4-hero__photo {
-    position: absolute;
-    inset: 0;
-    z-index: -3;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 38%;
-    filter: grayscale(1) contrast(1.08) brightness(.96);
-  }
-
-  /* Camada 2 — lavagem DUOTONE da marca: teal-escuro -> laranja, em blend color */
-  .hv4-hero__duotone {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    background: linear-gradient(
-      125deg,
-      var(--teal-escuro, #007571) 0%,
-      var(--teal-claro, #10C2BB) 34%,
-      var(--laranja, #FF772E) 72%,
-      var(--laranja-escuro, #C24D0F) 100%
-    );
-    mix-blend-mode: color;
-    opacity: .92;
-  }
-
-  /* Camada 2b — reforço de saturação/profundidade do duotone */
-  .hv4-hero__tint {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    background: radial-gradient(
-      120% 90% at 78% 12%,
-      rgba(255, 119, 46, .42) 0%,
-      rgba(255, 119, 46, 0) 52%
-    ),
-    radial-gradient(
-      130% 100% at 8% 100%,
-      rgba(0, 117, 113, .5) 0%,
-      rgba(0, 117, 113, 0) 55%
-    );
-    mix-blend-mode: overlay;
-  }
-
-  /* Camada 3 — gradiente escuro de legibilidade (contraste AA do texto) */
-  .hv4-hero__scrim {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-      linear-gradient(
-        90deg,
-        rgba(58, 20, 4, .9) 0%,
-        rgba(58, 20, 4, .55) 38%,
-        rgba(58, 20, 4, .1) 100%
-      ),
-      linear-gradient(
-        0deg,
-        rgba(40, 13, 2, .92) 0%,
-        rgba(40, 13, 2, .42) 34%,
-        rgba(40, 13, 2, 0) 64%
-      );
-  }
-
-  .hv4-hero__content {
-    position: relative;
-    z-index: 1;
-    max-width: 38rem;
-  }
-
-  .hv4-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: .55em;
-    margin: 0 0 clamp(14px, 2vw, 22px);
-    padding: 7px 14px;
-    border-radius: 999px;
-    font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
-    font-size: clamp(11px, 1.1vw, 12.5px);
-    font-weight: 500;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: #fff;
-    background: rgba(40, 13, 2, .42);
-    border: 1px solid rgba(255, 255, 255, .26);
-    backdrop-filter: blur(8px) saturate(1.2);
-    -webkit-backdrop-filter: blur(8px) saturate(1.2);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
-  }
-
-  .hv4-eyebrow::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--teal-claro, #10C2BB);
-    box-shadow: 0 0 0 3px rgba(16, 194, 187, .28);
-  }
-
-  .hv4-title {
-    margin: 0 0 clamp(16px, 2.4vw, 24px);
-    font-size: clamp(2rem, 5.4vw, 3.4rem);
-    line-height: 1.04;
-    font-weight: 800;
-    letter-spacing: -.02em;
-    text-wrap: balance;
-    text-shadow:
-      0 1px 2px rgba(30, 10, 2, .45),
-      0 14px 40px rgba(30, 10, 2, .35);
-  }
-
-  .hv4-title__accent {
-    background: linear-gradient(
-      96deg,
-      var(--laranja, #FF772E) 0%,
-      var(--teal-claro, #10C2BB) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none;
-  }
-
-  .hv4-sub {
-    margin: 0 0 clamp(26px, 3.4vw, 36px);
-    max-width: 34rem;
-    font-size: clamp(1rem, 1.55vw, 1.18rem);
-    line-height: 1.55;
-    font-weight: 400;
-    color: rgba(255, 255, 255, .94);
-    text-shadow: 0 1px 3px rgba(30, 10, 2, .5);
-  }
-
-  .hv4-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-  }
-
-  .hv4-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: .5em;
-    padding: 14px 26px;
-    border-radius: 999px;
-    font-family: var(--sans, "Hanken Grotesk", system-ui, sans-serif);
-    font-size: clamp(.95rem, 1.2vw, 1.02rem);
-    font-weight: 700;
-    letter-spacing: -.01em;
-    text-decoration: none;
-    cursor: pointer;
-    border: 1px solid transparent;
-  }
-
-  .hv4-cta--primary {
-    color: var(--marrom, #752C05);
-    background: linear-gradient(180deg, #fff 0%, #ffe9dc 100%);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, .6) inset,
-      0 10px 24px -8px rgba(255, 119, 46, .55),
-      0 4px 10px -4px rgba(30, 10, 2, .5);
-  }
-
-  .hv4-cta--ghost {
-    color: #fff;
-    background: rgba(58, 20, 4, .34);
-    border-color: rgba(255, 255, 255, .42);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
-  }
-
-  .hv4-cta__arrow {
-    font-size: 1.05em;
-    line-height: 1;
-    transform: translateY(.02em);
-  }
-</style>
-<section class="hv4-hero" aria-label="Instituto Familia Poncio">
-  <img class="hv4-hero__photo" src="/unidades/medico.jpg" alt="Sede do Instituto Familia Poncio" loading="eager" decoding="async">
-  <div class="hv4-hero__duotone" aria-hidden="true"></div>
-  <div class="hv4-hero__tint" aria-hidden="true"></div>
-  <div class="hv4-hero__scrim" aria-hidden="true"></div>
-  <div class="hv4-hero__content">
-    <p class="hv4-eyebrow">Instituto Familia Poncio · Duque de Caxias / RJ</p>
-    <h1 class="hv4-title">Mudar realidades com abrigo, saude, educacao e <span class="hv4-title__accent">amor</span>.</h1>
-    <p class="hv4-sub">Cuidamos de familias e criancas de Duque de Caxias em quatro frentes — saude, capacitacao, esporte e recreacao.</p>
-    <div class="hv4-actions">
-      <a class="hv4-cta hv4-cta--primary" href="#unidades">Conheca nossas unidades <span class="hv4-cta__arrow" aria-hidden="true">→</span></a>
-      <a class="hv4-cta hv4-cta--ghost" href="#contato">Fale com a gente</a>
-    </div>
-  </div>
-</section></div>
-<div class="vlabel"><span class="tag">V5</span><span class="nm">Amanhecer Radial</span><span class="ap">Um único bloom radial cinematográfico com núcleo quente (laranja→teal-claro) desbotando para teal-escuro e marrom profundo nas bordas, sobre vasto espaço negativo e camadas de profundidade real.</span></div>
-<div class="vstage"><style>
-  .hv5-hero {
-    --hv5-text: #ffffff;
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    min-height: clamp(440px, 58vh, 560px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 28px;
-    padding: clamp(2.25rem, 5vw, 4.5rem);
-    font-family: var(--sans);
-    color: var(--hv5-text);
-    /* Base: deep tobacco-to-teal night, núcleo quente do amanhecer */
-    background:
-      radial-gradient(120% 130% at 22% 30%,
-        rgba(255, 119, 46, 0.95) 0%,
-        rgba(255, 119, 46, 0.55) 14%,
-        rgba(16, 194, 187, 0.42) 30%,
-        rgba(0, 117, 113, 0.28) 46%,
-        rgba(0, 117, 113, 0.05) 62%,
-        rgba(117, 44, 5, 0) 78%),
-      radial-gradient(160% 150% at 18% 24%,
-        rgba(16, 194, 187, 0.18) 0%,
-        rgba(0, 117, 113, 0.0) 40%),
-      linear-gradient(135deg,
-        #0a1b1a 0%,
-        #07302e 34%,
-        #3a1604 74%,
-        #1c0a02 100%);
-    box-shadow:
-      0 40px 90px -30px rgba(28, 10, 2, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      inset 0 0 140px rgba(28, 10, 2, 0.55);
-  }
-
-  /* Camada 1: holofote / bloom nuclear superbrilhante */
-  .hv5-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(38% 42% at 22% 30%,
-        rgba(255, 244, 230, 0.55) 0%,
-        rgba(255, 168, 92, 0.32) 24%,
-        rgba(255, 119, 46, 0.0) 60%);
-    filter: blur(8px);
-    mix-blend-mode: screen;
-  }
-
-  /* Camada 2: vinheta profunda marrom/teal nas bordas pra cravar o contraste */
-  .hv5-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background:
-      radial-gradient(115% 120% at 22% 30%,
-        rgba(0, 0, 0, 0) 40%,
-        rgba(28, 10, 2, 0.32) 72%,
-        rgba(10, 4, 1, 0.62) 100%);
-  }
-
-  .hv5-stage {
-    position: relative;
-    z-index: 2;
-    max-width: 40rem;
-  }
-
-  .hv5-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    margin: 0 0 1.4rem;
-    padding: 0.4rem 0.85rem;
-    font-family: var(--mono);
-    font-size: clamp(0.62rem, 1.1vw, 0.72rem);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.92);
-    background: rgba(10, 27, 26, 0.42);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
-
-  .hv5-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--laranja);
-    box-shadow: 0 0 12px 2px rgba(255, 119, 46, 0.85);
-    flex: none;
-  }
-
-  .hv5-titulo {
-    margin: 0 0 1.25rem;
-    font-size: clamp(2rem, 5.4vw, 3.5rem);
-    line-height: 1.04;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: #ffffff;
-    text-shadow: 0 2px 28px rgba(10, 27, 26, 0.55), 0 1px 3px rgba(0, 0, 0, 0.35);
-  }
-
-  .hv5-amor {
-    position: relative;
-    background: linear-gradient(100deg, #ffd9b0 0%, var(--laranja) 42%, var(--teal-claro) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none;
-  }
-
-  .hv5-sub {
-    margin: 0 0 2rem;
-    max-width: 34rem;
-    font-size: clamp(1rem, 1.7vw, 1.18rem);
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 1px 14px rgba(10, 27, 26, 0.45);
-  }
-
-  .hv5-ctas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-  }
-
-  .hv5-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.85rem 1.6rem;
-    border-radius: 999px;
-    font-size: clamp(0.9rem, 1.4vw, 1rem);
-    font-weight: 650;
-    text-decoration: none;
-    letter-spacing: 0.005em;
-    border: 1px solid transparent;
-  }
-
-  .hv5-cta-primary {
-    color: var(--marrom);
-    background: linear-gradient(180deg, #ffe7cf 0%, #ff9a5e 55%, var(--laranja) 100%);
-    box-shadow:
-      0 14px 30px -10px rgba(194, 77, 15, 0.65),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  }
-
-  .hv5-cta-ghost {
-    color: #ffffff;
-    background: rgba(7, 48, 46, 0.4);
-    border-color: rgba(255, 255, 255, 0.32);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  }
-
-  @media (max-width: 480px) {
-    .hv5-hero { border-radius: 22px; }
-  }
-</style>
-
-<section class="hv5-hero" aria-label="Apresentação do Instituto Família Pôncio">
-  <div class="hv5-stage">
-    <p class="hv5-eyebrow">
-      <span class="hv5-dot" aria-hidden="true"></span>
-      Instituto Família Pôncio · Duque de Caxias / RJ
-    </p>
-    <h1 class="hv5-titulo">Mudar realidades com abrigo, saúde, educação e <span class="hv5-amor">amor</span>.</h1>
-    <p class="hv5-sub">Cuidamos de famílias e crianças de Duque de Caxias em quatro frentes — saúde, capacitação, esporte e recreação.</p>
-    <div class="hv5-ctas">
-      <a class="hv5-cta hv5-cta-primary" href="#unidades">Conheça nossas unidades</a>
-      <a class="hv5-cta hv5-cta-ghost" href="#contato">Fale com a gente</a>
-    </div>
-  </div>
-</section></div>
-
-</div>
-</body>
+  </body>
 </html>
