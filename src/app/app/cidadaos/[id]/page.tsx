@@ -3,10 +3,10 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
-import { calcularIdade, getCidadao } from "@/lib/cidadao";
+import { calcularIdade, getCidadaoView } from "@/lib/cidadao";
 import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
-import { hasAnyRole } from "@/lib/rbac";
+import { hasAnyRole, podeVerSaudeCidadao, podeVerSocioCidadao } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { AnexoUploader } from "./anexo-uploader";
@@ -54,16 +54,17 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
   if (!session) redirect("/login");
 
   const { id } = await params;
-  const cidadao = await getCidadao(id, session);
+  // getCidadaoView redige PHI/socio na camada de dados conforme a capability.
+  const cidadao = await getCidadaoView(id, session);
   if (!cidadao) notFound();
 
   const unit = cidadao.unitIdOrigem as UnitScope;
   const idade = calcularIdade(cidadao.dataNascimento);
   const status = statusDisplay(cidadao);
 
-  // RBAC pra seções sensíveis
-  const podeVerSocio = hasAnyRole(session, "super_admin", "presidencia", "social");
-  const podeVerSaude = hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+  // RBAC pra seções sensíveis (mesmos predicados que o getCidadaoView usou p/ redigir)
+  const podeVerSocio = podeVerSocioCidadao(session);
+  const podeVerSaude = podeVerSaudeCidadao(session);
   const podeEditar = hasAnyRole(
     session,
     "super_admin",

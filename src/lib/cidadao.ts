@@ -10,7 +10,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { normalizeCpf } from "@/lib/cpf";
 import { normalizeCep } from "@/lib/cep";
-import { can, getUserUnits } from "@/lib/rbac";
+import { can, getUserUnits, podeVerSaudeCidadao, podeVerSocioCidadao } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 
 export type CidadaoStatus = "ativo" | "anonimizado" | "deletado";
@@ -149,6 +149,70 @@ export async function getCidadao(id: string, session: Session | null) {
     unitScope: cidadao.unitIdOrigem as UnitScope,
   });
   return allowed ? cidadao : null;
+}
+
+/**
+ * Campos sensíveis da Ficha Cidadã, particionados por base legal de acesso.
+ * SAÚDE (PHI) — visível só com podeVerSaudeCidadao; SOCIO — só com podeVerSocioCidadao.
+ */
+export interface CamposSensiveisCidadao {
+  tipoSanguineo: string | null;
+  alergias: string | null;
+  medicamentosEmUso: string | null;
+  condicoesCronicas: string | null;
+  rendaFamiliar: Prisma.Decimal | null;
+  pessoasNaCasa: number | null;
+  beneficioSocial: string | null;
+  escolaridade: string | null;
+  trabalha: boolean | null;
+  trabalhoDescricao: string | null;
+}
+
+const SAUDE_REDACTED = {
+  tipoSanguineo: null,
+  alergias: null,
+  medicamentosEmUso: null,
+  condicoesCronicas: null,
+} satisfies Partial<CamposSensiveisCidadao>;
+
+const SOCIO_REDACTED = {
+  rendaFamiliar: null,
+  pessoasNaCasa: null,
+  beneficioSocial: null,
+  escolaridade: null,
+  trabalha: null,
+  trabalhoDescricao: null,
+} satisfies Partial<CamposSensiveisCidadao>;
+
+/**
+ * Pura: devolve uma CÓPIA do cidadão com os blocos sensíveis nulados conforme a
+ * capability. Enforcement na CAMADA DE DADOS (não no JSX): mesmo que um caller
+ * serialize/logue o resultado, o PHI/socio sem permissão já saiu como null.
+ * Não muta a entrada.
+ */
+export function redactCidadaoSensiveis<T extends CamposSensiveisCidadao>(
+  cidadao: T,
+  caps: { podeVerSaude: boolean; podeVerSocio: boolean },
+): T {
+  return {
+    ...cidadao,
+    ...(caps.podeVerSaude ? {} : SAUDE_REDACTED),
+    ...(caps.podeVerSocio ? {} : SOCIO_REDACTED),
+  };
+}
+
+/**
+ * Igual a getCidadao mas REDIGE os campos sensíveis pelo session. Use SEMPRE este
+ * para EXIBIR a ficha; getCidadao (cru) só em fluxos que comprovadamente precisam
+ * do dado completo e já checaram permissão de escrita por bloco (ex.: B2).
+ */
+export async function getCidadaoView(id: string, session: Session | null) {
+  const cidadao = await getCidadao(id, session);
+  if (!cidadao) return null;
+  return redactCidadaoSensiveis(cidadao, {
+    podeVerSaude: podeVerSaudeCidadao(session),
+    podeVerSocio: podeVerSocioCidadao(session),
+  });
 }
 
 /**

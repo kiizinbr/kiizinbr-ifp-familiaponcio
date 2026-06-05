@@ -89,6 +89,23 @@ export function can(
 }
 
 /**
+ * Visibilidade dos campos CLÍNICOS (saúde) da Ficha Cidadã: gestão e profissional.
+ * NÃO recepção, NÃO social. Espelha o conjunto de podeAtualizarSaudeCidadao
+ * (medico/rbac.ts), mas é o predicado canônico de LEITURA dos campos de saúde.
+ */
+export function podeVerSaudeCidadao(session: Session | null): boolean {
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+}
+
+/**
+ * Visibilidade dos campos SOCIOECONÔMICOS da Ficha: super_admin, presidência e
+ * social. NÃO profissional, NÃO recepção.
+ */
+export function podeVerSocioCidadao(session: Session | null): boolean {
+  return hasAnyRole(session, "super_admin", "presidencia", "social");
+}
+
+/**
  * Para usar em Server Components: lança redirect pra /login se não autorizado.
  * Inspirado no pattern de Next.js "auth + redirect" nos boundaries.
  */
