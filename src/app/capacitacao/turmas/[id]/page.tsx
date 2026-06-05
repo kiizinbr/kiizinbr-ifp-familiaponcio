@@ -8,12 +8,14 @@ import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
+import { proximosStatusTurma } from "@/lib/capacitacao/turma";
 import { podeCriarTurma, podeMatricular } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge, VagasMeter } from "../../_components/ui";
 import {
   matricularAction,
   promoverListaEsperaAction,
   transicionarMatriculaAction,
+  transicionarTurmaAction,
 } from "../../actions";
 import styles from "../../capacitacao.module.css";
 
@@ -24,6 +26,7 @@ const ERROS: Record<string, string> = {
   duplicada: "Esse cidadão já tem matrícula ativa nesta turma.",
   transicao: "Não foi possível mudar o status dessa matrícula.",
   promocao: "Não há ninguém na lista de espera ou a turma está lotada.",
+  status: "Não foi possível mudar o status da turma.",
 };
 
 function nome(c: { nomeCompleto: string; nomeSocial: string | null }): string {
@@ -79,6 +82,7 @@ export default async function TurmaDetalhePage({
     : [];
 
   const vt = STATUS_TURMA_VISUAL[turma.status];
+  const proximosStatus = podeGerir ? proximosStatusTurma(turma.status) : [];
 
   return (
     <CapacitacaoShell session={session}>
@@ -120,6 +124,24 @@ export default async function TurmaDetalhePage({
                   <p className={styles.meterText} style={{ marginTop: 12 }}>
                     <b>{espera.length}</b> na lista de espera
                   </p>
+                ) : null}
+                {proximosStatus.length > 0 ? (
+                  <div className={styles.btnRow} style={{ marginTop: 14, flexWrap: "wrap" }}>
+                    {proximosStatus.map((st) => (
+                      <form key={st} action={transicionarTurmaAction}>
+                        <input type="hidden" name="turmaId" value={turma.id} />
+                        <input type="hidden" name="para" value={st} />
+                        <button
+                          type="submit"
+                          className={`${styles.btn} ${styles.btnSm} ${
+                            st === "cancelada" ? styles.btnDanger : styles.btnGhost
+                          }`}
+                        >
+                          {STATUS_TURMA_VISUAL[st].label}
+                        </button>
+                      </form>
+                    ))}
+                  </div>
                 ) : null}
               </div>
             </div>

@@ -24,6 +24,7 @@ import {
   transicionarMatricula,
   TurmaLotadaError,
 } from "@/lib/capacitacao/matricula";
+import { podeTransicionarTurma } from "@/lib/capacitacao/turma";
 
 function s(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
@@ -46,6 +47,14 @@ const statusMatriculaSchema = z.enum([
   "reprovado",
   "desistente",
   "cancelado",
+]);
+
+const statusTurmaSchema = z.enum([
+  "planejada",
+  "inscricoes_abertas",
+  "em_andamento",
+  "concluida",
+  "cancelada",
 ]);
 
 export async function criarCursoAction(formData: FormData) {
@@ -217,4 +226,33 @@ export async function toggleCursoAtivoAction(formData: FormData) {
   revalidatePath(`/capacitacao/cursos/${cursoId}`);
   revalidatePath("/capacitacao/cursos");
   redirect(`/capacitacao/cursos/${cursoId}` as Route);
+}
+
+/** Transição de status da turma (planejada→inscrições→em_andamento→concluída; +cancelada). */
+export async function transicionarTurmaAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeCriarTurma(session)) throw new Error("Sem permissão");
+
+  const turmaId = s(formData, "turmaId");
+  const paraParsed = statusTurmaSchema.safeParse(s(formData, "para"));
+  if (!paraParsed.success) {
+    redirect(`/capacitacao/turmas/${turmaId}?erro=status` as Route);
+  }
+  const para = paraParsed.data;
+
+  const turma = await db.turma.findUniqueOrThrow({ where: { id: turmaId } });
+  if (!podeTransicionarTurma(turma.status, para)) {
+    redirect(`/capacitacao/turmas/${turmaId}?erro=status` as Route);
+  }
+
+  await db.turma.update({ where: { id: turmaId }, data: { status: para } });
+  await logEvent({
+    userId: session!.user.id,
+    action: para === "cancelada" ? "turma_cancelada" : "turma_atualizada",
+    entityType: "turma",
+    entityId: turmaId,
+    meta: { de: turma.status, para },
+  });
+  redirect(`/capacitacao/turmas/${turmaId}` as Route);
 }
