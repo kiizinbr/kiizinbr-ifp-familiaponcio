@@ -7,6 +7,7 @@ export type AuditAction =
   | "signin_denied_unit"
   | "signout"
   | "role_changed"
+  | "user_created"
   | "data_exported"
   | "cidadao_anonimizado"
   | "medical_data_accessed"

@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { db } from "@/lib/db";
 import { ROLE_DESCRIPTIONS, type RoleName, type UnitScope } from "@/lib/rbac-types";
+import { CriarUsuarioForm } from "./criar-usuario-form";
 
 const UNIT_LABELS: Record<UnitScope, string> = {
   medico: "Médico",
@@ -47,6 +48,8 @@ export default async function AdminUsersPage() {
           </p>
         </div>
       </div>
+
+      <CriarUsuarioForm />
 
       <div className="table-wrap">
         <table className="tbl">
@@ -114,8 +117,8 @@ export default async function AdminUsersPage() {
         }}
       >
         <span>
-          {users.length} pessoa{users.length === 1 ? "" : "s"} com acesso · edição em
-          desenvolvimento
+          {users.length} pessoa{users.length === 1 ? "" : "s"} com acesso · criação ativa (edição de
+          papel/senha em breve)
         </span>
         <span>Administração</span>
       </p>
