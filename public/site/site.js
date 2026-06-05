@@ -4,7 +4,10 @@
    ============================================================================ */
 (function () {
   "use strict";
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // IFP: o leão é a identidade — slideshow do hero, transição de leão e count-up
+  // ficam ligados mesmo com "reduzir movimento" do SO (Erick, 2026-06-04). Os
+  // reveals de scroll e o ken-burns do fundo seguem calmos (honrados via site.css).
+  var reduce = false;
 
   /* ---- SPLASH de entrada (uma vez por sessão) ---- */
   var splash = document.getElementById("splash");

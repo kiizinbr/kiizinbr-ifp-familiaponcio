@@ -2048,3 +2048,48 @@ h3 {
     scroll-behavior: auto;
   }
 }
+
+/* ============================================================================
+   EXCEÇÃO reduced-motion: o leão é a identidade do IFP — as animações GENTIS e
+   localizadas do mascote (anéis, halo, órbita, emblema, bobs) seguem vivas mesmo
+   com "reduzir movimento" do SO (Erick pediu, 2026-06-04). Reveals, ken-burns do
+   fundo e o scroll-dot continuam honrando a preferência.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .splash-medal .ring {
+    animation: spin 1.3s linear infinite !important;
+  }
+  .splash-medal .lion {
+    animation: heartbeat 1.5s ease-in-out infinite !important;
+  }
+  .emblem-core .halo {
+    animation: pulse-halo 4s ease-in-out infinite !important;
+  }
+  .emblem-core .ring {
+    animation: spin 14s linear infinite !important;
+  }
+  .emblem-core .ring.dashed {
+    animation: spin 26s linear infinite reverse !important;
+  }
+  .emblem-core .disc img {
+    animation: bob 3.4s ease-in-out infinite !important;
+  }
+  .orbit-medal {
+    animation: floaty 5s ease-in-out infinite !important;
+  }
+  .unit-card:hover .unit-medal .ring {
+    animation: spin 1.4s linear infinite !important;
+  }
+  .daily-medal .ring {
+    animation: spin 6s linear infinite !important;
+  }
+  .pt-medal .ring {
+    animation: spin 0.9s linear infinite !important;
+  }
+  .pt-medal img {
+    animation: bob 0.9s ease-in-out infinite !important;
+  }
+  .pt-dots i {
+    animation: blink 1s infinite !important;
+  }
+}
