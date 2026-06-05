@@ -14,6 +14,7 @@ import {
   NotaAssinadaError,
   NotaNaoAssinadaError,
   salvarRascunho,
+  TransicaoNotaInvalidaError,
   type SinaisVitaisInput,
 } from "@/lib/medico/prontuario";
 
@@ -112,8 +113,13 @@ export async function assinarNotaAction(formData: FormData) {
       rootEntityId: consulta.cidadaoId,
       meta: { consultaId },
     });
-  } catch {
-    redirect(`/medico/consultas/${consultaId}?erro=assinatura` as Route);
+  } catch (e) {
+    // Erro de domínio esperado (nota já assinada / transição inválida) → feedback
+    // na tela; qualquer outro erro propaga em vez de virar um "erro=assinatura" mudo.
+    if (e instanceof TransicaoNotaInvalidaError) {
+      redirect(`/medico/consultas/${consultaId}?erro=assinatura` as Route);
+    }
+    throw e;
   }
   revalidatePath(`/medico/consultas/${consultaId}` as Route);
 }

@@ -20,6 +20,7 @@ import {
   matricular,
   MatriculaDuplicadaError,
   promoverDaListaEspera,
+  TransicaoMatriculaInvalidaError,
   transicionarMatricula,
   TurmaLotadaError,
 } from "@/lib/capacitacao/matricula";
@@ -131,8 +132,12 @@ export async function transicionarMatriculaAction(formData: FormData) {
       entityId: matriculaId,
       meta: { de: m.status, para },
     });
-  } catch {
-    redirect(`/capacitacao/turmas/${turmaId}?erro=transicao` as Route);
+  } catch (e) {
+    // Erro de domínio esperado → feedback na tela; o resto propaga (não silencia).
+    if (e instanceof TransicaoMatriculaInvalidaError) {
+      redirect(`/capacitacao/turmas/${turmaId}?erro=transicao` as Route);
+    }
+    throw e;
   }
   redirect(`/capacitacao/turmas/${turmaId}` as Route);
 }
