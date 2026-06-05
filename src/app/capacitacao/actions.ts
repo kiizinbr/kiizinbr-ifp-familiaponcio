@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
+import { buildCidadaoSearchFilter } from "@/lib/cidadao";
 import {
   podeCriarTurma,
   podeGerenciarCurso,
@@ -255,4 +256,41 @@ export async function transicionarTurmaAction(formData: FormData) {
     meta: { de: turma.status, para },
   });
   redirect(`/capacitacao/turmas/${turmaId}` as Route);
+}
+
+/**
+ * Busca incremental de candidatos para matrícula (server-side). Substitui o <select>
+ * de 300 — com 1064+ alunas, o select estático não serve. Reusa buildCidadaoSearchFilter
+ * (índices trigram), exclui anonimizados e quem já está na turma. Máx. 20 resultados.
+ */
+export async function buscarCandidatosAction(
+  turmaId: string,
+  query: string,
+): Promise<{ id: string; nome: string }[]> {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao") || !podeMatricular(session)) return [];
+  const q = query.trim();
+  if (q.length < 2) return [];
+
+  const matriculas = await db.matricula.findMany({
+    where: { turmaId, status: { not: "cancelado" } },
+    select: { cidadaoId: true },
+  });
+  const jaNaTurma = matriculas.map((m) => m.cidadaoId);
+
+  const cidadaos = await db.cidadao.findMany({
+    where: {
+      deletedAt: null,
+      anonimizadoEm: null,
+      ...(jaNaTurma.length > 0 ? { id: { notIn: jaNaTurma } } : {}),
+      ...buildCidadaoSearchFilter(q),
+    },
+    orderBy: { nomeCompleto: "asc" },
+    take: 20,
+    select: { id: true, nomeCompleto: true, nomeSocial: true },
+  });
+  return cidadaos.map((c) => ({
+    id: c.id,
+    nome: c.nomeSocial?.trim() ? c.nomeSocial : c.nomeCompleto,
+  }));
 }

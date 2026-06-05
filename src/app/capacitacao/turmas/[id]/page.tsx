@@ -12,12 +12,12 @@ import { proximosStatusTurma } from "@/lib/capacitacao/turma";
 import { podeCriarTurma, podeMatricular } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge, VagasMeter } from "../../_components/ui";
 import {
-  matricularAction,
   promoverListaEsperaAction,
   transicionarMatriculaAction,
   transicionarTurmaAction,
 } from "../../actions";
 import styles from "../../capacitacao.module.css";
+import { MatricularCombobox } from "./matricular-combobox";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
@@ -68,18 +68,6 @@ export default async function TurmaDetalhePage({
     (m) => m.status !== "lista_espera" && m.status !== "cancelado",
   );
   const espera = turma.matriculas.filter((m) => m.status === "lista_espera");
-  const jaNaTurma = turma.matriculas
-    .filter((m) => m.status !== "cancelado")
-    .map((m) => m.cidadaoId);
-
-  const candidatos = podeMat
-    ? await db.cidadao.findMany({
-        where: { id: { notIn: jaNaTurma } },
-        orderBy: { nomeCompleto: "asc" },
-        take: 300,
-        select: { id: true, nomeCompleto: true, nomeSocial: true },
-      })
-    : [];
 
   const vt = STATUS_TURMA_VISUAL[turma.status];
   const proximosStatus = podeGerir ? proximosStatusTurma(turma.status) : [];
@@ -158,29 +146,7 @@ export default async function TurmaDetalhePage({
                       Turma lotada — novas matrículas entram automaticamente na lista de espera.
                     </p>
                   ) : null}
-                  <form action={matricularAction} className={styles.form}>
-                    <input type="hidden" name="turmaId" value={turma.id} />
-                    <label className={styles.label}>
-                      <span className={styles.labelText}>Cidadão</span>
-                      <select name="cidadaoId" required className={styles.select} defaultValue="">
-                        <option value="" disabled>
-                          Selecione…
-                        </option>
-                        {candidatos.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {nome(c)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <button
-                      type="submit"
-                      className={`${styles.btn} ${styles.btnPrimary}`}
-                      disabled={candidatos.length === 0}
-                    >
-                      Matricular
-                    </button>
-                  </form>
+                  <MatricularCombobox turmaId={turma.id} />
                 </div>
               </div>
             ) : null}
