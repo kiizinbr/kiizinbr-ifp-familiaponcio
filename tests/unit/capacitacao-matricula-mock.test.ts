@@ -16,6 +16,7 @@ const { dbMock } = vi.hoisted(() => {
       update: f(),
     },
     turma: { findUniqueOrThrow: f() },
+    $queryRaw: f(), // no-op no mock; o lock real (FOR UPDATE) é coberto pelo teste DB-real
     $transaction: vi.fn(),
   };
   db.$transaction.mockImplementation((arg: unknown) =>

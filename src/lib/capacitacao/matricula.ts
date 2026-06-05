@@ -80,6 +80,11 @@ export interface MatricularInput {
  */
 export async function matricular(input: MatricularInput): Promise<Matricula> {
   return db.$transaction(async (tx) => {
+    // Lock pessimista na Turma: serializa a checagem de capacidade entre matrículas
+    // concorrentes na mesma turma (evita overbooking). Diferente de reservarSlot, não
+    // há linha única pra flipar — então travamos a Turma e contamos na mesma tx.
+    await tx.$queryRaw`SELECT id FROM "Turma" WHERE id = ${input.turmaId} FOR UPDATE`;
+
     const existente = await tx.matricula.findUnique({
       where: { turmaId_cidadaoId: { turmaId: input.turmaId, cidadaoId: input.cidadaoId } },
     });
@@ -137,6 +142,9 @@ export async function transicionarMatricula(
  */
 export async function promoverDaListaEspera(turmaId: string): Promise<Matricula> {
   return db.$transaction(async (tx) => {
+    // Mesmo lock da matricular: serializa a checagem de capacidade na promoção.
+    await tx.$queryRaw`SELECT id FROM "Turma" WHERE id = ${turmaId} FOR UPDATE`;
+
     const proximo = await tx.matricula.findFirst({
       where: { turmaId, status: "lista_espera" },
       orderBy: { createdAt: "asc" },
