@@ -65,3 +65,9 @@ export function podeRegistrarPresenca(session: Session | null): boolean {
   if (!session) return false;
   return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
 }
+
+/** Emitir certificado de conclusão (F1.A.3): só gestão/secretaria. */
+export function podeEmitirCertificado(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade");
+}

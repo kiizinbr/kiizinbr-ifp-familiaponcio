@@ -9,7 +9,12 @@ import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { proximosStatusTurma } from "@/lib/capacitacao/turma";
-import { podeCriarTurma, podeMatricular, podeRegistrarPresenca } from "@/lib/capacitacao/rbac";
+import {
+  podeCriarTurma,
+  podeEmitirCertificado,
+  podeMatricular,
+  podeRegistrarPresenca,
+} from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge, VagasMeter } from "../../_components/ui";
 import {
   promoverListaEsperaAction,
@@ -19,6 +24,7 @@ import {
 import styles from "../../capacitacao.module.css";
 import { MatricularCombobox } from "./matricular-combobox";
 import { PresencaCard } from "./presenca-card";
+import { CertificadoControl } from "./certificado-control";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
@@ -29,6 +35,8 @@ const ERROS: Record<string, string> = {
   promocao: "Não há ninguém na lista de espera ou a turma está lotada.",
   status: "Não foi possível mudar o status da turma.",
   presenca: "Não foi possível registrar a presença (data inválida).",
+  cert: "Não foi possível emitir o certificado.",
+  cert_inelegivel: "Sem certificado: matrícula não concluída ou frequência abaixo de 80%.",
 };
 
 function nome(c: { nomeCompleto: string; nomeSocial: string | null }): string {
@@ -40,14 +48,14 @@ export default async function TurmaDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string; presenca?: string }>;
+  searchParams: Promise<{ erro?: string; presenca?: string; cert?: string }>;
 }) {
   const session = await auth();
   if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const { id } = await params;
-  const { erro, presenca } = await searchParams;
+  const { erro, presenca, cert } = await searchParams;
 
   const turma = await db.turma.findUnique({
     where: { id },
@@ -58,6 +66,7 @@ export default async function TurmaDetalhePage({
         include: {
           cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
           presencas: { select: { presente: true } },
+          certificado: { select: { codigo: true } },
         },
         orderBy: { createdAt: "asc" },
       },
@@ -77,6 +86,7 @@ export default async function TurmaDetalhePage({
   const vt = STATUS_TURMA_VISUAL[turma.status];
   const proximosStatus = podeGerir ? proximosStatusTurma(turma.status) : [];
   const podeReg = podeRegistrarPresenca(session);
+  const podeEmitirCert = podeEmitirCertificado(session);
   const hojeISO = new Date().toISOString().slice(0, 10);
   const presencaRoster = matriculados.map((m) => ({
     id: m.id,
@@ -107,6 +117,14 @@ export default async function TurmaDetalhePage({
           <div className={`${styles.alert} ${styles.alertError}`}>{ERROS[erro]}</div>
         ) : null}
         {presenca === "ok" ? <div className={styles.alert}>Presença do dia registrada.</div> : null}
+        {cert ? (
+          <div className={styles.alert}>
+            Certificado emitido —{" "}
+            <Link href={`/verificar/${cert}` as Route} style={{ textDecoration: "underline" }}>
+              ver verificação ({cert})
+            </Link>
+          </div>
+        ) : null}
 
         <div className={styles.grid2}>
           {/* coluna esquerda: vagas + matricular */}
@@ -189,6 +207,14 @@ export default async function TurmaDetalhePage({
                           <div className={styles.rowMeta}>
                             <KitBadge variant={vm.variant}>{vm.label}</KitBadge>
                             {m.motivoSaida ? <span>· {m.motivoSaida}</span> : null}
+                            <CertificadoControl
+                              matriculaId={m.id}
+                              turmaId={turma.id}
+                              status={m.status}
+                              presencas={m.presencas}
+                              certificadoCodigo={m.certificado?.codigo ?? null}
+                              podeEmitir={podeEmitirCert}
+                            />
                           </div>
                         </div>
                         {alvos.length > 0 ? (

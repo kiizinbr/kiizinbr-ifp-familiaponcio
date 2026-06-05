@@ -11,6 +11,7 @@ import { logEvent } from "@/lib/audit";
 import { buildCidadaoSearchFilter } from "@/lib/cidadao";
 import {
   podeCriarTurma,
+  podeEmitirCertificado,
   podeGerenciarCurso,
   podeGerenciarInstrutor,
   podeMatricular,
@@ -27,6 +28,8 @@ import {
   TurmaLotadaError,
 } from "@/lib/capacitacao/matricula";
 import { podeTransicionarTurma } from "@/lib/capacitacao/turma";
+import { avaliarElegibilidade } from "@/lib/capacitacao/certificado";
+import { randomBytes } from "node:crypto";
 
 function s(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
@@ -335,4 +338,62 @@ export async function registrarPresencasAction(formData: FormData) {
     meta: { data: dataStr, alunos: roster.length },
   });
   redirect(`/capacitacao/turmas/${turmaId}?presenca=ok` as Route);
+}
+
+/**
+ * Emite o certificado de conclusão de uma matrícula (F1.A.3). Idempotente: se já
+ * existe, vai pra verificação. Trava por elegibilidade (concluído + frequência >=80%).
+ * Guarda snapshots (nome/curso/carga) e um código público p/ verificação.
+ */
+export async function emitirCertificadoAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeEmitirCertificado(session)) throw new Error("Sem permissão");
+
+  const matriculaId = s(formData, "matriculaId");
+  const turmaId = s(formData, "turmaId");
+  const voltar = `/capacitacao/turmas/${turmaId}`;
+
+  const m = await db.matricula.findUnique({
+    where: { id: matriculaId },
+    include: {
+      presencas: { select: { presente: true } },
+      certificado: { select: { codigo: true } },
+      cidadao: { select: { nomeCompleto: true, nomeSocial: true } },
+      turma: { include: { curso: { select: { nome: true, cargaHorariaTotal: true } } } },
+    },
+  });
+  if (!m) redirect(`${voltar}?erro=cert` as Route);
+  if (m.certificado) redirect(`/verificar/${m.certificado.codigo}` as Route);
+
+  const elig = avaliarElegibilidade(m.status, m.presencas);
+  if (!elig.elegivel) redirect(`${voltar}?erro=cert_inelegivel` as Route);
+
+  const nomeAluno = m.cidadao.nomeSocial?.trim() ? m.cidadao.nomeSocial : m.cidadao.nomeCompleto;
+  const codigo = `IFP-${randomBytes(4).toString("hex").toUpperCase()}`;
+
+  const cert = await db.certificado.create({
+    data: {
+      matriculaId: m.id,
+      codigo,
+      nomeAluno,
+      nomeCurso: m.turma.curso.nome,
+      cargaHoraria: m.turma.curso.cargaHorariaTotal,
+      percentualFrequencia: elig.percentual,
+      emitidoPor: session!.user.id,
+    },
+  });
+
+  await logEvent({
+    userId: session!.user.id,
+    action: "certificado_emitido",
+    entityType: "certificado",
+    entityId: cert.id,
+    rootEntityType: "cidadao",
+    rootEntityId: m.cidadaoId,
+    meta: { codigo, turmaId: m.turmaId, percentual: elig.percentual },
+  });
+
+  revalidatePath(voltar);
+  redirect(`${voltar}?cert=${codigo}` as Route);
 }

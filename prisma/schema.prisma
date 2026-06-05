@@ -779,6 +779,7 @@ model Matricula {
   cidadaoId       String
   cidadao         Cidadao         @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
   presencas       Presenca[]
+  certificado     Certificado?
   status          StatusMatricula @default(inscrito)
   origemTriagemId String?
   observacoes     String?         @db.Text
@@ -807,4 +808,21 @@ model Presenca {
 
   @@unique([matriculaId, data])
   @@index([matriculaId])
+}
+
+/// F1.A.3 — Certificado de conclusão. 1 por matrícula. Snapshots (nomeAluno/nomeCurso/
+/// cargaHoraria) p/ o documento não mudar se curso/turma forem editados depois.
+model Certificado {
+  id                   String    @id @default(cuid())
+  matriculaId          String    @unique
+  matricula            Matricula @relation(fields: [matriculaId], references: [id], onDelete: Cascade)
+  codigo               String    @unique // código público de verificação
+  nomeAluno            String
+  nomeCurso            String
+  cargaHoraria         Int
+  percentualFrequencia Int
+  emitidoPor           String // userId
+  emitidoEm            DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }
