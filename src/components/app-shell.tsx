@@ -6,6 +6,7 @@ import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StagingBanner } from "@/components/staging-banner";
 import { hasAnyRole } from "@/lib/rbac";
+import { configuracoesNavItem } from "@/lib/nav";
 import { podeAgendar } from "@/lib/funil";
 import type { UnidadeSlug } from "@/lib/unidades";
 
@@ -39,9 +40,8 @@ function defaultItems(session: Session): NavItem[] {
   if (hasAnyRole(session, "super_admin", "social")) {
     items.push({ label: "Serviço Social", href: "/social" });
   }
-  if (hasAnyRole(session, "super_admin")) {
-    items.push({ label: "Admin", href: "/admin/users" });
-  }
+  const config = configuracoesNavItem(session);
+  if (config) items.push(config);
   return items;
 }
 

@@ -1,6 +1,7 @@
 import type { Session } from "next-auth";
 import { podeCriarTurma } from "@/lib/capacitacao/rbac";
 import type { NavItem } from "@/components/sidebar-nav";
+import { configuracoesNavItem } from "@/lib/nav";
 
 /**
  * Navegação contextual da Capacitação (F1.A.1). Espelha medicoNavItems.
@@ -16,5 +17,7 @@ export function capacitacaoNavItems(session: Session): NavItem[] {
     items.push({ label: "Instrutores", href: "/capacitacao/instrutores" });
   }
   items.push({ label: "Cidadãos", href: "/app/cidadaos" });
+  const config = configuracoesNavItem(session);
+  if (config) items.push(config);
   return items;
 }

@@ -2,6 +2,7 @@ import type { Session } from "next-auth";
 import { hasAnyRole } from "@/lib/rbac";
 import { podeGerenciarEspecialidade, podeAgendarEncaminhamento } from "@/lib/medico/rbac";
 import type { NavItem } from "@/components/sidebar-nav";
+import { configuracoesNavItem } from "@/lib/nav";
 
 /**
  * Navegação contextual do Centro Médico (F1.B.1 T14).
@@ -24,5 +25,7 @@ export function medicoNavItems(session: Session): NavItem[] {
     items.push({ label: "Especialidades", href: "/medico/especialidades" });
   }
   items.push({ label: "Cidadãos", href: "/app/cidadaos" });
+  const config = configuracoesNavItem(session);
+  if (config) items.push(config);
   return items;
 }
