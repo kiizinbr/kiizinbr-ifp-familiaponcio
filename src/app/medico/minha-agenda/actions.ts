@@ -56,26 +56,20 @@ export async function criarTemplateAction(formData: FormData) {
     validoAte,
   });
 
-  // upsert idempotente (não duplica slot já existente no mesmo horário)
-  for (const s of slots) {
-    await db.slot.upsert({
-      where: {
-        profissionalId_dataHoraInicio: {
-          profissionalId: prof.id,
-          dataHoraInicio: s.dataHoraInicio,
-        },
-      },
-      update: {},
-      create: {
-        profissionalId: prof.id,
-        especialidadeId,
-        templateId: template.id,
-        dataHoraInicio: s.dataHoraInicio,
-        duracaoMin: duracaoSlotMin,
-        status: "disponivel",
-      },
-    });
-  }
+  // createMany idempotente: a unique [profissionalId, dataHoraInicio] ignora
+  // slots já existentes no mesmo horário (skipDuplicates), numa única query em
+  // vez de um round-trip por slot (~720 num template de 90 dias).
+  await db.slot.createMany({
+    data: slots.map((s) => ({
+      profissionalId: prof.id,
+      especialidadeId,
+      templateId: template.id,
+      dataHoraInicio: s.dataHoraInicio,
+      duracaoMin: duracaoSlotMin,
+      status: "disponivel" as const,
+    })),
+    skipDuplicates: true,
+  });
 
   await logEvent({
     userId: session.user.id,

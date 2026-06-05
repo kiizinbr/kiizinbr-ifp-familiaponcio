@@ -13,7 +13,7 @@ Plataforma multi-tenant (Next.js App Router + Prisma/Postgres) das unidades do I
 - **Nunca inventar cor:** tudo sai dos tokens (`--ifp-*` / `--unit` / semânticos); tom intermediário via `color-mix(in srgb, var(--unit) X%, …)`.
 - **Fontes:** Hanken Grotesk (UI) + IBM Plex Mono (dados/números/labels).
 - **Executor:** use o skill `frontend-design` — mas DENTRO do kit (ele recria os scaffolds em React, não improvisa).
-- ⚠️ Os tokens **ainda NÃO** estão importados no `globals.css`. O `@import "./styles/ifp-tokens.css"` + `"./styles/ifp-components.css"` é o **passo 1 da migração visual** (muda o fundo das telas atuais) — fazer deliberadamente ao começar a portar, não solto.
+- ✅ Os tokens **já estão** importados no `globals.css` (`@import "../styles/ifp-tokens.css"` + `"../styles/ifp-components.css"`) — a migração visual passo 1 está concluída. Telas novas/alteradas continuam derivando do kit.
 
 ## 🛠️ Dev / ambiente (gotchas confirmados)
 
@@ -22,3 +22,4 @@ Plataforma multi-tenant (Next.js App Router + Prisma/Postgres) das unidades do I
 - **Ritual pré-commit:** `pnpm format && pnpm format:check && pnpm typecheck && pnpm lint && pnpm test` (+ `pnpm build` antes de push). Migrations via `pnpm db:migrate --name X` (carrega `.env.local`).
 - ⚠️ **Verify via ARQUIVO `.sh`** (`wsl -d Ubuntu -- bash caminho.sh`), nunca `bash -lc '…inline…'` — o marshalling PowerShell→wsl mascara o exit code como 0 mesmo com teste falhando.
 - Mensagem de commit: **sem aspas duplas** (quebram o arg ao passar pro git.exe via PowerShell).
+- ⚠️ **`prettier-plugin-tailwindcss` mangla `className` com template literal condicional**: `` `base${c ? " x" : ""}` `` perde o espaço inicial no `format` → vira `basex` e o seletor `.base.x` nunca casa. Use **sempre `clsx(...)`/`cn(...)`** para classe condicional (cada classe vira arg separado e sobrevive ao format).

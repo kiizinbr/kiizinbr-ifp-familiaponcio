@@ -111,7 +111,7 @@ html[data-theme="light"] {
   --line-strong: #ccd2d2;
   --text: #1b1d1d;
   --text-2: #4a4a49;
-  --text-3: #82888a;
+  --text-3: #6a7070; /* escurecido p/ contraste AA 4.5:1 sobre --surface (a11y) */
   --accent: rgb(var(--ifp-teal-700)); /* acento de SISTEMA (saúde/ativo)     */
   --accent-soft: rgba(0, 117, 113, 0.09);
   --accent-line: rgba(0, 117, 113, 0.28);

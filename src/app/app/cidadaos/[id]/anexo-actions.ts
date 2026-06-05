@@ -103,6 +103,13 @@ export async function confirmAnexoUpload(args: {
     return { ok: false, error: check.error ?? "Erro desconhecido" };
   }
 
+  // IDOR guard: o storageKey tem que pertencer a ESTE cidadão (requestAnexoUploadUrl
+  // o gera como `${cidadaoId}/...`). Sem isso, um caller com permissão de editar
+  // fichas poderia confirmar um objeto de outro cidadão.
+  if (!args.storageKey.startsWith(`${args.cidadaoId}/`)) {
+    return { ok: false, error: "Chave de arquivo inválida." };
+  }
+
   // Confirma com MinIO que o objeto realmente está lá
   const stat = await statCidadaoAnexo(args.storageKey);
   if (!stat) {

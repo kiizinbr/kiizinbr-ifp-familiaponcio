@@ -4,6 +4,37 @@
    disabled/loading quando aplicável. Densidade alta (equipe) por padrão.
    ============================================================================ */
 
+/* ===== ACESSIBILIDADE (skip-link + sr-only) ============================= */
+/* Link "pular navegação": invisível até receber foco por teclado (WCAG 2.4.1). */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: 100;
+  padding: 8px 14px;
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
+  transition: top var(--t-fast) ease;
+}
+.skip-link:focus-visible {
+  top: 8px;
+}
+/* Conteúdo só para leitores de tela. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ===== CARD ============================================================== */
 .card {
   background: var(--surface);

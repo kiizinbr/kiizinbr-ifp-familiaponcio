@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
 import type { StatusConsulta } from "@prisma/client";
+import { clsx } from "clsx";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -186,7 +187,7 @@ export default async function MedicoHomePage() {
                 <Link
                   key={c.id}
                   href={`/medico/consultas/${c.id}` as Route}
-                  className={`tl-item${isNow ? "live" : ""}`}
+                  className={clsx("tl-item", isNow && "live")}
                   style={{ display: "block", textDecoration: "none", color: "inherit" }}
                 >
                   <div

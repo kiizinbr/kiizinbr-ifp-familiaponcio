@@ -16,17 +16,17 @@
 
 ## ⚠️ Riscos / recomendações (antes de dado REAL)
 
-| # | Item | Recomendação |
-|---|------|--------------|
-| 1 | **Backups têm dados sensíveis** | Os dumps (VM + cópia no host) precisam de acesso restrito **e idealmente criptografia**. Hoje o dump é texto comprimido sem cripto. → cifrar o dump (`age`/`gpg`) ou garantir pasta restrita+cifrada no host. |
-| 2 | **Dado em repouso não cifrado** | O volume do Postgres não é cifrado em disco. Pra prod, considerar disco/volume cifrado na VM. |
-| 3 | **Sudo `NOPASSWD:ALL`** | Comprometer `erickramos` = root. Escopar o sudo (ver REPORT — preparado, você aplica). |
-| 4 | **Firewall desligado** | Habilitar `ufw` (ver REPORT — preparado). |
-| 5 | **Rotas `/api/*` não passam pelo proxy** | Cada rota de API precisa fazer auth própria. Conferi a de anexos (OK); **auditar todas as rotas `/api` antes de prod**. |
-| 6 | **Base legal + consentimento** | Ao migrar pra dado real, o instituto precisa definir/documentar a **base legal** (Art. 11 — tutela da saúde / assistência ou consentimento) e o fluxo de consentimento das famílias. *(processo, não código)* |
-| 7 | **Retenção / minimização** | Definir política de retenção (por quanto tempo guardar dados de cidadão inativo). *(decisão do instituto)* |
-| 8 | **Encarregado (DPO) + Política de Privacidade** | Exigências LGPD pra operação real. *(processo)* |
-| 9 | **STAGING tem dados DEMO** | Não usar com dado real de paciente/família até hardening (1-5) + base legal (6) resolvidos. Banner STAGING já avisa no app interno. |
+| #   | Item                                            | Recomendação                                                                                                                                                                                                  |
+| --- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Backups têm dados sensíveis**                 | Os dumps (VM + cópia no host) precisam de acesso restrito **e idealmente criptografia**. Hoje o dump é texto comprimido sem cripto. → cifrar o dump (`age`/`gpg`) ou garantir pasta restrita+cifrada no host. |
+| 2   | **Dado em repouso não cifrado**                 | O volume do Postgres não é cifrado em disco. Pra prod, considerar disco/volume cifrado na VM.                                                                                                                 |
+| 3   | **Sudo `NOPASSWD:ALL`**                         | Comprometer `erickramos` = root. Escopar o sudo (ver REPORT — preparado, você aplica).                                                                                                                        |
+| 4   | **Firewall desligado**                          | Habilitar `ufw` (ver REPORT — preparado).                                                                                                                                                                     |
+| 5   | **Rotas `/api/*` não passam pelo proxy**        | Cada rota de API precisa fazer auth própria. Conferi a de anexos (OK); **auditar todas as rotas `/api` antes de prod**.                                                                                       |
+| 6   | **Base legal + consentimento**                  | Ao migrar pra dado real, o instituto precisa definir/documentar a **base legal** (Art. 11 — tutela da saúde / assistência ou consentimento) e o fluxo de consentimento das famílias. _(processo, não código)_ |
+| 7   | **Retenção / minimização**                      | Definir política de retenção (por quanto tempo guardar dados de cidadão inativo). _(decisão do instituto)_                                                                                                    |
+| 8   | **Encarregado (DPO) + Política de Privacidade** | Exigências LGPD pra operação real. _(processo)_                                                                                                                                                               |
+| 9   | **STAGING tem dados DEMO**                      | Não usar com dado real de paciente/família até hardening (1-5) + base legal (6) resolvidos. Banner STAGING já avisa no app interno.                                                                           |
 
 ## Veredito
 

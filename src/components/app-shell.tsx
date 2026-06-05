@@ -64,6 +64,9 @@ export function AppShell({
 
   return (
     <>
+      <a href="#main-content" className="skip-link">
+        Pular para o conteúdo
+      </a>
       <StagingBanner />
       <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
         <aside className="sidebar">
@@ -132,7 +135,7 @@ export function AppShell({
           </div>
         </aside>
 
-        <main>
+        <main id="main-content" tabIndex={-1}>
           <div className="content">{children}</div>
         </main>
       </div>

@@ -466,6 +466,7 @@ model ProfissionalEspecialidade {
   createdAt       DateTime      @default(now())
 
   @@id([profissionalId, especialidadeId])
+  @@index([especialidadeId])
 }
 
 model AgendaTemplate {
@@ -488,6 +489,7 @@ model AgendaTemplate {
   updatedAt       DateTime     @updatedAt
 
   @@index([profissionalId, ativo])
+  @@index([especialidadeId])
 }
 
 enum StatusSlot {
@@ -560,6 +562,9 @@ model Consulta {
   @@index([profissionalId, status])
   @@index([cidadaoId])
   @@index([status, createdAt])
+  @@index([createdBy])
+  @@index([origemTriagemId])
+  @@index([origemEncaminhamentoId])
 }
 
 /// F1.B — pedido do GP para especialista. Vira fila de busca ativa no callcenter.
@@ -584,6 +589,8 @@ model Encaminhamento {
 
   @@index([status, createdAt])
   @@index([cidadaoId])
+  @@index([createdBy])
+  @@index([consultaOrigemId])
 }
 
 // ============================================================
@@ -766,4 +773,6 @@ model Matricula {
   @@unique([turmaId, cidadaoId])
   @@index([turmaId, status])
   @@index([cidadaoId])
+  @@index([createdBy])
+  @@index([origemTriagemId])
 }

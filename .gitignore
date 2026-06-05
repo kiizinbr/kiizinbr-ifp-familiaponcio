@@ -56,3 +56,6 @@ docs/migration-samples/
 
 # segredos do deploy (ficam só na VM)
 ops/vm/.env.prod
+
+# ECC (Everything Claude Code) — ferramenta de review instalada por projeto, não versionar
+.claude/

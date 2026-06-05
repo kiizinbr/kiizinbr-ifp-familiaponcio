@@ -12,8 +12,10 @@ const envSchema = z.object({
     .union([z.literal("true"), z.literal("false")])
     .default("false")
     .transform((v) => v === "true"),
-  MINIO_ACCESS_KEY: z.string().default("ifp_minio"),
-  MINIO_SECRET_KEY: z.string().default("ifp_minio_dev_pw"),
+  // Sem default: produção sem credencial deve FALHAR no boot, nunca cair
+  // silenciosamente nas credenciais de dev. Dev/CI as fornecem via env.
+  MINIO_ACCESS_KEY: z.string().min(1),
+  MINIO_SECRET_KEY: z.string().min(1),
   MINIO_BUCKET_CIDADAO: z.string().default("ifp-cidadao-anexos"),
 });
 
