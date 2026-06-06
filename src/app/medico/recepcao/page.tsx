@@ -13,6 +13,7 @@ import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { transitionAction } from "../consultas/[id]/actions";
 import { marcarCheckinAction } from "../consultas/[id]/checkin-action";
+import { chamarAction } from "@/app/painel/chamar-actions";
 
 /** Balcão único da recepção: busca o paciente + agenda do dia com ações inline. */
 export default async function RecepcaoPage({
@@ -51,7 +52,7 @@ export default async function RecepcaoPage({
     where: { slot: { dataHoraInicio: { gte: inicioDia, lte: fimDia } } },
     include: {
       slot: { select: { dataHoraInicio: true } },
-      cidadao: { select: { nomeCompleto: true, nomeSocial: true } },
+      cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
       especialidade: { select: { nome: true } },
       profissional: { select: { nomeExibicao: true } },
     },
@@ -201,6 +202,14 @@ export default async function RecepcaoPage({
                         Reagendar
                       </Link>
                     ) : null}
+                    <form action={chamarAction}>
+                      <input type="hidden" name="unidade" value="medico" />
+                      <input type="hidden" name="nomeChamado" value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto} />
+                      <input type="hidden" name="destino" value="Recepcao" />
+                      <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
+                      <input type="hidden" name="consultaId" value={c.id} />
+                      <button type="submit" className="btn btn-secondary">Chamar</button>
+                    </form>
                   </div>
                 </div>
               </Card>

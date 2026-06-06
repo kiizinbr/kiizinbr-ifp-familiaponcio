@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { transitionAction } from "../consultas/[id]/actions";
+import { chamarAction } from "@/app/painel/chamar-actions";
 
 /** Fila do dia do profissional logado: só os pacientes dele, com check-in + iniciar direto. */
 export default async function MinhaFilaPage() {
@@ -30,8 +31,9 @@ export default async function MinhaFilaPage() {
     },
     include: {
       slot: { select: { dataHoraInicio: true } },
-      cidadao: { select: { nomeCompleto: true, nomeSocial: true } },
+      cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
       especialidade: { select: { nome: true } },
+      profissional: { select: { nomeExibicao: true } },
     },
     orderBy: { slot: { dataHoraInicio: "asc" } },
   });
@@ -113,6 +115,14 @@ export default async function MinhaFilaPage() {
                         Abrir
                       </Link>
                     )}
+                    <form action={chamarAction}>
+                      <input type="hidden" name="unidade" value="medico" />
+                      <input type="hidden" name="nomeChamado" value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto} />
+                      <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
+                      <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
+                      <input type="hidden" name="consultaId" value={c.id} />
+                      <button type="submit" className="btn btn-secondary">Chamar</button>
+                    </form>
                   </div>
                 </div>
               </Card>

@@ -55,7 +55,7 @@ export async function listTriagensPendentes(session: Session | null) {
   return db.triagem.findMany({
     where: { status: "aberta" },
     include: {
-      cidadao: { select: { id: true, nomeCompleto: true, unitIdOrigem: true } },
+      cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true, unitIdOrigem: true } },
       assistenteSocial: { select: { name: true, email: true } },
     },
     orderBy: { createdAt: "asc" },

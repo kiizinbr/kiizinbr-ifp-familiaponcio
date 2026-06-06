@@ -7,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { KpiCard } from "@/components/kpi-card";
 import { getCidadaoStats } from "@/lib/cidadao";
 import { countTriagensAbertas, listTriagensPendentes } from "@/lib/triagem";
+import { chamarAction } from "@/app/painel/chamar-actions";
 import type { UnitScope } from "@/lib/rbac-types";
 
 const UNIT_LABELS: Record<UnitScope, string> = {
@@ -74,6 +75,7 @@ export default async function SocialDashboard() {
                 key={t.id}
                 cidadaoId={t.cidadao.id}
                 nome={t.cidadao.nomeCompleto}
+                nomeSocial={t.cidadao.nomeSocial}
                 unit={t.cidadao.unitIdOrigem as UnitScope}
                 abertaEm={t.createdAt}
               />
@@ -116,11 +118,13 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 function TriagemItem({
   cidadaoId,
   nome,
+  nomeSocial,
   unit,
   abertaEm,
 }: {
   cidadaoId: string;
   nome: string;
+  nomeSocial: string | null;
   unit: UnitScope;
   abertaEm: Date;
 }) {
@@ -140,11 +144,18 @@ function TriagemItem({
             className="text-sm font-medium"
             style={{ color: "var(--text)" }}
           >
-            {nome}
+            {nomeSocial || nome}
           </Link>
           <span className="text-3 mono text-xs">aberta {formatDate(abertaEm)}</span>
         </div>
         <p className="text-3 text-xs">{UNIT_LABELS[unit]}</p>
+        <form action={chamarAction} style={{ marginTop: 6 }}>
+          <input type="hidden" name="unidade" value="medico" />
+          <input type="hidden" name="nomeChamado" value={nomeSocial || nome} />
+          <input type="hidden" name="destino" value="Triagem" />
+          <input type="hidden" name="cidadaoId" value={cidadaoId} />
+          <button type="submit" className="btn btn-secondary">Chamar</button>
+        </form>
       </div>
     </li>
   );
