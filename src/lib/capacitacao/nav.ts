@@ -1,5 +1,6 @@
 import type { Session } from "next-auth";
 import { podeCriarTurma } from "@/lib/capacitacao/rbac";
+import { hasAnyRole } from "@/lib/rbac";
 import type { NavItem } from "@/components/sidebar-nav";
 import { configuracoesNavItem } from "@/lib/nav";
 
@@ -13,6 +14,9 @@ export function capacitacaoNavItems(session: Session): NavItem[] {
     { label: "Catálogo", href: "/capacitacao/cursos" },
     { label: "Turmas", href: "/capacitacao/turmas" },
   ];
+  if (hasAnyRole(session, "profissional")) {
+    items.push({ label: "Minhas turmas", href: "/capacitacao/minhas-turmas" });
+  }
   if (podeCriarTurma(session)) {
     items.push({ label: "Instrutores", href: "/capacitacao/instrutores" });
   }
