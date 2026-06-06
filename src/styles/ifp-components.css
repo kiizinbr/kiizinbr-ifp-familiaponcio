@@ -1080,3 +1080,24 @@ table.tbl .cell-mono {
     display: none;
   }
 }
+
+/* ===== Painel de chamada na TV ===== */
+@keyframes ifp-marquee {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+.painel-marquee {
+  white-space: nowrap;
+  will-change: transform;
+  animation: ifp-marquee 22s linear infinite;
+}
+/* Excecao de reduced-motion: o rodape precisa rolar pra cumprir a funcao (anuncio). */
+@media (prefers-reduced-motion: reduce) {
+  .painel-marquee {
+    animation: ifp-marquee 22s linear infinite !important;
+  }
+}
