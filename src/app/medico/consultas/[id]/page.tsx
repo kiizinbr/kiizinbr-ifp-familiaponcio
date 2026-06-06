@@ -8,12 +8,14 @@ import { logEvent } from "@/lib/audit";
 import { MedicoShell } from "@/components/medico/medico-shell";
 import {
   podeTransicionarConsulta,
+  podeMarcarConsulta,
   podeEditarNota,
   podeVerProntuario,
   podeEncaminhar,
   podeEmitirDocumento,
 } from "@/lib/medico/rbac";
 import { CONSULTA_VISUAL, PROXIMOS_STATUS_CONSULTA } from "@/lib/medico/ui";
+import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { calcularImc } from "@/lib/medico/prontuario";
 import { transitionAction, cancelAction } from "./actions";
 import {
@@ -68,10 +70,10 @@ export default async function ConsultaDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string; doc?: string }>;
+  searchParams: Promise<{ erro?: string; doc?: string; reagendada?: string }>;
 }) {
   const { id } = await params;
-  const { erro, doc } = await searchParams;
+  const { erro, doc, reagendada } = await searchParams;
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
@@ -151,6 +153,7 @@ export default async function ConsultaDetalhePage({
   const proximos = PROXIMOS_STATUS_CONSULTA[consulta.status].filter((p) => p !== "realizada");
   const naoCancelados = proximos.filter((p) => p !== "cancelada");
   const podeCancelar = proximos.includes("cancelada");
+  const podeReagendar = STATUS_REAGENDAVEL.has(consulta.status) && podeMarcarConsulta(session);
 
   const vitalVal = (key: string): string => {
     const v = nota ? (nota as unknown as Record<string, unknown>)[key] : null;
@@ -226,6 +229,14 @@ export default async function ConsultaDetalhePage({
                   </form>
                 );
               })}
+              {podeReagendar && (
+                <Link
+                  href={`/medico/consultas/${consulta.id}/reagendar` as Route}
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                >
+                  Reagendar
+                </Link>
+              )}
               {podeCancelar && (
                 <form action={cancelAction} style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
                   <input type="hidden" name="id" value={consulta.id} />
@@ -245,6 +256,14 @@ export default async function ConsultaDetalhePage({
           </div>
         )}
 
+        {reagendada === "ok" ? (
+          <div className={styles.card} style={{ marginBottom: 16 }}>
+            <div className={styles.body} style={{ fontSize: 13 }}>
+              Consulta reagendada.
+            </div>
+          </div>
+        ) : null}
+
         {erro && (
           <div
             className={styles.card}
@@ -256,6 +275,9 @@ export default async function ConsultaDetalhePage({
               {erro === "assinatura" &&
                 "Não foi possível assinar (verifique se há nota e se a consulta está em atendimento)."}
               {erro === "nao_assinada" && "Addendo só é permitido após a assinatura."}
+              {erro === "nao_reagendavel" && "Esta consulta não pode mais ser reagendada."}
+              {erro === "slot_indisponivel" &&
+                "O horário escolhido acabou de ser reservado. Tente outro."}
             </div>
           </div>
         )}

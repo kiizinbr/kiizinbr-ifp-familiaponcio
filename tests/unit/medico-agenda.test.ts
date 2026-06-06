@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import {
   bloquearSlot,
+  ConsultaNaoReagendavelError,
   gerarSlots,
   liberarSlot,
+  reagendarConsulta,
   reservarSlot,
   SlotComConsultaError,
   SlotIndisponivelError,
+  STATUS_REAGENDAVEL,
   transicionarConsulta,
   type TemplateInput,
 } from "@/lib/medico/agenda";
@@ -82,6 +85,68 @@ describe("gerarSlots", () => {
     const slots = gerarSlots(tmpl, { limiteSuperior: limite });
     expect(slots.every((s) => s.dataHoraInicio.getTime() < limite.getTime())).toBe(true);
     expect(slots.length).toBeGreaterThan(0);
+  });
+});
+
+describe("STATUS_REAGENDAVEL", () => {
+  it("agendada e confirmada são reagendáveis; demais não", () => {
+    expect(STATUS_REAGENDAVEL.has("agendada")).toBe(true);
+    expect(STATUS_REAGENDAVEL.has("confirmada")).toBe(true);
+    expect(STATUS_REAGENDAVEL.has("em_atendimento")).toBe(false);
+    expect(STATUS_REAGENDAVEL.has("realizada")).toBe(false);
+    expect(STATUS_REAGENDAVEL.has("cancelada")).toBe(false);
+  });
+});
+
+describe("reagendarConsulta (integration)", () => {
+  it("move a consulta de slot, libera o antigo e reserva o novo", async () => {
+    const prof = await db.profissional.findFirstOrThrow({
+      where: { nomeExibicao: "Dr. João Silva" },
+    });
+    const esp = await db.especialidade.findUniqueOrThrow({ where: { nome: "Clínico Geral" } });
+    const cid = await db.cidadao.findFirstOrThrow({ where: { unitIdOrigem: "medico" } });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+    const slots = await db.slot.findMany({
+      where: { profissionalId: prof.id, status: "disponivel" },
+      orderBy: { dataHoraInicio: "asc" },
+      take: 2,
+    });
+    const s1 = slots[0]!;
+    const s2 = slots[1]!;
+    await db.consulta.deleteMany({ where: { slotId: { in: [s1.id, s2.id] } } });
+    await db.slot.updateMany({
+      where: { id: { in: [s1.id, s2.id] } },
+      data: { status: "disponivel" },
+    });
+
+    const consulta = await reservarSlot({
+      slotId: s1.id,
+      cidadaoId: cid.id,
+      profissionalId: prof.id,
+      especialidadeId: esp.id,
+      createdBy: erick.id,
+    });
+
+    const movida = await reagendarConsulta(consulta.id, s2.id);
+
+    expect(movida.slotId).toBe(s2.id);
+    expect((await db.slot.findUniqueOrThrow({ where: { id: s1.id } })).status).toBe("disponivel");
+    expect((await db.slot.findUniqueOrThrow({ where: { id: s2.id } })).status).toBe("reservado");
+
+    // cleanup
+    await db.consulta.deleteMany({ where: { id: consulta.id } });
+    await db.slot.updateMany({
+      where: { id: { in: [s1.id, s2.id] } },
+      data: { status: "disponivel" },
+    });
+  });
+
+  it("recusa reagendar consulta já realizada", async () => {
+    expect(() => {
+      if (!STATUS_REAGENDAVEL.has("realizada")) throw new ConsultaNaoReagendavelError("realizada");
+    }).toThrow(ConsultaNaoReagendavelError);
   });
 });
 

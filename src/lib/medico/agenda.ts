@@ -232,3 +232,51 @@ export async function aplicarTransicaoConsulta(
 export async function transicionarConsulta(consultaId: string, para: StatusConsulta) {
   return db.$transaction((tx) => aplicarTransicaoConsulta(tx, consultaId, para));
 }
+
+// ============================================================================
+// Reagendamento em 1 passo (mover consulta de slot)
+// ============================================================================
+
+/** Status em que a consulta pode ser reagendada (ainda não começou nem terminou). */
+export const STATUS_REAGENDAVEL: ReadonlySet<StatusConsulta> = new Set(["agendada", "confirmada"]);
+
+export class ConsultaNaoReagendavelError extends Error {
+  constructor(public readonly status: StatusConsulta) {
+    super(`Consulta com status ${status} não pode ser reagendada`);
+    this.name = "ConsultaNaoReagendavelError";
+  }
+}
+
+/**
+ * Reagenda uma consulta para um novo slot numa única transação: reserva o novo slot
+ * (compare-and-swap anti-overbooking, igual ao reservarSlot), libera o slot antigo e
+ * move a consulta (slot + profissional + especialidade passam a ser os do novo slot).
+ * Só agendada/confirmada. Lança SlotIndisponivelError se o novo slot já foi pego.
+ */
+export async function reagendarConsulta(consultaId: string, novoSlotId: string) {
+  return db.$transaction(async (tx) => {
+    const consulta = await tx.consulta.findUniqueOrThrow({ where: { id: consultaId } });
+    if (!STATUS_REAGENDAVEL.has(consulta.status)) {
+      throw new ConsultaNaoReagendavelError(consulta.status);
+    }
+    if (consulta.slotId === novoSlotId) return consulta; // mesmo horário, no-op
+
+    const upd = await tx.slot.updateMany({
+      where: { id: novoSlotId, status: "disponivel" },
+      data: { status: "reservado" },
+    });
+    if (upd.count === 0) throw new SlotIndisponivelError(novoSlotId);
+
+    const novoSlot = await tx.slot.findUniqueOrThrow({ where: { id: novoSlotId } });
+    await tx.slot.update({ where: { id: consulta.slotId }, data: { status: "disponivel" } });
+
+    return tx.consulta.update({
+      where: { id: consultaId },
+      data: {
+        slotId: novoSlotId,
+        profissionalId: novoSlot.profissionalId,
+        especialidadeId: novoSlot.especialidadeId,
+      },
+    });
+  });
+}
