@@ -179,6 +179,17 @@ export default async function ConsultaDetalhePage({
               </span>
               <span className={styles.sep} />
               <span className={styles.mono}>PRONT #{cidadao.id.slice(-6).toUpperCase()}</span>
+              {podeVer ? (
+                <>
+                  <span className={styles.sep} />
+                  <Link
+                    href={`/medico/pacientes/${cidadao.id}` as Route}
+                    style={{ color: "var(--accent)" as string }}
+                  >
+                    Histórico clínico →
+                  </Link>
+                </>
+              ) : null}
             </div>
           </div>
           <div className={styles.right}>
