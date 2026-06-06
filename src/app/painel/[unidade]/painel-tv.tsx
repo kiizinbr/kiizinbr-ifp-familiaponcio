@@ -20,18 +20,20 @@ function youtubeId(url: string | null): string | null {
   return m ? m[1]! : null;
 }
 
+// FIX 3: modulo-level repeat timer rastreado; limpa antes de falar (sem empilhamento)
+let repeatTimer: number | undefined;
 function falar(texto: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
-  const u = new SpeechSynthesisUtterance(texto);
-  u.lang = "pt-BR";
-  u.rate = 0.95;
+  window.clearTimeout(repeatTimer);
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
-  // repete uma vez apos uma pausa curta
-  const u2 = new SpeechSynthesisUtterance(texto);
-  u2.lang = "pt-BR";
-  u2.rate = 0.95;
-  window.setTimeout(() => window.speechSynthesis.speak(u2), 1800);
+  const speak = (t: string) => {
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = "pt-BR";
+    u.rate = 0.95;
+    window.speechSynthesis.speak(u);
+  };
+  speak(texto);
+  repeatTimer = window.setTimeout(() => speak(texto), 1800);
 }
 
 export function PainelTV({
@@ -50,6 +52,10 @@ export function PainelTV({
   const [erroConexao, setErroConexao] = useState(false);
   const ultimoIdRef = useRef<string | null>(null);
   const playerRef = useRef<YT.Player | null>(null);
+  // FIX 1: timer do polling em ref para evitar stray timer apos desmontagem
+  const timerRef = useRef<number | undefined>(undefined);
+  // FIX 2: timer do overlay em ref para limpar antes de agendar novo
+  const overlayTimerRef = useRef<number | undefined>(undefined);
   const videoId = youtubeId(videoUrl);
 
   // tema escuro estavel pra TV
@@ -57,7 +63,7 @@ export function PainelTV({
     document.documentElement.dataset.theme = "dark";
   }, []);
 
-  // YouTube IFrame Player API (so apos o gesto, com som liberado)
+  // FIX 4 + FIX 5: YouTube IFrame Player API com guard de script duplicado e destroy no cleanup
   useEffect(() => {
     if (!iniciado || !videoId) return;
     function criarPlayer() {
@@ -67,23 +73,33 @@ export function PainelTV({
         host: "https://www.youtube-nocookie.com",
       });
     }
-    if (window.YT && window.YT.Player) {
+    // FIX 5: evita adicionar script duplicado e sobrescrever callback ja registrado
+    if (window.YT?.Player) {
       criarPlayer();
-    } else {
+    } else if (!document.getElementById("yt-api-script")) {
       const tag = document.createElement("script");
+      tag.id = "yt-api-script";
       tag.src = "https://www.youtube.com/iframe_api";
       document.body.appendChild(tag);
       window.onYouTubeIframeAPIReady = criarPlayer;
     }
+    // FIX 4: destrói o player no cleanup para evitar vazamento de recursos
+    return () => {
+      try { playerRef.current?.destroy(); } catch { /* player ja destruido ou nao inicializado */ }
+      playerRef.current = null;
+    };
   }, [iniciado, videoId]);
 
-  // polling das chamadas
+  // FIX 1 + FIX 2: polling com AbortController, timer em ref e overlay timer limpo no cleanup
   useEffect(() => {
     if (!iniciado) return;
-    let timer: number;
+    const controller = new AbortController();
     async function tick() {
       try {
-        const r = await fetch(`/api/painel/${unidade}/chamadas`, { cache: "no-store" });
+        const r = await fetch(`/api/painel/${unidade}/chamadas`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
         if (!r.ok) {
           setErroConexao(true);
           return;
@@ -102,7 +118,9 @@ export function PainelTV({
             /* player ainda nao pronto */
           }
           falar(fraseChamada(atual.nomeChamado, atual.destino));
-          window.setTimeout(() => {
+          // FIX 2: cancela overlay anterior antes de agendar novo
+          window.clearTimeout(overlayTimerRef.current);
+          overlayTimerRef.current = window.setTimeout(() => {
             setOverlay(false);
             try {
               playerRef.current?.unMute?.();
@@ -111,21 +129,42 @@ export function PainelTV({
             }
           }, OVERLAY_MS);
         }
-      } catch {
+      } catch (e) {
+        // FIX 1: ignora AbortError (desmontagem normal), seta erro apenas em falhas reais
+        if ((e as Error).name === "AbortError") return;
         setErroConexao(true);
       } finally {
-        timer = window.setTimeout(tick, POLL_MS);
+        // FIX 1: so reagenda se o controller ainda nao foi abortado
+        if (!controller.signal.aborted) {
+          timerRef.current = window.setTimeout(tick, POLL_MS);
+        }
       }
     }
     tick();
-    return () => window.clearTimeout(timer);
+    // FIX 1 + FIX 2: cancela fetch em voo, timer de poll e timer de overlay no cleanup
+    return () => {
+      controller.abort();
+      window.clearTimeout(timerRef.current);
+      window.clearTimeout(overlayTimerRef.current);
+    };
   }, [iniciado, unidade]);
 
-  // gesto inicial: libera audio/autoplay
+  // FIX 6: keep-alive do speechSynthesis para evitar silencio apos ~15min no Chromium
+  useEffect(() => {
+    if (!iniciado) return;
+    const id = window.setInterval(() => {
+      if (typeof window !== "undefined" && window.speechSynthesis?.speaking) {
+        window.speechSynthesis.resume();
+      }
+    }, 10000);
+    return () => window.clearInterval(id);
+  }, [iniciado]);
+
+  // FIX 7: type="button" no botao de inicio para evitar submit acidental em form pai
   if (!iniciado) {
     return (
       <div style={center}>
-        <button className="btn btn-primary btn-lg" onClick={() => setIniciado(true)}>
+        <button type="button" className="btn btn-primary btn-lg" onClick={() => setIniciado(true)}>
           ▶ Iniciar painel
         </button>
       </div>
@@ -204,6 +243,7 @@ const overlayStyle: React.CSSProperties = {
   justifyContent: "center",
   zIndex: 10,
 };
+// FIX 7: maxHeight e overflow para evitar crescimento ilimitado da lista de recentes
 const recentesStyle: React.CSSProperties = {
   position: "absolute",
   top: 20,
@@ -213,6 +253,8 @@ const recentesStyle: React.CSSProperties = {
   borderRadius: 10,
   padding: "10px 14px",
   zIndex: 5,
+  maxHeight: "40vh",
+  overflow: "hidden",
 };
 const tickerStyle: React.CSSProperties = {
   position: "absolute",
