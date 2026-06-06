@@ -261,6 +261,7 @@ model Cidadao {
   notasEvolucao NotaEvolucao[]
   matriculas   Matricula[]
   encaminhamentos Encaminhamento[]
+  consentimentos Consentimento[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -268,6 +269,31 @@ model Cidadao {
   @@index([unitIdOrigem])
   @@index([deletedAt])
   @@index([statusCadastro])
+}
+
+enum TipoConsentimento {
+  tratamento_dados
+  imagem
+}
+
+/// LGPD base legal — consentimento versionado por cidadão. 1 registro vigente por tipo
+/// (upsert ao re-registrar; revogadoEm marca revogação). Imagem usa escopos granulares.
+model Consentimento {
+  id             String            @id @default(cuid())
+  cidadaoId      String
+  cidadao        Cidadao           @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
+  tipo           TipoConsentimento
+  versao         String // versão do termo aceito (congela mesmo se o texto mudar)
+  imagemInterno  Boolean           @default(false)
+  imagemRedes    Boolean           @default(false)
+  imagemImprensa Boolean           @default(false)
+  registradoPor  String // userId
+  registradoEm   DateTime          @default(now())
+  revogadoEm     DateTime?
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([cidadaoId, tipo])
+  @@index([cidadaoId])
 }
 
 /// Endereços 1:N por Cidadao — §0.3. Auto-preenche via BrasilAPI ao digitar CEP.

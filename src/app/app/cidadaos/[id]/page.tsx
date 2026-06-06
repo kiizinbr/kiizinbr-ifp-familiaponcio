@@ -6,11 +6,18 @@ import { AppShell } from "@/components/app-shell";
 import { calcularIdade, getCidadaoView } from "@/lib/cidadao";
 import { formatCpf } from "@/lib/cpf";
 import { formatCep } from "@/lib/cep";
-import { hasAnyRole, podeVerSaudeCidadao, podeVerSocioCidadao } from "@/lib/rbac";
+import {
+  hasAnyRole,
+  podeVerSaudeCidadao,
+  podeVerSocioCidadao,
+  podeGerirConsentimento,
+} from "@/lib/rbac";
+import { db } from "@/lib/db";
 import type { UnitScope } from "@/lib/rbac-types";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { AnexoUploader } from "./anexo-uploader";
 import { AnonimizarButton } from "./anonimizar-button";
+import { ConsentimentoSection } from "./consentimento-section";
 
 const TONE_BADGE: Record<StatusTone, string> = {
   red: "badge badge-danger",
@@ -74,6 +81,20 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
     "recepcao",
   );
   const podeTriagem = hasAnyRole(session, "super_admin", "social");
+  const podeGerirConsent = podeGerirConsentimento(session);
+  const consentimentos = podeGerirConsent
+    ? await db.consentimento.findMany({
+        where: { cidadaoId: id },
+        select: {
+          tipo: true,
+          versao: true,
+          imagemInterno: true,
+          imagemRedes: true,
+          imagemImprensa: true,
+          revogadoEm: true,
+        },
+      })
+    : [];
 
   return (
     <AppShell session={session}>
@@ -232,6 +253,10 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
               <Field label="Condições crônicas" value={cidadao.condicoesCronicas} multiline />
             </Section>
           )}
+
+          {podeGerirConsent ? (
+            <ConsentimentoSection cidadaoId={cidadao.id} consentimentos={consentimentos} />
+          ) : null}
 
           {/* Anexos */}
           <Section title={`Anexos (${cidadao.anexos.length})`}>

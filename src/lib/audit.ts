@@ -11,6 +11,8 @@ export type AuditAction =
   | "password_reset"
   | "data_exported"
   | "cidadao_anonimizado"
+  | "consentimento_registrado"
+  | "consentimento_revogado"
   | "medical_data_accessed"
   | "ficha_created"
   | "ficha_updated"

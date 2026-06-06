@@ -122,6 +122,14 @@ export function podeEditarSocioCidadao(session: Session | null): boolean {
 }
 
 /**
+ * Registrar/revogar consentimentos LGPD (base legal): staff do cadastro/atendimento —
+ * super_admin, gestão, serviço social e recepção. NÃO profissional (não é tarefa de balcão dele).
+ */
+export function podeGerirConsentimento(session: Session | null): boolean {
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "social", "recepcao");
+}
+
+/**
  * Para usar em Server Components: lança redirect pra /login se não autorizado.
  * Inspirado no pattern de Next.js "auth + redirect" nos boundaries.
  */
