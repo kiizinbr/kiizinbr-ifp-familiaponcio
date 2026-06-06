@@ -75,3 +75,33 @@ cd /opt/ifp-connect/ops/vm && ./deploy.sh
 docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f app
 docker compose -f docker-compose.prod.yml --env-file .env.prod down       # mantém volumes
 ```
+
+## Backup cifrado + restore
+
+O banco tem dados sensíveis (saúde/assistência), então os dumps são **cifrados com [`age`](https://github.com/FiloSottile/age)** em streaming (sem plaintext em disco).
+
+```bash
+sudo apt-get install -y age            # uma vez
+cd /opt/ifp-connect/ops/vm
+bash backup.sh                         # gera a chave na 1a vez + grava ifp_connect-<ts>.sql.gz.age
+```
+
+- **Chave de cifra:** `ops/vm/secrets/age-backup.key` (perms 600, **gitignored**, vive **só na VM**).
+- **Rotação:** mantém os 7 `.age` mais recentes. **Off-VM:** `pull-ifp-backup.ps1` puxa o `.age` mais recente pro host (a chave **não** sai da VM → cópia off-site é inútil pra quem não tem a chave).
+- **Cron** (já agendado) chama `backup.sh`; nenhuma mudança necessária.
+
+> ⚠️ **DR — guarde a chave out-of-band.** O `.age` só abre com `secrets/age-backup.key`. Perder a VM sem ter a chave guardada (cofre/gestor de senhas) = perder o backup. A **chave pública** é impressa na 1a geração; a **privada** está no `key` file — copie-a pra um cofre.
+
+**Restaurar** num banco-alvo (não sobrescreve o vivo sem `CONFIRM=yes`):
+
+```bash
+bash restore.sh /opt/ifp-connect/backups/ifp_connect-<ts>.sql.gz.age <banco_alvo>
+```
+
+**Drill de restore** (ensaio — prova que o backup volta, num banco descartável, sem tocar no vivo):
+
+```bash
+bash restore-drill.sh      # cria ifp_restore_drill, restaura, verifica, derruba -> DRILL PASS/FAIL
+```
+
+Rode o drill periodicamente (ex.: agendar semanal) — backup que nunca foi testado não é backup.

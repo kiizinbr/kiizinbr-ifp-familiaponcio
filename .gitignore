@@ -56,6 +56,10 @@ docs/migration-samples/
 
 # segredos do deploy (ficam só na VM)
 ops/vm/.env.prod
+# chave de cifra do backup (age) — NUNCA versionar, vive só na VM
+ops/vm/secrets/
+# dumps do banco (cifrados ou não) — nunca no git
+backups/
 
 # ECC (Everything Claude Code) — ferramenta de review instalada por projeto, não versionar
 .claude/

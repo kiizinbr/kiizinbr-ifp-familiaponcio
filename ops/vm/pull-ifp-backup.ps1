@@ -13,13 +13,13 @@ $keep = 30   # quantos dumps manter no host
 
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
 
-# nome do dump mais recente na VM
-$latest = ssh -i $key -o BatchMode=yes -o StrictHostKeyChecking=accept-new $vm 'ls -1t /opt/ifp-connect/backups/ifp_connect-*.sql.gz 2>/dev/null | head -1'
-if (-not $latest) { Write-Error 'Nenhum backup encontrado na VM'; exit 1 }
+# nome do dump CIFRADO mais recente na VM (.sql.gz.age — a chave fica SO na VM)
+$latest = ssh -i $key -o BatchMode=yes -o StrictHostKeyChecking=accept-new $vm 'ls -1t /opt/ifp-connect/backups/ifp_connect-*.sql.gz.age 2>/dev/null | head -1'
+if (-not $latest) { Write-Error 'Nenhum backup .age encontrado na VM'; exit 1 }
 
 scp -i $key -o BatchMode=yes -o StrictHostKeyChecking=accept-new ("{0}:{1}" -f $vm, $latest.Trim()) $dst
 Write-Output ("baixado: " + (Split-Path $latest -Leaf))
 
 # retencao no host
-Get-ChildItem $dst -Filter 'ifp_connect-*.sql.gz' |
+Get-ChildItem $dst -Filter 'ifp_connect-*.sql.gz.age' |
   Sort-Object LastWriteTime -Descending | Select-Object -Skip $keep | Remove-Item -Force
