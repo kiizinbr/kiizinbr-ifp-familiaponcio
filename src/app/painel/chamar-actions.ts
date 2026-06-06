@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { canAccessUnidade, podeChamar } from "@/lib/rbac";
+import { canAccessUnidade, getUserUnits, podeChamar } from "@/lib/rbac";
+import { unidadeFromSlug } from "@/lib/unidades";
 import { logEvent } from "@/lib/audit";
 import { criarChamada } from "@/lib/painel/chamada";
 
@@ -15,7 +16,11 @@ export async function chamarAction(formData: FormData): Promise<void> {
   if (!session) throw new Error("Sem sessao");
 
   const unidade = String(formData.get("unidade") ?? "");
-  if (!canAccessUnidade(session, unidade)) throw new Error("Sem permissao");
+  if (!unidadeFromSlug(unidade)) throw new Error("Unidade invalida");
+  // Roles cross-unit (social/super_admin/presidencia) podem chamar em qualquer painel
+  // (ex.: triagem social chama no painel do Centro Medico). Demais ficam na sua unidade.
+  const acessoUnidade = getUserUnits(session) === "all" || canAccessUnidade(session, unidade);
+  if (!acessoUnidade) throw new Error("Sem permissao");
   if (!podeChamar(session)) throw new Error("Sem permissao");
 
   const nomeChamado = String(formData.get("nomeChamado") ?? "").trim();
@@ -47,4 +52,5 @@ export async function chamarAction(formData: FormData): Promise<void> {
   // a TV pega via polling; revalida as telas de origem pra refletir feedback
   revalidatePath("/medico/minha-fila");
   revalidatePath("/medico/recepcao");
+  revalidatePath("/social");
 }
