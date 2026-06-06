@@ -30,7 +30,8 @@ if [ ! -f "$KEY_FILE" ]; then
   age-keygen -o "$KEY_FILE" 2>/dev/null
   chmod 600 "$KEY_FILE"
   echo "==> chave de backup gerada em $KEY_FILE (perms 600)"
-  echo "==> GUARDE A CHAVE PUBLICA (recipient) OUT-OF-BAND:"
+  echo "==> DR: copie a CHAVE PRIVADA ($KEY_FILE) pra um cofre OUT-OF-BAND."
+  echo "    Sem ela o .age NAO abre. (recipient/chave publica abaixo, so p/ referencia:)"
   age-keygen -y "$KEY_FILE"
 fi
 
