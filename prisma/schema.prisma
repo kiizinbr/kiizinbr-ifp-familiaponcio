@@ -564,6 +564,7 @@ model Consulta {
   origemTriagemId        String?
   origemEncaminhamentoId String?
   cancelMotivo           String?
+  checkinEm              DateTime? // recepção marcou a chegada do paciente (check-in)
   createdBy              String // userId
   slot                   Slot           @relation(fields: [slotId], references: [id], onDelete: Restrict)
   cidadao                Cidadao        @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)

@@ -44,6 +44,7 @@ export type AuditAction =
   | "consulta_faltou"
   | "consulta_cancelada"
   | "consulta_reagendada"
+  | "consulta_checkin"
   // Prontuário (F1.B.2)
   | "prontuario_criado"
   | "prontuario_assinado"

@@ -227,6 +227,23 @@ export default async function MedicoHomePage() {
                         {c.especialidade.nome}
                       </span>
                       <div className="tl-meta">{c.profissional.nomeExibicao}</div>
+                      {c.checkinEm && (c.status === "agendada" || c.status === "confirmada") ? (
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 11,
+                            color: "var(--accent)",
+                            fontWeight: 600,
+                          }}
+                        >
+                          ✓ Chegou · esperando{" "}
+                          {Math.max(
+                            0,
+                            Math.floor((agora.getTime() - c.checkinEm.getTime()) / 60000),
+                          )}{" "}
+                          min
+                        </div>
+                      ) : null}
                     </div>
                     <div style={{ flex: "none" }}>
                       {isNow ? (

@@ -24,6 +24,7 @@ import {
   salvarRascunhoAction,
 } from "./prontuario-actions";
 import { emitirReceitaAction, emitirAtestadoAction } from "./documento-actions";
+import { marcarCheckinAction, desfazerCheckinAction } from "./checkin-action";
 import styles from "./prontuario.module.css";
 import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 
@@ -154,6 +155,9 @@ export default async function ConsultaDetalhePage({
   const naoCancelados = proximos.filter((p) => p !== "cancelada");
   const podeCancelar = proximos.includes("cancelada");
   const podeReagendar = STATUS_REAGENDAVEL.has(consulta.status) && podeMarcarConsulta(session);
+  const podeCheckin =
+    podeMarcarConsulta(session) &&
+    (consulta.status === "agendada" || consulta.status === "confirmada");
 
   const vitalVal = (key: string): string => {
     const v = nota ? (nota as unknown as Record<string, unknown>)[key] : null;
@@ -217,7 +221,54 @@ export default async function ConsultaDetalhePage({
         {/* transições da consulta (concluir = assinar, então 'realizada' sai daqui) */}
         {(naoCancelados.length > 0 || podeCancelar) && (
           <div className={styles.card} style={{ marginBottom: 16 }}>
-            <div className={styles.body} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div
+              className={styles.body}
+              style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
+            >
+              {podeCheckin ? (
+                consulta.checkinEm ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: 12,
+                      color: "var(--text-3)" as string,
+                    }}
+                  >
+                    ✓ Chegou às{" "}
+                    {consulta.checkinEm.toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    <form action={desfazerCheckinAction}>
+                      <input type="hidden" name="id" value={consulta.id} />
+                      <button
+                        type="submit"
+                        style={{
+                          background: "none",
+                          border: 0,
+                          padding: 0,
+                          cursor: "pointer",
+                          fontSize: 11,
+                          color: "var(--text-3)" as string,
+                          textDecoration: "underline",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        desfazer
+                      </button>
+                    </form>
+                  </span>
+                ) : (
+                  <form action={marcarCheckinAction}>
+                    <input type="hidden" name="id" value={consulta.id} />
+                    <button type="submit" className={`${styles.btn} ${styles.btnSecondary}`}>
+                      Paciente chegou
+                    </button>
+                  </form>
+                )
+              ) : null}
               {naoCancelados.map((p) => {
                 const ok = podeTransicionarConsulta(
                   session,
