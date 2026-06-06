@@ -6,14 +6,26 @@ import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { podeGerenciarInstrutor } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge } from "../_components/ui";
-import { criarInstrutorAction } from "../actions";
+import { criarInstrutorAction, vincularLoginInstrutorAction } from "../actions";
 import styles from "../capacitacao.module.css";
 
-export default async function InstrutoresPage() {
+const VINC_ERROS: Record<string, string> = {
+  user_nao_encontrado:
+    "Nenhum usuário com esse e-mail. Crie a conta antes em Configurações → Usuários.",
+  user_sem_papel: "Esse usuário não tem o papel de profissional na Capacitação.",
+  user_ja_vinculado: "Esse usuário já está vinculado a outro instrutor.",
+};
+
+export default async function InstrutoresPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erro?: string; vinculo?: string }>;
+}) {
   const session = await auth();
   if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
   if (!podeGerenciarInstrutor(session)) redirect("/capacitacao" as Route);
+  const { erro, vinculo } = await searchParams;
 
   const instrutores = await db.instrutor.findMany({
     orderBy: [{ ativo: "desc" }, { nomeExibicao: "asc" }],
@@ -26,8 +38,15 @@ export default async function InstrutoresPage() {
         <PageHead
           eyebrow="Capacitação · Equipe"
           title="Instrutores"
-          desc="Quem ministra as turmas. O vínculo com login do sistema vem na próxima fase (F1.A.2) — por ora, cadastro pelo nome de exibição."
+          desc="Quem ministra as turmas. Vincule um login (papel profissional·capacitação) pra o instrutor marcar presença das próprias turmas."
         />
+
+        {erro && VINC_ERROS[erro] ? (
+          <div className={`${styles.alert} ${styles.alertError}`}>{VINC_ERROS[erro]}</div>
+        ) : null}
+        {vinculo === "ok" ? (
+          <div className={styles.alert}>Login vinculado ao instrutor.</div>
+        ) : null}
 
         <div className={styles.grid2}>
           <div className={styles.card} style={{ alignSelf: "start" }}>
@@ -90,6 +109,28 @@ export default async function InstrutoresPage() {
                           </>
                         ) : null}
                       </div>
+                      {!i.user ? (
+                        <form
+                          action={vincularLoginInstrutorAction}
+                          style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}
+                        >
+                          <input type="hidden" name="instrutorId" value={i.id} />
+                          <input
+                            name="email"
+                            type="email"
+                            required
+                            placeholder="e-mail do login (profissional)"
+                            className={styles.input}
+                            style={{ maxWidth: 240 }}
+                          />
+                          <button
+                            type="submit"
+                            className={`${styles.btn} ${styles.btnSm} ${styles.btnGhost}`}
+                          >
+                            Vincular login
+                          </button>
+                        </form>
+                      ) : null}
                     </div>
                     <div className={styles.rowRight}>
                       {!i.ativo ? <KitBadge variant="default">Inativo</KitBadge> : null}

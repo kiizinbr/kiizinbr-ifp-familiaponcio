@@ -71,3 +71,20 @@ export function podeEmitirCertificado(session: Session | null): boolean {
   if (!session) return false;
   return hasAnyRole(session, "super_admin", "gestor_unidade");
 }
+
+/**
+ * Registrar presença NUMA turma específica (F1.A.2): gestão marca qualquer turma;
+ * instrutor (profissional) só nas próprias (turmaInstrutorUserId === seu userId).
+ * Versão com contexto de turma do podeRegistrarPresenca.
+ */
+export function podeRegistrarPresencaNaTurma(
+  session: Session | null,
+  turmaInstrutorUserId: string | null,
+): boolean {
+  if (!session) return false;
+  if (hasAnyRole(session, "super_admin", "gestor_unidade")) return true;
+  if (hasAnyRole(session, "profissional")) {
+    return turmaInstrutorUserId !== null && session.user.id === turmaInstrutorUserId;
+  }
+  return false;
+}

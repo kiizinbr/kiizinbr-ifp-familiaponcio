@@ -13,7 +13,7 @@ import {
   podeCriarTurma,
   podeEmitirCertificado,
   podeMatricular,
-  podeRegistrarPresenca,
+  podeRegistrarPresencaNaTurma,
 } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge, VagasMeter } from "../../_components/ui";
 import {
@@ -61,7 +61,7 @@ export default async function TurmaDetalhePage({
     where: { id },
     include: {
       curso: { select: { id: true, nome: true, area: true } },
-      instrutor: { select: { nomeExibicao: true } },
+      instrutor: { select: { nomeExibicao: true, userId: true } },
       matriculas: {
         include: {
           cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
@@ -85,7 +85,7 @@ export default async function TurmaDetalhePage({
 
   const vt = STATUS_TURMA_VISUAL[turma.status];
   const proximosStatus = podeGerir ? proximosStatusTurma(turma.status) : [];
-  const podeReg = podeRegistrarPresenca(session);
+  const podeReg = podeRegistrarPresencaNaTurma(session, turma.instrutor?.userId ?? null);
   const podeEmitirCert = podeEmitirCertificado(session);
   const hojeISO = new Date().toISOString().slice(0, 10);
   const presencaRoster = matriculados.map((m) => ({

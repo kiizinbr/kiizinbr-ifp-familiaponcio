@@ -6,6 +6,7 @@ import {
   podeGerenciarCurso,
   podeGerenciarInstrutor,
   podeMatricular,
+  podeRegistrarPresencaNaTurma,
   podeTransicionarMatricula,
 } from "@/lib/capacitacao/rbac";
 
@@ -90,5 +91,25 @@ describe("podeTransicionarMatricula (RBAC)", () => {
   });
   it("sem sessão → false", () => {
     expect(podeTransicionarMatricula(null, "inscrito", "confirmado")).toBe(false);
+  });
+});
+
+describe("podeRegistrarPresencaNaTurma", () => {
+  it("gestor_unidade marca qualquer turma", () => {
+    const s = sessionWith([{ name: "gestor_unidade", unitScope: "capacitacao" }]);
+    expect(podeRegistrarPresencaNaTurma(s, "outro-instrutor")).toBe(true);
+  });
+  it("profissional marca só a própria turma", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "capacitacao" }], "u1");
+    expect(podeRegistrarPresencaNaTurma(s, "u1")).toBe(true);
+    expect(podeRegistrarPresencaNaTurma(s, "outro")).toBe(false);
+    expect(podeRegistrarPresencaNaTurma(s, null)).toBe(false);
+  });
+  it("recepcao → false (não marca presença)", () => {
+    const s = sessionWith([{ name: "recepcao", unitScope: "capacitacao" }]);
+    expect(podeRegistrarPresencaNaTurma(s, "u1")).toBe(false);
+  });
+  it("sem sessão → false", () => {
+    expect(podeRegistrarPresencaNaTurma(null, "u1")).toBe(false);
   });
 });

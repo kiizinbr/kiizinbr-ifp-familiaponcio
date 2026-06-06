@@ -15,7 +15,7 @@ import {
   podeGerenciarCurso,
   podeGerenciarInstrutor,
   podeMatricular,
-  podeRegistrarPresenca,
+  podeRegistrarPresencaNaTurma,
   podeTransicionarMatricula as rbacPodeTransicionarMatricula,
 } from "@/lib/capacitacao/rbac";
 import {
@@ -303,9 +303,15 @@ export async function buscarCandidatosAction(
 export async function registrarPresencasAction(formData: FormData) {
   const session = await auth();
   if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
-  if (!podeRegistrarPresenca(session)) throw new Error("Sem permissão");
 
   const turmaId = s(formData, "turmaId");
+  const turmaScope = await db.turma.findUnique({
+    where: { id: turmaId },
+    select: { instrutor: { select: { userId: true } } },
+  });
+  if (!podeRegistrarPresencaNaTurma(session, turmaScope?.instrutor?.userId ?? null)) {
+    throw new Error("Sem permissão");
+  }
   const dataStr = s(formData, "data");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
     redirect(`/capacitacao/turmas/${turmaId}?erro=presenca` as Route);
@@ -396,4 +402,46 @@ export async function emitirCertificadoAction(formData: FormData) {
 
   revalidatePath(voltar);
   redirect(`${voltar}?cert=${codigo}` as Route);
+}
+
+/**
+ * Vincula o cadastro de Instrutor a um login existente (F1.A.2). O super_admin cria
+ * a conta no /admin/users (papel profissional·capacitação); aqui o gestor liga essa
+ * conta ao Instrutor, destravando "Minhas turmas" + marcação de presença pelo professor.
+ */
+export async function vincularLoginInstrutorAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeGerenciarInstrutor(session)) throw new Error("Sem permissão");
+
+  const instrutorId = s(formData, "instrutorId");
+  const email = s(formData, "email").toLowerCase();
+  const back = "/capacitacao/instrutores";
+
+  const user = await db.user.findUnique({
+    where: { email },
+    include: { userRoles: { include: { role: true } } },
+  });
+  if (!user) redirect(`${back}?erro=user_nao_encontrado` as Route);
+
+  const temPapel = user.userRoles.some(
+    (ur) => ur.role.name === "profissional" && ur.unitScope === "capacitacao",
+  );
+  if (!temPapel) redirect(`${back}?erro=user_sem_papel` as Route);
+
+  const jaLigado = await db.instrutor.findUnique({ where: { userId: user.id } });
+  if (jaLigado && jaLigado.id !== instrutorId) {
+    redirect(`${back}?erro=user_ja_vinculado` as Route);
+  }
+
+  await db.instrutor.update({ where: { id: instrutorId }, data: { userId: user.id } });
+  await logEvent({
+    userId: session!.user.id,
+    action: "instrutor_atualizado",
+    entityType: "instrutor",
+    entityId: instrutorId,
+    meta: { vinculoLogin: email },
+  });
+  revalidatePath(back);
+  redirect(`${back}?vinculo=ok` as Route);
 }
