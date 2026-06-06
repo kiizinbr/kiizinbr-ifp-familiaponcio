@@ -12,13 +12,14 @@ import { criarChamada } from "@/lib/painel/chamada";
  */
 export async function chamarAction(formData: FormData): Promise<void> {
   const session = await auth();
-  const unidade = String(formData.get("unidade"));
   if (!session) throw new Error("Sem sessao");
+
+  const unidade = String(formData.get("unidade") ?? "");
   if (!canAccessUnidade(session, unidade)) throw new Error("Sem permissao");
   if (!podeChamar(session)) throw new Error("Sem permissao");
 
-  const nomeChamado = String(formData.get("nomeChamado")).trim();
-  const destino = String(formData.get("destino")).trim();
+  const nomeChamado = String(formData.get("nomeChamado") ?? "").trim();
+  const destino = String(formData.get("destino") ?? "").trim();
   if (!nomeChamado || !destino) throw new Error("Dados invalidos");
 
   const cidadaoId = formData.get("cidadaoId") ? String(formData.get("cidadaoId")) : null;
