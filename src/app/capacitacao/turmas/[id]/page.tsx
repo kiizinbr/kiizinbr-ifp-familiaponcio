@@ -9,6 +9,7 @@ import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { proximosStatusTurma } from "@/lib/capacitacao/turma";
+import { avaliarRiscoEvasao } from "@/lib/capacitacao/evasao";
 import {
   podeCriarTurma,
   podeEmitirCertificado,
@@ -65,7 +66,7 @@ export default async function TurmaDetalhePage({
       matriculas: {
         include: {
           cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
-          presencas: { select: { presente: true } },
+          presencas: { select: { presente: true }, orderBy: { data: "asc" } },
           certificado: { select: { codigo: true } },
         },
         orderBy: { createdAt: "asc" },
@@ -82,6 +83,7 @@ export default async function TurmaDetalhePage({
     (m) => m.status !== "lista_espera" && m.status !== "cancelado",
   );
   const espera = turma.matriculas.filter((m) => m.status === "lista_espera");
+  const emRiscoCount = matriculados.filter((m) => avaliarRiscoEvasao(m.presencas).emRisco).length;
 
   const vt = STATUS_TURMA_VISUAL[turma.status];
   const proximosStatus = podeGerir ? proximosStatusTurma(turma.status) : [];
@@ -190,6 +192,11 @@ export default async function TurmaDetalhePage({
                 <span className={styles.tick} />
                 <h2 className={styles.cardTitle}>MATRICULADOS</h2>
                 <span className={styles.headNote}>{matriculados.length}</span>
+                {emRiscoCount > 0 ? (
+                  <span className={styles.headNote}>
+                    <KitBadge variant="danger">⚠ {emRiscoCount} em risco</KitBadge>
+                  </span>
+                ) : null}
               </div>
               {matriculados.length === 0 ? (
                 <div className={styles.empty}>Ninguém matriculado ainda.</div>
@@ -200,6 +207,7 @@ export default async function TurmaDetalhePage({
                     const alvos = [...TRANSICOES_MATRICULA[m.status]].filter(
                       (a) => a !== "lista_espera",
                     );
+                    const risco = avaliarRiscoEvasao(m.presencas);
                     return (
                       <div key={m.id} className={styles.row}>
                         <div className={styles.rowMain}>
@@ -215,6 +223,9 @@ export default async function TurmaDetalhePage({
                               certificadoCodigo={m.certificado?.codigo ?? null}
                               podeEmitir={podeEmitirCert}
                             />
+                            {risco.emRisco ? (
+                              <KitBadge variant="danger">⚠ {risco.motivos.join(" · ")}</KitBadge>
+                            ) : null}
                           </div>
                         </div>
                         {alvos.length > 0 ? (
