@@ -26,6 +26,7 @@
     "db:generate": "dotenv -e .env.local -- prisma generate",
     "import:alunos:dry": "tsx scripts/import-alunos-dryrun.ts",
     "seguranca:forcar-troca": "dotenv -e .env.local -- tsx scripts/forcar-troca-senha.ts",
+    "painel:criar-usuario": "dotenv -e .env.local -- tsx scripts/criar-usuario-painel.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
