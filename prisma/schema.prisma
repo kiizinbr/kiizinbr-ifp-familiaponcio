@@ -912,3 +912,36 @@ model Atestado {
 
   @@index([consultaId])
 }
+
+/// Painel de chamada na TV -- evento de chamada (event log, suporta re-chamada).
+model Chamada {
+  id          String   @id @default(cuid())
+  unidade     String // slug (medico/capacitacao/...)
+  nomeChamado String // snapshot de nomeSocial || nomeCompleto no momento da chamada
+  destino     String // "Dr. Fulano" | "Triagem" | "Recepcao"
+  chamadoPor  String // userId
+  cidadaoId   String? // link opcional p/ auditoria
+  consultaId  String? // link opcional
+  criadoEm    DateTime @default(now())
+
+  @@index([unidade, criadoEm])
+}
+
+/// Config do painel por unidade (link do video do mes).
+model PainelConfig {
+  id        String   @id @default(cuid())
+  unidade   String   @unique
+  videoUrl  String?
+  updatedAt DateTime @updatedAt
+}
+
+/// Anuncio do rodape rolante (por unidade).
+model PainelAnuncio {
+  id       String    @id @default(cuid())
+  unidade  String
+  texto    String
+  ativoAte DateTime? // null = sem prazo; senao some sozinho depois da data
+  criadoEm DateTime  @default(now())
+
+  @@index([unidade])
+}
