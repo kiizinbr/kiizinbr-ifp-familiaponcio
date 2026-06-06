@@ -10,11 +10,18 @@ interface AnexoExistente {
   mimeType: string;
   sizeBytes: number;
   descricao: string | null;
+  categoria?: string;
   createdAt: Date;
 }
 
 const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
 const MAX_SIZE = 10 * 1024 * 1024;
+
+const CAT_LABEL: Record<string, string> = {
+  saude: "Saúde",
+  socioeconomico: "Socioeconômico",
+  geral: "Geral",
+};
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -43,6 +50,7 @@ export function AnexoUploader({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [categoria, setCategoria] = useState("geral");
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -108,6 +116,7 @@ export function AnexoUploader({
       storageKey: urlResult.data.storageKey,
       fileName: file.name,
       mimeType: file.type,
+      categoria,
     });
     if (!confirmResult.ok) {
       setError(`"${file.name}": ${confirmResult.error}`);
@@ -143,6 +152,20 @@ export function AnexoUploader({
             handleFiles(e.dataTransfer.files);
           }}
         >
+          <div className="mb-3 flex flex-wrap items-center justify-center gap-2 text-xs text-[var(--text-3)]">
+            <label htmlFor="anexo-categoria">Categoria do anexo:</label>
+            <select
+              id="anexo-categoria"
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              disabled={uploading}
+              className="rounded-[var(--r-sm)] border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]"
+            >
+              <option value="geral">Geral</option>
+              <option value="saude">Saúde (só profissionais)</option>
+              <option value="socioeconomico">Socioeconômico (só serviço social)</option>
+            </select>
+          </div>
           <input
             ref={fileInputRef}
             type="file"
@@ -204,6 +227,7 @@ export function AnexoUploader({
                   <p className="text-xs text-[var(--text-3)]">
                     {formatSize(a.sizeBytes)} •{" "}
                     {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(a.createdAt)}
+                    {a.categoria ? ` • ${CAT_LABEL[a.categoria] ?? a.categoria}` : ""}
                   </p>
                 </div>
               </div>

@@ -270,6 +270,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
                   mimeType: a.mimeType,
                   sizeBytes: a.sizeBytes,
                   descricao: a.descricao,
+                  categoria: a.categoria,
                   createdAt: a.createdAt,
                 }))}
               />

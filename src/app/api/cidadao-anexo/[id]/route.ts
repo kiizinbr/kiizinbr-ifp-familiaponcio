@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { can } from "@/lib/rbac";
+import { can, podeVerSaudeCidadao, podeVerSocioCidadao } from "@/lib/rbac";
+import { logEvent } from "@/lib/audit";
 import { getCidadaoAnexoDownloadUrl } from "@/lib/minio";
 import type { UnitScope } from "@/lib/rbac-types";
 
@@ -24,12 +25,32 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return new NextResponse("Anexo não encontrado", { status: 404 });
   }
 
-  const allowed = can(session, "view", "ficha_cidada", {
+  const acessoUnidade = can(session, "view", "ficha_cidada", {
     unitScope: anexo.cidadao.unitIdOrigem as UnitScope,
   });
-  if (!allowed) {
+  // Minimizacao por categoria (LGPD): anexo de saude exige o gate clinico,
+  // socioeconomico exige o gate do social; geral fica no gate da ficha. Espelha
+  // a redacao de campos clinicos/socio que ja vale no resto da ficha.
+  const acessoCategoria =
+    anexo.categoria === "saude"
+      ? podeVerSaudeCidadao(session)
+      : anexo.categoria === "socioeconomico"
+        ? podeVerSocioCidadao(session)
+        : true;
+  if (!acessoUnidade || !acessoCategoria) {
     return new NextResponse("Sem permissão", { status: 403 });
   }
+
+  // Acesso a documento do cidadao — registra na auditoria (LGPD).
+  await logEvent({
+    userId: session.user.id,
+    action: "anexo_baixado",
+    entityType: "anexo_cidadao",
+    entityId: anexo.id,
+    rootEntityType: "cidadao",
+    rootEntityId: anexo.cidadaoId,
+    meta: { categoria: anexo.categoria, fileName: anexo.fileName },
+  });
 
   try {
     const url = await getCidadaoAnexoDownloadUrl(anexo.storageKey);

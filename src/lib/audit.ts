@@ -18,6 +18,7 @@ export type AuditAction =
   | "ficha_updated"
   | "anexo_uploaded"
   | "anexo_removed"
+  | "anexo_baixado"
   | "triagem_aberta"
   | "triagem_concluida"
   | "elegibilidade_decidida"

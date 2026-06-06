@@ -376,7 +376,7 @@ export async function emitirCertificadoAction(formData: FormData) {
   if (!elig.elegivel) redirect(`${voltar}?erro=cert_inelegivel` as Route);
 
   const nomeAluno = m.cidadao.nomeSocial?.trim() ? m.cidadao.nomeSocial : m.cidadao.nomeCompleto;
-  const codigo = `IFP-${randomBytes(4).toString("hex").toUpperCase()}`;
+  const codigo = `IFP-${randomBytes(8).toString("hex").toUpperCase()}`;
 
   const cert = await db.certificado.create({
     data: {

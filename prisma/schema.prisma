@@ -318,6 +318,14 @@ model Endereco {
   @@index([cep])
 }
 
+/// Classificacao do anexo p/ minimizacao de acesso (LGPD): saude -> gate clinico,
+/// socioeconomico -> gate do social, geral -> gate da ficha.
+enum AnexoCategoria {
+  saude
+  socioeconomico
+  geral
+}
+
 /// Anexos do Cidadão — §0.5. PDF/JPG/PNG only, max 10MB/file, 100MB/total.
 /// Armazenamento MinIO bucket 'ifp-cidadao-anexos', naming por hash SHA-256.
 model AnexoCidadao {
@@ -331,6 +339,7 @@ model AnexoCidadao {
   storageBucket String    @default("ifp-cidadao-anexos")
   storageKey    String    // path no MinIO (ex: "{cidadaoId}/{hash}.pdf")
   descricao     String?
+  categoria     AnexoCategoria @default(geral)
   uploadedById  String
   uploadedBy    User      @relation("AnexoUploadedBy", fields: [uploadedById], references: [id])
   deletedAt     DateTime?

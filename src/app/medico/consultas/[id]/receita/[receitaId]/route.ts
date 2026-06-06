@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeVerProntuario } from "@/lib/medico/rbac";
 import { renderReceitaPdf } from "@/lib/medico/receita-pdf";
+import { logEvent } from "@/lib/audit";
 
 /**
  * Download (inline) do receituário em PDF. Mesmo gate de leitura do prontuário:
@@ -28,6 +29,21 @@ export async function GET(
   if (!receita || receita.consultaId !== id) {
     return new NextResponse("Receita não encontrada", { status: 404 });
   }
+
+  // Acesso a documento clínico (PHI) — registra na auditoria (LGPD Art. 11).
+  const consulta = await db.consulta.findUnique({
+    where: { id },
+    select: { cidadaoId: true },
+  });
+  await logEvent({
+    userId: session.user.id,
+    action: "medical_data_accessed",
+    entityType: "receita",
+    entityId: receita.id,
+    rootEntityType: "cidadao",
+    rootEntityId: consulta?.cidadaoId,
+    meta: { documento: "receita_pdf" },
+  });
 
   const buf = await renderReceitaPdf({
     nomePaciente: receita.nomePaciente,

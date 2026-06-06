@@ -17,6 +17,12 @@ import type { UnitScope } from "@/lib/rbac-types";
 
 export type AnexoActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string };
 
+const CATEGORIAS_ANEXO = ["saude", "socioeconomico", "geral"] as const;
+type CategoriaAnexo = (typeof CATEGORIAS_ANEXO)[number];
+function normalizarCategoria(v: string | undefined): CategoriaAnexo {
+  return CATEGORIAS_ANEXO.includes(v as CategoriaAnexo) ? (v as CategoriaAnexo) : "geral";
+}
+
 async function checkCidadaoEditPermission(cidadaoId: string) {
   const session = await auth();
   if (!session) return { error: "Sessão expirada", session: null, cidadao: null };
@@ -97,6 +103,7 @@ export async function confirmAnexoUpload(args: {
   fileName: string;
   mimeType: string;
   descricao?: string;
+  categoria?: string;
 }): Promise<AnexoActionResult<{ anexoId: string }>> {
   const check = await checkCidadaoEditPermission(args.cidadaoId);
   if (check.error || !check.cidadao || !check.session) {
@@ -130,6 +137,7 @@ export async function confirmAnexoUpload(args: {
       hashSha256: "", // MVP — sem hash de conteúdo. Evolução futura.
       storageKey: args.storageKey,
       descricao: args.descricao ?? null,
+      categoria: normalizarCategoria(args.categoria),
       uploadedById: check.session.user.id,
     },
   });
@@ -145,6 +153,7 @@ export async function confirmAnexoUpload(args: {
       cidadaoId: args.cidadaoId,
       fileName: args.fileName,
       sizeBytes: stat.size,
+      categoria: normalizarCategoria(args.categoria),
     },
   });
 
