@@ -5,9 +5,9 @@ import { normalizarCodigo } from "@/lib/capacitacao/certificado";
 import { CertificadoPdf } from "@/lib/capacitacao/certificado-pdf";
 
 /**
- * Download público do PDF do certificado (mesma porta de entrada da página de
- * verificação — sem auth). Carrega o snapshot pelo código, gera o QR que aponta
- * para /verificar/<codigo> e devolve o PDF inline.
+ * Download PÚBLICO do PDF do certificado — co-locado com a página de verificação
+ * (`/verificar/*` fica fora do matcher do proxy, então não exige login; é o alvo do
+ * "Baixar PDF" que um empregador/programa social usa ao escanear o QR).
  */
 export async function GET(req: Request, ctx: { params: Promise<{ codigo: string }> }) {
   const { codigo } = await ctx.params;
