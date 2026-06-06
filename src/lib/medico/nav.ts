@@ -1,6 +1,10 @@
 import type { Session } from "next-auth";
 import { hasAnyRole } from "@/lib/rbac";
-import { podeGerenciarEspecialidade, podeAgendarEncaminhamento } from "@/lib/medico/rbac";
+import {
+  podeGerenciarEspecialidade,
+  podeAgendarEncaminhamento,
+  podeMarcarConsulta,
+} from "@/lib/medico/rbac";
 import type { NavItem } from "@/components/sidebar-nav";
 import { configuracoesNavItem } from "@/lib/nav";
 
@@ -14,10 +18,14 @@ export function medicoNavItems(session: Session): NavItem[] {
     { label: "Fila do dia", href: "/medico" },
     { label: "Agenda semanal", href: "/medico/agenda" },
   ];
+  if (podeMarcarConsulta(session)) {
+    items.push({ label: "Recepção", href: "/medico/recepcao" });
+  }
   if (podeAgendarEncaminhamento(session) || hasAnyRole(session, "profissional")) {
     items.push({ label: "A agendar", href: "/medico/encaminhamentos" });
   }
   if (hasAnyRole(session, "profissional")) {
+    items.push({ label: "Minha fila", href: "/medico/minha-fila" });
     items.push({ label: "Minha agenda", href: "/medico/minha-agenda" });
   }
   items.push({ label: "Profissionais", href: "/medico/profissionais" });

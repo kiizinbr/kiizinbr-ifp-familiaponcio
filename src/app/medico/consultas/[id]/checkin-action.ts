@@ -13,12 +13,15 @@ async function gate(formData: FormData) {
   const session = await auth();
   if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeMarcarConsulta(session)) throw new Error("Sem permissão");
-  return { session, id: String(formData.get("id")) };
+  const id = String(formData.get("id"));
+  // `voltar` permite a recepção continuar no painel em vez de ir pra consulta.
+  const voltar = String(formData.get("voltar") || `/medico/consultas/${id}`);
+  return { session, id, voltar };
 }
 
 /** Recepção marca a chegada do paciente (check-in) — alimenta o tempo de espera na fila. */
 export async function marcarCheckinAction(formData: FormData) {
-  const { session, id } = await gate(formData);
+  const { session, id, voltar } = await gate(formData);
   await db.consulta.update({ where: { id }, data: { checkinEm: new Date() } });
   await logEvent({
     userId: session!.user.id,
@@ -29,12 +32,13 @@ export async function marcarCheckinAction(formData: FormData) {
   });
   revalidatePath(`/medico/consultas/${id}`);
   revalidatePath("/medico");
-  redirect(`/medico/consultas/${id}` as Route);
+  revalidatePath("/medico/recepcao");
+  redirect(voltar as Route);
 }
 
 /** Desfaz o check-in (marcado por engano). */
 export async function desfazerCheckinAction(formData: FormData) {
-  const { session, id } = await gate(formData);
+  const { session, id, voltar } = await gate(formData);
   await db.consulta.update({ where: { id }, data: { checkinEm: null } });
   await logEvent({
     userId: session!.user.id,
@@ -45,5 +49,6 @@ export async function desfazerCheckinAction(formData: FormData) {
   });
   revalidatePath(`/medico/consultas/${id}`);
   revalidatePath("/medico");
-  redirect(`/medico/consultas/${id}` as Route);
+  revalidatePath("/medico/recepcao");
+  redirect(voltar as Route);
 }

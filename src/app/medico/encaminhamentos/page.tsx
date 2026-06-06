@@ -7,19 +7,31 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { podeAgendarEncaminhamento, podeEncaminhar } from "@/lib/medico/rbac";
-import { cancelarEncaminhamentoAction } from "./actions";
+import { cancelarEncaminhamentoAction, encaixarEncaminhamentoAction } from "./actions";
+
+const ENC_ERROS: Record<string, string> = {
+  encaixe: "Não foi possível encaixar (encaminhamento já agendado ou cancelado).",
+  sem_slot: "Nenhum horário disponível para encaixe nessa especialidade.",
+  encaixe_corrida: "Esse horário acabou de ser reservado. Tente de novo.",
+};
 
 function diasDesde(d: Date): number {
   return Math.floor((Date.now() - d.getTime()) / 86_400_000);
 }
 
-export default async function EncaminhamentosPage() {
+export default async function EncaminhamentosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erro?: string }>;
+}) {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
   if (!podeAgendarEncaminhamento(session) && !podeEncaminhar(session)) {
     redirect("/medico" as Route);
   }
+
+  const { erro } = await searchParams;
 
   const fila = await db.encaminhamento.findMany({
     where: { status: "aguardando_agendamento" },
@@ -30,6 +42,23 @@ export default async function EncaminhamentosPage() {
   const podeAgendar = podeAgendarEncaminhamento(session);
   const podeCancelar = podeEncaminhar(session);
 
+  const espIds = [...new Set(fila.map((e) => e.especialidadeId))];
+  const slotsDisp = espIds.length
+    ? await db.slot.findMany({
+        where: {
+          especialidadeId: { in: espIds },
+          status: "disponivel",
+          dataHoraInicio: { gte: new Date() },
+        },
+        orderBy: { dataHoraInicio: "asc" },
+        select: { especialidadeId: true, dataHoraInicio: true },
+      })
+    : [];
+  const proxSlot = new Map<string, Date>();
+  for (const s of slotsDisp) {
+    if (!proxSlot.has(s.especialidadeId)) proxSlot.set(s.especialidadeId, s.dataHoraInicio);
+  }
+
   return (
     <MedicoShell session={session}>
       <MedicoHeader
@@ -39,6 +68,21 @@ export default async function EncaminhamentosPage() {
           fila.length === 1 ? "pedido aguardando" : "pedidos aguardando"
         } agendamento`}
       />
+
+      {erro && ENC_ERROS[erro] ? (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: "10px 14px",
+            borderRadius: 8,
+            border: "1px solid var(--danger)",
+            color: "var(--danger)",
+            fontSize: 13,
+          }}
+        >
+          {ENC_ERROS[erro]}
+        </div>
+      ) : null}
 
       {fila.length === 0 ? (
         <EmptyState
@@ -82,6 +126,23 @@ export default async function EncaminhamentosPage() {
                       {dias === 0 ? "hoje" : `há ${dias} ${dias === 1 ? "dia" : "dias"}`}
                     </td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                      {podeAgendar && proxSlot.has(e.especialidadeId) ? (
+                        <form
+                          action={encaixarEncaminhamentoAction}
+                          style={{ display: "inline", marginRight: 8 }}
+                        >
+                          <input type="hidden" name="encaminhamentoId" value={e.id} />
+                          <button type="submit" className="btn btn-secondary btn-sm">
+                            Encaixar{" "}
+                            {proxSlot.get(e.especialidadeId)!.toLocaleString("pt-BR", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </button>
+                        </form>
+                      ) : null}
                       {podeAgendar ? (
                         <Link
                           href={`/medico/consultas/nova?encaminhamentoId=${e.id}` as Route}
