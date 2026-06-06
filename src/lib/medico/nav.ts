@@ -23,6 +23,7 @@ export function medicoNavItems(session: Session): NavItem[] {
   items.push({ label: "Profissionais", href: "/medico/profissionais" });
   if (podeGerenciarEspecialidade(session)) {
     items.push({ label: "Especialidades", href: "/medico/especialidades" });
+    items.push({ label: "Indicadores", href: "/medico/indicadores" });
   }
   items.push({ label: "Cidadãos", href: "/app/cidadaos" });
   const config = configuracoesNavItem(session);
