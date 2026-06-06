@@ -143,6 +143,22 @@ export function requireRole(session: Session | null, ...names: RoleName[]): void
   }
 }
 
+/**
+ * Quem pode CHAMAR um paciente no painel (opera a fila da superficie).
+ * Inclui social (triagem). NAO inclui "painel" (quiosque so exibe). A unidade
+ * e garantida pelo gate de rota da superficie (canAccessUnidade), como no resto do medico.
+ */
+export function podeChamar(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional", "recepcao", "social");
+}
+
+/** Quem pode configurar o painel (video do mes + anuncios). Gestao only. */
+export function podeGerirPainel(session: Session | null): boolean {
+  if (!session) return false;
+  return hasAnyRole(session, "super_admin", "gestor_unidade");
+}
+
 /** Default landing path baseado no primaryRole do user. Resolve em /login se sem sessão. */
 export function getLandingPath(session: Session | null): string {
   if (!session?.user.primaryRole) return "/login";
