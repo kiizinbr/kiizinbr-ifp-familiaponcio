@@ -69,6 +69,16 @@ export default auth((req) => {
     return;
   }
 
+  // Painel da TV: /painel/[unidade] — exige acesso a unidade (quiosque passa).
+  const painelMatch = path.match(/^\/painel\/([a-z]+)/);
+  if (painelMatch) {
+    const slug = painelMatch[1]!;
+    if (!canAccessUnidade(session, slug)) {
+      return Response.redirect(new URL("/", origin));
+    }
+    return;
+  }
+
   // /[unidade] → canAccessUnidade
   for (const slug of UNIDADE_SLUGS) {
     if (path === `/${slug}` || path.startsWith(`/${slug}/`)) {
@@ -93,5 +103,6 @@ export const config = {
     "/poncio/:path*",
     "/social/:path*",
     "/reset/:path*",
+    "/painel/:path*",
   ],
 };
