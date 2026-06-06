@@ -6,7 +6,12 @@ import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { podeGerenciarInstrutor } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge } from "../_components/ui";
-import { criarInstrutorAction, vincularLoginInstrutorAction } from "../actions";
+import {
+  criarInstrutorAction,
+  editarInstrutorAction,
+  toggleInstrutorAtivoAction,
+  vincularLoginInstrutorAction,
+} from "../actions";
 import styles from "../capacitacao.module.css";
 
 const VINC_ERROS: Record<string, string> = {
@@ -46,6 +51,8 @@ export default async function InstrutoresPage({
         ) : null}
         {vinculo === "ok" ? (
           <div className={styles.alert}>Login vinculado ao instrutor.</div>
+        ) : vinculo === "editado" ? (
+          <div className={styles.alert}>Instrutor atualizado.</div>
         ) : null}
 
         <div className={styles.grid2}>
@@ -131,6 +138,38 @@ export default async function InstrutoresPage({
                           </button>
                         </form>
                       ) : null}
+                      <details style={{ marginTop: 8 }}>
+                        <summary
+                          className={styles.micro}
+                          style={{ cursor: "pointer", color: "var(--text-3)" }}
+                        >
+                          Editar
+                        </summary>
+                        <form
+                          action={editarInstrutorAction}
+                          style={{ display: "grid", gap: 8, marginTop: 8, maxWidth: 320 }}
+                        >
+                          <input type="hidden" name="instrutorId" value={i.id} />
+                          <input
+                            name="nomeExibicao"
+                            defaultValue={i.nomeExibicao}
+                            required
+                            className={styles.input}
+                          />
+                          <textarea
+                            name="bio"
+                            defaultValue={i.bio ?? ""}
+                            placeholder="Bio / especialidade"
+                            className={styles.textarea}
+                          />
+                          <button
+                            type="submit"
+                            className={`${styles.btn} ${styles.btnSm} ${styles.btnPrimary}`}
+                          >
+                            Salvar
+                          </button>
+                        </form>
+                      </details>
                     </div>
                     <div className={styles.rowRight}>
                       {!i.ativo ? <KitBadge variant="default">Inativo</KitBadge> : null}
@@ -140,6 +179,17 @@ export default async function InstrutoresPage({
                       >
                         {i._count.turmas} turma{i._count.turmas === 1 ? "" : "s"}
                       </span>
+                      <form action={toggleInstrutorAtivoAction}>
+                        <input type="hidden" name="instrutorId" value={i.id} />
+                        <button
+                          type="submit"
+                          className={`${styles.btn} ${styles.btnSm} ${
+                            i.ativo ? styles.btnDanger : styles.btnGhost
+                          }`}
+                        >
+                          {i.ativo ? "Desativar" : "Reativar"}
+                        </button>
+                      </form>
                     </div>
                   </div>
                 ))}

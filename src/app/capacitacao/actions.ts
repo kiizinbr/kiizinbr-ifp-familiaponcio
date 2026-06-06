@@ -445,3 +445,46 @@ export async function vincularLoginInstrutorAction(formData: FormData) {
   revalidatePath(back);
   redirect(`${back}?vinculo=ok` as Route);
 }
+
+/** Edita nome/bio do instrutor (gestão). */
+export async function editarInstrutorAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeGerenciarInstrutor(session)) throw new Error("Sem permissão");
+  const instrutorId = s(formData, "instrutorId");
+  const nomeExibicao = s(formData, "nomeExibicao");
+  if (!nomeExibicao) redirect("/capacitacao/instrutores?erro=nome" as Route);
+  await db.instrutor.update({
+    where: { id: instrutorId },
+    data: { nomeExibicao, bio: sOpt(formData, "bio") },
+  });
+  await logEvent({
+    userId: session!.user.id,
+    action: "instrutor_atualizado",
+    entityType: "instrutor",
+    entityId: instrutorId,
+    meta: { nome: nomeExibicao },
+  });
+  revalidatePath("/capacitacao/instrutores");
+  redirect("/capacitacao/instrutores?vinculo=editado" as Route);
+}
+
+/** Desativa/reativa o instrutor (soft-delete por flag). */
+export async function toggleInstrutorAtivoAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeGerenciarInstrutor(session)) throw new Error("Sem permissão");
+  const instrutorId = s(formData, "instrutorId");
+  const inst = await db.instrutor.findUnique({ where: { id: instrutorId } });
+  if (!inst) redirect("/capacitacao/instrutores" as Route);
+  await db.instrutor.update({ where: { id: instrutorId }, data: { ativo: !inst.ativo } });
+  await logEvent({
+    userId: session!.user.id,
+    action: "instrutor_atualizado",
+    entityType: "instrutor",
+    entityId: instrutorId,
+    meta: { ativo: !inst.ativo },
+  });
+  revalidatePath("/capacitacao/instrutores");
+  redirect("/capacitacao/instrutores" as Route);
+}
