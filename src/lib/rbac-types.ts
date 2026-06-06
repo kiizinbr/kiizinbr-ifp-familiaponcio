@@ -10,6 +10,7 @@ export const ROLE_NAMES = [
   "social",
   "profissional",
   "recepcao",
+  "painel",
 ] as const;
 
 export type RoleName = (typeof ROLE_NAMES)[number];
@@ -26,6 +27,7 @@ export const UNIT_ROLES: readonly RoleName[] = [
   "gestor_unidade",
   "profissional",
   "recepcao",
+  "painel",
 ] as const;
 
 export interface RoleAssignment {
@@ -43,6 +45,7 @@ export const ROLE_DESCRIPTIONS: Record<RoleName, string> = {
   social: "Equipe de Serviço Social — cross-unidade",
   profissional: "Profissional que atende em uma unidade",
   recepcao: "Recepção / callcenter de uma unidade",
+  painel: "Quiosque de painel de chamada (TV) — somente exibicao, sem acesso a dados",
 };
 
 /**
@@ -67,5 +70,7 @@ export function getLandingPathFor(
       // Unit-roles aterrissam na raiz do módulo da unidade (/medico, /capacitacao…),
       // não no alias legado /app/${scope} (que dependia do rewrite do proxy).
       return primaryUnitScope ? `/${primaryUnitScope}` : "/app";
+    case "painel":
+      return primaryUnitScope ? `/painel/${primaryUnitScope}` : "/login";
   }
 }
