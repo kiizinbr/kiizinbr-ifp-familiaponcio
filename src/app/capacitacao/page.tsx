@@ -7,11 +7,16 @@ import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { podeCriarTurma } from "@/lib/capacitacao/rbac";
+import { avaliarRiscoEvasao } from "@/lib/capacitacao/evasao";
 import { PageHead, KitBadge } from "./_components/ui";
 import styles from "./capacitacao.module.css";
 
 const ATIVAS = ["inscrito", "confirmado", "cursando"] as const;
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
+
+function nome(c: { nomeCompleto: string; nomeSocial: string | null }): string {
+  return c.nomeSocial?.trim() ? c.nomeSocial : c.nomeCompleto;
+}
 
 export default async function CapacitacaoHome() {
   const session = await auth();
@@ -39,6 +44,39 @@ export default async function CapacitacaoHome() {
     ]);
 
   const ativasMap = new Map(ativasPorTurma.map((g) => [g.turmaId, g._count]));
+
+  const podeGerir = podeCriarTurma(session);
+  let emRisco: {
+    id: string;
+    nome: string;
+    turmaId: string;
+    curso: string;
+    codigo: string;
+    motivos: string[];
+  }[] = [];
+  if (podeGerir) {
+    const ms = await db.matricula.findMany({
+      where: { status: { in: [...ATIVAS] }, turma: { status: "em_andamento" } },
+      select: {
+        id: true,
+        turmaId: true,
+        cidadao: { select: { nomeCompleto: true, nomeSocial: true } },
+        turma: { select: { codigo: true, curso: { select: { nome: true } } } },
+        presencas: { select: { presente: true }, orderBy: { data: "asc" } },
+      },
+    });
+    emRisco = ms
+      .map((m) => ({ m, r: avaliarRiscoEvasao(m.presencas) }))
+      .filter((x) => x.r.emRisco)
+      .map((x) => ({
+        id: x.m.id,
+        nome: nome(x.m.cidadao),
+        turmaId: x.m.turmaId,
+        curso: x.m.turma.curso.nome,
+        codigo: x.m.turma.codigo,
+        motivos: x.r.motivos,
+      }));
+  }
 
   return (
     <CapacitacaoShell session={session}>
@@ -73,6 +111,48 @@ export default async function CapacitacaoHome() {
             <div className={styles.statLabel}>matrículas ativas</div>
           </div>
         </div>
+
+        {podeGerir ? (
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <span className={styles.tick} />
+              <h2 className={styles.cardTitle}>ALUNOS EM RISCO DE EVASÃO</h2>
+              {emRisco.length > 0 ? (
+                <span className={styles.headNote}>
+                  <KitBadge variant="danger">{emRisco.length}</KitBadge>
+                </span>
+              ) : null}
+            </div>
+            {emRisco.length === 0 ? (
+              <div className={styles.empty}>Nenhum aluno em risco no momento. 👏</div>
+            ) : (
+              <div className={styles.list}>
+                {emRisco.slice(0, 10).map((a) => (
+                  <Link
+                    key={a.id}
+                    href={`/capacitacao/turmas/${a.turmaId}` as Route}
+                    className={styles.row}
+                  >
+                    <span className={styles.dot} />
+                    <div className={styles.rowMain}>
+                      <div className={styles.rowTitle}>{a.nome}</div>
+                      <div className={styles.rowMeta}>
+                        <span>{a.curso}</span>
+                        <span className={styles.mono}>· {a.codigo}</span>
+                      </div>
+                    </div>
+                    <div className={styles.rowRight}>
+                      <KitBadge variant="danger">⚠ {a.motivos.join(" · ")}</KitBadge>
+                    </div>
+                  </Link>
+                ))}
+                {emRisco.length > 10 ? (
+                  <div className={styles.empty}>e mais {emRisco.length - 10}…</div>
+                ) : null}
+              </div>
+            )}
+          </div>
+        ) : null}
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
