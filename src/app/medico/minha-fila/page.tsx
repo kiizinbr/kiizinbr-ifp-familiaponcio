@@ -117,11 +117,17 @@ export default async function MinhaFilaPage() {
                     )}
                     <form action={chamarAction}>
                       <input type="hidden" name="unidade" value="medico" />
-                      <input type="hidden" name="nomeChamado" value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto} />
+                      <input
+                        type="hidden"
+                        name="nomeChamado"
+                        value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
+                      />
                       <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
                       <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
                       <input type="hidden" name="consultaId" value={c.id} />
-                      <button type="submit" className="btn btn-secondary">Chamar</button>
+                      <button type="submit" className="btn btn-secondary">
+                        Chamar
+                      </button>
                     </form>
                   </div>
                 </div>

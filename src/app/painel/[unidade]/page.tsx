@@ -26,12 +26,7 @@ export default async function PainelPage({ params }: { params: Promise<{ unidade
   const anuncios = anunciosRaw.filter((a) => anuncioVigente(a, agora)).map((a) => a.texto);
 
   return (
-    <div
-      className="ifp-kit"
-      data-unit={unidade}
-      data-unit-accent=""
-      style={{ minHeight: "100vh" }}
-    >
+    <div className="ifp-kit" data-unit={unidade} data-unit-accent="" style={{ minHeight: "100vh" }}>
       <PainelTV unidade={unidade} videoUrl={config?.videoUrl ?? null} anuncios={anuncios} />
     </div>
   );

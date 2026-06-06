@@ -36,9 +36,7 @@ export default async function PainelConfigPage({
       data-unit-accent=""
       style={{ minHeight: "100vh", padding: 24, maxWidth: 720, margin: "0 auto" }}
     >
-      <h1 style={{ color: "var(--text)", marginBottom: 16 }}>
-        Painel — Configuracao ({unidade})
-      </h1>
+      <h1 style={{ color: "var(--text)", marginBottom: 16 }}>Painel — Configuracao ({unidade})</h1>
 
       <section className="card" style={{ marginBottom: 24 }}>
         <h2 style={{ color: "var(--text)", fontSize: 16 }}>Video do mes (YouTube)</h2>
@@ -59,10 +57,7 @@ export default async function PainelConfigPage({
 
       <section className="card">
         <h2 style={{ color: "var(--text)", fontSize: 16 }}>Anuncios do rodape</h2>
-        <form
-          action={adicionarAnuncioAction}
-          style={{ display: "grid", gap: 8, marginTop: 12 }}
-        >
+        <form action={adicionarAnuncioAction} style={{ display: "grid", gap: 8, marginTop: 12 }}>
           <input type="hidden" name="unidade" value={unidade} />
           <input
             name="texto"
@@ -74,11 +69,7 @@ export default async function PainelConfigPage({
             Ativo ate (opcional):{" "}
             <input type="date" name="ativoAte" className="input" style={{ width: "auto" }} />
           </label>
-          <button
-            type="submit"
-            className="btn btn-secondary"
-            style={{ justifySelf: "start" }}
-          >
+          <button type="submit" className="btn btn-secondary" style={{ justifySelf: "start" }}>
             Adicionar anuncio
           </button>
         </form>

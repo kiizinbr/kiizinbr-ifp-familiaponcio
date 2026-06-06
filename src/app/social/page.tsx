@@ -154,7 +154,9 @@ function TriagemItem({
           <input type="hidden" name="nomeChamado" value={nomeSocial || nome} />
           <input type="hidden" name="destino" value="Triagem" />
           <input type="hidden" name="cidadaoId" value={cidadaoId} />
-          <button type="submit" className="btn btn-secondary">Chamar</button>
+          <button type="submit" className="btn btn-secondary">
+            Chamar
+          </button>
         </form>
       </div>
     </li>

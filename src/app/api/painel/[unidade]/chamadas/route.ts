@@ -6,10 +6,7 @@ import { listarChamadas } from "@/lib/painel/chamada";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ unidade: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ unidade: string }> }) {
   const { unidade } = await params;
   if (!unidadeFromSlug(unidade)) {
     return new NextResponse("Unidade invalida", { status: 404 });

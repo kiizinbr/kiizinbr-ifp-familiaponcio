@@ -69,7 +69,14 @@ export function PainelTV({
     function criarPlayer() {
       playerRef.current = new window.YT.Player("painel-yt", {
         videoId: videoId!,
-        playerVars: { autoplay: 1, controls: 0, loop: 1, playlist: videoId!, rel: 0, modestbranding: 1 },
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          loop: 1,
+          playlist: videoId!,
+          rel: 0,
+          modestbranding: 1,
+        },
         host: "https://www.youtube-nocookie.com",
       });
     }
@@ -85,7 +92,11 @@ export function PainelTV({
     }
     // FIX 4: destrói o player no cleanup para evitar vazamento de recursos
     return () => {
-      try { playerRef.current?.destroy(); } catch { /* player ja destruido ou nao inicializado */ }
+      try {
+        playerRef.current?.destroy();
+      } catch {
+        /* player ja destruido ou nao inicializado */
+      }
       playerRef.current = null;
     };
   }, [iniciado, videoId]);
@@ -172,10 +183,20 @@ export function PainelTV({
   }
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden", background: "var(--bg)" }}>
+    <div
+      style={{
+        position: "relative",
+        minHeight: "100vh",
+        overflow: "hidden",
+        background: "var(--bg)",
+      }}
+    >
       {/* video ou fallback institucional */}
       {videoId ? (
-        <div id="painel-yt" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+        <div
+          id="painel-yt"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+        />
       ) : (
         <div style={{ ...center, color: "var(--text-3)" }}>
           <div style={{ textAlign: "center" }}>
@@ -189,13 +210,29 @@ export function PainelTV({
       {overlay && chamada ? (
         <div style={overlayStyle}>
           <div style={{ textAlign: "center", padding: "0 6%" }}>
-            <div style={{ fontSize: 18, letterSpacing: ".2em", color: "var(--live)", marginBottom: 16 }}>
+            <div
+              style={{
+                fontSize: 18,
+                letterSpacing: ".2em",
+                color: "var(--live)",
+                marginBottom: 16,
+              }}
+            >
               CHAMANDO
             </div>
-            <div style={{ fontSize: "clamp(48px, 9vw, 140px)", fontWeight: 800, color: "var(--text)", lineHeight: 1.02 }}>
+            <div
+              style={{
+                fontSize: "clamp(48px, 9vw, 140px)",
+                fontWeight: 800,
+                color: "var(--text)",
+                lineHeight: 1.02,
+              }}
+            >
               {chamada.nomeChamado.toUpperCase()}
             </div>
-            <div style={{ marginTop: 20, fontSize: "clamp(20px, 3vw, 44px)", color: "var(--text-2)" }}>
+            <div
+              style={{ marginTop: 20, fontSize: "clamp(20px, 3vw, 44px)", color: "var(--text-2)" }}
+            >
               → {chamada.destino}
             </div>
           </div>
@@ -205,7 +242,9 @@ export function PainelTV({
       {/* lista de ultimos chamados (canto) */}
       {recentes.length > 0 ? (
         <div style={recentesStyle}>
-          <div className="micro" style={{ marginBottom: 6 }}>ULTIMOS CHAMADOS</div>
+          <div className="micro" style={{ marginBottom: 6 }}>
+            ULTIMOS CHAMADOS
+          </div>
           {recentes.map((c) => (
             <div key={c.id} style={{ fontSize: 14, color: "var(--text-2)" }}>
               {c.nomeChamado} · {c.destino}
@@ -221,9 +260,7 @@ export function PainelTV({
         </div>
       ) : null}
 
-      {erroConexao ? (
-        <div style={reconStyle}>reconectando…</div>
-      ) : null}
+      {erroConexao ? <div style={reconStyle}>reconectando…</div> : null}
     </div>
   );
 }

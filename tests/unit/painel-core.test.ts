@@ -6,10 +6,14 @@ describe("nomeChamado", () => {
     expect(nomeChamado({ nomeSocial: "Maria", nomeCompleto: "Maria da Silva" })).toBe("Maria");
   });
   it("cai no nomeCompleto quando nomeSocial e null", () => {
-    expect(nomeChamado({ nomeSocial: null, nomeCompleto: "Maria da Silva" })).toBe("Maria da Silva");
+    expect(nomeChamado({ nomeSocial: null, nomeCompleto: "Maria da Silva" })).toBe(
+      "Maria da Silva",
+    );
   });
   it("cai no nomeCompleto quando nomeSocial e so espacos", () => {
-    expect(nomeChamado({ nomeSocial: "  ", nomeCompleto: "Maria da Silva" })).toBe("Maria da Silva");
+    expect(nomeChamado({ nomeSocial: "  ", nomeCompleto: "Maria da Silva" })).toBe(
+      "Maria da Silva",
+    );
   });
 });
 
