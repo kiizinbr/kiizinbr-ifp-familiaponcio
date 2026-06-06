@@ -826,3 +826,53 @@ model Certificado {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 }
+
+/// F1.B.3 — Receita médica. consultaId/profissionalId como FK simples (sem relação Prisma)
+/// + snapshots, p/ o documento impresso não mudar se a consulta/profissional forem editados.
+model Receita {
+  id               String        @id @default(cuid())
+  consultaId       String
+  profissionalId   String
+  nomePaciente     String
+  nomeProfissional String
+  conselho         String // ex.: CRM-RJ
+  nroConselho      String
+  observacoes      String?       @db.Text
+  itens            ReceitaItem[]
+  emitidoEm        DateTime      @default(now())
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([consultaId])
+}
+
+model ReceitaItem {
+  id          String  @id @default(cuid())
+  receitaId   String
+  receita     Receita @relation(fields: [receitaId], references: [id], onDelete: Cascade)
+  medicamento String
+  posologia   String
+  quantidade  String?
+  via         String?
+
+  @@index([receitaId])
+}
+
+/// F1.B.3 — Atestado / declaração de comparecimento. FK simples + snapshots. CID opcional (sigilo).
+model Atestado {
+  id               String   @id @default(cuid())
+  consultaId       String
+  profissionalId   String
+  nomePaciente     String
+  nomeProfissional String
+  conselho         String
+  nroConselho      String
+  diasAfastamento  Int?
+  cid              String?
+  observacao       String?  @db.Text
+  emitidoEm        DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([consultaId])
+}

@@ -116,3 +116,22 @@ export function podeAgendarEncaminhamento(session: Session | null): boolean {
   if (!session) return false;
   return hasAnyRole(session, "super_admin", "gestor_unidade", "recepcao");
 }
+
+// ── F1.B.3 Documentos (Receita / Atestado) ───────────────────────────
+
+/**
+ * Emitir receita/atestado (§F1.B.3): ato clínico do profissional DONO da
+ * consulta. Gestão (super_admin/gestor_unidade) também pode emitir em nome da
+ * unidade. Recepção/social NÃO emitem documentos clínicos.
+ */
+export function podeEmitirDocumento(
+  session: Session | null,
+  consultaProfissionalUserId: string,
+): boolean {
+  if (!session) return false;
+  if (hasAnyRole(session, "super_admin", "gestor_unidade")) return true;
+  if (hasAnyRole(session, "profissional") && session.user.id === consultaProfissionalUserId) {
+    return true;
+  }
+  return false;
+}

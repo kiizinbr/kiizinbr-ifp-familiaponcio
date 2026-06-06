@@ -55,6 +55,11 @@ export default async function VerificarCertificadoPage({
                 <div>Emitido em {fmt.format(cert.emitidoEm)}</div>
                 <div className="mono">Código {cert.codigo}</div>
               </div>
+              <div style={{ marginTop: "var(--sp-5)" }}>
+                <a href={`/capacitacao/certificados/${cert.codigo}`} className="btn btn-primary">
+                  Baixar certificado (PDF)
+                </a>
+              </div>
             </>
           ) : (
             <>

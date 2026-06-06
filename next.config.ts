@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
   typedRoutes: true,
+  serverExternalPackages: ["@react-pdf/renderer"],
   turbopack: {
     root: path.resolve(import.meta.dirname),
   },

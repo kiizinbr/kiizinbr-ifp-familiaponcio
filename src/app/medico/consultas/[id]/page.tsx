@@ -11,6 +11,7 @@ import {
   podeEditarNota,
   podeVerProntuario,
   podeEncaminhar,
+  podeEmitirDocumento,
 } from "@/lib/medico/rbac";
 import { CONSULTA_VISUAL, PROXIMOS_STATUS_CONSULTA } from "@/lib/medico/ui";
 import { calcularImc } from "@/lib/medico/prontuario";
@@ -20,6 +21,7 @@ import {
   assinarNotaAction,
   salvarRascunhoAction,
 } from "./prontuario-actions";
+import { emitirReceitaAction, emitirAtestadoAction } from "./documento-actions";
 import styles from "./prontuario.module.css";
 import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 
@@ -66,10 +68,10 @@ export default async function ConsultaDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string }>;
+  searchParams: Promise<{ erro?: string; doc?: string }>;
 }) {
   const { id } = await params;
-  const { erro } = await searchParams;
+  const { erro, doc } = await searchParams;
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
@@ -95,7 +97,7 @@ export default async function ConsultaDetalhePage({
     take: 5,
   });
 
-  const [especialidadesAtivas, encaminhamentos] = await Promise.all([
+  const [especialidadesAtivas, encaminhamentos, receitas, atestados] = await Promise.all([
     db.especialidade.findMany({
       where: { ativa: true },
       orderBy: { nome: "asc" },
@@ -106,8 +108,19 @@ export default async function ConsultaDetalhePage({
       include: { especialidade: { select: { nome: true, corDestaque: true } } },
       orderBy: { createdAt: "desc" },
     }),
+    db.receita.findMany({
+      where: { consultaId: consulta.id },
+      select: { id: true, emitidoEm: true },
+      orderBy: { emitidoEm: "desc" },
+    }),
+    db.atestado.findMany({
+      where: { consultaId: consulta.id },
+      select: { id: true, emitidoEm: true, diasAfastamento: true },
+      orderBy: { emitidoEm: "desc" },
+    }),
   ]);
   const podeEnc = podeEncaminhar(session);
+  const podeEmitir = podeEmitirDocumento(session, consulta.profissional.userId);
 
   // Registra acesso a dado de saúde (LGPD §0.8) — só quem pode ver conteúdo clínico.
   const podeVer = podeVerProntuario(session);
@@ -533,20 +546,147 @@ export default async function ConsultaDetalhePage({
                 encaminhamentos={encaminhamentos}
                 podeEncaminhar={podeEnc}
               />
-              {[
-                { ico: "℞", t: "Prescrição" },
-                { ico: "✓", t: "Atestado" },
-              ].map((a) => (
-                <section key={a.t} className={`${styles.card} ${styles.soon}`}>
-                  <div className={styles.soonBody}>
-                    <span className={styles.ico}>{a.ico}</span>
-                    <div>
-                      <div className={styles.soonTtl}>{a.t}</div>
-                      <span className={styles.pill}>Chega no F1.B.3</span>
+              {/* Receita (F1.B.3) */}
+              <section className={styles.card}>
+                <div className={styles.docHead}>
+                  <span className={styles.docIco}>℞</span>
+                  <h3 className={styles.docTtl}>Prescrição</h3>
+                </div>
+                <div className={styles.body}>
+                  {doc === "ok" && (
+                    <div className={styles.docOk}>Documento emitido com sucesso.</div>
+                  )}
+                  {doc === "erro_receita" && (
+                    <div className={styles.docErr}>
+                      Informe ao menos medicamento e posologia para emitir a receita.
                     </div>
-                  </div>
-                </section>
-              ))}
+                  )}
+                  {receitas.length > 0 && (
+                    <div className={styles.docList}>
+                      {receitas.map((r) => (
+                        <div key={r.id} className={styles.docItem}>
+                          <span className={styles.docWhen}>
+                            {r.emitidoEm.toLocaleDateString("pt-BR")}
+                          </span>
+                          <Link
+                            href={`/medico/consultas/${consulta.id}/receita/${r.id}` as Route}
+                            className={styles.docLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Baixar PDF →
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {podeEmitir ? (
+                    <form action={emitirReceitaAction} className={styles.docForm}>
+                      <input type="hidden" name="consultaId" value={consulta.id} />
+                      <input
+                        className={styles.docInput}
+                        name="medicamento"
+                        placeholder="Medicamento"
+                        required
+                      />
+                      <input
+                        className={styles.docInput}
+                        name="posologia"
+                        placeholder="Posologia (ex.: 1 comp. de 8/8h por 7 dias)"
+                        required
+                      />
+                      <div className={styles.docRow}>
+                        <input
+                          className={styles.docInput}
+                          name="quantidade"
+                          placeholder="Quantidade"
+                        />
+                        <input className={styles.docInput} name="via" placeholder="Via" />
+                      </div>
+                      <input
+                        className={styles.docInput}
+                        name="observacoes"
+                        placeholder="Observações (opcional)"
+                      />
+                      <div className={styles.docActions}>
+                        <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
+                          Emitir receita
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <span className={styles.muted}>
+                      Emissão restrita ao profissional do atendimento.
+                    </span>
+                  )}
+                </div>
+              </section>
+
+              {/* Atestado (F1.B.3) */}
+              <section className={styles.card}>
+                <div className={styles.docHead}>
+                  <span className={styles.docIco}>✓</span>
+                  <h3 className={styles.docTtl}>Atestado</h3>
+                </div>
+                <div className={styles.body}>
+                  {atestados.length > 0 && (
+                    <div className={styles.docList}>
+                      {atestados.map((at) => (
+                        <div key={at.id} className={styles.docItem}>
+                          <span className={styles.docWhen}>
+                            {at.emitidoEm.toLocaleDateString("pt-BR")}
+                            {at.diasAfastamento != null && at.diasAfastamento > 0
+                              ? ` · ${at.diasAfastamento}d`
+                              : ""}
+                          </span>
+                          <Link
+                            href={`/medico/consultas/${consulta.id}/atestado/${at.id}` as Route}
+                            className={styles.docLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Baixar PDF →
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {podeEmitir ? (
+                    <form action={emitirAtestadoAction} className={styles.docForm}>
+                      <input type="hidden" name="consultaId" value={consulta.id} />
+                      <div className={styles.docRow}>
+                        <input
+                          className={styles.docInput}
+                          name="diasAfastamento"
+                          type="number"
+                          min="0"
+                          inputMode="numeric"
+                          placeholder="Dias de afastamento"
+                        />
+                        <input
+                          className={styles.docInput}
+                          name="cid"
+                          placeholder="CID (opcional)"
+                        />
+                      </div>
+                      <input
+                        className={styles.docInput}
+                        name="observacao"
+                        placeholder="Observação (opcional)"
+                      />
+                      <div className={styles.docActions}>
+                        <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
+                          Emitir atestado
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <span className={styles.muted}>
+                      Emissão restrita ao profissional do atendimento.
+                    </span>
+                  )}
+                </div>
+              </section>
               <section className={styles.card}>
                 <div className={styles.cardHeader}>
                   <span className={styles.tick} style={{ background: "var(--text-3)" as string }} />

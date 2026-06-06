@@ -48,6 +48,8 @@ export type AuditAction =
   | "prontuario_assinado"
   | "prontuario_addendo"
   | "cidadao_saude_atualizada"
+  | "receita_emitida"
+  | "atestado_emitido"
   // Capacitação (F1.A.1)
   | "curso_criado"
   | "curso_atualizado"
