@@ -3,6 +3,8 @@
 # - cria um banco DESCARTAVEL (ifp_restore_drill), restaura o .age mais recente nele,
 #   verifica (n de tabelas + linhas em _prisma_migrations), e DERRUBA o banco.
 # - NAO toca no banco vivo. Pensado pra rodar agendado (ex.: semanal) ou sob demanda.
+# Nota: ifp_restore_drill e _prisma_migrations sao minusculos => sem aspas no SQL
+# (aspas duplas quebrariam o quoting do `docker exec ... sh -c`).
 set -euo pipefail
 
 BACKUP_DIR=/opt/ifp-connect/backups
@@ -27,16 +29,16 @@ fi
 echo "==> backup alvo do drill: $LATEST"
 
 # limpa drill anterior (se sobrou) e cria banco descartavel
-psql_admin "DROP DATABASE IF EXISTS \"$DRILL_DB\""
-psql_admin "CREATE DATABASE \"$DRILL_DB\""
-trap 'psql_admin "DROP DATABASE IF EXISTS \"'"$DRILL_DB"'\"" >/dev/null 2>&1 || true' EXIT
+psql_admin "DROP DATABASE IF EXISTS $DRILL_DB"
+psql_admin "CREATE DATABASE $DRILL_DB"
+trap 'psql_admin "DROP DATABASE IF EXISTS '"$DRILL_DB"'" >/dev/null 2>&1 || true' EXIT
 
 # restaura nele
 bash "$HERE/restore.sh" "$LATEST" "$DRILL_DB"
 
 # verificacao
 TABLES=$(psql_drill "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'")
-MIGRATIONS=$(psql_drill "SELECT count(*) FROM \"_prisma_migrations\"" 2>/dev/null || echo 0)
+MIGRATIONS=$(psql_drill "SELECT count(*) FROM _prisma_migrations" 2>/dev/null || echo 0)
 echo "==> verificacao: $TABLES tabelas, $MIGRATIONS migrations aplicadas no restore"
 
 if [ "${TABLES:-0}" -ge 10 ] && [ "${MIGRATIONS:-0}" -ge 1 ]; then
