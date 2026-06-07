@@ -25,10 +25,10 @@ export const ADMIN_CODUS: ReadonlySet<number> = new Set([911943, 911944, 960014]
 /** codu Amplimed → especialidade canônica + nome de exibição (47 referenciados). */
 export const PROFISSIONAIS_CURADOS: Record<number, ProfissionalCurado> = {
   918241: { especialidade: "Ginecologia", nomeExibicao: "Dra. Girlani" },
-  918239: { especialidade: "Clínico Geral", nomeExibicao: "Dr. Sergio Padilha" },
+  918239: { especialidade: "Clínica Médica", nomeExibicao: "Dr. Sergio Padilha" },
   921603: { especialidade: "Cardiologia", nomeExibicao: "Dr. Vinicius" },
   920741: { especialidade: "Endocrinologia", nomeExibicao: "Dra. Sabrina Camara" },
-  918244: { especialidade: "Clínico Geral", nomeExibicao: "Dr. Kelvin" },
+  918244: { especialidade: "Clínica Médica", nomeExibicao: "Dr. Kelvin" },
   918249: { especialidade: "Nutrição", nomeExibicao: "Natacha Guedes" },
   918247: { especialidade: "Laboratório", nomeExibicao: "Laboratório" },
   918242: { especialidade: "Psicologia Adulto", nomeExibicao: "Dra. Adna de Luna" },
