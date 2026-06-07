@@ -1466,6 +1466,44 @@ git commit -m 'feat(migracao): validador de contagens + integridade'
 - **Dependências externas a adicionar:** `mysql2` (T1); `unzipper`/`yauzl` p/ T15 (decidir na 15.0).
 - **Riscos residuais marcados:** muitos pacientes sem data (T13 nota), convenção nome-de-mídia (T15.0), mapa de especialidade (T10).
 
+---
+
+## Execução 2026-06-07 (notas de realidade — onde o plano mudou)
+
+O plano foi escrito ANTES do checkpoint do Erick. Desvios aplicados na execução:
+
+1. **§0.A relax — `problemas` ≠ gate.** Decisão: migrar TODOS os 18.911 pacientes. Os mappers
+   (`cidadao.ts`/`profissional.ts`) passaram a tratar `problemas[]` como **relatório de qualidade**,
+   não como motivo de descarte. Telefone/data ausentes → `null` (campos relaxados no schema, migration
+   `20260607160940`); nome ausente → placeholder `"(nome não informado)"` (30 casos). `telefonePrincipal`
+   virou `string | null`.
+2. **Dedup CPF por NULAÇÃO, não descarte (T13).** 70 CPFs duplicados → nula o CPF do 2º+ registro
+   (preserva o `codp` e, com ele, o prontuário). Descartar o paciente jogaria fora as consultas dele
+   (ligam por `codp`, não por CPF).
+3. **§0.E resolvido por CURADORIA, não pelo int.** A coluna `especialidade` (int) é inútil (esp=0 cobre
+   19 profs de áreas diferentes). O sinal está no NOME. Como o conjunto referenciado é pequeno e fixo
+   (47 profs), `profissionais-curados.ts` mapeia `codu → {especialidade, nomeExibicao}` à mão (auditável,
+   vetável). 26 especialidades distintas. 2 profs de alto volume (929119 Prótese / 962961 Psicologia, 4.4k
+   consultas) só foram cobertos após cruzar a lista AUTORITATIVA de `codu` referenciados.
+4. **E-mail do profissional = login REAL da origem** (`usuarios.usuario`, que já é e-mail e é único);
+   `slugEmail` só como fallback. Conselho/registro limpos em `conselho.ts` (HTML-decode + lixo→placeholder).
+5. **`dateStrings:true` no mysql2** — `consulta.dtconsulta` é DATE (driver devolvia `Date`, não string).
+6. **Idempotência por preload** (1 `findMany` na `MigracaoAmplimedMap`) em vez de `findUnique` por registro
+   (~113k round-trips).
+7. **Diagnósticos = 0 por design.** `consulta.cid10` e `consulta.meds` estão 100% vazios neste dump (CID/
+   receitas vivem em `consulta_configuracao`/`documentosprescricoes`, fora do v1). Narrativa clínica OK:
+   queixa 87% · conduta 87% · exame físico 95%.
+8. **Slot sintético 30-min é seguro:** máx 45 consultas/(prof,dia) → último às 06:00 do dia seguinte,
+   antes do 08:00 → sem colisão no `@@unique([profissionalId, dataHoraInicio])`.
+
+**Dry-run (real):** profissionais 47 · cidadãos 18.911 · consultas 94.424 ok (4 órfãs + 41 sem prof:
+40 admin + codu=0). **Não migra:** 2 contas admin (`erick.ramos`/`suporte.amplimed`) + suas 40 consultas.
+
+**T15 (mídia) — abordagem CORRIGIDA:** os ZIPs têm nomes-HASH opacos; o vínculo arquivo↔registro está em
+COLUNAS do banco: `pacientes.fotopac` → `Cidadao.fotoUrl`; `consulta.anxfoto1/2/3` (+`legfotos`) →
+`AnexoCidadao`; `usuarios.img` → foto do prof; `pacsimg.endimg` → tabela de imagens. T15 = JOIN hash→coluna,
+não regex no nome. (Sondas: `07-inspecionar-midia.sh`.)
+
 ```
 
 ```
