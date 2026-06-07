@@ -57,6 +57,11 @@ export default async function CapacitacaoHome() {
   if (podeGerir) {
     const ms = await db.matricula.findMany({
       where: { status: { in: [...ATIVAS] }, turma: { status: "em_andamento" } },
+      // Salvaguarda contra query ilimitada (era sem take). orderBy dá um cap
+      // determinístico; cobertura total do risco em escala maior pede
+      // materialização/job periódico (follow-up documentado no relatório de QA).
+      orderBy: { id: "asc" },
+      take: 500,
       select: {
         id: true,
         turmaId: true,

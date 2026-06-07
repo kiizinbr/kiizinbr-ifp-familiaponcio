@@ -150,7 +150,7 @@ function TriagemItem({
         </div>
         <p className="text-3 text-xs">{UNIT_LABELS[unit]}</p>
         <form action={chamarAction} style={{ marginTop: 6 }}>
-          <input type="hidden" name="unidade" value="medico" />
+          <input type="hidden" name="unidade" value={unit} />
           <input type="hidden" name="nomeChamado" value={nomeSocial || nome} />
           <input type="hidden" name="destino" value="Triagem" />
           <input type="hidden" name="cidadaoId" value={cidadaoId} />
