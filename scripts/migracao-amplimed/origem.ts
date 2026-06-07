@@ -12,6 +12,9 @@ export async function abrirOrigem() {
     user: "root",
     password: "src",
     database: "amplimed",
+    // Colunas DATE/DATETIME (ex.: consulta.dtconsulta) vêm como string "YYYY-MM-DD"
+    // em vez de Date — casa com os tipos *Row e com parseDataNascimento.
+    dateStrings: true,
   });
   return {
     async pacientes(): Promise<PacienteRow[]> {

@@ -6,8 +6,8 @@
 //     odonto, pediatria…). O sinal real da especialidade está no NOME
 //     ("GINECOLOGIA - Dra. Girlani"), mas em formatos inconsistentes (com traço,
 //     sem traço, só-especialidade, só-nome-da-pessoa, tudo-maiúsculo).
-//   - O conjunto é PEQUENO e FIXO: 45 profissionais referenciados por consulta
-//     (50 codu distintos em consulta − 3 sem linha em `usuarios` − 2 admin).
+//   - O conjunto é PEQUENO e FIXO: 47 profissionais referenciados por consulta
+//     (50 codu distintos em consulta − 1 codu=0 sem linha em `usuarios` − 2 admin).
 //   → Um mapa curado é mais correto e auditável que um parser frágil.
 //
 // REVISÁVEL: Erick pode vetar/ajustar qualquer especialidade ou nome de exibição.
@@ -22,7 +22,7 @@ export interface ProfissionalCurado {
 /** Contas administrativas/sistema — NÃO migrar (consultas delas são puladas). */
 export const ADMIN_CODUS: ReadonlySet<number> = new Set([911943, 911944, 960014]);
 
-/** codu Amplimed → especialidade canônica + nome de exibição (45 referenciados). */
+/** codu Amplimed → especialidade canônica + nome de exibição (47 referenciados). */
 export const PROFISSIONAIS_CURADOS: Record<number, ProfissionalCurado> = {
   918241: { especialidade: "Ginecologia", nomeExibicao: "Dra. Girlani" },
   918239: { especialidade: "Clínico Geral", nomeExibicao: "Dr. Sergio Padilha" },
@@ -54,6 +54,8 @@ export const PROFISSIONAIS_CURADOS: Record<number, ProfissionalCurado> = {
   917703: { especialidade: "Procedimentos", nomeExibicao: "Procedimentos" },
   921604: { especialidade: "Endodontia", nomeExibicao: "Dr. Luiz Renato" },
   929112: { especialidade: "Ortodontia", nomeExibicao: "Dra. Amanda" },
+  929119: { especialidade: "Prótese Dentária", nomeExibicao: "Dra. Maria Beatriz" },
+  962961: { especialidade: "Psicologia Infantil", nomeExibicao: "Dra. Pamela" },
   944714: { especialidade: "Ultrassonografia", nomeExibicao: "Dr. Marcos" },
   918295: { especialidade: "Serviço Social", nomeExibicao: "Serviço Social" },
   921614: { especialidade: "Periodontia", nomeExibicao: "Dra. Camila" },
