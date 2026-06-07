@@ -27,6 +27,10 @@
     "import:alunos:dry": "tsx scripts/import-alunos-dryrun.ts",
     "seguranca:forcar-troca": "dotenv -e .env.local -- tsx scripts/forcar-troca-senha.ts",
     "painel:criar-usuario": "dotenv -e .env.local -- tsx scripts/criar-usuario-painel.ts",
+    "migracao:profile": "dotenv -e .env.local -- tsx scripts/migracao-amplimed/10-profile.ts",
+    "migracao:run": "dotenv -e .env.local -- tsx scripts/migracao-amplimed/20-migrar.ts",
+    "migracao:midia": "dotenv -e .env.local -- tsx scripts/migracao-amplimed/30-midia.ts",
+    "migracao:validar": "dotenv -e .env.local -- tsx scripts/migracao-amplimed/40-validar.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -60,6 +64,7 @@
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "mysql2": "^3.22.5",
     "postcss": "^8.5.15",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
