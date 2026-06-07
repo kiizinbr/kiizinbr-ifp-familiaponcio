@@ -177,7 +177,9 @@ export async function removeAnexo(anexoId: string): Promise<AnexoActionResult> {
 
   // IDOR guard: além do papel, exige acesso à UNIDADE do cidadão dono do anexo.
   // can('delete','ficha_cidada') = super_admin OU gestor_unidade da própria unidade.
-  if (!can(session, "delete", "ficha_cidada", { unitScope: anexo.cidadao.unitIdOrigem as UnitScope })) {
+  if (
+    !can(session, "delete", "ficha_cidada", { unitScope: anexo.cidadao.unitIdOrigem as UnitScope })
+  ) {
     return { ok: false, error: "Sem permissão para remover anexos desta unidade" };
   }
 

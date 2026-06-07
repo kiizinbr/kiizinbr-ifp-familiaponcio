@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
+import { matriculasDaTurma } from "@/lib/capacitacao/presenca-scope";
 import { buildCidadaoSearchFilter } from "@/lib/cidadao";
 import {
   podeCriarTurma,
@@ -320,9 +321,11 @@ export async function registrarPresencasAction(formData: FormData) {
   const roster = s(formData, "roster")
     .split(",")
     .filter((id) => id.length > 0);
+  // IDOR guard: só matrículas que pertencem a ESTA turma (roster vem do cliente).
+  const validas = await matriculasDaTurma(turmaId, roster);
 
   await db.$transaction(
-    roster.map((matriculaId) =>
+    validas.map((matriculaId) =>
       db.presenca.upsert({
         where: { matriculaId_data: { matriculaId, data } },
         create: {
@@ -341,7 +344,7 @@ export async function registrarPresencasAction(formData: FormData) {
     action: "presenca_registrada",
     entityType: "turma",
     entityId: turmaId,
-    meta: { data: dataStr, alunos: roster.length },
+    meta: { data: dataStr, alunos: validas.length },
   });
   redirect(`/capacitacao/turmas/${turmaId}?presenca=ok` as Route);
 }
