@@ -1,7 +1,8 @@
 import type { Session } from "next-auth";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade, hasAnyRole } from "@/lib/rbac";
-import { UNIDADE_SLUGS, unidadeFromSlug } from "@/lib/unidades";
+import { UNIDADE_SLUGS } from "@/lib/unidades";
+import { loginParaPathDeslogado } from "@/lib/login-redirect";
 
 const PATHS_PUBLICOS = ["/", "/reset"];
 
@@ -19,14 +20,12 @@ export default auth((req) => {
     return;
   }
 
-  // Sessão obrigatória para qualquer outro path coberto pelo matcher
+  // Sessão obrigatória para qualquer outro path coberto pelo matcher.
+  // Manda SEMPRE pra uma tela de LOGIN (nunca pra landing pública `/`), preservando
+  // a unidade quando o path tem uma. Fecha o "deep-link/painel vai pra homepage".
+  // Lógica testada em lib/login-redirect (login-redirect.test.ts).
   if (!session) {
-    const slugMatch = path.match(/^\/([a-z]+)/);
-    const slug = slugMatch?.[1];
-    if (slug && unidadeFromSlug(slug)) {
-      return Response.redirect(new URL(`/${slug}/login`, origin));
-    }
-    return Response.redirect(new URL("/", origin));
+    return Response.redirect(new URL(loginParaPathDeslogado(path), origin));
   }
 
   // Troca de senha obrigatória (1º acesso / senha provisória): tranca o app inteiro
