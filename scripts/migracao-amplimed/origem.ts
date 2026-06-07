@@ -13,11 +13,13 @@ import type {
  */
 export async function abrirOrigem() {
   const conn = await mysql.createConnection({
-    host: "127.0.0.1",
-    port: 3399,
-    user: "root",
-    password: "src",
-    database: "amplimed",
+    // Configurável por env p/ portabilidade (local: 127.0.0.1:3399; na VM o ETL
+    // roda em container e aponta pro container amplimed-src:3306).
+    host: process.env.MIGRACAO_MARIADB_HOST ?? "127.0.0.1",
+    port: Number(process.env.MIGRACAO_MARIADB_PORT ?? 3399),
+    user: process.env.MIGRACAO_MARIADB_USER ?? "root",
+    password: process.env.MIGRACAO_MARIADB_PASSWORD ?? "src",
+    database: process.env.MIGRACAO_MARIADB_DB ?? "amplimed",
     // Colunas DATE/DATETIME (ex.: consulta.dtconsulta) vêm como string "YYYY-MM-DD"
     // em vez de Date — casa com os tipos *Row e com parseDataNascimento.
     dateStrings: true,

@@ -22,7 +22,7 @@ const SO = process.argv.find((a) => a.startsWith("--so="))?.slice(5);
 const fazerFotos = !SO || SO === "foto";
 const fazerAnexos = !SO || SO === "anexo";
 
-const ZIPDIR = "/mnt/c/Dev/ifp-connect/backup-amplimed";
+const ZIPDIR = process.env.MIGRACAO_ZIPDIR ?? "/mnt/c/Dev/ifp-connect/backup-amplimed";
 const PREFIXO = "6a22ea018b938404430e2312_media_2026_06_06_03_30_41";
 const ZIP_FOTOSPAC = [`amplimedfotospac_${PREFIXO}_part1.zip`];
 const ZIP_FOTOSPRON = [
