@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { podeGerirConsentimento } from "@/lib/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { VERSAO_TERMO_TRATAMENTO, VERSAO_TERMO_IMAGEM } from "@/lib/consentimento";
 
 async function gate() {
@@ -17,6 +18,8 @@ async function gate() {
 export async function registrarConsentimentoTratamentoAction(formData: FormData) {
   const session = await gate();
   const cidadaoId = String(formData.get("cidadaoId"));
+  // IDOR guard: o cidadaoId vem do cliente; exige acesso à unidade do cidadão.
+  await assertAcessoCidadao(session, cidadaoId, "edit");
   await db.consentimento.upsert({
     where: { cidadaoId_tipo: { cidadaoId, tipo: "tratamento_dados" } },
     create: {
@@ -47,6 +50,8 @@ export async function registrarConsentimentoTratamentoAction(formData: FormData)
 export async function revogarConsentimentoTratamentoAction(formData: FormData) {
   const session = await gate();
   const cidadaoId = String(formData.get("cidadaoId"));
+  // IDOR guard: o cidadaoId vem do cliente; exige acesso à unidade do cidadão.
+  await assertAcessoCidadao(session, cidadaoId, "edit");
   await db.consentimento.updateMany({
     where: { cidadaoId, tipo: "tratamento_dados", revogadoEm: null },
     data: { revogadoEm: new Date() },
@@ -66,6 +71,8 @@ export async function revogarConsentimentoTratamentoAction(formData: FormData) {
 export async function registrarConsentimentoImagemAction(formData: FormData) {
   const session = await gate();
   const cidadaoId = String(formData.get("cidadaoId"));
+  // IDOR guard: o cidadaoId vem do cliente; exige acesso à unidade do cidadão.
+  await assertAcessoCidadao(session, cidadaoId, "edit");
   const interno = formData.has("interno");
   const redes = formData.has("redes");
   const imprensa = formData.has("imprensa");

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
-import { can, hasAnyRole } from "@/lib/rbac";
+import { can } from "@/lib/rbac";
 import {
   getCidadaoAnexoUploadUrl,
   isAllowedMimeType,
@@ -175,9 +175,10 @@ export async function removeAnexo(anexoId: string): Promise<AnexoActionResult> {
   });
   if (!anexo) return { ok: false, error: "Anexo não encontrado" };
 
-  const allowedRoles = hasAnyRole(session, "super_admin", "gestor_unidade");
-  if (!allowedRoles) {
-    return { ok: false, error: "Sem permissão para remover anexos" };
+  // IDOR guard: além do papel, exige acesso à UNIDADE do cidadão dono do anexo.
+  // can('delete','ficha_cidada') = super_admin OU gestor_unidade da própria unidade.
+  if (!can(session, "delete", "ficha_cidada", { unitScope: anexo.cidadao.unitIdOrigem as UnitScope })) {
+    return { ok: false, error: "Sem permissão para remover anexos desta unidade" };
   }
 
   await removeCidadaoAnexo(anexo.storageKey).catch(() => null);
