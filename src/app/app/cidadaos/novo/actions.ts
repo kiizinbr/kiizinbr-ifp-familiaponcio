@@ -45,6 +45,11 @@ export async function createCidadaoAction(input: CidadaoCreateInput): Promise<Cr
 
   const data = parsed.data;
 
+  // IDOR guard: só cria ficha em unidade que o caller acessa (unitIdOrigem vem do cliente).
+  if (!can(session, "create", "ficha_cidada", { unitScope: data.unitIdOrigem as UnitScope })) {
+    return { ok: false, errors: {}, message: "Sem permissão para criar ficha nesta unidade" };
+  }
+
   // CPF duplicado
   const existing = await db.cidadao.findUnique({ where: { cpf: data.cpf } });
   if (existing) {

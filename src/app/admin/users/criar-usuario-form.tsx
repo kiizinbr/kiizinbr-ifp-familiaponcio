@@ -77,10 +77,10 @@ export function CriarUsuarioForm() {
             <input
               id="u-password"
               name="password"
-              type="text"
+              type="password"
               required
               minLength={8}
-              autoComplete="off"
+              autoComplete="new-password"
               className="input"
             />
           </div>
