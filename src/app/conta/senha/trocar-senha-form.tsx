@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { trocarMinhaSenhaAction, type TrocarSenhaResult } from "./actions";
 
 /** Form de troca da própria senha (1º acesso ou voluntária). */
-export function TrocarSenhaForm() {
+export function TrocarSenhaForm({ forcado }: { forcado: boolean }) {
   const [state, action, pending] = useActionState<TrocarSenhaResult | null, FormData>(
     trocarMinhaSenhaAction,
     null,
@@ -19,6 +19,21 @@ export function TrocarSenhaForm() {
           style={{ display: "block", padding: "8px 12px" }}
         >
           {state.error}
+        </div>
+      ) : null}
+      {!forcado ? (
+        <div className="field-group">
+          <label className="label" htmlFor="c-current">
+            Senha atual
+          </label>
+          <input
+            id="c-current"
+            name="currentPassword"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="input"
+          />
         </div>
       ) : null}
       <div className="field-group">

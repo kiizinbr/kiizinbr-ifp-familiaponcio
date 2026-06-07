@@ -41,7 +41,7 @@ export default async function ContaSenhaPage() {
             ) : null}
           </div>
 
-          <TrocarSenhaForm />
+          <TrocarSenhaForm forcado={forcado} />
 
           {!forcado ? (
             <div style={{ marginTop: "var(--sp-6)", textAlign: "center" }}>

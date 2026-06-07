@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { auth, signOut } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
-import { validarTrocaSenha } from "@/lib/senha";
+import { validarTrocaSenhaVoluntaria } from "@/lib/senha";
 
 export type TrocarSenhaResult = { ok: false; error: string };
 
@@ -24,7 +24,27 @@ export async function trocarMinhaSenhaAction(
 
   const senha = String(formData.get("password") ?? "");
   const confirma = String(formData.get("confirm") ?? "");
-  const erro = validarTrocaSenha(senha, confirma);
+
+  // Fora do 1º acesso (forçado), exige provar a senha ATUAL — senão uma sessão
+  // roubada (XSS/estação aberta) viraria takeover permanente da conta.
+  const forcado = session.user.mustChangePassword === true;
+  let senhaAtualConfere = forcado;
+  if (!forcado) {
+    const senhaAtual = String(formData.get("currentPassword") ?? "");
+    const dbUser = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { hashedPassword: true },
+    });
+    senhaAtualConfere =
+      !!dbUser?.hashedPassword && (await bcrypt.compare(senhaAtual, dbUser.hashedPassword));
+  }
+
+  const erro = validarTrocaSenhaVoluntaria({
+    forcado,
+    senhaAtualConfere,
+    novaSenha: senha,
+    confirma,
+  });
   if (erro) return { ok: false, error: erro };
 
   const hashedPassword = await bcrypt.hash(senha, 12);
@@ -38,7 +58,7 @@ export async function trocarMinhaSenhaAction(
     action: "password_reset",
     entityType: "user",
     entityId: session.user.id,
-    meta: { via: "primeiro_acesso" },
+    meta: { via: forcado ? "primeiro_acesso" : "voluntaria" },
   });
 
   // signOut redireciona (não retorna); o return abaixo só satisfaz o tipo.

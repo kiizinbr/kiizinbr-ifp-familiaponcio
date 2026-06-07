@@ -10,3 +10,19 @@ export function validarTrocaSenha(senha: string, confirma: string): string | nul
   if (senha !== confirma) return "As senhas não conferem.";
   return null;
 }
+
+/**
+ * Troca de senha PELO PRÓPRIO usuário. Fora do 1º acesso (forçado), exige provar
+ * a senha atual — senão uma sessão roubada (XSS/estação aberta) viraria takeover
+ * permanente. No fluxo forçado (mustChangePassword) não há senha atual a provar.
+ * `senhaAtualConfere` é o resultado do bcrypt.compare feito na action.
+ */
+export function validarTrocaSenhaVoluntaria(opts: {
+  forcado: boolean;
+  senhaAtualConfere: boolean;
+  novaSenha: string;
+  confirma: string;
+}): string | null {
+  if (!opts.forcado && !opts.senhaAtualConfere) return "Senha atual incorreta.";
+  return validarTrocaSenha(opts.novaSenha, opts.confirma);
+}
