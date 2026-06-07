@@ -45,7 +45,8 @@ const VITAIS: { key: string; label: string; unit: string; ph: string }[] = [
   { key: "alturaCm", label: "Altura", unit: "cm", ph: "170" },
 ];
 
-function idade(d: Date): number {
+function idade(d: Date | null): number | null {
+  if (!d) return null;
   const hoje = new Date();
   let a = hoje.getFullYear() - d.getFullYear();
   const m = hoje.getMonth() - d.getMonth();
@@ -178,7 +179,7 @@ export default async function ConsultaDetalhePage({
             <div className={styles.pname}>{cidadao.nomeSocial || cidadao.nomeCompleto}</div>
             <div className={styles.pmeta}>
               <span>
-                {idade(cidadao.dataNascimento)} anos
+                {idade(cidadao.dataNascimento) ?? "—"} anos
                 {cidadao.genero ? ` · ${cidadao.genero}` : ""}
               </span>
               <span className={styles.sep} />

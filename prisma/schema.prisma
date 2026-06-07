@@ -195,11 +195,12 @@ model Familiar {
 model Cidadao {
   id String @id @default(cuid())
 
-  // Obrigatórios (§0.1)
+  // Obrigatórios no cadastro novo; nullable p/ acomodar a migração Amplimed
+  // (registros históricos sem CPF/telefone/data — §0.A, decisão 2026-06-07).
   nomeCompleto      String
-  cpf               String   @unique // 11 dígitos normalizado (sem ponto/traço)
-  dataNascimento    DateTime @db.Date
-  telefonePrincipal String
+  cpf               String?  @unique // 11 dígitos normalizado (sem ponto/traço)
+  dataNascimento    DateTime? @db.Date
+  telefonePrincipal String?
 
   // Identificação opcional
   nomeSocial           String?
@@ -944,4 +945,17 @@ model PainelAnuncio {
   criadoEm DateTime  @default(now())
 
   @@index([unidade])
+}
+
+/// Rastro de proveniência da migração Amplimed (idempotência + auditoria LGPD).
+/// (entidade, idOrigem) -> idDestino. Re-rodar a migração não duplica.
+model MigracaoAmplimedMap {
+  id        String   @id @default(cuid())
+  entidade  String // 'cidadao' | 'profissional' | 'consulta' | 'nota' | 'especialidade' | 'anexo'
+  idOrigem  String // codp/codcon/codu (string)
+  idDestino String // cuid IFP
+  createdAt DateTime @default(now())
+
+  @@unique([entidade, idOrigem])
+  @@index([idDestino])
 }

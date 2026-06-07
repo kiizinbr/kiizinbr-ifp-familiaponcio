@@ -258,11 +258,13 @@ export function omitCamposSensiveisSemPermissao<T extends Record<string, unknown
  * foto + saúde + socioeconômico. NÃO grava `anonimizadoEm` (a action põe o timestamp,
  * mantendo a função determinística). Preserva só agregados (unitIdOrigem, statusCadastro).
  */
-export function dadosAnonimizadosCidadao(cidadao: { id: string; dataNascimento: Date }) {
+export function dadosAnonimizadosCidadao(cidadao: { id: string; dataNascimento: Date | null }) {
   return {
     nomeCompleto: "[anonimizado]",
     cpf: `ANON-${cidadao.id}`,
-    dataNascimento: new Date(Date.UTC(cidadao.dataNascimento.getUTCFullYear(), 0, 1)),
+    dataNascimento: cidadao.dataNascimento
+      ? new Date(Date.UTC(cidadao.dataNascimento.getUTCFullYear(), 0, 1))
+      : null,
     telefonePrincipal: "[anonimizado]",
     nomeSocial: null,
     rg: null,
@@ -336,7 +338,8 @@ export async function getCidadaoStats(session: Session | null) {
 /**
  * Auxiliar: calcula idade a partir de dataNascimento.
  */
-export function calcularIdade(dataNascimento: Date): number {
+export function calcularIdade(dataNascimento: Date | null): number | null {
+  if (!dataNascimento) return null; // cidadão migrado sem data (§0.A)
   const hoje = new Date();
   let idade = hoje.getFullYear() - dataNascimento.getFullYear();
   const mes = hoje.getMonth() - dataNascimento.getMonth();

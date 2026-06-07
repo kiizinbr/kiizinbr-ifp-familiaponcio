@@ -13,7 +13,8 @@ export function normalizeCpf(input: string): string {
 }
 
 /** Formata 11 dígitos no padrão `000.000.000-00`. Retorna entrada se length != 11. */
-export function formatCpf(input: string): string {
+export function formatCpf(input: string | null | undefined): string {
+  if (input == null) return "—"; // cidadão migrado sem CPF (§0.A)
   const digits = normalizeCpf(input);
   if (digits.length !== 11) return input;
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`;

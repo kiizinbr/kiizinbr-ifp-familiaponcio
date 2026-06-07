@@ -202,7 +202,7 @@ export default async function CidadaosPage({
                     </td>
                     <td className="cell-mono">{formatCpf(c.cpf)}</td>
                     <td style={{ color: "var(--text-3)" }}>
-                      {calcularIdade(c.dataNascimento)} anos
+                      {calcularIdade(c.dataNascimento) ?? "—"} anos
                     </td>
                     <td style={{ color: "var(--text-3)" }}>{c.telefonePrincipal}</td>
                     <td>

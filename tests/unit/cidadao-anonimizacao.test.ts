@@ -18,9 +18,9 @@ describe("dadosAnonimizadosCidadao", () => {
 
   it("reduz dataNascimento a 1º de janeiro do ano (mantém faixa etária, perde data exata)", () => {
     const d = dadosAnonimizadosCidadao(cidadao);
-    expect(d.dataNascimento.getUTCFullYear()).toBe(1990);
-    expect(d.dataNascimento.getUTCMonth()).toBe(0);
-    expect(d.dataNascimento.getUTCDate()).toBe(1);
+    expect(d.dataNascimento?.getUTCFullYear()).toBe(1990);
+    expect(d.dataNascimento?.getUTCMonth()).toBe(0);
+    expect(d.dataNascimento?.getUTCDate()).toBe(1);
   });
 
   it("nula PII opcional, foto, saúde e socioeconômico", () => {

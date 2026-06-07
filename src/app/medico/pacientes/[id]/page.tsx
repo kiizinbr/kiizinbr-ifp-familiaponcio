@@ -12,7 +12,8 @@ import { calcularImc } from "@/lib/medico/prontuario";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 
-function idade(d: Date): number {
+function idade(d: Date | null): number | null {
+  if (!d) return null;
   const h = new Date();
   let a = h.getFullYear() - d.getFullYear();
   const m = h.getMonth() - d.getMonth();
@@ -111,7 +112,7 @@ export default async function PacienteTimelinePage({
       <MedicoHeader
         eyebrow="Centro Médico · Histórico"
         titulo={nome}
-        descricao={`${idade(cidadao.dataNascimento)} anos${cidadao.genero ? ` · ${cidadao.genero}` : ""} · ${notas.length} atendimento(s) registrado(s).`}
+        descricao={`${idade(cidadao.dataNascimento) ?? "—"} anos${cidadao.genero ? ` · ${cidadao.genero}` : ""} · ${notas.length} atendimento(s) registrado(s).`}
         acao={
           <Link href={`/app/cidadaos/${cidadao.id}` as Route} className="btn btn-secondary">
             Ficha completa

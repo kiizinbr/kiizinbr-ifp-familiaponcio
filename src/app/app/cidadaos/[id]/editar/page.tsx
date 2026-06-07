@@ -24,8 +24,8 @@ export default async function EditarCidadaoPage({ params }: { params: Promise<{ 
   // Monta os valores iniciais do form (campos escalares; endereços têm fluxo próprio).
   const initialValues = {
     nomeCompleto: cidadao.nomeCompleto,
-    cpf: cidadao.cpf,
-    dataNascimento: cidadao.dataNascimento.toISOString().slice(0, 10),
+    cpf: cidadao.cpf ?? "",
+    dataNascimento: cidadao.dataNascimento ? cidadao.dataNascimento.toISOString().slice(0, 10) : "",
     nomeSocial: cidadao.nomeSocial ?? "",
     rg: cidadao.rg ?? "",
     documentoAlternativo: cidadao.documentoAlternativo ?? "",
@@ -37,7 +37,7 @@ export default async function EditarCidadaoPage({ params }: { params: Promise<{ 
     nomeMae: cidadao.nomeMae ?? "",
     nomePai: cidadao.nomePai ?? "",
     escolaAtual: cidadao.escolaAtual ?? "",
-    telefonePrincipal: cidadao.telefonePrincipal,
+    telefonePrincipal: cidadao.telefonePrincipal ?? "",
     telefoneSecundario: cidadao.telefoneSecundario ?? "",
     email: cidadao.email ?? "",
     whatsappConsente: cidadao.whatsappConsente,

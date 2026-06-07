@@ -47,7 +47,8 @@ const BENEFICIO_LABELS: Record<string, string> = {
   outro: "Outro",
 };
 
-function formatDate(date: Date): string {
+function formatDate(date: Date | null): string {
+  if (!date) return "—";
   return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
@@ -118,7 +119,7 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
               </p>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--text-3)]">
-              <span>{idade} anos</span>
+              <span>{idade ?? "—"} anos</span>
               <span>•</span>
               <span className="mono">{formatCpf(cidadao.cpf)}</span>
               <span>•</span>
