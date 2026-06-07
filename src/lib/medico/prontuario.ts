@@ -116,6 +116,20 @@ export class NotaNaoAssinadaError extends Error {
   }
 }
 
+/**
+ * A nota informada não pertence à consulta em que a ação está sendo feita.
+ * Fecha o IDOR de assinar/addendar a nota de OUTRO paciente forjando notaId.
+ */
+export class NotaNaoPertenceAConsultaError extends Error {
+  constructor(
+    public readonly notaId: string,
+    public readonly consultaId: string,
+  ) {
+    super(`Nota ${notaId} não pertence à consulta ${consultaId}`);
+    this.name = "NotaNaoPertenceAConsultaError";
+  }
+}
+
 export interface DiagnosticoInput {
   codigoCid?: string | null;
   descricao: string;
@@ -190,9 +204,11 @@ export async function salvarRascunho(input: SalvarRascunhoInput) {
  * consulta em_atendimento → realizada na MESMA transação, reusando
  * aplicarTransicaoConsulta (evita $transaction aninhado).
  */
-export async function assinarNota(notaId: string, userId: string) {
+export async function assinarNota(notaId: string, userId: string, consultaId: string) {
   return db.$transaction(async (tx) => {
     const nota = await tx.notaEvolucao.findUniqueOrThrow({ where: { id: notaId } });
+    // IDOR guard: a nota tem que ser DESTA consulta (notaId vem do FormData do cliente).
+    if (nota.consultaId !== consultaId) throw new NotaNaoPertenceAConsultaError(notaId, consultaId);
     if (!podeTransicionarNota(nota.status, "assinada")) {
       throw new TransicaoNotaInvalidaError(nota.status, "assinada");
     }
@@ -209,9 +225,16 @@ export async function assinarNota(notaId: string, userId: string) {
  * Adiciona um addendo append-only a uma nota ASSINADA (§0.4). Nunca toca o
  * registro original. Rejeita com NotaNaoAssinadaError se a nota ainda é rascunho.
  */
-export async function adicionarAddendo(notaId: string, autorId: string, texto: string) {
+export async function adicionarAddendo(
+  notaId: string,
+  autorId: string,
+  texto: string,
+  consultaId: string,
+) {
   return db.$transaction(async (tx) => {
     const nota = await tx.notaEvolucao.findUniqueOrThrow({ where: { id: notaId } });
+    // IDOR guard: a nota tem que ser DESTA consulta (notaId vem do FormData do cliente).
+    if (nota.consultaId !== consultaId) throw new NotaNaoPertenceAConsultaError(notaId, consultaId);
     if (nota.status !== "assinada") {
       throw new NotaNaoAssinadaError(notaId);
     }

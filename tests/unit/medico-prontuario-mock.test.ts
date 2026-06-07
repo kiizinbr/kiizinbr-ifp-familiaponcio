@@ -30,6 +30,7 @@ import {
   assinarNota,
   NotaAssinadaError,
   NotaNaoAssinadaError,
+  NotaNaoPertenceAConsultaError,
   salvarRascunho,
   TransicaoNotaInvalidaError,
 } from "@/lib/medico/prontuario";
@@ -108,7 +109,7 @@ describe("assinarNota", () => {
 
   it("rascunho → update com status assinada + assinadaPor=userId", async () => {
     armRascunho();
-    await assinarNota("n1", "user-X");
+    await assinarNota("n1", "user-X", "c1");
     expect(dbMock.notaEvolucao.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: "assinada", assinadaPor: "user-X" }),
@@ -118,7 +119,7 @@ describe("assinarNota", () => {
 
   it("conclui a consulta (realizada) na mesma transação", async () => {
     armRascunho();
-    await assinarNota("n1", "user-X");
+    await assinarNota("n1", "user-X", "c1");
     expect(dbMock.consulta.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "realizada" }) }),
     );
@@ -130,7 +131,21 @@ describe("assinarNota", () => {
       consultaId: "c1",
       status: "assinada",
     });
-    await expect(assinarNota("n1", "user-X")).rejects.toBeInstanceOf(TransicaoNotaInvalidaError);
+    await expect(assinarNota("n1", "user-X", "c1")).rejects.toBeInstanceOf(
+      TransicaoNotaInvalidaError,
+    );
+    expect(dbMock.notaEvolucao.update).not.toHaveBeenCalled();
+  });
+
+  it("IDOR: notaId de OUTRA consulta → NotaNaoPertenceAConsultaError, sem update", async () => {
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({
+      id: "n1",
+      consultaId: "c1",
+      status: "rascunho",
+    });
+    await expect(assinarNota("n1", "user-X", "c2")).rejects.toBeInstanceOf(
+      NotaNaoPertenceAConsultaError,
+    );
     expect(dbMock.notaEvolucao.update).not.toHaveBeenCalled();
   });
 });
@@ -139,9 +154,13 @@ describe("adicionarAddendo", () => {
   beforeEach(reset);
 
   it("nota assinada → cria AddendoNota com texto/autorId", async () => {
-    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({ id: "n1", status: "assinada" });
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({
+      id: "n1",
+      consultaId: "c1",
+      status: "assinada",
+    });
     dbMock.addendoNota.create.mockResolvedValue({ id: "a1" });
-    await adicionarAddendo("n1", "user-X", "corrijo a dose");
+    await adicionarAddendo("n1", "user-X", "corrijo a dose", "c1");
     expect(dbMock.addendoNota.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ texto: "corrijo a dose", autorId: "user-X" }),
@@ -150,16 +169,36 @@ describe("adicionarAddendo", () => {
   });
 
   it("nota rascunho → NotaNaoAssinadaError", async () => {
-    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({ id: "n1", status: "rascunho" });
-    await expect(adicionarAddendo("n1", "user-X", "x")).rejects.toBeInstanceOf(
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({
+      id: "n1",
+      consultaId: "c1",
+      status: "rascunho",
+    });
+    await expect(adicionarAddendo("n1", "user-X", "x", "c1")).rejects.toBeInstanceOf(
       NotaNaoAssinadaError,
     );
   });
 
+  it("IDOR: notaId de OUTRA consulta → NotaNaoPertenceAConsultaError, sem create", async () => {
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({
+      id: "n1",
+      consultaId: "c1",
+      status: "assinada",
+    });
+    await expect(adicionarAddendo("n1", "user-X", "x", "c2")).rejects.toBeInstanceOf(
+      NotaNaoPertenceAConsultaError,
+    );
+    expect(dbMock.addendoNota.create).not.toHaveBeenCalled();
+  });
+
   it("NUNCA toca a nota original (sem update)", async () => {
-    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({ id: "n1", status: "assinada" });
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({
+      id: "n1",
+      consultaId: "c1",
+      status: "assinada",
+    });
     dbMock.addendoNota.create.mockResolvedValue({ id: "a1" });
-    await adicionarAddendo("n1", "user-X", "x");
+    await adicionarAddendo("n1", "user-X", "x", "c1");
     expect(dbMock.notaEvolucao.update).not.toHaveBeenCalled();
   });
 });

@@ -103,7 +103,7 @@ export async function assinarNotaAction(formData: FormData) {
   }
 
   try {
-    await assinarNota(notaId, session.user.id);
+    await assinarNota(notaId, session.user.id, consultaId);
     await logEvent({
       userId: session.user.id,
       action: "prontuario_assinado",
@@ -140,11 +140,15 @@ export async function adicionarAddendoAction(formData: FormData) {
 
   const consulta = await db.consulta.findUniqueOrThrow({
     where: { id: consultaId },
-    select: { cidadaoId: true },
+    include: { profissional: true },
   });
+  // Ownership: addendo é ato do profissional DONO da consulta — não de qualquer profissional@medico.
+  if (!podeAssinarNota(session, consulta.profissional.userId)) {
+    throw new Error("Sem permissão para addendar esta nota");
+  }
 
   try {
-    await adicionarAddendo(notaId, session.user.id, texto);
+    await adicionarAddendo(notaId, session.user.id, texto, consultaId);
     await logEvent({
       userId: session.user.id,
       action: "prontuario_addendo",
