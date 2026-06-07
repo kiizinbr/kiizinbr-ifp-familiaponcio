@@ -161,7 +161,16 @@ async function carregarProfissionais(): Promise<void> {
 // ── Cidadãos (migra TODOS; dedup CPF nulando duplicado, preserva o registro) ──
 async function carregarCidadaos(migradorId: string): Promise<void> {
   const pacientes = await origem.pacientes();
+  // Dedup CPF robusto a resume/seed: semeia com os CPFs JÁ no destino, então um
+  // CPF da Amplimed que colida com registro existente é nulado (mantém o registro).
   const vistosCpf = new Set<string>();
+  if (COMMIT) {
+    const existentes = await db.cidadao.findMany({
+      where: { cpf: { not: null } },
+      select: { cpf: true },
+    });
+    for (const e of existentes) if (e.cpf) vistosCpf.add(e.cpf);
+  }
   let ok = 0;
   let falhas = 0;
   let dupCpf = 0;
@@ -173,6 +182,14 @@ async function carregarCidadaos(migradorId: string): Promise<void> {
       if (c.problemas.length) comProblema++;
       if (c.nomeCompleto === "(nome não informado)") semNome++;
 
+      const existente = jaFeito("cidadao", row.codp);
+      if (existente) {
+        cidadaoPorCodp.set(row.codp, existente);
+        ok++;
+        continue;
+      }
+
+      // dedup CPF só p/ quem será criado (não infla o contador em resume)
       let cpf = c.cpf;
       if (cpf && vistosCpf.has(cpf)) {
         cpf = null; // duplicado: nula p/ não violar @unique, mas mantém o registro
@@ -181,12 +198,6 @@ async function carregarCidadaos(migradorId: string): Promise<void> {
         vistosCpf.add(cpf);
       }
 
-      const existente = jaFeito("cidadao", row.codp);
-      if (existente) {
-        cidadaoPorCodp.set(row.codp, existente);
-        ok++;
-        continue;
-      }
       if (!COMMIT) {
         cidadaoPorCodp.set(row.codp, `DRY-cid-${row.codp}`);
         ok++;

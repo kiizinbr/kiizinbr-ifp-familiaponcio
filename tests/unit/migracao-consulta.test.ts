@@ -33,6 +33,16 @@ describe("mapConsultaParaNota", () => {
     expect(n.texto).toMatch(/cefaleia/);
     expect(n.texto).toMatch(/conduta/i);
   });
+
+  // Dados sujos da Amplimed: peso digitado em gramas (7000) estoura Decimal(5,2).
+  // Sanitiza p/ não estourar o banco nem inventar valor → null.
+  it("descarta vitais fora de faixa (anti-overflow / lixo) virando null", () => {
+    const n = mapConsultaParaNota({ ...row, peso: 7000, tempe: 9999, pas: 0, altura: 0 });
+    expect(n.pesoKg).toBeNull();
+    expect(n.tempC).toBeNull();
+    expect(n.paSistolica).toBeNull();
+    expect(n.alturaCm).toBeNull();
+  });
 });
 
 describe("horaSinteticaSlot", () => {
