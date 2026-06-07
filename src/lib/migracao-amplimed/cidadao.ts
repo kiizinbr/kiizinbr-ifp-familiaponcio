@@ -2,6 +2,12 @@ import type { PacienteRow, CidadaoMapeado, EnderecoMapeado } from "./tipos";
 import { parseDataNascimento } from "./datas";
 import { mapCpf, mapGenero, mapCorRaca } from "./pessoa";
 
+/// Decisão 2026-06-07: migrar TODOS os pacientes. Nome ausente vira placeholder
+/// (sinalizado em `problemas` p/ correção futura); telefone/data ausentes viram
+/// null e NÃO bloqueiam (campos relaxados no schema). `problemas` é relatório de
+/// qualidade — o load NÃO descarta cidadão por causa dele.
+const NOME_PLACEHOLDER = "(nome não informado)";
+
 function mapEndereco(row: PacienteRow): EnderecoMapeado | null {
   if (!row.endereco?.trim() || !row.cidade?.trim() || !row.uf?.trim()) return null;
   const cep = (row.cep ?? "").replace(/\D/g, "");
@@ -22,17 +28,18 @@ export function mapPacienteParaCidadao(row: PacienteRow): CidadaoMapeado {
   const { data, problema: pData } = parseDataNascimento(row.dtnasc);
   if (pData) problemas.push(pData);
 
-  const telefonePrincipal = (row.celular || row.telf || "").trim();
-  if (!telefonePrincipal) problemas.push("telefone ausente (telefonePrincipal obrigatório)");
+  // telefone histórico ausente é comum → null, não bloqueia.
+  const telefonePrincipal = (row.celular || row.telf || "").trim() || null;
+  // nome ausente → placeholder, mas sinalizado p/ revisão (30 registros).
   const nome = row.nome?.trim() || "";
-  if (!nome) problemas.push("nome ausente");
+  if (!nome) problemas.push("nome ausente (placeholder aplicado)");
 
   return {
     codp: row.codp,
-    nomeCompleto: nome,
+    nomeCompleto: nome || NOME_PLACEHOLDER,
     cpf,
     dataNascimento: data,
-    telefonePrincipal: telefonePrincipal || "NÃO INFORMADO",
+    telefonePrincipal,
     telefoneSecundario: row.telf && row.telf.trim() !== telefonePrincipal ? row.telf.trim() : null,
     email: row.email?.trim() || null,
     genero: mapGenero(row.genero),

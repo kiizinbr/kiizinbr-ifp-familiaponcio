@@ -36,13 +36,33 @@ describe("mapPacienteParaCidadao", () => {
     expect(c.corRaca).toBe("parda");
     expect(c.endereco?.cidade).toBe("Duque de Caxias");
   });
-  it("sem telefone vira problema (telefonePrincipal é obrigatório)", () => {
+
+  // Decisão 2026-06-07 (checkpoint Erick): migrar TODOS os pacientes relaxando
+  // constraints. Telefone histórico ausente é comum → vira null e NÃO bloqueia.
+  it("sem telefone: telefonePrincipal null, não vira problema", () => {
     const c = mapPacienteParaCidadao({ ...base, celular: null, telf: null });
-    expect(c.problemas.some((p) => /telefone/i.test(p))).toBe(true);
+    expect(c.telefonePrincipal).toBeNull();
+    expect(c.problemas.some((p) => /telefone/i.test(p))).toBe(false);
+    expect(c.problemas).toEqual([]);
   });
+
   it("paciente sem CPF (nTemCpf) não vira problema, cpf=null", () => {
     const c = mapPacienteParaCidadao({ ...base, cpf: null, nTemCpf: "true" });
     expect(c.cpf).toBeNull();
     expect(c.problemas).toEqual([]);
+  });
+
+  // 30 pacientes sem nome → placeholder, mas sinalizado p/ revisão futura.
+  it("sem nome: aplica placeholder e sinaliza p/ revisão", () => {
+    const c = mapPacienteParaCidadao({ ...base, nome: "" });
+    expect(c.nomeCompleto).toBe("(nome não informado)");
+    expect(c.problemas.some((p) => /nome/i.test(p))).toBe(true);
+  });
+
+  // Data inválida não bloqueia: dataNascimento vira null, mas fica sinalizada.
+  it("data inválida: dataNascimento null, sinalizada p/ revisão", () => {
+    const c = mapPacienteParaCidadao({ ...base, dtnasc: "32/13/1990" });
+    expect(c.dataNascimento).toBeNull();
+    expect(c.problemas.some((p) => /data/i.test(p))).toBe(true);
   });
 });

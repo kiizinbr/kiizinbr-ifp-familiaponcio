@@ -14,15 +14,31 @@ const u: UsuarioRow = {
 };
 
 describe("mapUsuarioParaProfissional", () => {
-  it("mapeia conselho e gera e-mail", () => {
+  it("mapeia conselho e gera e-mail institucional quando usuario não é e-mail", () => {
     const p = mapUsuarioParaProfissional(u);
     expect(p.email).toBe("joao.poncio@familiaponcio.org.br");
     expect(p.conselho).toBe("CRM");
     expect(p.nroConselho).toBe("52123-RJ");
     expect(p.problemas).toEqual([]);
   });
+
+  it("usa o e-mail real da coluna usuario quando válido", () => {
+    const p = mapUsuarioParaProfissional({ ...u, usuario: "Ginecologia@CentroMedicoIFP.org" });
+    expect(p.email).toBe("ginecologia@centromedicoifp.org");
+  });
+
   it("sem conselho vira problema", () => {
     const p = mapUsuarioParaProfissional({ ...u, conselho: null, registroprof: null });
     expect(p.problemas.some((x) => /conselho/i.test(x))).toBe(true);
+  });
+
+  it("limpa registro sujo (dígito repetido) → placeholder e sinaliza", () => {
+    const p = mapUsuarioParaProfissional({
+      ...u,
+      registroprof: "2222222222222222222222222",
+    });
+    expect(p.conselho).toBe("CRM");
+    expect(p.nroConselho).toBe("—");
+    expect(p.problemas.some((x) => /conselho|registro/i.test(x))).toBe(true);
   });
 });

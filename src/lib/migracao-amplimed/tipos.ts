@@ -74,7 +74,7 @@ export interface CidadaoMapeado {
   nomeCompleto: string;
   cpf: string | null;
   dataNascimento: Date | null;
-  telefonePrincipal: string;
+  telefonePrincipal: string | null;
   telefoneSecundario: string | null;
   email: string | null;
   genero: string | null;
