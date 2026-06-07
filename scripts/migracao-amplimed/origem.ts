@@ -1,5 +1,11 @@
 import mysql, { type RowDataPacket } from "mysql2/promise";
-import type { PacienteRow, UsuarioRow, ConsultaRow } from "../../src/lib/migracao-amplimed/tipos";
+import type {
+  PacienteRow,
+  UsuarioRow,
+  ConsultaRow,
+  FotoPacienteRow,
+  PacsimgRow,
+} from "../../src/lib/migracao-amplimed/tipos";
 
 /**
  * Camada de leitura da origem Amplimed (MariaDB descartável restaurado pelo
@@ -28,6 +34,19 @@ export async function abrirOrigem() {
     async consultas(): Promise<ConsultaRow[]> {
       const [r] = await conn.query<RowDataPacket[]>("SELECT * FROM consulta");
       return r as unknown as ConsultaRow[];
+    },
+    async fotosPaciente(): Promise<FotoPacienteRow[]> {
+      const [r] = await conn.query<RowDataPacket[]>(
+        "SELECT codp, fotopac FROM pacientes WHERE fotopac IS NOT NULL AND fotopac <> ''",
+      );
+      return r as unknown as FotoPacienteRow[];
+    },
+    async pacsimg(): Promise<PacsimgRow[]> {
+      // deleted enum 'true'/'false' (default 'false') → mantém não-deletadas
+      const [r] = await conn.query<RowDataPacket[]>(
+        "SELECT codimg, codp, codConsulta, endimg, legenda, datacad FROM pacsimg WHERE deleted <> 'true' AND endimg IS NOT NULL AND endimg <> ''",
+      );
+      return r as unknown as PacsimgRow[];
     },
     /** Amostra do JSON `configuracao` (§0.B — decidir se tem texto clínico útil). */
     async amostraConfiguracao(limite: number): Promise<string[]> {

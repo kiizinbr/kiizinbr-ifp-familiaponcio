@@ -58,6 +58,22 @@ export interface ConsultaRow {
   tempe: number | null;
 }
 
+// ── Mídia (T15): vínculo arquivo↔registro via URL S3 (basename = hash.ext) ───
+
+export interface FotoPacienteRow {
+  codp: number;
+  fotopac: string | null; // URL S3 da foto do paciente → Cidadao.fotoUrl
+}
+
+export interface PacsimgRow {
+  codimg: number;
+  codp: number | null;
+  codConsulta: number | null;
+  endimg: string | null; // URL S3 da imagem de prontuário → AnexoCidadao
+  legenda: string | null;
+  datacad: string | null;
+}
+
 // ── Saídas dos mappers (padrão `problemas: string[]` do import-alunos) ───────
 
 export interface EnderecoMapeado {

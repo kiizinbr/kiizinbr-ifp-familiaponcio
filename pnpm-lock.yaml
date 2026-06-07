@@ -92,6 +92,9 @@ importers:
       mysql2:
         specifier: ^3.22.5
         version: 3.22.5(@types/node@25.9.1)
+      node-stream-zip:
+        specifier: ^1.15.0
+        version: 1.15.0
       postcss:
         specifier: ^8.5.15
         version: 8.5.15
@@ -3060,6 +3063,13 @@ packages:
       }
     engines: { node: ">=18" }
 
+  node-stream-zip@1.15.0:
+    resolution:
+      {
+        integrity: sha512-LN4fydt9TqhZhThkZIVQnF9cwjU3qmUH9h78Mx/K7d3VvfRqqwthLwJEUOEL0QPZ0XQmNN7be5Ggit5+4dq3Bw==,
+      }
+    engines: { node: ">=0.12.0" }
+
   normalize-svg-path@1.1.0:
     resolution:
       {
@@ -5677,6 +5687,8 @@ snapshots:
   node-fetch-native@1.6.7: {}
 
   node-releases@2.0.47: {}
+
+  node-stream-zip@1.15.0: {}
 
   normalize-svg-path@1.1.0:
     dependencies:
