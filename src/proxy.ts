@@ -50,15 +50,12 @@ export default auth((req) => {
     return;
   }
 
-  // Aliases temporários do roteamento antigo (sub-rotas internas seguem ativas).
-  // /app (raiz) foi aposentado: o painel cross-unidade vive em /inicio; a page
-  // src/app/app/page.tsx faz redirect("/inicio"). As sub-rotas /app/* seguem ativas.
+  // Roteamento antigo aposentado: /app (raiz) -> /inicio (redirect na própria page)
+  // e /app/<unidade> removido na Camada 2 (a tela mock de unidade foi apagada; os
+  // ladrilhos de /inicio apontam direto pra /<unidade>). /app/social ainda encaminha;
+  // /app/cidadaos e /app/vagas seguem ativas (passthrough abaixo).
   if (path === "/app/social" || path.startsWith("/app/social/")) {
     return Response.redirect(new URL("/social", origin));
-  }
-  const oldUnitMatch = path.match(/^\/app\/(medico|capacitacao|esportivo|recreativo)$/);
-  if (oldUnitMatch) {
-    return Response.redirect(new URL(`/${oldUnitMatch[1]}`, origin));
   }
 
   // Demais sub-rotas /app/cidadaos, /app/vagas — escopo unitário existente
