@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { proximosStatusTurma } from "@/lib/capacitacao/turma";
@@ -231,21 +232,37 @@ export default async function TurmaDetalhePage({
                         {alvos.length > 0 ? (
                           <div className={styles.rowRight}>
                             <div className={styles.btnRow}>
-                              {alvos.map((a) => (
-                                <form key={a} action={transicionarMatriculaAction}>
-                                  <input type="hidden" name="matriculaId" value={m.id} />
-                                  <input type="hidden" name="turmaId" value={turma.id} />
-                                  <input type="hidden" name="para" value={a} />
-                                  <button
-                                    type="submit"
-                                    className={`${styles.btn} ${styles.btnSm} ${
-                                      NEGATIVAS.has(a) ? styles.btnDanger : styles.btnGhost
-                                    }`}
-                                  >
-                                    {MATRICULA_VISUAL[a].label}
-                                  </button>
-                                </form>
-                              ))}
+                              {alvos.map((a) =>
+                                NEGATIVAS.has(a) ? (
+                                  <ConfirmDialog
+                                    key={a}
+                                    action={transicionarMatriculaAction}
+                                    danger
+                                    triggerSize="sm"
+                                    title={`${MATRICULA_VISUAL[a].label}: ${nome(m.cidadao)}`}
+                                    message={`Confirmar mudança da matrícula para "${MATRICULA_VISUAL[a].label}"? Isso afeta o histórico do aluno.`}
+                                    confirmLabel={MATRICULA_VISUAL[a].label}
+                                    triggerLabel={MATRICULA_VISUAL[a].label}
+                                    hiddenFields={{
+                                      matriculaId: m.id,
+                                      turmaId: turma.id,
+                                      para: a,
+                                    }}
+                                  />
+                                ) : (
+                                  <form key={a} action={transicionarMatriculaAction}>
+                                    <input type="hidden" name="matriculaId" value={m.id} />
+                                    <input type="hidden" name="turmaId" value={turma.id} />
+                                    <input type="hidden" name="para" value={a} />
+                                    <button
+                                      type="submit"
+                                      className={`${styles.btn} ${styles.btnSm} ${styles.btnGhost}`}
+                                    >
+                                      {MATRICULA_VISUAL[a].label}
+                                    </button>
+                                  </form>
+                                ),
+                              )}
                             </div>
                           </div>
                         ) : null}
@@ -273,17 +290,16 @@ export default async function TurmaDetalhePage({
                         <div className={styles.rowTitle}>{nome(m.cidadao)}</div>
                       </div>
                       <div className={styles.rowRight}>
-                        <form action={transicionarMatriculaAction}>
-                          <input type="hidden" name="matriculaId" value={m.id} />
-                          <input type="hidden" name="turmaId" value={turma.id} />
-                          <input type="hidden" name="para" value="cancelado" />
-                          <button
-                            type="submit"
-                            className={`${styles.btn} ${styles.btnSm} ${styles.btnDanger}`}
-                          >
-                            Remover
-                          </button>
-                        </form>
+                        <ConfirmDialog
+                          action={transicionarMatriculaAction}
+                          danger
+                          triggerSize="sm"
+                          title={`Remover ${nome(m.cidadao)} da lista de espera`}
+                          message="O aluno será removido da lista de espera desta turma."
+                          confirmLabel="Remover"
+                          triggerLabel="Remover"
+                          hiddenFields={{ matriculaId: m.id, turmaId: turma.id, para: "cancelado" }}
+                        />
                       </div>
                     </div>
                   ))}

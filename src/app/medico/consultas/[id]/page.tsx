@@ -6,6 +6,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell } from "@/components/medico/medico-shell";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   podeTransicionarConsulta,
   podeMarcarConsulta,
@@ -301,19 +302,30 @@ export default async function ConsultaDetalhePage({
                 </Link>
               )}
               {podeCancelar && (
-                <form action={cancelAction} style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
-                  <input type="hidden" name="id" value={consulta.id} />
-                  <input
-                    type="text"
-                    name="motivo"
-                    placeholder="motivo"
-                    required
-                    className={styles.cidInput}
-                  />
-                  <button type="submit" className={`${styles.btn} ${styles.btnSecondary}`}>
-                    Cancelar
-                  </button>
-                </form>
+                <div style={{ marginLeft: "auto" }}>
+                  <ConfirmDialog
+                    action={cancelAction}
+                    danger
+                    triggerVariant="secondary"
+                    title="Cancelar consulta"
+                    message="A consulta será cancelada e o horário liberado na agenda."
+                    confirmLabel="Cancelar consulta"
+                    triggerLabel="Cancelar"
+                    cancelLabel="Voltar"
+                    hiddenFields={{ id: consulta.id }}
+                  >
+                    <label className="field-group" style={{ marginTop: 12 }}>
+                      <span className="label">Motivo do cancelamento</span>
+                      <input
+                        type="text"
+                        name="motivo"
+                        required
+                        className="input"
+                        placeholder="Ex.: paciente solicitou o cancelamento"
+                      />
+                    </label>
+                  </ConfirmDialog>
+                </div>
               )}
             </div>
           </div>

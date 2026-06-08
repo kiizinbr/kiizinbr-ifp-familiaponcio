@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "./button";
 import { SubmitButton } from "./submit-button";
+import type { ButtonVariant, ButtonSize } from "@/lib/ui/button";
 
 type Props = {
   /** Server action executada ao confirmar (recebe o FormData do `<form>`). */
@@ -15,15 +16,20 @@ type Props = {
   /** Rótulo do gatilho que abre o modal. */
   triggerLabel: ReactNode;
   cancelLabel?: string;
-  /** Estilo de perigo no gatilho e no confirmar (ações irreversíveis). */
+  /** Estilo de perigo no botão de confirmar (e no gatilho, por padrão). */
   danger?: boolean;
+  /** Sobrepõe a variante do gatilho (padrão: danger ? "danger" : "secondary"). */
+  triggerVariant?: ButtonVariant;
+  triggerSize?: ButtonSize;
   /** Campos ocultos enviados junto da action (ex.: `{ id }`). */
   hiddenFields?: Record<string, string>;
+  /** Campos extras renderizados dentro do form (ex.: um campo "motivo"). */
+  children?: ReactNode;
   triggerClassName?: string;
 };
 
 const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Confirmação real (modal do Design Kit) para ações destrutivas/irreversíveis —
@@ -33,6 +39,9 @@ const FOCUSABLE =
  * `aria-labelledby`/`aria-describedby`, foco inicial no **Cancelar** (default
  * seguro), Escape e clique no scrim fecham, foco preso no diálogo e devolvido
  * ao gatilho ao fechar. O confirmar é um `SubmitButton` (anti-duplo-clique).
+ *
+ * `children` (opcional) são campos extras dentro do form — ex.: um input
+ * "motivo" obrigatório — que viajam no mesmo FormData da action.
  */
 export function ConfirmDialog({
   action,
@@ -42,7 +51,10 @@ export function ConfirmDialog({
   triggerLabel,
   cancelLabel = "Cancelar",
   danger = false,
+  triggerVariant,
+  triggerSize,
   hiddenFields,
+  children,
   triggerClassName,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -98,7 +110,8 @@ export function ConfirmDialog({
       <Button
         ref={triggerRef}
         type="button"
-        variant={danger ? "danger" : "secondary"}
+        variant={triggerVariant ?? (danger ? "danger" : "secondary")}
+        size={triggerSize}
         className={triggerClassName}
         onClick={() => setOpen(true)}
       >
@@ -121,16 +134,7 @@ export function ConfirmDialog({
                 aria-labelledby={titleId}
                 aria-describedby={descId}
               >
-                <div className="m-head">
-                  <h2 id={titleId} className="m-title">
-                    {title}
-                  </h2>
-                </div>
-                <div id={descId} className="m-body">
-                  {message}
-                </div>
                 <form
-                  className="m-foot"
                   action={async (formData) => {
                     // Aguarda a action; se ela faz `redirect()`, a navegação
                     // interrompe aqui (e o modal some). Em ações que revalidam
@@ -139,17 +143,28 @@ export function ConfirmDialog({
                     setOpen(false);
                   }}
                 >
-                  {hiddenFields
-                    ? Object.entries(hiddenFields).map(([name, value]) => (
-                        <input key={name} type="hidden" name={name} value={value} />
-                      ))
-                    : null}
-                  <Button ref={cancelRef} type="button" variant="ghost" onClick={close}>
-                    {cancelLabel}
-                  </Button>
-                  <SubmitButton variant={danger ? "danger" : "primary"}>
-                    {confirmLabel}
-                  </SubmitButton>
+                  <div className="m-head">
+                    <h2 id={titleId} className="m-title">
+                      {title}
+                    </h2>
+                  </div>
+                  <div id={descId} className="m-body">
+                    {message}
+                    {children}
+                  </div>
+                  <div className="m-foot">
+                    {hiddenFields
+                      ? Object.entries(hiddenFields).map(([name, value]) => (
+                          <input key={name} type="hidden" name={name} value={value} />
+                        ))
+                      : null}
+                    <Button ref={cancelRef} type="button" variant="ghost" onClick={close}>
+                      {cancelLabel}
+                    </Button>
+                    <SubmitButton variant={danger ? "danger" : "primary"}>
+                      {confirmLabel}
+                    </SubmitButton>
+                  </div>
                 </form>
               </div>
             </div>,
