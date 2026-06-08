@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { transitionAction } from "../consultas/[id]/actions";
 import { chamarAction } from "@/app/painel/chamar-actions";
@@ -103,9 +104,7 @@ export default async function MinhaFilaPage() {
                       <form action={transitionAction}>
                         <input type="hidden" name="id" value={c.id} />
                         <input type="hidden" name="para" value="em_atendimento" />
-                        <button type="submit" className="btn btn-primary">
-                          Iniciar
-                        </button>
+                        <SubmitButton>Iniciar</SubmitButton>
                       </form>
                     ) : (
                       <Link
@@ -125,9 +124,7 @@ export default async function MinhaFilaPage() {
                       <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
                       <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
                       <input type="hidden" name="consultaId" value={c.id} />
-                      <button type="submit" className="btn btn-secondary">
-                        Chamar
-                      </button>
+                      <SubmitButton variant="secondary">Chamar</SubmitButton>
                     </form>
                   </div>
                 </div>

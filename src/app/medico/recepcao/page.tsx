@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { formatCpf } from "@/lib/cpf";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
@@ -180,18 +181,14 @@ export default async function RecepcaoPage({
                       <form action={marcarCheckinAction}>
                         <input type="hidden" name="id" value={c.id} />
                         <input type="hidden" name="voltar" value="/medico/recepcao" />
-                        <button type="submit" className="btn btn-secondary">
-                          Chegou
-                        </button>
+                        <SubmitButton variant="secondary">Chegou</SubmitButton>
                       </form>
                     ) : null}
                     {podeConfirmar ? (
                       <form action={transitionAction}>
                         <input type="hidden" name="id" value={c.id} />
                         <input type="hidden" name="para" value="confirmada" />
-                        <button type="submit" className="btn btn-secondary">
-                          Confirmar
-                        </button>
+                        <SubmitButton variant="secondary">Confirmar</SubmitButton>
                       </form>
                     ) : null}
                     {STATUS_REAGENDAVEL.has(c.status) ? (
@@ -212,9 +209,7 @@ export default async function RecepcaoPage({
                       <input type="hidden" name="destino" value="Recepcao" />
                       <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
                       <input type="hidden" name="consultaId" value={c.id} />
-                      <button type="submit" className="btn btn-secondary">
-                        Chamar
-                      </button>
+                      <SubmitButton variant="secondary">Chamar</SubmitButton>
                     </form>
                   </div>
                 </div>

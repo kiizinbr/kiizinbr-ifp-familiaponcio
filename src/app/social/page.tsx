@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { AppShell } from "@/components/app-shell";
 import { KpiCard } from "@/components/kpi-card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { getCidadaoStats } from "@/lib/cidadao";
 import { countTriagensAbertas, listTriagensPendentes } from "@/lib/triagem";
 import { chamarAction } from "@/app/painel/chamar-actions";
@@ -154,9 +155,7 @@ function TriagemItem({
           <input type="hidden" name="nomeChamado" value={nomeSocial || nome} />
           <input type="hidden" name="destino" value="Triagem" />
           <input type="hidden" name="cidadaoId" value={cidadaoId} />
-          <button type="submit" className="btn btn-secondary">
-            Chamar
-          </button>
+          <SubmitButton variant="secondary">Chamar</SubmitButton>
         </form>
       </div>
     </li>

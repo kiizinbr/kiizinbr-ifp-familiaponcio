@@ -61,8 +61,9 @@ export function ConfirmDialog({
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
+    const trigger = triggerRef.current;
     cancelRef.current?.focus();
-    return () => (previouslyFocused ?? triggerRef.current)?.focus();
+    return () => (previouslyFocused ?? trigger)?.focus();
   }, [open]);
 
   // Escape fecha; Tab fica preso dentro do diálogo (focus trap simples).
