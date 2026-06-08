@@ -1,32 +1,23 @@
 "use client";
 
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { anonimizarCidadaoAction } from "./anonimizar-actions";
 
-const CONFIRMACAO =
-  "Anonimizar esta ficha é IRREVERSÍVEL: apaga nome, CPF, contatos, saúde, " +
-  "socioeconômico e remove os anexos. Continuar?";
+const MENSAGEM =
+  "Anonimizar esta ficha é IRREVERSÍVEL: apaga nome, CPF, contatos, dados de " +
+  "saúde e socioeconômicos e remove os anexos. Esta ação não pode ser desfeita.";
 
-/** Botão de anonimização LGPD com confirmação (gate de UX; a action revalida o RBAC). */
+/** Anonimização LGPD com confirmação real (modal do kit). A action revalida o RBAC. */
 export function AnonimizarButton({ cidadaoId }: { cidadaoId: string }) {
   return (
-    <form
+    <ConfirmDialog
       action={anonimizarCidadaoAction}
-      onSubmit={(e) => {
-        if (!window.confirm(CONFIRMACAO)) e.preventDefault();
-      }}
-    >
-      <input type="hidden" name="id" value={cidadaoId} />
-      <button
-        type="submit"
-        className="btn"
-        style={{
-          background: "var(--danger-soft)",
-          color: "var(--danger)",
-          border: "1px solid var(--danger)",
-        }}
-      >
-        Anonimizar ficha (LGPD)
-      </button>
-    </form>
+      danger
+      title="Anonimizar ficha (LGPD)"
+      message={MENSAGEM}
+      triggerLabel="Anonimizar ficha (LGPD)"
+      confirmLabel="Sim, anonimizar"
+      hiddenFields={{ id: cidadaoId }}
+    />
   );
 }
