@@ -5,7 +5,7 @@ import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StagingBanner } from "@/components/staging-banner";
-import { hasAnyRole } from "@/lib/rbac";
+import { hasAnyRole, getLandingPath } from "@/lib/rbac";
 import { configuracoesNavItem } from "@/lib/nav";
 import { podeAgendar } from "@/lib/funil";
 import type { UnidadeSlug } from "@/lib/unidades";
@@ -31,7 +31,7 @@ function initials(name: string): string {
 /** Navegação padrão do app (visão cross-unidade). */
 function defaultItems(session: Session): NavItem[] {
   const items: NavItem[] = [
-    { label: "Visão geral", href: "/app" },
+    { label: "Início", href: getLandingPath(session) },
     { label: "Cidadãos", href: "/app/cidadaos" },
   ];
   if (podeAgendar(session)) {

@@ -50,10 +50,9 @@ export default auth((req) => {
     return;
   }
 
-  // Aliases temporários do roteamento antigo (sub-rotas internas seguem ativas)
-  if (path === "/app" || path === "/app/") {
-    return Response.redirect(new URL("/poncio", origin));
-  }
+  // Aliases temporários do roteamento antigo (sub-rotas internas seguem ativas).
+  // /app (raiz) foi aposentado: o painel cross-unidade vive em /inicio; a page
+  // src/app/app/page.tsx faz redirect("/inicio"). As sub-rotas /app/* seguem ativas.
   if (path === "/app/social" || path.startsWith("/app/social/")) {
     return Response.redirect(new URL("/social", origin));
   }
@@ -93,6 +92,7 @@ export default auth((req) => {
 export const config = {
   matcher: [
     "/",
+    "/inicio",
     "/app/:path*",
     "/admin/:path*",
     "/medico/:path*",
