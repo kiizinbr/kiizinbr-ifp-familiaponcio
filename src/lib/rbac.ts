@@ -181,7 +181,12 @@ export function canAccessUnidade(session: Session | null, slug: string): boolean
   const unidade = unidadeFromSlug(slug);
   if (!unidade) return false;
 
-  if (session.user.roles.some((r) => r.name === "super_admin")) return true;
+  // super_admin: acesso irrestrito. presidencia: read-only GLOBAL (Q4, 2026-06-08)
+  // — acessa a ROTA de qualquer unidade; a ESCRITA segue barrada nos predicados
+  // por-acao (can()=view; podeChamar/podeEditar* nao a incluem). Unifica D7 com
+  // getUserUnits, que ja tratava presidencia como "all".
+  if (session.user.roles.some((r) => r.name === "super_admin" || r.name === "presidencia"))
+    return true;
 
   return unidade.rolesAceitas.some((aceita) =>
     session.user.roles.some(

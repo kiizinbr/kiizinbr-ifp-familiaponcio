@@ -17,8 +17,9 @@ export async function chamarAction(formData: FormData): Promise<void> {
 
   const unidade = String(formData.get("unidade") ?? "");
   if (!unidadeFromSlug(unidade)) throw new Error("Unidade invalida");
-  // Roles cross-unit (social/super_admin/presidencia) podem chamar em qualquer painel
+  // Roles cross-unit (social/super_admin) podem chamar em qualquer painel
   // (ex.: triagem social chama no painel do Centro Medico). Demais ficam na sua unidade.
+  // presidencia passa o gate de unidade (read-only global) mas NAO chama: podeChamar a exclui.
   const acessoUnidade = getUserUnits(session) === "all" || canAccessUnidade(session, unidade);
   if (!acessoUnidade) throw new Error("Sem permissao");
   if (!podeChamar(session)) throw new Error("Sem permissao");

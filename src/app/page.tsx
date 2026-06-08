@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 import "@/styles/site.css";
 import { siteHtml } from "@/components/site/site-content";
+import { auth } from "@/lib/auth";
+import { getLandingPath } from "@/lib/rbac";
 
 export const metadata: Metadata = {
   title: "Instituto Família Pôncio — Mudar realidades com abrigo, saúde, educação e amor",
@@ -19,7 +23,12 @@ export const metadata: Metadata = {
  * sem estado React, então não há conflito de hidratação. Os links de acesso
  * (`data-go`) já apontam pras rotas reais `/<unidade>/login`.
  */
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Logado vai pra sua home (getLandingPath) em vez de ficar preso na landing
+  // pública — corrige D5 (pós-login fazia redirectTo: "/"). Deslogado vê o site.
+  const session = await auth();
+  if (session) redirect(getLandingPath(session) as Route);
+
   return (
     <>
       {/*

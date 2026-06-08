@@ -37,7 +37,7 @@ export default auth((req) => {
   // /admin/audit → só super_admin (existente)
   if (path.startsWith("/admin/audit")) {
     if (!hasAnyRole(session, "super_admin")) {
-      return Response.redirect(new URL("/", origin));
+      return Response.redirect(new URL("/acesso-negado", origin));
     }
     return;
   }
@@ -45,7 +45,7 @@ export default auth((req) => {
   // /admin/* (users etc) → super_admin (gestor_geral foi removida na T3-T4)
   if (path.startsWith("/admin")) {
     if (!hasAnyRole(session, "super_admin", "presidencia")) {
-      return Response.redirect(new URL("/", origin));
+      return Response.redirect(new URL("/acesso-negado", origin));
     }
     return;
   }
@@ -72,7 +72,7 @@ export default auth((req) => {
   if (painelMatch) {
     const slug = painelMatch[1]!;
     if (!canAccessUnidade(session, slug)) {
-      return Response.redirect(new URL("/", origin));
+      return Response.redirect(new URL("/acesso-negado", origin));
     }
     return;
   }
@@ -82,7 +82,7 @@ export default auth((req) => {
     if (path === `/${slug}` || path.startsWith(`/${slug}/`)) {
       // /<slug>/login já tratado acima como público
       if (!canAccessUnidade(session, slug)) {
-        return Response.redirect(new URL("/", origin));
+        return Response.redirect(new URL("/acesso-negado", origin));
       }
       return;
     }
@@ -93,6 +93,7 @@ export const config = {
   matcher: [
     "/",
     "/inicio",
+    "/acesso-negado",
     "/app/:path*",
     "/admin/:path*",
     "/medico/:path*",
