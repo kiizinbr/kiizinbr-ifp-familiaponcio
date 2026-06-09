@@ -1,6 +1,7 @@
 import type { Prisma, StatusConsulta } from "@prisma/client";
 import { db } from "@/lib/db";
 import { agendarEncaminhamento } from "@/lib/medico/encaminhamento";
+import * as core from "@/lib/agenda/core";
 
 export interface TemplateInput {
   profissionalId: string;
@@ -24,67 +25,33 @@ interface GerarSlotsOpts {
   limiteSuperior?: Date; // quando validoAte é null
 }
 
-function parseHHMM(s: string): { h: number; m: number } {
-  const [h = 0, m = 0] = s.split(":").map(Number);
-  return { h, m };
-}
-
-function addDays(d: Date, n: number): Date {
-  const x = new Date(d);
-  x.setUTCDate(x.getUTCDate() + n);
-  return x;
-}
-
-function startOfUtcDay(d: Date): Date {
-  const x = new Date(d);
-  x.setUTCHours(0, 0, 0, 0);
-  return x;
-}
-
 /**
- * Gera slots disponíveis derivados de um template recorrente.
- *
- * Pura: não toca banco. Use em testes e como base do seed/job.
+ * Gera slots do médico a partir de um template recorrente. Delega a geração de
+ * horários ao core resource-agnostic (`@/lib/agenda/core`) e anexa o recurso
+ * médico (profissional + especialidade) a cada slot. Mantém a API anterior.
  */
 export function gerarSlots(tmpl: TemplateInput, opts: GerarSlotsOpts = {}): SlotGerado[] {
-  const slots: SlotGerado[] = [];
-  const inicio = startOfUtcDay(tmpl.validoDe);
-  const fim = tmpl.validoAte ?? opts.limiteSuperior;
-  if (!fim) {
-    throw new Error("gerarSlots: validoAte é null e limiteSuperior não foi fornecido");
-  }
-
-  const fimUtc = startOfUtcDay(fim);
-  const { h: hIni, m: mIni } = parseHHMM(tmpl.faixaInicio);
-  const { h: hFim, m: mFim } = parseHHMM(tmpl.faixaFim);
-
-  let dia = inicio;
-  while (dia < fimUtc) {
-    if (tmpl.diasSemana.includes(dia.getUTCDay())) {
-      const inicioFaixaDia = new Date(dia);
-      inicioFaixaDia.setUTCHours(hIni, mIni, 0, 0);
-      const fimFaixaDia = new Date(dia);
-      fimFaixaDia.setUTCHours(hFim, mFim, 0, 0);
-
-      let cursor = inicioFaixaDia;
-      while (cursor.getTime() + tmpl.duracaoSlotMin * 60_000 <= fimFaixaDia.getTime()) {
-        slots.push({
-          profissionalId: tmpl.profissionalId,
-          especialidadeId: tmpl.especialidadeId,
-          dataHoraInicio: new Date(cursor),
-          duracaoMin: tmpl.duracaoSlotMin,
-        });
-        cursor = new Date(cursor.getTime() + tmpl.duracaoSlotMin * 60_000);
-      }
-    }
-    dia = addDays(dia, 1);
-  }
-
-  return slots;
+  const base = core.gerarSlots(
+    {
+      diasSemana: tmpl.diasSemana,
+      faixaInicio: tmpl.faixaInicio,
+      faixaFim: tmpl.faixaFim,
+      duracaoSlotMin: tmpl.duracaoSlotMin,
+      validoDe: tmpl.validoDe,
+      validoAte: tmpl.validoAte,
+    },
+    { limiteSuperior: opts.limiteSuperior },
+  );
+  return base.map((s) => ({
+    profissionalId: tmpl.profissionalId,
+    especialidadeId: tmpl.especialidadeId,
+    dataHoraInicio: s.dataHoraInicio,
+    duracaoMin: s.duracaoMin,
+  }));
 }
 
 // ============================================================================
-// Reserva transacional anti-overbooking (F1.B.1 T4)
+// Reserva transacional anti-overbooking (F1.B.1 T4) — via core.reservarCAS
 // ============================================================================
 
 export class SlotIndisponivelError extends Error {
@@ -106,17 +73,19 @@ export interface ReservarSlotInput {
 }
 
 /**
- * Reserva um slot atomicamente. Usa updateMany com filtro de status pra evitar
- * race condition: só atualiza se ainda estava "disponivel". Se 0 linhas → outro
- * já pegou → lança SlotIndisponivelError.
+ * Reserva um slot atomicamente. O compare-and-swap anti-overbooking vive em
+ * `core.reservarCAS` (só atualiza se ainda estava "disponivel"); se não ganhou,
+ * lança SlotIndisponivelError.
  */
 export async function reservarSlot(input: ReservarSlotInput) {
   return db.$transaction(async (tx) => {
-    const upd = await tx.slot.updateMany({
-      where: { id: input.slotId, status: "disponivel" },
-      data: { status: "reservado" },
-    });
-    if (upd.count === 0) {
+    const ganhou = await core.reservarCAS(() =>
+      tx.slot.updateMany({
+        where: { id: input.slotId, status: "disponivel" },
+        data: { status: "reservado" },
+      }),
+    );
+    if (!ganhou) {
       throw new SlotIndisponivelError(input.slotId);
     }
     const consulta = await tx.consulta.create({
@@ -169,6 +138,9 @@ const TRANSICOES: Record<StatusConsulta, ReadonlySet<StatusConsulta>> = {
   cancelada: new Set(),
 };
 
+/** Máquina de estados da consulta, sobre o core genérico. */
+const maquinaConsulta = core.criarMaquinaEstados<StatusConsulta>(TRANSICOES);
+
 const STATUS_SLOT_DERIVADO: Record<
   StatusConsulta,
   "reservado" | "realizado" | "faltou" | "disponivel"
@@ -210,9 +182,7 @@ export async function liberarSlot(slotId: string, motivoCancelamento: string) {
 
 /**
  * Aplica a transição de status da consulta DENTRO de uma transação existente
- * (`tx`). Extraído de `transicionarConsulta` para ser reutilizável por outros
- * fluxos transacionais (ex.: `assinarNota` do prontuário) SEM aninhar
- * `$transaction` (Prisma não suporta aninhamento transparente).
+ * (`tx`). A validade da transição vem do core (`maquinaConsulta.pode`).
  */
 export async function aplicarTransicaoConsulta(
   tx: Prisma.TransactionClient,
@@ -220,7 +190,7 @@ export async function aplicarTransicaoConsulta(
   para: StatusConsulta,
 ) {
   const c = await tx.consulta.findUniqueOrThrow({ where: { id: consultaId } });
-  if (!TRANSICOES[c.status].has(para)) {
+  if (!maquinaConsulta.pode(c.status, para)) {
     throw new TransicaoInvalidaError(c.status, para);
   }
   const updated = await tx.consulta.update({ where: { id: consultaId }, data: { status: para } });
@@ -249,8 +219,7 @@ export class ConsultaNaoReagendavelError extends Error {
 
 /**
  * Reagenda uma consulta para um novo slot numa única transação: reserva o novo slot
- * (compare-and-swap anti-overbooking, igual ao reservarSlot), libera o slot antigo e
- * move a consulta (slot + profissional + especialidade passam a ser os do novo slot).
+ * (compare-and-swap anti-overbooking via core), libera o slot antigo e move a consulta.
  * Só agendada/confirmada. Lança SlotIndisponivelError se o novo slot já foi pego.
  */
 export async function reagendarConsulta(consultaId: string, novoSlotId: string) {
@@ -261,11 +230,13 @@ export async function reagendarConsulta(consultaId: string, novoSlotId: string) 
     }
     if (consulta.slotId === novoSlotId) return consulta; // mesmo horário, no-op
 
-    const upd = await tx.slot.updateMany({
-      where: { id: novoSlotId, status: "disponivel" },
-      data: { status: "reservado" },
-    });
-    if (upd.count === 0) throw new SlotIndisponivelError(novoSlotId);
+    const ganhou = await core.reservarCAS(() =>
+      tx.slot.updateMany({
+        where: { id: novoSlotId, status: "disponivel" },
+        data: { status: "reservado" },
+      }),
+    );
+    if (!ganhou) throw new SlotIndisponivelError(novoSlotId);
 
     const novoSlot = await tx.slot.findUniqueOrThrow({ where: { id: novoSlotId } });
     await tx.slot.update({ where: { id: consulta.slotId }, data: { status: "disponivel" } });
