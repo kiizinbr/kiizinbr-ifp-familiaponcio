@@ -7,8 +7,10 @@ import {
   liberarSlot,
   reagendarConsulta,
   reservarSlot,
+  reservarSlotAdHoc,
   SlotComConsultaError,
   SlotIndisponivelError,
+  SlotJaExisteError,
   STATUS_REAGENDAVEL,
   transicionarConsulta,
   type TemplateInput,
@@ -362,5 +364,82 @@ describe("transicionarConsulta", () => {
 
     await db.consulta.delete({ where: { id: c.id } });
     await db.slot.update({ where: { id: slot.id }, data: { status: "disponivel" } });
+  });
+});
+
+describe("reservarSlotAdHoc (encaixe/walk-in, integration)", () => {
+  async function ctx() {
+    const prof = await db.profissional.findFirstOrThrow({
+      where: { nomeExibicao: "Dr. João Silva" },
+    });
+    const esp = await db.especialidade.findUniqueOrThrow({ where: { nome: "Clínico Geral" } });
+    const cid = await db.cidadao.findFirstOrThrow({ where: { unitIdOrigem: "medico" } });
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+    return { prof, esp, cid, erick };
+  }
+
+  it("cria slot ad-hoc disponível (sem template) e reserva numa transação", async () => {
+    const { prof, esp, cid, erick } = await ctx();
+    // futuro + minuto incomum (17) p/ não colidir com slots de template (:00/:30)
+    const dh = new Date(Date.now() + 7 * 24 * 3600_000 + 17 * 60_000);
+    const consulta = await reservarSlotAdHoc({
+      profissionalId: prof.id,
+      especialidadeId: esp.id,
+      cidadaoId: cid.id,
+      createdBy: erick.id,
+      dataHoraInicio: dh,
+      duracaoMin: 30,
+    });
+    const slot = await db.slot.findUniqueOrThrow({ where: { id: consulta.slotId } });
+    expect(slot.templateId).toBeNull();
+    expect(slot.status).toBe("reservado");
+    expect(consulta.status).toBe("agendada");
+    await db.consulta.delete({ where: { id: consulta.id } });
+    await db.slot.delete({ where: { id: slot.id } });
+  });
+
+  it("walk-in: dataHoraInicio=agora cria encaixe imediato", async () => {
+    const { prof, esp, cid, erick } = await ctx();
+    const consulta = await reservarSlotAdHoc({
+      profissionalId: prof.id,
+      especialidadeId: esp.id,
+      cidadaoId: cid.id,
+      createdBy: erick.id,
+      dataHoraInicio: new Date(),
+      duracaoMin: 30,
+    });
+    const slot = await db.slot.findUniqueOrThrow({ where: { id: consulta.slotId } });
+    expect(slot.templateId).toBeNull();
+    expect(consulta.status).toBe("agendada");
+    await db.consulta.delete({ where: { id: consulta.id } });
+    await db.slot.delete({ where: { id: slot.id } });
+  });
+
+  it("lança SlotJaExisteError quando já há slot do profissional no mesmo instante", async () => {
+    const { prof, esp, cid, erick } = await ctx();
+    const dh = new Date(Date.now() + 8 * 24 * 3600_000 + 23 * 60_000);
+    const c1 = await reservarSlotAdHoc({
+      profissionalId: prof.id,
+      especialidadeId: esp.id,
+      cidadaoId: cid.id,
+      createdBy: erick.id,
+      dataHoraInicio: dh,
+      duracaoMin: 30,
+    });
+    await expect(
+      reservarSlotAdHoc({
+        profissionalId: prof.id,
+        especialidadeId: esp.id,
+        cidadaoId: cid.id,
+        createdBy: erick.id,
+        dataHoraInicio: dh,
+        duracaoMin: 30,
+      }),
+    ).rejects.toThrow(SlotJaExisteError);
+    const s1 = await db.slot.findUniqueOrThrow({ where: { id: c1.slotId } });
+    await db.consulta.delete({ where: { id: c1.id } });
+    await db.slot.delete({ where: { id: s1.id } });
   });
 });

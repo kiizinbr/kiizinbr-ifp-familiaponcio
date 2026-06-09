@@ -109,6 +109,80 @@ export async function reservarSlot(input: ReservarSlotInput) {
 }
 
 // ============================================================================
+// Agendamento dinâmico (F2): slot ad-hoc (encaixe) + walk-in — via core.criarSlotAdHoc
+// ============================================================================
+
+export class SlotJaExisteError extends Error {
+  constructor() {
+    super("Ja existe um horario para esse profissional nesse instante");
+    this.name = "SlotJaExisteError";
+  }
+}
+
+export interface ReservarSlotAdHocInput {
+  profissionalId: string;
+  especialidadeId: string;
+  cidadaoId: string;
+  createdBy: string;
+  dataHoraInicio: Date;
+  duracaoMin: number;
+  observacoesAgendamento?: string;
+  origemTriagemId?: string;
+  origemEncaminhamentoId?: string;
+}
+
+/**
+ * Cria um slot ad-hoc (sem template) e o reserva na MESMA transação — o "dinâmico":
+ * encaixe (`dataHoraInicio` escolhida) ou walk-in (`dataHoraInicio = now`). A criação
+ * delega a `core.criarSlotAdHoc`; a reserva reusa o mesmo CAS anti-overbooking. Se já
+ * existe slot do profissional naquele instante (unique [profissionalId, dataHoraInicio]),
+ * o create lança P2002 → traduz para `SlotJaExisteError`.
+ */
+export async function reservarSlotAdHoc(input: ReservarSlotAdHocInput) {
+  try {
+    return await db.$transaction(async (tx) => {
+      const slot = await core.criarSlotAdHoc({
+        create: (data) => tx.slot.create({ data: data as Prisma.SlotUncheckedCreateInput }),
+        recurso: { profissionalId: input.profissionalId, especialidadeId: input.especialidadeId },
+        dataHoraInicio: input.dataHoraInicio,
+        duracaoMin: input.duracaoMin,
+      });
+      const ganhou = await core.reservarCAS(() =>
+        tx.slot.updateMany({
+          where: { id: slot.id, status: "disponivel" },
+          data: { status: "reservado" },
+        }),
+      );
+      if (!ganhou) {
+        throw new SlotIndisponivelError(slot.id);
+      }
+      const consulta = await tx.consulta.create({
+        data: {
+          slotId: slot.id,
+          cidadaoId: input.cidadaoId,
+          profissionalId: input.profissionalId,
+          especialidadeId: input.especialidadeId,
+          createdBy: input.createdBy,
+          observacoesAgendamento: input.observacoesAgendamento,
+          origemTriagemId: input.origemTriagemId,
+          origemEncaminhamentoId: input.origemEncaminhamentoId,
+          status: "agendada",
+        },
+      });
+      if (input.origemEncaminhamentoId) {
+        await agendarEncaminhamento(tx, input.origemEncaminhamentoId);
+      }
+      return consulta;
+    });
+  } catch (e) {
+    if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "P2002") {
+      throw new SlotJaExisteError();
+    }
+    throw e;
+  }
+}
+
+// ============================================================================
 // Manutenção de slots + máquina de estados de consulta (F1.B.1 T5)
 // ============================================================================
 
