@@ -94,3 +94,33 @@ export async function reservarCAS(updateMany: () => Promise<{ count: number }>):
   const { count } = await updateMany();
   return count === 1;
 }
+
+export interface CriarSlotAdHocArgs<T> {
+  /** Create delegate da tabela do consumidor — ex.: `(d) => tx.slot.create({ data: d })`. */
+  create: (
+    data: Record<string, unknown> & { dataHoraInicio: Date; duracaoMin: number; status: "disponivel" },
+  ) => Promise<T>;
+  /** Campos do recurso, mesclados no slot — ex.: `{ profissionalId, especialidadeId }` | `{ assistenteSocialId }`. */
+  recurso: Record<string, unknown>;
+  dataHoraInicio: Date;
+  duracaoMin: number;
+}
+
+/**
+ * Cria um slot disponível on-demand — o "dinâmico" (encaixe/walk-in), sem depender de
+ * template pré-gerado. Delegate-based como `reservarCAS`: o caller passa o `create` da
+ * SUA tabela; o core padroniza `status: "disponivel"` e mescla o recurso. Não importa
+ * Prisma — mantém o core agnóstico. A unicidade `@@unique([recurso, dataHoraInicio])` da
+ * tabela do consumidor é o guard de corrida (o create lança P2002 em colisão).
+ */
+export async function criarSlotAdHoc<T>(args: CriarSlotAdHocArgs<T>): Promise<T> {
+  if (args.duracaoMin <= 0) {
+    throw new Error("criarSlotAdHoc: duracaoMin deve ser > 0");
+  }
+  return args.create({
+    ...args.recurso,
+    dataHoraInicio: args.dataHoraInicio,
+    duracaoMin: args.duracaoMin,
+    status: "disponivel",
+  });
+}

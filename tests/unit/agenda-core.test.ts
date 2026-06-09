@@ -3,6 +3,7 @@ import {
   gerarSlots,
   criarMaquinaEstados,
   reservarCAS,
+  criarSlotAdHoc,
   type JanelaDisponibilidade,
 } from "@/lib/agenda/core";
 
@@ -86,5 +87,37 @@ describe("core.reservarCAS", () => {
   });
   it("retorna false quando 0 linhas (alguém já pegou o slot)", async () => {
     expect(await reservarCAS(async () => ({ count: 0 }))).toBe(false);
+  });
+});
+
+describe("core.criarSlotAdHoc", () => {
+  it("cria via delegate com status disponivel + recurso mesclado", async () => {
+    const calls: Record<string, unknown>[] = [];
+    const create = async (data: Record<string, unknown>) => {
+      calls.push(data);
+      return { id: "s1", ...data };
+    };
+    const slot = await criarSlotAdHoc({
+      create,
+      recurso: { profissionalId: "p1", especialidadeId: "e1" },
+      dataHoraInicio: new Date("2026-06-09T13:00:00Z"),
+      duracaoMin: 30,
+    });
+    expect(calls[0]!.status).toBe("disponivel");
+    expect(calls[0]!.profissionalId).toBe("p1");
+    expect(calls[0]!.especialidadeId).toBe("e1");
+    expect(calls[0]!.duracaoMin).toBe(30);
+    expect((slot as { id: string }).id).toBe("s1");
+  });
+
+  it("rejeita duracaoMin <= 0", async () => {
+    await expect(
+      criarSlotAdHoc({
+        create: async () => ({}),
+        recurso: {},
+        dataHoraInicio: new Date("2026-06-09T13:00:00Z"),
+        duracaoMin: 0,
+      }),
+    ).rejects.toThrow(/duracao/i);
   });
 });
