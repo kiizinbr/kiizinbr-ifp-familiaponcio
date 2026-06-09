@@ -4,7 +4,7 @@
 
 **Goal:** Extrair a lógica de agenda do médico para um core resource-agnostic (`src/lib/agenda/core.ts`) e fazer o médico delegar a ele — **com zero mudança de comportamento** (a suíte existente é a rede de não-regressão).
 
-**Architecture:** O core expõe 3 peças puras/genéricas — `gerarSlots` (geração por janela recorrente, sem profissional/especialidade), `criarMaquinaEstados` (máquina de transições genérica) e `reservarCAS` (encapsula o invariante anti-overbooking "count===1 = reservei", recebendo um *thunk* de `updateMany` para não acoplar Prisma). `src/lib/medico/agenda.ts` passa a chamar o core; as tabelas `Slot`/`Consulta` e a API pública do médico ficam idênticas.
+**Architecture:** O core expõe 3 peças puras/genéricas — `gerarSlots` (geração por janela recorrente, sem profissional/especialidade), `criarMaquinaEstados` (máquina de transições genérica) e `reservarCAS` (encapsula o invariante anti-overbooking "count===1 = reservei", recebendo um _thunk_ de `updateMany` para não acoplar Prisma). `src/lib/medico/agenda.ts` passa a chamar o core; as tabelas `Slot`/`Consulta` e a API pública do médico ficam idênticas.
 
 **Tech Stack:** TypeScript, Next.js App Router, Prisma/Postgres, Vitest (node, `tests/unit/**/*.test.ts`). pnpm roda no WSL Ubuntu. Esta fase **não tem migration** e **não toca UI**.
 
@@ -26,6 +26,7 @@
 ### Task 1: Core — `gerarSlots` genérico + tipos
 
 **Files:**
+
 - Create: `src/lib/agenda/core.ts`
 - Test: `tests/unit/agenda-core.test.ts`
 
@@ -48,7 +49,9 @@ const janela: JanelaDisponibilidade = {
 
 describe("core.gerarSlots", () => {
   it("gera slots só nos dias da semana definidos", () => {
-    const datas = [...new Set(gerarSlots(janela).map((s) => s.dataHoraInicio.toISOString().slice(0, 10)))];
+    const datas = [
+      ...new Set(gerarSlots(janela).map((s) => s.dataHoraInicio.toISOString().slice(0, 10))),
+    ];
     expect(datas).toContain("2026-06-02");
     expect(datas).toContain("2026-06-04");
     expect(datas).not.toContain("2026-06-01");
@@ -56,7 +59,9 @@ describe("core.gerarSlots", () => {
   });
 
   it("respeita faixa horária e duração", () => {
-    const terca = gerarSlots(janela).filter((s) => s.dataHoraInicio.toISOString().startsWith("2026-06-02"));
+    const terca = gerarSlots(janela).filter((s) =>
+      s.dataHoraInicio.toISOString().startsWith("2026-06-02"),
+    );
     expect(terca).toHaveLength(4);
     expect(terca[0]!.dataHoraInicio.toISOString().slice(11, 16)).toBe("14:00");
     expect(terca[3]!.dataHoraInicio.toISOString().slice(11, 16)).toBe("15:30");
@@ -187,6 +192,7 @@ git commit -m "feat(agenda): core gerarSlots generico (resource-agnostic) + test
 ### Task 2: Core — `criarMaquinaEstados`
 
 **Files:**
+
 - Modify: `src/lib/agenda/core.ts`
 - Test: `tests/unit/agenda-core.test.ts`
 
@@ -248,6 +254,7 @@ git commit -m "feat(agenda): core criarMaquinaEstados generico + testes"
 ### Task 3: Core — `reservarCAS`
 
 **Files:**
+
 - Modify: `src/lib/agenda/core.ts`
 - Test: `tests/unit/agenda-core.test.ts`
 
@@ -304,6 +311,7 @@ git commit -m "feat(agenda): core reservarCAS (invariante anti-overbooking via t
 ### Task 4: Médico delega ao core (refactor sem mudar comportamento)
 
 **Files:**
+
 - Modify: `src/lib/medico/agenda.ts`
 - Net (não modificar): `tests/unit/medico-agenda.test.ts`
 
@@ -343,6 +351,7 @@ export function gerarSlots(tmpl: TemplateInput, opts: GerarSlotsOpts = {}): Slot
   }));
 }
 ```
+
 Remover as funções locais `parseHHMM`, `addDays`, `startOfUtcDay` se ficarem sem uso (o lint `no-unused-vars` acusa).
 
 - [ ] **Step 3: Refatorar `reservarSlot` (e o CAS de `reagendarConsulta`) pra usar `core.reservarCAS`**
@@ -378,6 +387,7 @@ export async function reservarSlot(input: ReservarSlotInput) {
   });
 }
 ```
+
 Em `reagendarConsulta`, trocar o segundo CAS (linhas ~264-268) por: `const ganhou = await core.reservarCAS(() => tx.slot.updateMany({ where: { id: novoSlotId, status: "disponivel" }, data: { status: "reservado" } })); if (!ganhou) throw new SlotIndisponivelError(novoSlotId);`
 
 - [ ] **Step 4: Refatorar a máquina de estados pra usar `core.criarMaquinaEstados`**
@@ -421,6 +431,7 @@ git commit -m "refactor(agenda): medico delega ao core (gerarSlots/reservarCAS/m
 ---
 
 ## Fora desta fase (próximos planos)
+
 - **Fase 2 — Buraco #3 (dinâmico médico):** `criarSlotAdHoc` no core + slot ad-hoc no balcão (`consultas/nova`) + walk-in "atender agora".
 - **Fase 3 — Buraco #2 (agendar social):** migration aditiva `SlotSocial`/`EntrevistaSocial`/`StatusEntrevista` + rota `social/agenda` + ligação `Triagem`, reusando o core desta fase.
 - **Fase 4 — Buraco #1 (agenda do dia):** extrair `agenda-dia.ts` + board `medico/agenda-dia`.
@@ -428,6 +439,7 @@ git commit -m "refactor(agenda): medico delega ao core (gerarSlots/reservarCAS/m
 Cada fase ganha seu próprio plano (a Fase 1 fixa a API do core que elas consomem).
 
 ## Self-review (writing-plans)
+
 - **Cobertura do spec §3.1/§3.2:** core (gerarSlots/maquina/reservarCAS) = Tasks 1-3; médico delega = Task 4. ✓ `criarSlotAdHoc` é §3.3 (Fase 2) — fora desta fase de propósito.
 - **Placeholders:** nenhum — todo passo tem código/comando reais.
 - **Consistência de tipos:** `JanelaDisponibilidade`/`SlotBase`/`reservarCAS(thunk)`/`criarMaquinaEstados` usados igual em Tasks 1-4; `SlotGerado`/`TemplateInput` do médico preservados.
