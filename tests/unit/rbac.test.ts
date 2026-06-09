@@ -24,11 +24,13 @@ describe("canAccessUnidade", () => {
     expect(canAccessUnidade(erick, "social")).toBe(true);
   });
 
-  it("presidencia só em poncio", () => {
+  it("presidencia: read-only global — acessa a ROTA de qualquer unidade (Q4, 2026-06-08)", () => {
+    // A escrita segue barrada nos predicados por-ação (can()=view; podeEditar*/podeChamar
+    // não incluem presidência); aqui é só o gate de rota canAccessUnidade.
     const saulo = sessionWith([{ name: "presidencia", unitScope: null }]);
     expect(canAccessUnidade(saulo, "poncio")).toBe(true);
-    expect(canAccessUnidade(saulo, "medico")).toBe(false);
-    expect(canAccessUnidade(saulo, "social")).toBe(false);
+    expect(canAccessUnidade(saulo, "medico")).toBe(true);
+    expect(canAccessUnidade(saulo, "social")).toBe(true);
   });
 
   it("social só em /social", () => {
