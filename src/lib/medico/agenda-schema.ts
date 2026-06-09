@@ -17,6 +17,20 @@ export const reservarConsultaSchema = z.object({
   especialidadeId: z.string().min(1, "Especialidade obrigatória"),
 });
 
+/**
+ * Slot ad-hoc (encaixe/walk-in, F2) — além dos IDs, valida a data/hora (coerce de
+ * string do `datetime-local`; `Invalid Date` é rejeitado) e a duração em minutos.
+ */
+export const criarSlotAdHocSchema = z.object({
+  cidadaoId: z.string().min(1, "Cidadão obrigatório"),
+  profissionalId: z.string().min(1, "Profissional obrigatório"),
+  especialidadeId: z.string().min(1, "Especialidade obrigatória"),
+  dataHoraInicio: z.coerce.date(),
+  duracaoMin: z.coerce.number().int().min(5, "Duração mínima de 5 min").max(240, "Máx 240 min"),
+});
+
+export type CriarSlotAdHocInput = z.infer<typeof criarSlotAdHocSchema>;
+
 /** Template de agenda recorrente — valida dias, horários e janela de validade. */
 export const criarTemplateSchema = z
   .object({

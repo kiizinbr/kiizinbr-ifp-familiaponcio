@@ -7,8 +7,35 @@ import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { formatCpf } from "@/lib/cpf";
-import { reservarConsultaAction } from "./actions";
+import { reservarConsultaAction, criarSlotAdHocAction, atenderAgoraAction } from "./actions";
+
+const INPUT_CLS = "rounded-[var(--r-md)] border px-2 py-1.5 text-sm";
+const INPUT_STYLE = {
+  borderColor: "var(--line)",
+  background: "var(--surface)",
+  color: "var(--text)",
+} as const;
+
+function ProfissionalSelect({
+  profissionais,
+}: {
+  profissionais: { id: string; nomeExibicao: string }[];
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-[12px]" style={{ color: "var(--text-3)" }}>
+      Profissional
+      <select name="profissionalId" required className={INPUT_CLS} style={INPUT_STYLE}>
+        {profissionais.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.nomeExibicao}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 const STEPS = ["Cidadão", "Especialidade", "Horário", "Confirmar"] as const;
 
@@ -207,6 +234,12 @@ export default async function NovaConsultaPage({
     take: 24,
   });
 
+  // Profissionais que atendem esta especialidade — alimentam o encaixe/walk-in (F2).
+  const profissionais = await db.profissional.findMany({
+    where: { ativo: true, especialidades: { some: { especialidadeId: sp.especialidadeId } } },
+    orderBy: { nomeExibicao: "asc" },
+  });
+
   // agrupa por dia
   const porDia = new Map<string, typeof slots>();
   for (const s of slots) {
@@ -231,7 +264,7 @@ export default async function NovaConsultaPage({
       />
       <Stepper current={3} />
 
-      {sp.erro === "slot_indisponivel" && (
+      {sp.erro && (
         <div
           className="mb-4 rounded-[var(--r-md)] border px-4 py-3 text-sm"
           style={{
@@ -240,14 +273,21 @@ export default async function NovaConsultaPage({
             color: "var(--danger)",
           }}
         >
-          Esse horário acabou de ser reservado por outra pessoa. Escolha outro abaixo.
+          {sp.erro === "slot_indisponivel"
+            ? "Esse horário acabou de ser reservado por outra pessoa. Escolha outro abaixo."
+            : sp.erro === "slot_existe"
+              ? "Já existe um horário para esse profissional nesse instante. Escolha outro horário."
+              : sp.erro === "adhoc_invalido"
+                ? "Dados do encaixe inválidos. Confira profissional, data/hora e duração."
+                : "Não foi possível concluir a ação. Tente novamente."}
         </div>
       )}
 
       {slots.length === 0 ? (
         <Card>
           <p style={{ color: "var(--text-3)" }}>
-            Nenhum horário disponível para {especialidade.nome} nos próximos dias.
+            Nenhum horário pré-gerado para {especialidade.nome}. Use o <strong>encaixe</strong>{" "}
+            abaixo para criar um horário sob demanda.
           </p>
         </Card>
       ) : (
@@ -293,6 +333,66 @@ export default async function NovaConsultaPage({
           ))}
         </div>
       )}
+
+      <div className="mt-6">
+        <Card>
+          <p className="mb-1 text-sm font-bold" style={{ color: "var(--accent)" }}>
+            Encaixe / walk-in
+          </p>
+          <p className="mb-4 text-[13px]" style={{ color: "var(--text-3)" }}>
+            Sem horário na grade? Crie um sob demanda — escolha o profissional e o instante, ou
+            atenda agora por ordem de chegada.
+          </p>
+          {profissionais.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--text-3)" }}>
+              Nenhum profissional cadastrado para {especialidade.nome}.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <form action={criarSlotAdHocAction} className="flex flex-wrap items-end gap-3">
+                <input type="hidden" name="cidadaoId" value={cidadao.id} />
+                <input type="hidden" name="especialidadeId" value={especialidade.id} />
+                <ProfissionalSelect profissionais={profissionais} />
+                <label
+                  className="flex flex-col gap-1 text-[12px]"
+                  style={{ color: "var(--text-3)" }}
+                >
+                  Data e hora
+                  <input
+                    type="datetime-local"
+                    name="dataHoraInicio"
+                    required
+                    className={INPUT_CLS}
+                    style={INPUT_STYLE}
+                  />
+                </label>
+                <label
+                  className="flex flex-col gap-1 text-[12px]"
+                  style={{ color: "var(--text-3)" }}
+                >
+                  Duração (min)
+                  <input
+                    type="number"
+                    name="duracaoMin"
+                    defaultValue={30}
+                    min={5}
+                    max={240}
+                    className={`w-20 ${INPUT_CLS}`}
+                    style={INPUT_STYLE}
+                  />
+                </label>
+                <SubmitButton>Criar horário e marcar</SubmitButton>
+              </form>
+              <form action={atenderAgoraAction} className="flex flex-wrap items-end gap-3">
+                <input type="hidden" name="cidadaoId" value={cidadao.id} />
+                <input type="hidden" name="especialidadeId" value={especialidade.id} />
+                <ProfissionalSelect profissionais={profissionais} />
+                <SubmitButton>Atender agora</SubmitButton>
+              </form>
+            </div>
+          )}
+        </Card>
+      </div>
 
       {!encaminhamentoId && (
         <Link

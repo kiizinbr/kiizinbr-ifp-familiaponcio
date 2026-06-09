@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { reservarConsultaSchema, criarTemplateSchema } from "@/lib/medico/agenda-schema";
+import {
+  reservarConsultaSchema,
+  criarTemplateSchema,
+  criarSlotAdHocSchema,
+} from "@/lib/medico/agenda-schema";
 
 /**
  * B4 — validação Zod nas server actions de FormData (antes só `String(...)`/`new Date(...)`
@@ -75,5 +79,39 @@ describe("criarTemplateSchema", () => {
   it("rejeita validoDe que não é YYYY-MM-DD", () => {
     expect(criarTemplateSchema.safeParse({ ...ok, validoDe: "10/06/2026" }).success).toBe(false);
     expect(criarTemplateSchema.safeParse({ ...ok, validoDe: "" }).success).toBe(false);
+  });
+});
+
+describe("criarSlotAdHocSchema", () => {
+  const ok = {
+    cidadaoId: "ccid1",
+    profissionalId: "cprof1",
+    especialidadeId: "cesp1",
+    dataHoraInicio: "2026-06-15T14:30",
+    duracaoMin: "30",
+  };
+
+  it("aceita ad-hoc válido (coerce de data e duração)", () => {
+    const r = criarSlotAdHocSchema.safeParse(ok);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.dataHoraInicio).toBeInstanceOf(Date);
+      expect(r.data.duracaoMin).toBe(30);
+    }
+  });
+
+  it("rejeita profissionalId vazio", () => {
+    expect(criarSlotAdHocSchema.safeParse({ ...ok, profissionalId: "" }).success).toBe(false);
+  });
+
+  it("rejeita data inválida", () => {
+    expect(criarSlotAdHocSchema.safeParse({ ...ok, dataHoraInicio: "nao-e-data" }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejeita duração fora da faixa", () => {
+    expect(criarSlotAdHocSchema.safeParse({ ...ok, duracaoMin: "0" }).success).toBe(false);
+    expect(criarSlotAdHocSchema.safeParse({ ...ok, duracaoMin: "999" }).success).toBe(false);
   });
 });
