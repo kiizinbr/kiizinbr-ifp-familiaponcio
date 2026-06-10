@@ -103,18 +103,21 @@ export class TurmasService {
     const termo = q?.trim();
     if (!termo || termo.length < 2) return { items: [] };
 
+    // unaccent: "joao" encontra "João" (regra de ouro continua no JOIN de elegibilidade)
+    const linhas = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT f.id FROM fichas_cidadas f
+      JOIN elegibilidades e ON e."fichaId" = f.id
+        AND e."unidadeId" = ${profissional.unidadeId}
+        AND e.status = 'APROVADO'::"StatusElegibilidade"
+      WHERE f.ativa = true
+        AND unaccent(lower(f."nomeCompleto")) LIKE unaccent(lower(${`%${termo}%`}))
+      ORDER BY f."nomeCompleto" ASC
+      LIMIT 10
+    `;
+    if (linhas.length === 0) return { items: [] };
+
     const items = await this.prisma.fichaCidada.findMany({
-      where: {
-        ativa: true,
-        nomeCompleto: { contains: termo, mode: "insensitive" },
-        elegibilidades: {
-          some: {
-            unidadeId: profissional.unidadeId,
-            status: StatusElegibilidade.APROVADO,
-          },
-        },
-      },
-      take: 10,
+      where: { id: { in: linhas.map((l) => l.id) } },
       orderBy: { nomeCompleto: "asc" },
       select: {
         id: true,

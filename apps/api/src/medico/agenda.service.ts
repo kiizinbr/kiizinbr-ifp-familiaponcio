@@ -96,15 +96,22 @@ export class AgendaService {
     if (!termo || termo.length < 2) return { items: [] };
 
     const digitos = termo.replace(/\D/g, "");
-    const or: Prisma.FichaCidadaWhereInput[] = [
-      { nomeCompleto: { contains: termo, mode: "insensitive" } },
-      { protocolo: { contains: termo.toUpperCase() } },
-    ];
-    if (digitos.length >= 3) or.push({ cpf: { contains: digitos } });
+    const pat = `%${termo}%`;
+    // unaccent: "joao" encontra "João" (extensão criada na migration 20260610150000)
+    const linhas = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM fichas_cidadas
+      WHERE ativa = true AND (
+        unaccent(lower("nomeCompleto")) LIKE unaccent(lower(${pat}))
+        OR protocolo LIKE ${`%${termo.toUpperCase()}%`}
+        OR (length(${digitos}) >= 3 AND cpf LIKE ${`%${digitos}%`})
+      )
+      ORDER BY "nomeCompleto" ASC
+      LIMIT 10
+    `;
+    if (linhas.length === 0) return { items: [] };
 
     const items = await this.prisma.fichaCidada.findMany({
-      where: { ativa: true, OR: or },
-      take: 10,
+      where: { id: { in: linhas.map((l) => l.id) } },
       orderBy: { nomeCompleto: "asc" },
       select: {
         id: true,
