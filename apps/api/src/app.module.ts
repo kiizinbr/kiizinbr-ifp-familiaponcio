@@ -10,6 +10,7 @@ import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
+import { MedicoModule } from "./medico/medico.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
     UsersModule,
     TenantsModule,
     FichasCidadasModule,
+    MedicoModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
