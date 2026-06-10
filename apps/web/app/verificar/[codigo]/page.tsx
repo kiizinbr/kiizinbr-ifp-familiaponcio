@@ -2,7 +2,7 @@
  * Verificação PÚBLICA de certificado — destino do QR code impresso.
  * Sem login: qualquer empregador valida a autenticidade aqui.
  */
-import { BadgeCheck, ShieldX } from "lucide-react";
+import { BadgeCheck, FileDown, ShieldX } from "lucide-react";
 
 import { API_BASE_URL, type VerificacaoCertificado } from "@/lib/api";
 
@@ -56,6 +56,14 @@ export default async function VerificarPage({
               : "—"}{" "}
             pelo Instituto Família Poncio
           </p>
+          <a
+            href={`${API_BASE_URL}/capacitacao/certificados/verificar/${encodeURIComponent(params.codigo)}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-ifp-sm transition hover:bg-primary-hover"
+          >
+            <FileDown className="h-4 w-4" /> Baixar certificado (PDF)
+          </a>
         </div>
       ) : (
         <div className="mt-6 w-full rounded-lg border border-danger/40 bg-surface p-6 text-center shadow-ifp-sm">

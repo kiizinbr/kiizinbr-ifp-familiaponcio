@@ -1,7 +1,8 @@
-import { Controller, Get, NotFoundException, Param } from "@nestjs/common";
+import { Controller, Get, NotFoundException, Param, StreamableFile } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 
 import { PrismaService } from "../prisma/prisma.service";
+import { CertificadoPdfService } from "./certificado-pdf.service";
 
 /**
  * Verificação PÚBLICA de certificado (anti-fraude) — sem autenticação,
@@ -11,7 +12,21 @@ import { PrismaService } from "../prisma/prisma.service";
 @ApiTags("capacitacao")
 @Controller("capacitacao/certificados")
 export class VerificacaoController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly pdf: CertificadoPdfService,
+  ) {}
+
+  @Get("verificar/:codigo/pdf")
+  @ApiOperation({ summary: "Baixa o certificado em PDF com QR (público)" })
+  @ApiParam({ name: "codigo", description: "código de verificação do certificado" })
+  async baixarPdf(@Param("codigo") codigo: string): Promise<StreamableFile> {
+    const { buffer, filename } = await this.pdf.gerar(codigo);
+    return new StreamableFile(buffer, {
+      type: "application/pdf",
+      disposition: `inline; filename="${filename}"`,
+    });
+  }
 
   @Get("verificar/:codigo")
   @ApiOperation({ summary: "Verifica a autenticidade de um certificado (público)" })
