@@ -68,3 +68,7 @@ secrets/
 exports/
 backups/
 data/
+
+# Playwright
+test-results/
+playwright-report/
