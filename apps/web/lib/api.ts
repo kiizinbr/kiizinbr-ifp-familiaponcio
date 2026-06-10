@@ -241,3 +241,107 @@ export interface ListaFichas {
   items: FichaResumo[];
   pagination: Paginacao;
 }
+
+// ============================================================
+// Centro Médico (Fase 1 — agenda + prancha de atendimento)
+// ============================================================
+
+export type StatusAgendamento =
+  | "AGENDADO"
+  | "CONFIRMADO"
+  | "EM_ATENDIMENTO"
+  | "CONCLUIDO"
+  | "FALTOU"
+  | "CANCELADO";
+
+export const STATUS_AGENDAMENTO_LABEL: Record<StatusAgendamento, string> = {
+  AGENDADO: "Agendado",
+  CONFIRMADO: "Confirmado",
+  EM_ATENDIMENTO: "Em atendimento",
+  CONCLUIDO: "Concluído",
+  FALTOU: "Faltou",
+  CANCELADO: "Cancelado",
+};
+
+export type GravidadeAlergia = "LEVE" | "MODERADA" | "GRAVE";
+
+export interface Alergia {
+  id: string;
+  descricao: string;
+  gravidade?: GravidadeAlergia | null;
+  ativa: boolean;
+}
+
+export interface CondicaoCronica {
+  id: string;
+  descricao: string;
+  cid10?: string | null;
+  ativa: boolean;
+}
+
+/** Decimais do Prisma chegam como string no JSON (temperatura, peso, altura). */
+export interface SinaisVitais {
+  pressaoSistolica?: number | null;
+  pressaoDiastolica?: number | null;
+  frequenciaCardiaca?: number | null;
+  frequenciaRespiratoria?: number | null;
+  temperaturaC?: string | null;
+  saturacaoO2?: number | null;
+  pesoKg?: string | null;
+  alturaCm?: string | null;
+  glicemia?: number | null;
+  queixaPrincipal?: string | null;
+}
+
+export interface Atendimento {
+  id: string;
+  subjetivo?: string | null;
+  objetivo?: string | null;
+  avaliacao?: string | null;
+  plano?: string | null;
+  cid10?: string | null;
+  iniciadoEm: string;
+  encerradoEm?: string | null;
+  vitais?: SinaisVitais | null;
+}
+
+/** Item da agenda do dia (GET /medico/agenda). */
+export interface AgendamentoResumo {
+  id: string;
+  inicioEm: string;
+  fimEm: string;
+  status: StatusAgendamento;
+  motivo?: string | null;
+  ficha: Pick<FichaResumo, "id" | "protocolo" | "nomeCompleto" | "cpf" | "dataNascimento">;
+  membro?: Membro | null;
+  atendimento?: { id: string; encerradoEm?: string | null } | null;
+}
+
+export interface AgendaDia {
+  items: AgendamentoResumo[];
+  dia: string;
+}
+
+/** Ficha como vem no payload da prancha (com histórico clínico). */
+export interface FichaPrancha {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+  cpf: string;
+  dataNascimento: string;
+  alergias: Alergia[];
+  condicoesCronicas: CondicaoCronica[];
+  elegibilidades: Elegibilidade[];
+}
+
+/** Payload completo da prancha (GET /medico/agenda/:agendamentoId). */
+export interface Prancha {
+  id: string;
+  inicioEm: string;
+  fimEm: string;
+  status: StatusAgendamento;
+  motivo?: string | null;
+  ficha: FichaPrancha;
+  membro?: Membro | null;
+  atendimento?: Atendimento | null;
+}

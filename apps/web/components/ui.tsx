@@ -12,8 +12,8 @@ import { cn } from "@/lib/cn";
 import { STATUS_LABEL, type StatusElegibilidade } from "@/lib/api";
 
 const controleBase =
-  "w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground " +
-  "focus:border-ifp-orange focus:outline-none focus:ring-2 focus:ring-ifp-orange/30 " +
+  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground " +
+  "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 " +
   "disabled:cursor-not-allowed disabled:opacity-60";
 
 // ------------------------------------------------------------
@@ -107,7 +107,7 @@ export const Checkbox = forwardRef<
 type Variante = "primary" | "outline" | "ghost" | "danger";
 
 const variantes: Record<Variante, string> = {
-  primary: "bg-ifp-orange text-ifp-white shadow-ifp-sm hover:bg-ifp-orange-mid",
+  primary: "bg-primary text-primary-foreground shadow-ifp-sm hover:bg-primary-hover",
   outline: "border border-border bg-surface text-foreground hover:bg-muted",
   ghost: "text-foreground hover:bg-muted",
   danger: "bg-danger text-ifp-white hover:opacity-90",
