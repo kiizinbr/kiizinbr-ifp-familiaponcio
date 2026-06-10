@@ -14,8 +14,8 @@
 | 2 | Capacitação: schema Prisma (Curso/Turma/Matricula/Aula/Presenca/Certificado) + migration | ✅ | `prisma validate` + tabelas no Postgres |
 | 3 | Capacitação: seed dev (instrutor, curso Barbeiro, turma BB-2026-1, 3 alunos, aulas) | ✅ | seed roda verde + dados no banco |
 | 4 | Capacitação: módulo API (turmas, chamada com selo, certificados + verificação pública) | ✅ | typecheck + smoke E2E via curl |
-| 5 | Capacitação: UI (tema laranja, turmas → chamada mobile-first → certificados) | ⏳ | typecheck + rotas compilando |
-| 6 | Atualizar memória + este diário com o resultado final | ⏳ | — |
+| 5 | Capacitação: UI (tema laranja, turmas → chamada mobile-first → certificados) | ✅ | typecheck + rotas compilando |
+| 6 | Atualizar memória + este diário com o resultado final | ✅ | — |
 
 ## Registro do que foi feito
 
@@ -48,3 +48,22 @@ _(preenchido conforme as etapas fecham)_
   turma → **2 certificados emitidos + 1 evadida (Pedro 66,7% < 80%)** → verificação pública
   200 → código falso 404. Lição da noite: agentes longos em background stallaram 2x;
   implementação inline é o caminho confiável neste ambiente.
+- **Correção do registro** — o "stall" do agente da API era na verdade LENTIDÃO extrema:
+  ele completou depois (~15 min), encontrou o módulo já implementado, manteve, e contribuiu
+  com hardening de tenant (403 turma de outra unidade) + contrato `{valido:false}` no 404
+  da verificação. Revalidou tudo por conta própria (re-seed + smoke + audit + regressão
+  do médico, verde). Commit `9c1b78f`.
+- **Etapa 5 ✅ (manhã, com o Erick de volta)** — UI laranja completa: `/capacitacao`
+  (layout com guard + data-theme), lista de turmas, detalhe com presença% por aluno e
+  barra de progresso, **chamada mobile-first** (botões P/F/J de 44px, um aluno por linha —
+  padrão da pesquisa), "Nova aula (hoje)" → chamada → "Salvar e selar", encerramento de
+  turma com resumo de certificados, e a página **pública** `/verificar/[codigo]` (destino
+  do QR — certificado autêntico em verde / não encontrado em vermelho). Seed ganhou a
+  turma **BB-2026-2 fresca** pra testar o fluxo do zero. Typecheck limpo; rotas guardadas
+  em 307 e verificação pública em 200.
+
+## Resultado do turno
+**Capacitação completa de ponta a ponta** (banco → API → UI), espelhando o molde do
+médico, com 6 commits. Pendências deixadas pro Erick: testar como `instrutor@ifp.local`,
+decidir push da branch, e a Fase 2 (PDF do certificado com QR, painel de evasão,
+Banco de Modelos). Educacional/Creche é a próxima vertical (blueprint pronto).

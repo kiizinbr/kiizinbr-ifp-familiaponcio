@@ -345,3 +345,106 @@ export interface Prancha {
   membro?: Membro | null;
   atendimento?: Atendimento | null;
 }
+
+// ============================================================
+// Capacitação (Fase 3 — turmas, chamada e certificado verificável)
+// ============================================================
+
+export type StatusTurma = "INSCRICOES_ABERTAS" | "EM_ANDAMENTO" | "ENCERRADA";
+export type StatusMatricula = "ATIVA" | "LISTA_ESPERA" | "TRANCADA" | "EVADIDA" | "CONCLUIDA";
+export type StatusPresenca = "PRESENTE" | "FALTA" | "JUSTIFICADA";
+
+export const STATUS_TURMA_LABEL: Record<StatusTurma, string> = {
+  INSCRICOES_ABERTAS: "Inscrições abertas",
+  EM_ANDAMENTO: "Em andamento",
+  ENCERRADA: "Encerrada",
+};
+
+export const STATUS_MATRICULA_LABEL: Record<StatusMatricula, string> = {
+  ATIVA: "Ativa",
+  LISTA_ESPERA: "Lista de espera",
+  TRANCADA: "Trancada",
+  EVADIDA: "Evadida",
+  CONCLUIDA: "Concluída",
+};
+
+export const STATUS_PRESENCA_LABEL: Record<StatusPresenca, string> = {
+  PRESENTE: "Presente",
+  FALTA: "Falta",
+  JUSTIFICADA: "Justificada",
+};
+
+export interface Curso {
+  id: string;
+  nome: string;
+  cargaHorariaTotal: number;
+  presencaMinimaPct: number;
+}
+
+export interface AulaInfo {
+  id: string;
+  data: string;
+  conteudo?: string | null;
+  encerradaEm?: string | null;
+}
+
+export interface CertificadoInfo {
+  id: string;
+  codigoVerificacao: string;
+  cargaHorariaCumprida: number;
+  presencaPct: string; // Decimal vem como string
+  emitidoEm: string;
+}
+
+export interface TurmaResumo {
+  id: string;
+  codigo: string;
+  diasHorario: string;
+  sala?: string | null;
+  inicioEm: string;
+  status: StatusTurma;
+  vagasTotais: number;
+  curso: Curso;
+  _count: { matriculas: number; aulas: number };
+}
+
+export interface MatriculaTurma {
+  id: string;
+  status: StatusMatricula;
+  presencaPct: number;
+  ficha: { id: string; protocolo: string; nomeCompleto: string };
+  membro?: { id: string; nomeCompleto: string } | null;
+  certificado?: CertificadoInfo | null;
+}
+
+export interface TurmaDetalhe {
+  id: string;
+  codigo: string;
+  diasHorario: string;
+  sala?: string | null;
+  inicioEm: string;
+  status: StatusTurma;
+  vagasTotais: number;
+  curso: Curso;
+  instrutor: { user: { nome: string } };
+  aulas: AulaInfo[];
+  aulasEncerradas: number;
+  matriculas: MatriculaTurma[];
+}
+
+export interface ResumoEncerramentoTurma {
+  certificadosEmitidos: number;
+  evadidas: number;
+  codigos: string[];
+}
+
+/** Resposta pública da verificação de certificado (QR). */
+export interface VerificacaoCertificado {
+  valido: boolean;
+  aluno?: string;
+  curso?: string;
+  turma?: string;
+  cargaHorariaCumprida?: number;
+  presencaPct?: number;
+  emitidoEm?: string;
+}

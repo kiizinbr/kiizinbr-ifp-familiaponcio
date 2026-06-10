@@ -406,6 +406,42 @@ async function seedCapacitacao() {
     }
   }
   console.log("  ✓ 2 aulas com chamada (1 falta na aula 2)");
+
+  // 5) Turma 2 FRESCA (sem aulas) — pra testar o fluxo de chamada do zero na UI
+  const inicioTurma2 = new Date();
+  inicioTurma2.setDate(inicioTurma2.getDate() - 7);
+  const turma2 = await prisma.turma.upsert({
+    where: { codigo: "BB-2026-2" },
+    update: {},
+    create: {
+      unidadeId: unidadeCap.id,
+      cursoId: curso.id,
+      codigo: "BB-2026-2",
+      profissionalId: instrutor.id,
+      diasHorario: "Ter/Qui 9h-12h",
+      sala: "Sala 1",
+      inicioEm: inicioTurma2,
+      vagasTotais: 12,
+      status: StatusTurma.EM_ANDAMENTO,
+    },
+  });
+  for (const ficha of fichas) {
+    const ja = await prisma.matricula.findFirst({
+      where: { turmaId: turma2.id, fichaId: ficha.id, membroId: null },
+    });
+    if (!ja) {
+      await prisma.matricula.create({
+        data: {
+          unidadeId: unidadeCap.id,
+          turmaId: turma2.id,
+          fichaId: ficha.id,
+          status: StatusMatricula.ATIVA,
+          criadoPor: instrutorUser.id,
+        },
+      });
+    }
+  }
+  console.log("  ✓ Turma BB-2026-2 fresca (3 matrículas, sem aulas)");
 }
 
 main()
