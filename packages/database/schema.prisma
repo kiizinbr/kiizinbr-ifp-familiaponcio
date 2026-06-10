@@ -52,6 +52,11 @@ model Unidade {
   profissionais  Profissional[]
   agendamentos   Agendamento[]
   atendimentos   Atendimento[]
+  cursos         Curso[]
+  turmas         Turma[]
+  matriculas     Matricula[]
+  aulas          Aula[]
+  certificados   Certificado[]
 
   @@map("unidades")
 }
@@ -194,6 +199,7 @@ model FichaCidada {
   atendimentos    Atendimento[]
   alergias        Alergia[]
   condicoesCronicas CondicaoCronica[]
+  matriculas      Matricula[]
 
   @@map("fichas_cidadas")
 }
@@ -232,6 +238,7 @@ model MembroFamiliar {
   atendimentos      Atendimento[]
   alergias          Alergia[]
   condicoesCronicas CondicaoCronica[]
+  matriculas        Matricula[]
 
   @@map("membros_familiares")
 }
@@ -414,7 +421,7 @@ model Profissional {
   id               String   @id @default(cuid())
   userId           String   @unique
   unidadeId        String
-  registroConselho String                 // CRM/COREN
+  registroConselho String?                // CRM/COREN — opcional: instrutor não tem conselho
   ufConselho       String   @default("RJ")
   especialidade    String?
   ativo            Boolean  @default(true)
@@ -425,6 +432,8 @@ model Profissional {
   unidade      Unidade       @relation(fields: [unidadeId], references: [id])
   agendamentos Agendamento[]
   atendimentos Atendimento[]
+  turmas       Turma[]
+  aulas        Aula[]
 
   @@map("profissionais")
 }
@@ -546,11 +555,164 @@ model CondicaoCronica {
 }
 
 // ============================================================
+// Centro de Capacitação (Fase 3)
+// ============================================================
+// - Vertical "da matrícula ao certificado verificável".
+// - Matricula referencia FichaCidada (titular) e opcionalmente
+//   MembroFamiliar (dependente matriculado).
+// - Certificado tem codigoVerificacao único para validação pública.
+
+enum ModalidadeCurso {
+  PRATICO
+  TEORICO
+}
+
+enum StatusTurma {
+  INSCRICOES_ABERTAS
+  EM_ANDAMENTO
+  ENCERRADA
+}
+
+enum StatusMatricula {
+  ATIVA
+  LISTA_ESPERA
+  TRANCADA
+  EVADIDA
+  CONCLUIDA
+}
+
+enum StatusPresenca {
+  PRESENTE
+  FALTA
+  JUSTIFICADA
+}
+
+model Curso {
+  id                String          @id @default(cuid())
+  unidadeId         String
+  nome              String
+  modalidade        ModalidadeCurso
+  cargaHorariaTotal Int
+  presencaMinimaPct Int             @default(75)
+  requerModelos     Boolean         @default(false)
+  ativo             Boolean         @default(true)
+  criadoEm          DateTime        @default(now())
+  atualizadoEm      DateTime        @updatedAt
+
+  unidade Unidade @relation(fields: [unidadeId], references: [id])
+  turmas  Turma[]
+
+  @@index([unidadeId])
+  @@map("cursos")
+}
+
+model Turma {
+  id             String      @id @default(cuid())
+  unidadeId      String
+  cursoId        String
+  codigo         String      @unique          // ex.: "BB-2026-1"
+  profissionalId String                       // instrutor responsável
+  diasHorario    String                       // ex.: "Seg/Qua 14h-17h"
+  sala           String?
+  inicioEm       DateTime
+  fimEm          DateTime?
+  vagasTotais    Int
+  status         StatusTurma @default(INSCRICOES_ABERTAS)
+  criadoEm       DateTime    @default(now())
+  atualizadoEm   DateTime    @updatedAt
+
+  unidade    Unidade      @relation(fields: [unidadeId], references: [id])
+  curso      Curso        @relation(fields: [cursoId], references: [id])
+  instrutor  Profissional @relation(fields: [profissionalId], references: [id])
+  matriculas Matricula[]
+  aulas      Aula[]
+
+  @@index([unidadeId, status])
+  @@map("turmas")
+}
+
+model Matricula {
+  id           String          @id @default(cuid())
+  unidadeId    String
+  turmaId      String
+  fichaId      String
+  membroId     String?                        // dependente matriculado
+  status       StatusMatricula @default(ATIVA)
+  posicaoEspera Int?                          // posição na lista de espera
+  criadoPor    String?                        // userId de quem matriculou
+  criadoEm     DateTime        @default(now())
+  atualizadoEm DateTime        @updatedAt
+
+  unidade     Unidade         @relation(fields: [unidadeId], references: [id])
+  turma       Turma           @relation(fields: [turmaId], references: [id])
+  ficha       FichaCidada     @relation(fields: [fichaId], references: [id])
+  membro      MembroFamiliar? @relation(fields: [membroId], references: [id])
+  presencas   Presenca[]
+  certificado Certificado?
+
+  @@unique([turmaId, fichaId, membroId])
+  @@index([unidadeId, status])
+  @@map("matriculas")
+}
+
+model Aula {
+  id             String    @id @default(cuid())
+  unidadeId      String
+  turmaId        String
+  data           DateTime
+  conteudo       String?
+  profissionalId String                       // instrutor que ministrou
+  encerradaEm    DateTime?                    // chamada encerrada ("selo")
+  criadoEm       DateTime  @default(now())
+  atualizadoEm   DateTime  @updatedAt
+
+  unidade   Unidade      @relation(fields: [unidadeId], references: [id])
+  turma     Turma        @relation(fields: [turmaId], references: [id])
+  instrutor Profissional @relation(fields: [profissionalId], references: [id])
+  presencas Presenca[]
+
+  @@index([turmaId, data])
+  @@map("aulas")
+}
+
+model Presenca {
+  id           String         @id @default(cuid())
+  aulaId       String
+  matriculaId  String
+  status       StatusPresenca
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  aula      Aula      @relation(fields: [aulaId], references: [id])
+  matricula Matricula @relation(fields: [matriculaId], references: [id])
+
+  @@unique([aulaId, matriculaId])
+  @@map("presencas")
+}
+
+model Certificado {
+  id                   String   @id @default(cuid())
+  unidadeId            String
+  matriculaId          String   @unique
+  codigoVerificacao    String   @unique @default(cuid())  // validação pública
+  cargaHorariaCumprida Int
+  presencaPct          Decimal  @db.Decimal(5, 2)
+  emitidoEm            DateTime @default(now())
+  emitidoPor           String?                            // userId de quem emitiu
+
+  unidade   Unidade   @relation(fields: [unidadeId], references: [id])
+  matricula Matricula @relation(fields: [matriculaId], references: [id])
+
+  @@map("certificados")
+}
+
+// ============================================================
 // NOTAS PARA PRÓXIMAS MIGRATIONS
 // ============================================================
 // - Centro Médico fase 2: Prescrição estruturada, Atestado, ExameAnexado,
 //   adendos pós-selo (imutabilidade médico-legal), fluxo de enfermagem.
-// - Capacitação: Curso, Turma, Matricula, AulaPlano, Presenca, Certificado.
+// - Capacitação fase 2: AulaPlano (planejamento de aulas), lista de espera
+//   automática, PDF do certificado.
 // - Esportivo: Modalidade, Turma, Aluno, Graduacao, AtestadoMedico.
 // - Educacional: Crianca, ResponsavelAutorizado, RotinaDiaria, Comunicado,
 //   FichaSaudeCrianca, CheckInOut.

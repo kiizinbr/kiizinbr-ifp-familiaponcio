@@ -11,8 +11,8 @@
 | # | Etapa | Status | Verificação |
 |---|---|---|---|
 | 1 | Blueprints F3 (Capacitação/Educacional) reconciliados com a pesquisa SaaS da diretoria | ✅ | docs gravados + commit |
-| 2 | Capacitação: schema Prisma (Curso/Turma/Matricula/Aula/Presenca/Certificado) + migration | ⏳ | `prisma validate` + tabelas no Postgres |
-| 3 | Capacitação: seed dev (instrutor, curso Barbeiro, turma BB-2026-1, 3 alunos, aulas) | ⏳ | seed roda verde + dados no banco |
+| 2 | Capacitação: schema Prisma (Curso/Turma/Matricula/Aula/Presenca/Certificado) + migration | ✅ | `prisma validate` + tabelas no Postgres |
+| 3 | Capacitação: seed dev (instrutor, curso Barbeiro, turma BB-2026-1, 3 alunos, aulas) | ✅ | seed roda verde + dados no banco |
 | 4 | Capacitação: módulo API (turmas, chamada com selo, certificados + verificação pública) | ⏳ | typecheck + smoke E2E via curl |
 | 5 | Capacitação: UI (tema laranja, turmas → chamada mobile-first → certificados) | ⏳ | typecheck + rotas compilando |
 | 6 | Atualizar memória + este diário com o resultado final | ⏳ | — |
@@ -34,3 +34,9 @@ _(preenchido conforme as etapas fecham)_
   - Corrigida a premissa errada do workflow (módulo médico existe e virou seção "Gabarito"
     nos dois docs); perfis corrigidos pro RBAC real (GESTOR_UNIDADE/PROFISSIONAL/RESPONSAVEL_FAMILIAR).
   - Recomendação mantida e reforçada: **Capacitação primeiro**.
+- **Etapas 2-3 ✅ (com incidente recuperado)** — o agente de schema/seed TRAVOU (watchdog 600s)
+  depois de escrever o schema e aplicar a migration `20260610035403_capacitacao`, mas antes
+  do seed. Recuperação manual: schema validado (6 modelos + `registroConselho` opcional),
+  `seedCapacitacao()` escrito inline e rodado. Verificações: turmas=1, matriculas=3, aulas=2,
+  presencas=6; typecheck da API (médico) limpo. Login do instrutor: `instrutor@ifp.local`
+  (mesma senha dev da médica). Curso com presença mínima **80%** (ajuste da pesquisa).

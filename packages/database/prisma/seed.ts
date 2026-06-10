@@ -1,10 +1,14 @@
 import { hash } from "bcryptjs";
 import {
   GravidadeAlergia,
+  ModalidadeCurso,
   Perfil,
   PrismaClient,
   StatusAgendamento,
   StatusElegibilidade,
+  StatusMatricula,
+  StatusPresenca,
+  StatusTurma,
   TipoUnidade,
 } from "@prisma/client";
 
@@ -78,6 +82,7 @@ async function main() {
   console.log(`  ✓ Super Admin (${seedEmail})`);
 
   await seedCentroMedico();
+  await seedCapacitacao();
 }
 
 // ============================================================
@@ -243,6 +248,164 @@ async function seedCentroMedico() {
     }
   }
   console.log("  ✓ 3 agendamentos de hoje (09:00, 10:30, 14:00)");
+}
+
+// ============================================================
+// Capacitação (Fase 3) — instrutor, curso, turma BB-2026-1,
+// matrículas e 2 aulas com chamada (vertical do certificado)
+// ============================================================
+async function seedCapacitacao() {
+  const senha = process.env.SEED_MEDICO_PASSWORD; // reusa a senha dev dos profissionais
+  if (!senha) {
+    console.warn("  ! SEED_MEDICO_PASSWORD não definido — pulando seed da Capacitação.");
+    return;
+  }
+
+  const unidadeCap = await prisma.unidade.findUniqueOrThrow({
+    where: { slug: "capacitacao" },
+  });
+
+  // 1) Instrutor (sem registro de conselho — não é profissão regulamentada)
+  const senhaHash = await hash(senha, 12);
+  const instrutorUser = await prisma.user.upsert({
+    where: { email: "instrutor@ifp.local" },
+    update: { senhaHash, ativo: true },
+    create: {
+      email: "instrutor@ifp.local",
+      senhaHash,
+      nome: "Carlos Barbosa",
+      ativo: true,
+    },
+  });
+  await prisma.usuarioPerfil.upsert({
+    where: { userId_perfil: { userId: instrutorUser.id, perfil: Perfil.PROFISSIONAL } },
+    update: {},
+    create: { userId: instrutorUser.id, perfil: Perfil.PROFISSIONAL },
+  });
+  await prisma.usuarioUnidade.upsert({
+    where: { userId_unidadeId: { userId: instrutorUser.id, unidadeId: unidadeCap.id } },
+    update: {},
+    create: { userId: instrutorUser.id, unidadeId: unidadeCap.id },
+  });
+  const instrutor = await prisma.profissional.upsert({
+    where: { userId: instrutorUser.id },
+    update: { ativo: true },
+    create: {
+      userId: instrutorUser.id,
+      unidadeId: unidadeCap.id,
+      especialidade: "Barbeiro",
+    },
+  });
+  console.log("  ✓ Instrutor Carlos Barbosa (instrutor@ifp.local)");
+
+  // 2) Curso + turma piloto (presença mínima 80% — regra CapacitaSUAS da pesquisa)
+  let curso = await prisma.curso.findFirst({
+    where: { unidadeId: unidadeCap.id, nome: "Barbearia Profissional" },
+  });
+  if (!curso) {
+    curso = await prisma.curso.create({
+      data: {
+        unidadeId: unidadeCap.id,
+        nome: "Barbearia Profissional",
+        modalidade: ModalidadeCurso.PRATICO,
+        cargaHorariaTotal: 80,
+        presencaMinimaPct: 80,
+        requerModelos: true,
+      },
+    });
+  }
+  const inicioTurma = new Date();
+  inicioTurma.setDate(inicioTurma.getDate() - 30);
+  const turma = await prisma.turma.upsert({
+    where: { codigo: "BB-2026-1" },
+    update: { status: StatusTurma.EM_ANDAMENTO },
+    create: {
+      unidadeId: unidadeCap.id,
+      cursoId: curso.id,
+      codigo: "BB-2026-1",
+      profissionalId: instrutor.id,
+      diasHorario: "Seg/Qua 14h-17h",
+      sala: "Sala 2",
+      inicioEm: inicioTurma,
+      vagasTotais: 12,
+      status: StatusTurma.EM_ANDAMENTO,
+    },
+  });
+  console.log("  ✓ Curso Barbearia Profissional + turma BB-2026-1");
+
+  // 3) Elegibilidade + matrículas das 3 fichas de exemplo
+  const fichas = await prisma.fichaCidada.findMany({
+    where: { cpf: { in: ["11111111111", "22222222222", "33333333333"] } },
+    orderBy: { cpf: "asc" },
+  });
+  const matriculas = [];
+  for (const ficha of fichas) {
+    await prisma.elegibilidadePorUnidade.upsert({
+      where: { fichaId_unidadeId: { fichaId: ficha.id, unidadeId: unidadeCap.id } },
+      update: { status: StatusElegibilidade.APROVADO },
+      create: {
+        fichaId: ficha.id,
+        unidadeId: unidadeCap.id,
+        status: StatusElegibilidade.APROVADO,
+        motivo: "Seed de desenvolvimento",
+      },
+    });
+    // membroId null não conta no unique composto do Postgres — checa antes de criar
+    let mat = await prisma.matricula.findFirst({
+      where: { turmaId: turma.id, fichaId: ficha.id, membroId: null },
+    });
+    if (!mat) {
+      mat = await prisma.matricula.create({
+        data: {
+          unidadeId: unidadeCap.id,
+          turmaId: turma.id,
+          fichaId: ficha.id,
+          status: StatusMatricula.ATIVA,
+          criadoPor: instrutorUser.id,
+        },
+      });
+    }
+    matriculas.push(mat);
+  }
+  console.log(`  ✓ ${matriculas.length} matrículas ativas na BB-2026-1`);
+
+  // 4) Duas aulas passadas com chamada lançada e selada
+  const aulasDef = [
+    { diasAtras: 7, conteudo: "Fundamentos e biossegurança" },
+    { diasAtras: 3, conteudo: "Corte na prática" },
+  ];
+  for (let i = 0; i < aulasDef.length; i++) {
+    const def = aulasDef[i];
+    const dataAula = new Date();
+    dataAula.setDate(dataAula.getDate() - def.diasAtras);
+    dataAula.setHours(14, 0, 0, 0);
+    let aula = await prisma.aula.findFirst({
+      where: { turmaId: turma.id, data: dataAula },
+    });
+    if (!aula) {
+      aula = await prisma.aula.create({
+        data: {
+          unidadeId: unidadeCap.id,
+          turmaId: turma.id,
+          data: dataAula,
+          conteudo: def.conteudo,
+          profissionalId: instrutor.id,
+          encerradaEm: new Date(dataAula.getTime() + 3 * 3600 * 1000),
+        },
+      });
+    }
+    for (let m = 0; m < matriculas.length; m++) {
+      // aula 2: terceiro aluno faltou (alimenta o painel de evasão)
+      const status =
+        i === 1 && m === 2 ? StatusPresenca.FALTA : StatusPresenca.PRESENTE;
+      await prisma.presenca.upsert({
+        where: { aulaId_matriculaId: { aulaId: aula.id, matriculaId: matriculas[m].id } },
+        update: { status },
+        create: { aulaId: aula.id, matriculaId: matriculas[m].id, status },
+      });
+    }
+  }
+  console.log("  ✓ 2 aulas com chamada (1 falta na aula 2)");
 }
 
 main()
