@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Jost } from "next/font/google";
 import { getServerSession } from "next-auth";
 import "./globals.css";
 import { authOptions } from "@/lib/auth";
 import { Providers } from "./providers";
 
-// Fallback enquanto a fonte Garet oficial não está disponível.
-// Quando o Erick enviar os arquivos .woff2, trocar por next/font/local.
-const inter = Inter({
+// Jost = substituta geométrica da Garet (direção CASA do protótipo Connect).
+// Quando o Erick enviar os .woff2 da Garet oficial, trocar por next/font/local.
+const jost = Jost({
   subsets: ["latin"],
   variable: "--ifp-font-fallback",
   display: "swap",
@@ -34,7 +34,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   return (
-    <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
+    <html lang="pt-BR" className={jost.variable} suppressHydrationWarning>
       <body>
         <Providers session={session}>{children}</Providers>
       </body>

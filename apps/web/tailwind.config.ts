@@ -37,6 +37,15 @@ const config: Config = {
           },
           gray: "var(--ifp-gray)",
           white: "var(--ifp-white)",
+          papel: "var(--ifp-papel)",
+          tinta: "var(--ifp-tinta)",
+          dourado: "var(--ifp-dourado)",
+        },
+        // Trio da unidade ativa (direção CASA) — muda por data-theme
+        unidade: {
+          DEFAULT: "var(--unidade)",
+          escuro: "var(--unidade-escuro)",
+          suave: "var(--unidade-suave)",
         },
         // Aliases semânticos (mudam por data-theme)
         primary: {
@@ -71,6 +80,8 @@ const config: Config = {
         "ifp-sm": "var(--ifp-shadow-sm)",
         "ifp-md": "var(--ifp-shadow-md)",
         "ifp-lg": "var(--ifp-shadow-lg)",
+        casa: "var(--ifp-shadow-casa)",
+        "casa-sm": "var(--ifp-shadow-casa-sm)",
       },
     },
   },
