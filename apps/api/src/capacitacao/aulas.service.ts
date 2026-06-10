@@ -1,10 +1,11 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, StatusTurma } from "@ifp/database";
+import { AcaoAuditoria, Perfil, StatusTurma } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -27,6 +28,19 @@ export class AulasService {
       include: { turma: true, presencas: true },
     });
     if (!aula) throw new NotFoundException("Aula não encontrada");
+    return aula;
+  }
+
+  /** Aula com presenças já lançadas (hidrata a tela de chamada). */
+  async detalhe(user: AuthenticatedUser, aulaId: string) {
+    const profissional = await this.profissionais.resolverPorUser(user);
+    const aula = await this.carregarAula(aulaId);
+    if (
+      !user.perfis.includes(Perfil.SUPER_ADMIN) &&
+      aula.turma.unidadeId !== profissional.unidadeId
+    ) {
+      throw new ForbiddenException("Esta aula pertence a outra unidade.");
+    }
     return aula;
   }
 

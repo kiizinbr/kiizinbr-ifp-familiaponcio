@@ -1,4 +1,14 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { Perfil } from "@ifp/database";
 
@@ -6,6 +16,8 @@ import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decora
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
+import { CriarMatriculaDto } from "./dto/criar-matricula.dto";
+import { CriarTurmaDto } from "./dto/criar-turma.dto";
 import { TurmasService } from "./turmas.service";
 
 @ApiTags("capacitacao")
@@ -20,6 +32,43 @@ export class TurmasController {
   @ApiOperation({ summary: "Turmas da unidade do profissional logado" })
   listar(@CurrentUser() user: AuthenticatedUser) {
     return this.turmas.listar(user);
+  }
+
+  @Get("cursos")
+  @ApiOperation({ summary: "Cursos ativos da unidade (form de nova turma)" })
+  cursos(@CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.cursos(user);
+  }
+
+  @Get("resumo")
+  @ApiOperation({ summary: "KPIs da unidade (dashboard)" })
+  resumo(@CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.resumo(user);
+  }
+
+  @Get("fichas-elegiveis")
+  @ApiOperation({ summary: "Fichas APROVADAS na Capacitação (form de matrícula)" })
+  fichasElegiveis(@Query("q") q: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.fichasElegiveis(user, q);
+  }
+
+  @Post("turmas")
+  @ApiOperation({ summary: "Cria uma turma (instrutor logado vira o responsável)" })
+  criar(@Body() dto: CriarTurmaDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.criar(user, dto);
+  }
+
+  @Post("turmas/:id/matriculas")
+  @ApiOperation({
+    summary: "Matricula um aluno (exige elegibilidade APROVADA; lotada → lista de espera)",
+  })
+  @ApiParam({ name: "id", description: "cuid da turma" })
+  matricular(
+    @Param("id") id: string,
+    @Body() dto: CriarMatriculaDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.turmas.matricular(user, id, dto);
   }
 
   @Get("turmas/:id")

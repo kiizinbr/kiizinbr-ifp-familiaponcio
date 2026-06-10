@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AcaoAuditoria, Prisma, StatusAgendamento } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
+import type { CriarAgendamentoDto } from "./dto/criar-agendamento.dto";
 import { ProfissionaisService } from "./profissionais.service";
 
 const agendaInclude = {
@@ -83,6 +84,88 @@ export class AgendaService {
       entidade: "Atendimento",
       entidadeId: agendamento.atendimento?.id ?? null,
       metadados: { agendamentoId, fichaId: agendamento.fichaId },
+    });
+
+    return agendamento;
+  }
+
+  /** Busca enxuta de pacientes para agendar — só o necessário (privacidade). */
+  async buscarFichas(user: AuthenticatedUser, q?: string) {
+    await this.profissionais.resolverPorUser(user);
+    const termo = q?.trim();
+    if (!termo || termo.length < 2) return { items: [] };
+
+    const digitos = termo.replace(/\D/g, "");
+    const or: Prisma.FichaCidadaWhereInput[] = [
+      { nomeCompleto: { contains: termo, mode: "insensitive" } },
+      { protocolo: { contains: termo.toUpperCase() } },
+    ];
+    if (digitos.length >= 3) or.push({ cpf: { contains: digitos } });
+
+    const items = await this.prisma.fichaCidada.findMany({
+      where: { ativa: true, OR: or },
+      take: 10,
+      orderBy: { nomeCompleto: "asc" },
+      select: {
+        id: true,
+        protocolo: true,
+        nomeCompleto: true,
+        dataNascimento: true,
+        membros: { select: { id: true, nomeCompleto: true, parentesco: true } },
+      },
+    });
+    return { items };
+  }
+
+  /** Agenda um paciente para o profissional logado. */
+  async criarAgendamento(user: AuthenticatedUser, dto: CriarAgendamentoDto) {
+    const profissional = await this.profissionais.resolverPorUser(user);
+
+    const ficha = await this.prisma.fichaCidada.findUnique({
+      where: { id: dto.fichaId },
+      select: { id: true },
+    });
+    if (!ficha) throw new NotFoundException("Ficha do paciente não encontrada");
+
+    if (dto.membroId) {
+      const membro = await this.prisma.membroFamiliar.findFirst({
+        where: { id: dto.membroId, fichaId: dto.fichaId },
+        select: { id: true },
+      });
+      if (!membro) {
+        throw new BadRequestException("O dependente não pertence a esta família.");
+      }
+    }
+
+    const inicio = new Date(dto.inicioEm);
+    const fim = dto.fimEm
+      ? new Date(dto.fimEm)
+      : new Date(inicio.getTime() + 30 * 60 * 1000);
+    if (fim <= inicio) {
+      throw new BadRequestException("O fim do agendamento deve ser depois do início.");
+    }
+
+    const agendamento = await this.prisma.agendamento.create({
+      data: {
+        unidadeId: profissional.unidadeId,
+        fichaId: dto.fichaId,
+        membroId: dto.membroId,
+        profissionalId: profissional.id,
+        inicioEm: inicio,
+        fimEm: fim,
+        status: StatusAgendamento.CONFIRMADO,
+        motivo: dto.motivo,
+        criadoPor: user.id,
+      },
+      include: agendaInclude,
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.CREATE,
+      entidade: "Agendamento",
+      entidadeId: agendamento.id,
+      metadados: { fichaId: dto.fichaId, inicioEm: inicio.toISOString() },
     });
 
     return agendamento;

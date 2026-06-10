@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -26,6 +27,13 @@ import { LancarChamadaDto } from "./dto/lancar-chamada.dto";
 @Controller("capacitacao")
 export class AulasController {
   constructor(private readonly aulas: AulasService) {}
+
+  @Get("aulas/:id")
+  @ApiOperation({ summary: "Aula com presenças lançadas (hidrata a chamada)" })
+  @ApiParam({ name: "id", description: "cuid da aula" })
+  detalhe(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.aulas.detalhe(user, id);
+  }
 
   @Post("turmas/:turmaId/aulas")
   @ApiOperation({ summary: "Cria a aula do dia (instrutor da turma)" })

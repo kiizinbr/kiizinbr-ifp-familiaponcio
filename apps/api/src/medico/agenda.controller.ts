@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { Perfil } from "@ifp/database";
 
@@ -7,6 +7,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
 import { AgendaService } from "./agenda.service";
+import { CriarAgendamentoDto } from "./dto/criar-agendamento.dto";
 import { ListAgendaQuery } from "./dto/list-agenda.query";
 
 @ApiTags("medico")
@@ -33,6 +34,21 @@ export class AgendaController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.agenda.prancha(user, agendamentoId);
+  }
+
+  @Get("fichas")
+  @ApiOperation({ summary: "Busca enxuta de pacientes para agendar (mín. 2 caracteres)" })
+  buscarFichas(@Query("q") q: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.agenda.buscarFichas(user, q);
+  }
+
+  @Post("agendamentos")
+  @ApiOperation({ summary: "Cria um agendamento para o profissional logado" })
+  criarAgendamento(
+    @Body() dto: CriarAgendamentoDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.agenda.criarAgendamento(user, dto);
   }
 
   @Post("agendamentos/:agendamentoId/iniciar")
