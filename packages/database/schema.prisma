@@ -49,6 +49,9 @@ model Unidade {
 
   usuarios       UsuarioUnidade[]
   elegibilidades ElegibilidadePorUnidade[]
+  profissionais  Profissional[]
+  agendamentos   Agendamento[]
+  atendimentos   Atendimento[]
 
   @@map("unidades")
 }
@@ -82,6 +85,7 @@ model User {
   unidades  UsuarioUnidade[]
   fichaCidada FichaCidada? @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
   fichaCidadaId String? @unique
+  profissional  Profissional?
 
   @@map("usuarios")
 }
@@ -186,6 +190,10 @@ model FichaCidada {
   entrevistas     Entrevista[]
   elegibilidades  ElegibilidadePorUnidade[]
   consentimentos  Consentimento[]
+  agendamentos    Agendamento[]
+  atendimentos    Atendimento[]
+  alergias        Alergia[]
+  condicoesCronicas CondicaoCronica[]
 
   @@map("fichas_cidadas")
 }
@@ -219,6 +227,11 @@ model MembroFamiliar {
   observacoes    String?
 
   ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  agendamentos      Agendamento[]
+  atendimentos      Atendimento[]
+  alergias          Alergia[]
+  condicoesCronicas CondicaoCronica[]
 
   @@map("membros_familiares")
 }
@@ -374,10 +387,169 @@ model AuditLog {
 }
 
 // ============================================================
+// Centro Médico (Fase 1 — vertical do atendimento)
+// ============================================================
+// - Autoria clínica usa FK real para Profissional (integridade de prontuário);
+//   campos administrativos (criadoPor, registradosPor) seguem o padrão String.
+// - Atendimento é imutável após encerradoEm ("selo") — bloqueio na aplicação.
+// - Alergia/CondicaoCronica penduram na FichaCidada (histórico do cidadão,
+//   atravessa unidades — mesmo racional da ficha global).
+
+enum StatusAgendamento {
+  AGENDADO
+  CONFIRMADO
+  EM_ATENDIMENTO
+  CONCLUIDO
+  FALTOU
+  CANCELADO
+}
+
+enum GravidadeAlergia {
+  LEVE
+  MODERADA
+  GRAVE
+}
+
+model Profissional {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  unidadeId        String
+  registroConselho String                 // CRM/COREN
+  ufConselho       String   @default("RJ")
+  especialidade    String?
+  ativo            Boolean  @default(true)
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  unidade      Unidade       @relation(fields: [unidadeId], references: [id])
+  agendamentos Agendamento[]
+  atendimentos Atendimento[]
+
+  @@map("profissionais")
+}
+
+model Agendamento {
+  id             String            @id @default(cuid())
+  unidadeId      String                              // tenant obrigatório
+  fichaId        String
+  membroId       String?                             // dependente atendido
+  profissionalId String
+  inicioEm       DateTime
+  fimEm          DateTime
+  status         StatusAgendamento @default(AGENDADO)
+  motivo         String?
+  criadoPor      String?                             // userId de quem agendou
+  criadoEm       DateTime          @default(now())
+  atualizadoEm   DateTime          @updatedAt
+
+  unidade      Unidade         @relation(fields: [unidadeId], references: [id])
+  ficha        FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro       MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  profissional Profissional    @relation(fields: [profissionalId], references: [id])
+  atendimento  Atendimento?
+
+  @@index([unidadeId, inicioEm])
+  @@index([profissionalId, inicioEm])
+  @@map("agendamentos")
+}
+
+model Atendimento {
+  id             String    @id @default(cuid())
+  unidadeId      String
+  fichaId        String
+  membroId       String?
+  profissionalId String
+  agendamentoId  String?   @unique
+  subjetivo      String?                  // S — queixa
+  objetivo       String?                  // O — exame físico (Fase 1: texto)
+  avaliacao      String?                  // A — hipótese diagnóstica
+  plano          String?                  // P — conduta, atestado, retorno
+  cid10          String?
+  iniciadoEm     DateTime  @default(now())
+  encerradoEm    DateTime?                // "selo" — imutável após preenchido
+  criadoEm       DateTime  @default(now())
+  atualizadoEm   DateTime  @updatedAt
+
+  unidade      Unidade         @relation(fields: [unidadeId], references: [id])
+  ficha        FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro       MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  profissional Profissional    @relation(fields: [profissionalId], references: [id])
+  agendamento  Agendamento?    @relation(fields: [agendamentoId], references: [id])
+  vitais       SinaisVitais?
+
+  @@index([fichaId])
+  @@index([unidadeId, iniciadoEm])
+  @@map("atendimentos")
+}
+
+model SinaisVitais {
+  id                     String   @id @default(cuid())
+  unidadeId              String
+  atendimentoId          String   @unique          // 1-1 com o atendimento
+  registradosPor         String                    // userId
+  pressaoSistolica       Int?
+  pressaoDiastolica      Int?
+  frequenciaCardiaca     Int?
+  frequenciaRespiratoria Int?
+  temperaturaC           Decimal? @db.Decimal(4, 1)
+  saturacaoO2            Int?
+  pesoKg                 Decimal? @db.Decimal(5, 2)
+  alturaCm               Decimal? @db.Decimal(5, 1)
+  glicemia               Int?
+  queixaPrincipal        String?
+  registradosEm          DateTime @default(now())
+  atualizadoEm           DateTime @updatedAt
+
+  atendimento Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+
+  @@map("sinais_vitais")
+}
+
+// Histórico clínico do CIDADÃO — pendurado na ficha (atravessa unidades)
+
+model Alergia {
+  id            String            @id @default(cuid())
+  fichaId       String
+  membroId      String?
+  descricao     String                              // ex.: "Dipirona"
+  gravidade     GravidadeAlergia?
+  registradaPor String?                             // userId
+  ativa         Boolean           @default(true)
+  criadoEm      DateTime          @default(now())
+  atualizadoEm  DateTime          @updatedAt
+
+  ficha  FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+
+  @@index([fichaId])
+  @@map("alergias")
+}
+
+model CondicaoCronica {
+  id              String    @id @default(cuid())
+  fichaId         String
+  membroId        String?
+  descricao       String                            // ex.: "Asma"
+  cid10           String?
+  diagnosticadaEm DateTime?
+  observacoes     String?
+  ativa           Boolean   @default(true)
+  criadoEm        DateTime  @default(now())
+  atualizadoEm    DateTime  @updatedAt
+
+  ficha  FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+
+  @@index([fichaId])
+  @@map("condicoes_cronicas")
+}
+
+// ============================================================
 // NOTAS PARA PRÓXIMAS MIGRATIONS
 // ============================================================
-// - Centro Médico: Profissional, Especialidade, Agenda, Consulta, PEP,
-//   Prescrição, Atestado, ExameAnexado (todos com unidadeId).
+// - Centro Médico fase 2: Prescrição estruturada, Atestado, ExameAnexado,
+//   adendos pós-selo (imutabilidade médico-legal), fluxo de enfermagem.
 // - Capacitação: Curso, Turma, Matricula, AulaPlano, Presenca, Certificado.
 // - Esportivo: Modalidade, Turma, Aluno, Graduacao, AtestadoMedico.
 // - Educacional: Crianca, ResponsavelAutorizado, RotinaDiaria, Comunicado,
