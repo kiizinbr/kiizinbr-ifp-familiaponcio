@@ -13,7 +13,8 @@ import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    // .env vive na raiz do monorepo; em dev (turbo) o cwd é apps/api.
+    ConfigModule.forRoot({ isGlobal: true, cache: true, envFilePath: ["../../.env", ".env"] }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     PrismaModule,
     AuditModule,
