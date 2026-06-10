@@ -9,6 +9,6 @@ import { ProfissionaisService } from "./profissionais.service";
 @Module({
   controllers: [AgendaController, AtendimentosController],
   providers: [AgendaService, AtendimentosService, ProfissionaisService],
-  exports: [AtendimentosService],
+  exports: [AtendimentosService, ProfissionaisService],
 })
 export class MedicoModule {}

@@ -13,7 +13,7 @@
 | 1 | Blueprints F3 (Capacitação/Educacional) reconciliados com a pesquisa SaaS da diretoria | ✅ | docs gravados + commit |
 | 2 | Capacitação: schema Prisma (Curso/Turma/Matricula/Aula/Presenca/Certificado) + migration | ✅ | `prisma validate` + tabelas no Postgres |
 | 3 | Capacitação: seed dev (instrutor, curso Barbeiro, turma BB-2026-1, 3 alunos, aulas) | ✅ | seed roda verde + dados no banco |
-| 4 | Capacitação: módulo API (turmas, chamada com selo, certificados + verificação pública) | ⏳ | typecheck + smoke E2E via curl |
+| 4 | Capacitação: módulo API (turmas, chamada com selo, certificados + verificação pública) | ✅ | typecheck + smoke E2E via curl |
 | 5 | Capacitação: UI (tema laranja, turmas → chamada mobile-first → certificados) | ⏳ | typecheck + rotas compilando |
 | 6 | Atualizar memória + este diário com o resultado final | ⏳ | — |
 
@@ -40,3 +40,11 @@ _(preenchido conforme as etapas fecham)_
   `seedCapacitacao()` escrito inline e rodado. Verificações: turmas=1, matriculas=3, aulas=2,
   presencas=6; typecheck da API (médico) limpo. Login do instrutor: `instrutor@ifp.local`
   (mesma senha dev da médica). Curso com presença mínima **80%** (ajuste da pesquisa).
+- **Etapa 4 ✅ (segundo stall, recuperado inline)** — o agente da API também travou, desta vez
+  SEM escrever nada. Módulo implementado manualmente na volta do Erick (~9h): 9 arquivos em
+  `apps/api/src/capacitacao/` (turmas/aulas/verificação pública), reusando ProfissionaisService
+  do módulo médico (agora exportado). Smoke E2E **10/10 verde**: login instrutor → turmas →
+  detalhe com presença% por aluno → aula criada → chamada → selo (409 pós-selo) → encerrar
+  turma → **2 certificados emitidos + 1 evadida (Pedro 66,7% < 80%)** → verificação pública
+  200 → código falso 404. Lição da noite: agentes longos em background stallaram 2x;
+  implementação inline é o caminho confiável neste ambiente.

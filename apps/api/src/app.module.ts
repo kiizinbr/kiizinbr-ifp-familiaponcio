@@ -11,6 +11,7 @@ import { UsersModule } from "./users/users.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
 import { MedicoModule } from "./medico/medico.module";
+import { CapacitacaoModule } from "./capacitacao/capacitacao.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MedicoModule } from "./medico/medico.module";
     TenantsModule,
     FichasCidadasModule,
     MedicoModule,
+    CapacitacaoModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
