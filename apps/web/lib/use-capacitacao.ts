@@ -6,11 +6,21 @@ import { useSession } from "next-auth/react";
 import { useAuthFetch } from "./use-auth-fetch";
 import type {
   AulaInfo,
+  Curso,
+  FichaBuscaItem,
+  MatriculaTurma,
+  ResumoCapacitacao,
   ResumoEncerramentoTurma,
   StatusPresenca,
   TurmaDetalhe,
   TurmaResumo,
 } from "./api";
+
+/** Aula com presenças (hidrata a chamada). */
+export interface AulaComPresencas extends AulaInfo {
+  turmaId: string;
+  presencas: { matriculaId: string; status: StatusPresenca }[];
+}
 
 // ============================================================
 // Payloads (espelham os DTOs do módulo capacitacao no NestJS)
@@ -51,9 +61,97 @@ export function useTurma(turmaId: string | undefined) {
   });
 }
 
+export function useCursos() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "cursos"],
+    queryFn: () => authFetch<{ items: Curso[] }>("/capacitacao/cursos"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useResumoCapacitacao() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "resumo"],
+    queryFn: () => authFetch<ResumoCapacitacao>("/capacitacao/resumo"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useFichasElegiveis(q: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "elegiveis", q],
+    queryFn: () =>
+      authFetch<{ items: FichaBuscaItem[] }>(
+        `/capacitacao/fichas-elegiveis?q=${encodeURIComponent(q)}`,
+      ),
+    enabled: status === "authenticated" && q.trim().length >= 2,
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useAula(aulaId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "aula", aulaId],
+    queryFn: () => authFetch<AulaComPresencas>(`/capacitacao/aulas/${aulaId}`),
+    enabled: status === "authenticated" && !!aulaId,
+  });
+}
+
 // ============================================================
 // Mutations
 // ============================================================
+
+export interface CriarTurmaPayload {
+  cursoId: string;
+  codigo: string;
+  diasHorario: string;
+  sala?: string;
+  inicioEm: string;
+  vagasTotais: number;
+}
+
+export function useCriarTurma() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CriarTurmaPayload) =>
+      authFetch<TurmaResumo>("/capacitacao/turmas", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
+  });
+}
+
+export function useMatricular() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      turmaId,
+      fichaId,
+      membroId,
+    }: {
+      turmaId: string;
+      fichaId: string;
+      membroId?: string;
+    }) =>
+      authFetch<MatriculaTurma>(`/capacitacao/turmas/${turmaId}/matriculas`, {
+        method: "POST",
+        body: JSON.stringify({ fichaId, membroId }),
+      }),
+    onSuccess: (_d, { turmaId }) =>
+      qc.invalidateQueries({ queryKey: ["capacitacao", "turma", turmaId] }),
+  });
+}
 
 export function useCriarAula() {
   const authFetch = useAuthFetch();

@@ -4,13 +4,13 @@
  * Chamada da aula — MOBILE-FIRST (celular do instrutor, padrão da pesquisa
  * de referências): alvos de toque grandes, um aluno por linha, P/F/J.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Save, Stamp } from "lucide-react";
 
 import { STATUS_PRESENCA_LABEL, type StatusPresenca } from "@/lib/api";
-import { useEncerrarAula, useLancarChamada, useTurma } from "@/lib/use-capacitacao";
+import { useAula, useEncerrarAula, useLancarChamada, useTurma } from "@/lib/use-capacitacao";
 import { Alerta, Botao, Spinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +29,19 @@ export default function ChamadaPage() {
 
   const [marcacao, setMarcacao] = useState<Record<string, StatusPresenca>>({});
   const [aviso, setAviso] = useState<string | null>(null);
+
+  // Hidrata com o que já foi salvo (volta na chamada sem perder lançamentos)
+  const { data: aulaSalva } = useAula(aulaId);
+  const hidratada = useRef(false);
+  useEffect(() => {
+    if (!aulaSalva || hidratada.current) return;
+    hidratada.current = true;
+    if (aulaSalva.presencas.length > 0) {
+      const m: Record<string, StatusPresenca> = {};
+      for (const p of aulaSalva.presencas) m[p.matriculaId] = p.status;
+      setMarcacao(m);
+    }
+  }, [aulaSalva]);
 
   if (isLoading) return <main className="mx-auto max-w-lg px-4 py-8"><Spinner /></main>;
   if (isError || !turma) {

@@ -7,19 +7,112 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Award, CalendarPlus, ClipboardCheck, Lock, Stamp } from "lucide-react";
+import {
+  ArrowLeft,
+  Award,
+  CalendarPlus,
+  ClipboardCheck,
+  Lock,
+  Search,
+  Stamp,
+  UserPlus,
+  X,
+} from "lucide-react";
 
 import {
   STATUS_MATRICULA_LABEL,
   STATUS_TURMA_LABEL,
   type ResumoEncerramentoTurma,
 } from "@/lib/api";
-import { useCriarAula, useEncerrarTurma, useTurma } from "@/lib/use-capacitacao";
-import { Alerta, Botao, Spinner } from "@/components/ui";
+import {
+  useCriarAula,
+  useEncerrarTurma,
+  useFichasElegiveis,
+  useMatricular,
+  useTurma,
+} from "@/lib/use-capacitacao";
+import { Alerta, Botao, Campo, Input, Spinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 function dataCurta(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+/** Busca fichas APROVADAS na Capacitação e matricula (regra de ouro no backend). */
+function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () => void }) {
+  const [busca, setBusca] = useState("");
+  const [aviso, setAviso] = useState<string | null>(null);
+  const { data: resultados, isFetching } = useFichasElegiveis(busca);
+  const matricular = useMatricular();
+
+  async function adicionar(fichaId: string, nome: string) {
+    setAviso(null);
+    try {
+      const m = await matricular.mutateAsync({ turmaId, fichaId });
+      setAviso(
+        m.status === "LISTA_ESPERA"
+          ? `${nome} entrou na lista de espera (turma lotada).`
+          : `${nome} matriculado(a)!`,
+      );
+      setBusca("");
+    } catch (e) {
+      setAviso((e as Error).message || "Falha ao matricular.");
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-primary/30 bg-surface p-4 shadow-casa-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Matricular aluno</h3>
+        <button onClick={onFechar} aria-label="Fechar" className="text-muted-foreground hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <Campo
+        label="Família elegível"
+        htmlFor="busca-eleg"
+        dica="Só aparecem famílias APROVADAS pelo Serviço Social para a Capacitação"
+        className="mt-2"
+      >
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="busca-eleg"
+            className="pl-9"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Nome da família (mín. 2 letras)"
+            autoFocus
+          />
+        </div>
+      </Campo>
+      {busca.trim().length >= 2 ? (
+        <ul className="mt-2 divide-y divide-border rounded-md border border-border">
+          {(resultados?.items ?? []).map((f) => (
+            <li key={f.id}>
+              <button
+                type="button"
+                disabled={matricular.isPending}
+                onClick={() => adicionar(f.id, f.nomeCompleto)}
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted disabled:opacity-50"
+              >
+                <span className="font-medium text-foreground">{f.nomeCompleto}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-primary">
+                  <UserPlus className="h-3.5 w-3.5" /> matricular
+                </span>
+              </button>
+            </li>
+          ))}
+          {!isFetching && (resultados?.items ?? []).length === 0 ? (
+            <li className="px-3 py-2 text-sm text-muted-foreground">
+              Nenhuma família elegível encontrada.
+            </li>
+          ) : null}
+        </ul>
+      ) : null}
+      {aviso ? <div className="mt-3"><Alerta tipo={aviso.includes("Falha") || aviso.includes("não") ? "erro" : "info"}>{aviso}</Alerta></div> : null}
+    </div>
+  );
 }
 
 export default function TurmaDetalhePage() {
@@ -31,6 +124,7 @@ export default function TurmaDetalhePage() {
 
   const [resumo, setResumo] = useState<ResumoEncerramentoTurma | null>(null);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
+  const [matricularAberto, setMatricularAberto] = useState(false);
 
   if (isLoading) return <main className="mx-auto max-w-4xl px-6 py-8"><Spinner /></main>;
   if (isError || !turma) {
@@ -109,7 +203,21 @@ export default function TurmaDetalhePage() {
       {erroAcao ? <div className="mt-4"><Alerta>{erroAcao}</Alerta></div> : null}
 
       {/* alunos */}
-      <h2 className="mt-8 font-semibold text-foreground">Alunos ({turma.matriculas.length})</h2>
+      <div className="mt-8 flex items-center justify-between">
+        <h2 className="font-semibold text-foreground">Alunos ({turma.matriculas.length})</h2>
+        {!encerrada && !matricularAberto ? (
+          <button
+            type="button"
+            onClick={() => setMatricularAberto(true)}
+            className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+          >
+            <UserPlus className="h-4 w-4" /> Matricular aluno
+          </button>
+        ) : null}
+      </div>
+      {matricularAberto ? (
+        <MatricularAluno turmaId={turma.id} onFechar={() => setMatricularAberto(false)} />
+      ) : null}
       <ul className="mt-3 space-y-2">
         {turma.matriculas.map((m) => {
           const abaixo = m.presencaPct < minPct;

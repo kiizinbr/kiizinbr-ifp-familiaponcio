@@ -438,6 +438,23 @@ export interface ResumoEncerramentoTurma {
   codigos: string[];
 }
 
+/** Item da busca enxuta de pacientes/famílias (agendar, matricular). */
+export interface FichaBuscaItem {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+  dataNascimento?: string;
+  membros: { id: string; nomeCompleto: string; parentesco: Parentesco }[];
+}
+
+/** KPIs da Capacitação (dashboard). */
+export interface ResumoCapacitacao {
+  turmasEmAndamento: number;
+  alunosAtivos: number;
+  certificadosEmitidos: number;
+  listaEspera: number;
+}
+
 /** Resposta pública da verificação de certificado (QR). */
 export interface VerificacaoCertificado {
   valido: boolean;

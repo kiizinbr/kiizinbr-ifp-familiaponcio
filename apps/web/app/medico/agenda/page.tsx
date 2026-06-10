@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Stethoscope } from "lucide-react";
+import { CalendarPlus, ChevronRight, Search, Stethoscope, X } from "lucide-react";
 
 import { STATUS_AGENDAMENTO_LABEL, type StatusAgendamento } from "@/lib/api";
-import { useAgendaDoDia } from "@/lib/use-medico";
-import { Alerta, Spinner } from "@/components/ui";
+import {
+  useAgendaDoDia,
+  useBuscarFichas,
+  useCriarAgendamento,
+} from "@/lib/use-medico";
+import { Alerta, Botao, Campo, Input, Spinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 const statusEstilo: Record<StatusAgendamento, string> = {
@@ -22,28 +27,159 @@ function hora(iso: string) {
 }
 
 function idade(dataNascimento: string) {
-  const nasc = new Date(dataNascimento);
-  const diff = Date.now() - nasc.getTime();
-  return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+  return Math.floor((Date.now() - new Date(dataNascimento).getTime()) / (365.25 * 24 * 3600 * 1000));
+}
+
+/** Form de novo agendamento: busca paciente → escolhe → data/hora + motivo. */
+function NovoAgendamento({ onFechar }: { onFechar: () => void }) {
+  const [busca, setBusca] = useState("");
+  const [fichaId, setFichaId] = useState<string | null>(null);
+  const [nomeEscolhido, setNomeEscolhido] = useState("");
+  const [quando, setQuando] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  const { data: resultados, isFetching } = useBuscarFichas(busca);
+  const criar = useCriarAgendamento();
+
+  async function salvar() {
+    setErro(null);
+    if (!fichaId || !quando) {
+      setErro("Escolha o paciente e a data/hora.");
+      return;
+    }
+    try {
+      await criar.mutateAsync({
+        fichaId,
+        inicioEm: new Date(quando).toISOString(),
+        motivo: motivo.trim() || undefined,
+      });
+      onFechar();
+    } catch (e) {
+      setErro((e as Error).message || "Falha ao agendar.");
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-lg border border-primary/30 bg-surface p-4 shadow-casa-sm">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-foreground">Novo agendamento</h2>
+        <button onClick={onFechar} aria-label="Fechar" className="text-muted-foreground hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {!fichaId ? (
+        <Campo label="Paciente" htmlFor="busca" dica="Digite nome, CPF ou protocolo (mín. 2 letras)" className="mt-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="busca"
+              className="pl-9"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Ex.: Silva"
+              autoFocus
+            />
+          </div>
+          {busca.trim().length >= 2 ? (
+            <ul className="mt-2 divide-y divide-border rounded-md border border-border">
+              {(resultados?.items ?? []).map((f) => (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFichaId(f.id);
+                      setNomeEscolhido(f.nomeCompleto);
+                    }}
+                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted"
+                  >
+                    <span className="font-medium text-foreground">{f.nomeCompleto}</span>
+                    <span className="text-xs text-muted-foreground">{f.protocolo}</span>
+                  </button>
+                </li>
+              ))}
+              {!isFetching && (resultados?.items ?? []).length === 0 ? (
+                <li className="px-3 py-2 text-sm text-muted-foreground">
+                  Nenhum paciente encontrado.
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
+        </Campo>
+      ) : (
+        <div className="mt-3 space-y-3">
+          <div className="flex items-center justify-between rounded-md bg-primary/10 px-3 py-2 text-sm">
+            <span className="font-medium text-foreground">{nomeEscolhido}</span>
+            <button
+              type="button"
+              onClick={() => { setFichaId(null); setBusca(""); }}
+              className="text-xs text-primary hover:underline"
+            >
+              trocar
+            </button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="Data e hora" htmlFor="quando" obrigatorio>
+              <Input
+                id="quando"
+                type="datetime-local"
+                value={quando}
+                onChange={(e) => setQuando(e.target.value)}
+              />
+            </Campo>
+            <Campo label="Motivo" htmlFor="motivo">
+              <Input
+                id="motivo"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                placeholder="Ex.: consulta de rotina"
+                maxLength={300}
+              />
+            </Campo>
+          </div>
+        </div>
+      )}
+
+      {erro ? <div className="mt-3"><Alerta>{erro}</Alerta></div> : null}
+
+      <div className="mt-4 flex justify-end gap-2">
+        <Botao variante="ghost" onClick={onFechar}>Cancelar</Botao>
+        <Botao onClick={salvar} carregando={criar.isPending} disabled={!fichaId || !quando}>
+          <CalendarPlus className="h-4 w-4" /> Agendar
+        </Botao>
+      </div>
+    </div>
+  );
 }
 
 export default function AgendaPage() {
   const { data, isLoading, isError, error } = useAgendaDoDia();
+  const [novoAberto, setNovoAberto] = useState(false);
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Agenda do dia</h1>
-        {data?.dia ? (
-          <span className="text-sm text-muted-foreground">
-            {new Date(`${data.dia}T12:00:00`).toLocaleDateString("pt-BR", {
-              weekday: "long",
-              day: "2-digit",
-              month: "long",
-            })}
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Agenda do dia</h1>
+          {data?.dia ? (
+            <p className="text-sm text-muted-foreground">
+              {new Date(`${data.dia}T12:00:00`).toLocaleDateString("pt-BR", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+              })}
+            </p>
+          ) : null}
+        </div>
+        {!novoAberto ? (
+          <Botao onClick={() => setNovoAberto(true)}>
+            <CalendarPlus className="h-4 w-4" /> Novo agendamento
+          </Botao>
         ) : null}
       </div>
+
+      {novoAberto ? <NovoAgendamento onFechar={() => setNovoAberto(false)} /> : null}
 
       {isLoading ? <Spinner label="Carregando agenda..." /> : null}
       {isError ? (
