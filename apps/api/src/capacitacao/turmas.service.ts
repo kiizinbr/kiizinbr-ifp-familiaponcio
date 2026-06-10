@@ -1,10 +1,18 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Prisma, StatusMatricula, StatusPresenca, StatusTurma } from "@ifp/database";
+import {
+  AcaoAuditoria,
+  Perfil,
+  Prisma,
+  StatusMatricula,
+  StatusPresenca,
+  StatusTurma,
+} from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -57,12 +65,19 @@ export class TurmasService {
   }
 
   async detalhe(user: AuthenticatedUser, id: string) {
-    await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user);
     const turma = await this.prisma.turma.findUnique({
       where: { id },
       include: turmaDetalheInclude,
     });
     if (!turma) throw new NotFoundException("Turma não encontrada");
+    // Tenant: dados de alunos só para a unidade da turma (SUPER_ADMIN passa).
+    if (
+      !user.perfis.includes(Perfil.SUPER_ADMIN) &&
+      turma.unidadeId !== profissional.unidadeId
+    ) {
+      throw new ForbiddenException("Esta turma pertence a outra unidade.");
+    }
 
     const aulasEncerradas = turma.aulas.filter((a) => a.encerradaEm).length;
     const matriculas = turma.matriculas.map(({ presencas, ...m }) => ({
