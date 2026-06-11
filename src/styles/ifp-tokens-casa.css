@@ -1,0 +1,65 @@
+/* ============================================================================
+   IFP CONNECT · Design Kit — PELE "CASA" (Editorial quente)  [OPT-IN]
+   Port da direção CASA (protótipo IFP-Connect-Novo-Design / branch design)
+   para a main, como CAMADA PARALELA. Não substitui ifp-tokens.css.
+
+   Como funciona
+   - A main dirige o visual por tokens SEMÂNTICOS (--bg/--surface/--text/--accent
+     /--font-ui/--shadow). Os componentes (.card/.btn/.shell) consomem esses
+     tokens. Logo, basta REMAPEAR a camada semântica sob um escopo e a UI inteira
+     re-skina sem tocar componente nenhum.
+   - Escopo: [data-skin="casa"]. Sem esse atributo, a main fica BYTE-A-BYTE igual.
+   - Ativação real entra no Passo 1.3 (flag/atributo no app-shell/layout). Até lá
+     este arquivo é inerte (nem importado).
+
+   Direção CASA: "papel" quente (#FAF7F2), tinta marrom (#752C05), dourado
+   heráldico (#C9962F), tipografia Garet (fallback Jost). É uma direção CLARA
+   (sem variante dark — se houver data-theme=dark + skin=casa, o papel vence).
+
+   Restrição de marca: a paleta canônica --ifp-* (brandbook) NÃO é trocada aqui;
+   só a camada semântica e a tipografia.
+   ============================================================================ */
+
+[data-skin="casa"] {
+  /* --- Tokens crus da direção CASA (referência; usados abaixo) ------------- */
+  --ifp-papel: 250 247 242; /* #FAF7F2 fundo papel quente            */
+  --ifp-tinta: 117 44 5; /* #752C05 tinta — títulos/heráldica        */
+  --ifp-dourado: 201 150 47; /* #C9962F acento heráldico (selos)     */
+
+  /* --- Camada semântica remapeada → quente -------------------------------- */
+  --bg: #faf7f2; /* papel (era cinza-frio #e7eaea)                   */
+  --bg-grid: transparent; /* CASA é papel liso, sem grade técnica    */
+  --surface: #ffffff;
+  --surface-2: #f5efe8;
+  --surface-sunken: #f0e7df;
+  --line: rgba(117, 44, 5, 0.12); /* linhas/bordas quentes           */
+  --line-strong: rgba(117, 44, 5, 0.22);
+  --text: #2a1a0c; /* tinta escura p/ corpo                          */
+  --text-2: #4a4a49;
+  --text-3: #7a6a5c; /* secundário quente (mantém contraste AA)      */
+  --accent: rgb(var(--ifp-tinta)); /* acento de SISTEMA = tinta      */
+  --accent-soft: rgba(117, 44, 5, 0.08);
+  --accent-line: rgba(117, 44, 5, 0.26);
+  --gold: rgb(var(--ifp-dourado)); /* destaque cerimonial (selos)    */
+  --gold-soft: rgba(201, 150, 47, 0.14);
+  --live: rgb(var(--ifp-orange-500)); /* sinal vivo (mantém laranja) */
+  --live-soft: rgba(255, 119, 46, 0.12);
+  --ok: rgb(var(--ifp-teal-700));
+  --ok-soft: rgba(0, 117, 113, 0.1);
+  --shadow: 0 8px 22px -14px rgba(117, 44, 5, 0.45); /* sombra de tinta */
+  --shadow-pop: 0 18px 50px -22px rgba(117, 44, 5, 0.4);
+  --logo-bg: #fff;
+  --logo-ring: rgba(117, 44, 5, 0.12);
+  color-scheme: light;
+
+  /* --- Tipografia editorial -----------------------------------------------
+     Garet é a oficial; Jost é a substituta geométrica (Google). As @font-face
+     entram no Passo 1.2 (self-host, padrão da main). Até lá, cai no fallback. */
+  --font-ui: "Garet", "Jost", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* O sotaque por unidade ([data-unit]/[data-unit-accent]) do ifp-tokens.css
+   continua válido sob a pele CASA: a paleta --u-* é a mesma do brandbook
+   (medico teal, capacitacao laranja, etc.). Quando uma tela usa
+   [data-unit-accent], --accent passa a seguir a unidade — comportamento
+   idêntico ao da main, só que sobre o papel quente. Nada a redefinir aqui. */
