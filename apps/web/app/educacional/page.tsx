@@ -49,7 +49,15 @@ export default function PainelEducacional() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <h1 className="text-xl font-bold text-foreground">Painel do dia</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground">Painel do dia</h1>
+        <Link
+          href="/educacional/comunicados"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/50"
+        >
+          <BellRing className="h-3.5 w-3.5 text-primary" /> Comunicados
+        </Link>
+      </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi
@@ -66,11 +74,15 @@ export default function PainelEducacional() {
       </div>
 
       {(resumo?.criticosSemLeitura ?? 0) > 0 && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-warning/60 bg-warning/10 px-4 py-3 text-sm text-foreground">
+        <Link
+          href="/educacional/comunicados"
+          className="mt-4 flex items-center gap-2 rounded-lg border border-warning/60 bg-warning/10 px-4 py-3 text-sm text-foreground transition hover:border-warning"
+        >
           <BellRing className="h-4 w-4 shrink-0 text-warning" />
           Há comunicado crítico sem confirmação de leitura — considere reforçar pelo
           WhatsApp oficial do IFP.
-        </div>
+          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
       )}
 
       <h2 className="mt-8 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">

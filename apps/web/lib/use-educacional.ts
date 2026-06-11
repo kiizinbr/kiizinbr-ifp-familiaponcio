@@ -317,6 +317,119 @@ export function useFecharDiario() {
 }
 
 // ============================================================
+// Gestão (gestora/admin): comunicados, autorizados, imagem
+// ============================================================
+
+/** Comunicado no console da equipe (lista da unidade com nº de leituras). */
+export interface ComunicadoUnidade {
+  id: string;
+  titulo: string;
+  corpo: string;
+  critico: boolean;
+  turmaId: string | null;
+  criadoEm: string;
+  _count: { leituras: number };
+}
+
+export function useComunicadosUnidade() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["educacional", "comunicados"],
+    queryFn: () =>
+      authFetch<{ items: ComunicadoUnidade[] }>("/educacional/comunicados"),
+    enabled: status === "authenticated",
+  });
+}
+
+export interface CriarComunicadoPayload {
+  titulo: string;
+  corpo: string;
+  critico?: boolean;
+  turmaId?: string;
+}
+
+export function useCriarComunicado() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CriarComunicadoPayload) =>
+      authFetch<ComunicadoUnidade>("/educacional/comunicados", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["educacional", "comunicados"] });
+      qc.invalidateQueries({ queryKey: ["educacional", "resumo"] });
+    },
+  });
+}
+
+export interface CriarAutorizadoPayload {
+  membroId: string;
+  nome: string;
+  documento: string;
+  parentesco: string;
+  vigenteAte?: string;
+  restricaoJudicial?: boolean;
+}
+
+export function useCriarAutorizado() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ membroId, ...payload }: CriarAutorizadoPayload) =>
+      authFetch<AutorizadoItem>(`/educacional/criancas/${membroId}/autorizados`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: (_d, { membroId }) => {
+      qc.invalidateQueries({ queryKey: ["educacional", "crianca", membroId] });
+      qc.invalidateQueries({ queryKey: ["educacional", "autorizados", membroId] });
+    },
+  });
+}
+
+export function useRevogarAutorizado() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    // Rota aninhada no controller de crianças: /educacional/criancas/autorizados/:id/revogar
+    mutationFn: ({ id }: { id: string; membroId: string }) =>
+      authFetch<AutorizadoItem>(`/educacional/criancas/autorizados/${id}/revogar`, {
+        method: "PATCH",
+      }),
+    onSuccess: (_d, { membroId }) => {
+      qc.invalidateQueries({ queryKey: ["educacional", "crianca", membroId] });
+      qc.invalidateQueries({ queryKey: ["educacional", "autorizados", membroId] });
+    },
+  });
+}
+
+export function useAtualizarAutorizacaoImagem() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      membroId,
+      escopo,
+      concedido,
+    }: {
+      membroId: string;
+      escopo: EscopoImagem;
+      concedido: boolean;
+    }) =>
+      authFetch(`/educacional/criancas/${membroId}/autorizacoes-imagem/${escopo}`, {
+        method: "PATCH",
+        body: JSON.stringify({ concedido }),
+      }),
+    onSuccess: (_d, { membroId }) => {
+      qc.invalidateQueries({ queryKey: ["educacional", "crianca", membroId] });
+    },
+  });
+}
+
+// ============================================================
 // Portal da família
 // ============================================================
 

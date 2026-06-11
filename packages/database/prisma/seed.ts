@@ -500,6 +500,40 @@ async function seedEducacional() {
   });
   console.log("  ✓ Educadora Prof. Carla (educadora@ifp.local)");
 
+  // 1b) Gestora da unidade — publica comunicados e gerencia autorizados/imagem.
+  // resolverPorUser exige Profissional ATIVO na unidade mesmo p/ gestão, então
+  // a gestora também ganha cadastro de Profissional (lotação administrativa).
+  const gestoraUser = await prisma.user.upsert({
+    where: { email: "gestora@ifp.local" },
+    update: { senhaHash, ativo: true },
+    create: {
+      email: "gestora@ifp.local",
+      senhaHash,
+      nome: "Helena Duarte",
+      ativo: true,
+    },
+  });
+  await prisma.usuarioPerfil.upsert({
+    where: { userId_perfil: { userId: gestoraUser.id, perfil: Perfil.GESTOR_UNIDADE } },
+    update: {},
+    create: { userId: gestoraUser.id, perfil: Perfil.GESTOR_UNIDADE },
+  });
+  await prisma.usuarioUnidade.upsert({
+    where: { userId_unidadeId: { userId: gestoraUser.id, unidadeId: unidadeEdu.id } },
+    update: {},
+    create: { userId: gestoraUser.id, unidadeId: unidadeEdu.id },
+  });
+  await prisma.profissional.upsert({
+    where: { userId: gestoraUser.id },
+    update: { ativo: true },
+    create: {
+      userId: gestoraUser.id,
+      unidadeId: unidadeEdu.id,
+      especialidade: "Gestão Escolar",
+    },
+  });
+  console.log("  ✓ Gestora Helena (gestora@ifp.local)");
+
   // 2) Família: Sandra (titular, com login de responsável) + Ana (5 anos)
   const sandra = await prisma.fichaCidada.upsert({
     where: { cpf: "44444444444" },
