@@ -12,6 +12,7 @@ import { TenantsModule } from "./tenants/tenants.module";
 import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
 import { MedicoModule } from "./medico/medico.module";
 import { CapacitacaoModule } from "./capacitacao/capacitacao.module";
+import { EducacionalModule } from "./educacional/educacional.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CapacitacaoModule } from "./capacitacao/capacitacao.module";
     FichasCidadasModule,
     MedicoModule,
     CapacitacaoModule,
+    EducacionalModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
