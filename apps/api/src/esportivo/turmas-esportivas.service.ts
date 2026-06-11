@@ -25,6 +25,7 @@ import { ProfissionaisService } from "../medico/profissionais.service";
 const turmaEsportivaDetalheInclude = {
   modalidade: true,
   instrutor: { include: { user: { select: { nome: true } } } },
+  treinos: { orderBy: { data: "asc" as const } },
   matriculas: {
     include: {
       ficha: { select: { id: true, protocolo: true, nomeCompleto: true } },

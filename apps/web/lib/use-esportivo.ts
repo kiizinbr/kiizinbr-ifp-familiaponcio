@@ -54,9 +54,22 @@ export interface MatriculaEsportivaItem {
   graduacoes: GraduacaoItem[];
 }
 
+export interface TreinoItem {
+  id: string;
+  data: string;
+  conteudo: string | null;
+  encerradoEm: string | null;
+}
+
+export interface PresencaTreinoItem {
+  matriculaId: string;
+  status: "PRESENTE" | "FALTA" | "JUSTIFICADA";
+}
+
 export interface TurmaEsportivaDetalhe extends Omit<TurmaEsportivaResumo, "_count"> {
   instrutor: { user: { nome: string } };
   matriculas: MatriculaEsportivaItem[];
+  treinos: TreinoItem[];
 }
 
 export interface FichaElegivelEsportivo {
@@ -190,6 +203,67 @@ export function useGraduar() {
       authFetch<GraduacaoItem>(`/esportivo/matriculas/${matriculaId}/graduacoes`, {
         method: "POST",
         body: JSON.stringify({ nivel, ...(observacao ? { observacao } : {}) }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}
+
+export function useTreino(id: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "treino", id],
+    queryFn: () =>
+      authFetch<TreinoItem & { presencas: PresencaTreinoItem[] }>(
+        `/esportivo/treinos/${id}`,
+      ),
+    enabled: status === "authenticated" && !!id,
+  });
+}
+
+export function useCriarTreino() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      turmaId,
+      data,
+      conteudo,
+    }: {
+      turmaId: string;
+      data: string;
+      conteudo?: string;
+    }) =>
+      authFetch<TreinoItem>(`/esportivo/turmas/${turmaId}/treinos`, {
+        method: "POST",
+        body: JSON.stringify({ data, ...(conteudo ? { conteudo } : {}) }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}
+
+export function useLancarChamadaTreino() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ treinoId, itens }: { treinoId: string; itens: PresencaTreinoItem[] }) =>
+      authFetch(`/esportivo/treinos/${treinoId}/chamada`, {
+        method: "PUT",
+        body: JSON.stringify({ itens }),
+      }),
+    onSuccess: (_d, { treinoId }) => {
+      qc.invalidateQueries({ queryKey: ["esportivo", "treino", treinoId] });
+    },
+  });
+}
+
+export function useEncerrarTreino() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (treinoId: string) =>
+      authFetch<TreinoItem>(`/esportivo/treinos/${treinoId}/encerrar`, {
+        method: "POST",
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
   });

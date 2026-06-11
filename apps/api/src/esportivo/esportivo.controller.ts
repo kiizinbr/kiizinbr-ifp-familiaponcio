@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -18,8 +19,11 @@ import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
 import { ConcederGraduacaoDto } from "./dto/conceder-graduacao.dto";
 import { CriarMatriculaEsportivaDto } from "./dto/criar-matricula-esportiva.dto";
+import { CriarTreinoDto } from "./dto/criar-treino.dto";
 import { CriarTurmaEsportivaDto } from "./dto/criar-turma-esportiva.dto";
+import { LancarChamadaTreinoDto } from "./dto/lancar-chamada-treino.dto";
 import { GraduacoesService } from "./graduacoes.service";
+import { TreinosService } from "./treinos.service";
 import { TurmasEsportivasService } from "./turmas-esportivas.service";
 
 @ApiTags("esportivo")
@@ -31,6 +35,7 @@ export class EsportivoController {
   constructor(
     private readonly turmas: TurmasEsportivasService,
     private readonly graduacoes: GraduacoesService,
+    private readonly treinos: TreinosService,
   ) {}
 
   @Get("turmas")
@@ -91,6 +96,43 @@ export class EsportivoController {
   @HttpCode(HttpStatus.OK)
   encerrar(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.turmas.encerrar(user, id);
+  }
+
+  @Post("turmas/:id/treinos")
+  @ApiOperation({ summary: "Registra um treino (instrutor logado conduz)" })
+  @ApiParam({ name: "id", description: "cuid da turma esportiva" })
+  criarTreino(
+    @Param("id") id: string,
+    @Body() dto: CriarTreinoDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.treinos.criar(user, id, dto);
+  }
+
+  @Get("treinos/:id")
+  @ApiOperation({ summary: "Treino com presenças (hidrata a tela de chamada)" })
+  @ApiParam({ name: "id", description: "cuid do treino" })
+  treinoDetalhe(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.treinos.detalhe(user, id);
+  }
+
+  @Put("treinos/:id/chamada")
+  @ApiOperation({ summary: "Lança a chamada em lote (idempotente; 409 após o selo)" })
+  @ApiParam({ name: "id", description: "cuid do treino" })
+  lancarChamada(
+    @Param("id") id: string,
+    @Body() dto: LancarChamadaTreinoDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.treinos.lancarChamada(user, id, dto);
+  }
+
+  @Post("treinos/:id/encerrar")
+  @ApiOperation({ summary: "Sela o treino — chamada vira imutável" })
+  @ApiParam({ name: "id", description: "cuid do treino" })
+  @HttpCode(HttpStatus.OK)
+  encerrarTreino(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.treinos.encerrar(user, id);
   }
 
   @Post("matriculas/:id/graduacoes")

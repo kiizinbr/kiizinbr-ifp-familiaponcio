@@ -66,6 +66,7 @@ model Unidade {
   turmasEsportivas     TurmaEsportiva[]
   matriculasEsportivas MatriculaEsportiva[]
   graduacoes           Graduacao[]
+  treinosEsportivos    TreinoEsportivo[]
 
   @@map("unidades")
 }
@@ -459,6 +460,7 @@ model Profissional {
   diariosFechados   DiarioDia[]
   registrosRotina   RegistroRotina[]
   turmasEsportivas  TurmaEsportiva[]
+  treinosEsportivos TreinoEsportivo[]
 
   @@map("profissionais")
 }
@@ -987,6 +989,7 @@ model TurmaEsportiva {
   modalidade Modalidade           @relation(fields: [modalidadeId], references: [id])
   instrutor  Profissional         @relation(fields: [profissionalId], references: [id])
   matriculas MatriculaEsportiva[]
+  treinos    TreinoEsportivo[]
 
   @@index([unidadeId, status])
   @@map("turmas_esportivas")
@@ -1009,6 +1012,7 @@ model MatriculaEsportiva {
   ficha      FichaCidada     @relation(fields: [fichaId], references: [id])
   membro     MembroFamiliar? @relation(fields: [membroId], references: [id])
   graduacoes Graduacao[]
+  presencasTreino PresencaTreino[]
 
   @@unique([turmaId, fichaId, membroId])
   @@index([unidadeId, status])
@@ -1030,4 +1034,39 @@ model Graduacao {
 
   @@unique([matriculaId, nivel]) // mesmo nível não é concedido duas vezes
   @@map("graduacoes")
+}
+
+model TreinoEsportivo {
+  id             String    @id @default(cuid())
+  unidadeId      String
+  turmaId        String
+  data           DateTime
+  conteudo       String?
+  profissionalId String // instrutor que conduziu
+  encerradoEm    DateTime? // chamada encerrada ("selo" — imutável depois)
+  criadoEm       DateTime  @default(now())
+  atualizadoEm   DateTime  @updatedAt
+
+  unidade   Unidade          @relation(fields: [unidadeId], references: [id])
+  turma     TurmaEsportiva   @relation(fields: [turmaId], references: [id])
+  instrutor Profissional     @relation(fields: [profissionalId], references: [id])
+  presencas PresencaTreino[]
+
+  @@index([turmaId, data])
+  @@map("treinos_esportivos")
+}
+
+model PresencaTreino {
+  id           String         @id @default(cuid())
+  treinoId     String
+  matriculaId  String
+  status       StatusPresenca
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  treino    TreinoEsportivo    @relation(fields: [treinoId], references: [id])
+  matricula MatriculaEsportiva @relation(fields: [matriculaId], references: [id])
+
+  @@unique([treinoId, matriculaId])
+  @@map("presencas_treino")
 }

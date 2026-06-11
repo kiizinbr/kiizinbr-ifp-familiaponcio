@@ -148,6 +148,40 @@ console.log(
 const verificaFake = await req(null, "GET", "/esportivo/graduacoes/verificar/codigo-falso");
 caso("código falso", 404, verificaFake.status);
 
+console.log("--- TREINO + CHAMADA SELADA ---");
+const treino = await req(sensei, "POST", `/esportivo/turmas/${turma.json.id}/treinos`, {
+  data: new Date().toISOString(),
+  conteudo: "Ukemi e randori leve",
+});
+caso("sensei -> registra treino", 201, treino.status);
+
+const chamada = await req(sensei, "PUT", `/esportivo/treinos/${treino.json?.id}/chamada`, {
+  itens: [{ matriculaId: m1.json.id, status: "PRESENTE" }],
+});
+caso("lança chamada", 200, chamada.status);
+
+const chamadaInvalida = await req(
+  sensei,
+  "PUT",
+  `/esportivo/treinos/${treino.json?.id}/chamada`,
+  { itens: [{ matriculaId: "matricula-de-outra-turma", status: "FALTA" }] },
+);
+caso("chamada com matrícula alheia", 400, chamadaInvalida.status);
+
+const selo = await req(sensei, "POST", `/esportivo/treinos/${treino.json?.id}/encerrar`);
+caso("sela o treino", 200, selo.status);
+
+const chamadaPosSelo = await req(
+  sensei,
+  "PUT",
+  `/esportivo/treinos/${treino.json?.id}/chamada`,
+  { itens: [{ matriculaId: m1.json.id, status: "FALTA" }] },
+);
+caso("chamada após o selo (imutável)", 409, chamadaPosSelo.status);
+
+const selo2 = await req(sensei, "POST", `/esportivo/treinos/${treino.json?.id}/encerrar`);
+caso("selar 2x", 409, selo2.status);
+
 console.log("--- RBAC CRUZADO ---");
 const medicoNega = await req(medico, "GET", "/esportivo/turmas");
 caso("médico -> esportivo (parede de tenant)", 403, medicoNega.status);

@@ -7,11 +7,22 @@
  */
 import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { ArrowLeft, Medal, Search, Stamp, Trophy, UserPlus, X } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  CalendarPlus,
+  Lock,
+  Medal,
+  Search,
+  Stamp,
+  Trophy,
+  UserPlus,
+  X,
+} from "lucide-react";
 
 import { STATUS_MATRICULA_LABEL, STATUS_TURMA_LABEL } from "@/lib/api";
 import {
+  useCriarTreino,
   useEncerrarTurmaEsportiva,
   useFichasElegiveisEsportivo,
   useGraduar,
@@ -173,8 +184,10 @@ function GraduarAtleta({
 
 export default function TurmaEsportivaDetalhePage() {
   const { turmaId } = useParams<{ turmaId: string }>();
+  const router = useRouter();
   const { data: turma, isLoading, isError, error } = useTurmaEsportiva(turmaId);
   const encerrarTurma = useEncerrarTurmaEsportiva();
+  const criarTreino = useCriarTreino();
 
   const [matricularAberto, setMatricularAberto] = useState(false);
   const [graduandoId, setGraduandoId] = useState<string | null>(null);
@@ -200,6 +213,19 @@ export default function TurmaEsportivaDetalhePage() {
 
   const encerrada = turma.status === "ENCERRADA";
   const trilha = turma.modalidade.trilhaGraduacoes;
+
+  async function novoTreino() {
+    setErroAcao(null);
+    try {
+      const treino = await criarTreino.mutateAsync({
+        turmaId: turma!.id,
+        data: new Date().toISOString(),
+      });
+      router.push(`/esportivo/turmas/${turma!.id}/treinos/${treino.id}`);
+    } catch (e) {
+      setErroAcao((e as Error).message || "Falha ao registrar treino.");
+    }
+  }
 
   async function encerrar() {
     setErroAcao(null);
@@ -348,6 +374,44 @@ export default function TurmaEsportivaDetalhePage() {
         ) : null}
       </ul>
 
+      {/* treinos */}
+      <h2 className="mt-8 font-semibold text-foreground">Treinos ({turma.treinos.length})</h2>
+      <ul className="mt-3 space-y-2">
+        {turma.treinos.map((t) => (
+          <li
+            key={t.id}
+            className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3"
+          >
+            <span className="w-12 text-sm font-semibold text-primary">
+              {new Date(t.data).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+              })}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+              {t.conteudo ?? "Sem conteúdo registrado"}
+            </span>
+            {t.encerradoEm ? (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Lock className="h-3 w-3" /> selado
+              </span>
+            ) : (
+              <Link
+                href={`/esportivo/turmas/${turma.id}/treinos/${t.id}`}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                Fazer chamada →
+              </Link>
+            )}
+          </li>
+        ))}
+        {turma.treinos.length === 0 ? (
+          <li className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+            Nenhum treino ainda.
+          </li>
+        ) : null}
+      </ul>
+
       {/* ações */}
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
         <Link
@@ -357,9 +421,14 @@ export default function TurmaEsportivaDetalhePage() {
           <ArrowLeft className="h-4 w-4" /> Painel
         </Link>
         {!encerrada ? (
-          <Botao onClick={encerrar} carregando={encerrarTurma.isPending}>
-            <Stamp className="h-4 w-4" /> Encerrar turma
-          </Botao>
+          <div className="flex gap-2">
+            <Botao variante="outline" onClick={novoTreino} carregando={criarTreino.isPending}>
+              <CalendarPlus className="h-4 w-4" /> Novo treino (hoje)
+            </Botao>
+            <Botao onClick={encerrar} carregando={encerrarTurma.isPending}>
+              <Stamp className="h-4 w-4" /> Encerrar turma
+            </Botao>
+          </div>
         ) : null}
       </div>
     </main>
