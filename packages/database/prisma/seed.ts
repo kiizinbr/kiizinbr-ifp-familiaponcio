@@ -89,6 +89,7 @@ async function main() {
   await seedCentroMedico();
   await seedCapacitacao();
   await seedEducacional();
+  await seedEsportivo();
 }
 
 // ============================================================
@@ -467,6 +468,22 @@ async function seedEducacional() {
     where: { slug: "educacional" },
   });
 
+  // 0) Limpa o estado DE HOJE (checks + diário): a regressão valida-educacional
+  // faz check-in/out e sela o diário do dia — sem esta limpeza ela só fica
+  // verde na primeira execução do dia (re-rodar = falsas falhas de 409).
+  // Meia-noite UTC: DiarioDia.data é @db.Date (00:00Z) — corte em meia-noite
+  // LOCAL (UTC-3) passaria 3h depois e não apagaria o dia corrente.
+  const hoje = new Date(new Date().toISOString().slice(0, 10));
+  await prisma.registroRotina.deleteMany({
+    where: { diario: { unidadeId: unidadeEdu.id, data: { gte: hoje } } },
+  });
+  await prisma.diarioDia.deleteMany({
+    where: { unidadeId: unidadeEdu.id, data: { gte: hoje } },
+  });
+  await prisma.checkInOut.deleteMany({
+    where: { unidadeId: unidadeEdu.id, ocorridoEm: { gte: hoje } },
+  });
+
   // 1) Educadora (PROFISSIONAL lotada na unidade educacional — sem conselho)
   const senhaHash = await hash(senha, 12);
   const educadoraUser = await prisma.user.upsert({
@@ -814,3 +831,91 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+// ============================================================
+// Esportivo (Fase 3) — molde: trio da Capacitação
+// ============================================================
+async function seedEsportivo() {
+  const senha = process.env.SEED_MEDICO_PASSWORD; // reusa a senha dev dos profissionais
+  if (!senha) {
+    console.warn("  ! SEED_MEDICO_PASSWORD não definido — pulando seed do Esportivo.");
+    return;
+  }
+
+  const unidadeEsp = await prisma.unidade.findUniqueOrThrow({
+    where: { slug: "esportivo" },
+  });
+
+  // 1) Sensei (sem registro de conselho)
+  const senhaHash = await hash(senha, 12);
+  const senseiUser = await prisma.user.upsert({
+    where: { email: "esporte@ifp.local" },
+    update: { senhaHash, ativo: true },
+    create: {
+      email: "esporte@ifp.local",
+      senhaHash,
+      nome: "Ricardo Tanaka",
+      ativo: true,
+    },
+  });
+  await prisma.usuarioPerfil.upsert({
+    where: { userId_perfil: { userId: senseiUser.id, perfil: Perfil.PROFISSIONAL } },
+    update: {},
+    create: { userId: senseiUser.id, perfil: Perfil.PROFISSIONAL },
+  });
+  await prisma.usuarioUnidade.upsert({
+    where: { userId_unidadeId: { userId: senseiUser.id, unidadeId: unidadeEsp.id } },
+    update: {},
+    create: { userId: senseiUser.id, unidadeId: unidadeEsp.id },
+  });
+  await prisma.profissional.upsert({
+    where: { userId: senseiUser.id },
+    update: { ativo: true },
+    create: {
+      userId: senseiUser.id,
+      unidadeId: unidadeEsp.id,
+      especialidade: "Sensei de Judô",
+    },
+  });
+  console.log("  ✓ Sensei Ricardo Tanaka (esporte@ifp.local)");
+
+  // 2) Modalidades: Judô com trilha de faixas infantil; Futsal sem trilha
+  //    (demonstra a validação de "nível fora da trilha")
+  const trilhaJudo = [
+    "Faixa Branca",
+    "Faixa Cinza",
+    "Faixa Azul",
+    "Faixa Amarela",
+    "Faixa Laranja",
+    "Faixa Verde",
+  ];
+  await prisma.modalidade.upsert({
+    where: { unidadeId_nome: { unidadeId: unidadeEsp.id, nome: "Judô" } },
+    update: { trilhaGraduacoes: trilhaJudo, ativo: true },
+    create: { unidadeId: unidadeEsp.id, nome: "Judô", trilhaGraduacoes: trilhaJudo },
+  });
+  await prisma.modalidade.upsert({
+    where: { unidadeId_nome: { unidadeId: unidadeEsp.id, nome: "Futsal" } },
+    update: { ativo: true },
+    create: { unidadeId: unidadeEsp.id, nome: "Futsal", trilhaGraduacoes: [] },
+  });
+  console.log("  ✓ Modalidades Judô (6 faixas) e Futsal");
+
+  // 3) Elegibilidade APROVADA no Esportivo para 2 fichas de exemplo
+  const fichas = await prisma.fichaCidada.findMany({
+    where: { cpf: { in: ["11111111111", "22222222222"] } },
+  });
+  for (const ficha of fichas) {
+    await prisma.elegibilidadePorUnidade.upsert({
+      where: { fichaId_unidadeId: { fichaId: ficha.id, unidadeId: unidadeEsp.id } },
+      update: { status: StatusElegibilidade.APROVADO },
+      create: {
+        fichaId: ficha.id,
+        unidadeId: unidadeEsp.id,
+        status: StatusElegibilidade.APROVADO,
+        motivo: "Seed de desenvolvimento",
+      },
+    });
+  }
+  console.log(`  ✓ ${fichas.length} fichas APROVADAS no Esportivo`);
+}

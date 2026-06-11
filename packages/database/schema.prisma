@@ -62,6 +62,10 @@ model Unidade {
   checksInOut        CheckInOut[]
   diariosDia         DiarioDia[]
   comunicados        Comunicado[]
+  modalidades          Modalidade[]
+  turmasEsportivas     TurmaEsportiva[]
+  matriculasEsportivas MatriculaEsportiva[]
+  graduacoes           Graduacao[]
 
   @@map("unidades")
 }
@@ -209,6 +213,7 @@ model FichaCidada {
   matriculasInfantis      MatriculaInfantil[]
   responsaveisAutorizados ResponsavelAutorizado[]
   comunicadosLeituras     ComunicadoLeitura[]
+  matriculasEsportivas    MatriculaEsportiva[]
 
   @@map("fichas_cidadas")
 }
@@ -253,6 +258,7 @@ model MembroFamiliar {
   responsaveisAutorizados ResponsavelAutorizado[]
   checksInOut             CheckInOut[]
   diariosDia              DiarioDia[]
+  matriculasEsportivas    MatriculaEsportiva[]
 
   @@map("membros_familiares")
 }
@@ -452,6 +458,7 @@ model Profissional {
   checksRegistrados CheckInOut[]
   diariosFechados   DiarioDia[]
   registrosRotina   RegistroRotina[]
+  turmasEsportivas  TurmaEsportiva[]
 
   @@map("profissionais")
 }
@@ -934,3 +941,93 @@ model ComunicadoLeitura {
 //   família↔instituto, fotos no diário (watermark), esporte/graduações.
 // - Comum: Notificacao, MensagemWhatsApp, MensagemEmail.
 // - RLS: configurar policies no Postgres por unidadeId após migration inicial.
+
+// ============================================================
+// Esportivo (Fase 3) — molde: trio da Capacitação
+// Modalidade ≈ Curso · TurmaEsportiva ≈ Turma · Graduacao ≈ Certificado.
+// Reusa StatusTurma/StatusMatricula. Treinos + chamada (molde Aula/Presenca)
+// ficam para o próximo incremento.
+// ============================================================
+
+model Modalidade {
+  id               String   @id @default(cuid())
+  unidadeId        String
+  nome             String // Judô, Futsal, Ballet...
+  /// Trilha ORDENADA de graduações da modalidade (ex.: faixas do judô).
+  trilhaGraduacoes String[]
+  ativo            Boolean  @default(true)
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+
+  unidade Unidade          @relation(fields: [unidadeId], references: [id])
+  turmas  TurmaEsportiva[]
+
+  @@unique([unidadeId, nome])
+  @@map("modalidades")
+}
+
+model TurmaEsportiva {
+  id             String      @id @default(cuid())
+  unidadeId      String
+  modalidadeId   String
+  codigo         String      @unique // ex.: "JUDO-2026-1"
+  profissionalId String // instrutor responsável
+  diasHorario    String // ex.: "Ter/Qui 9h-10h30"
+  local          String?
+  faixaEtariaMin Int? // em anos (categoria por idade)
+  faixaEtariaMax Int?
+  inicioEm       DateTime
+  fimEm          DateTime?
+  vagasTotais    Int
+  status         StatusTurma @default(EM_ANDAMENTO)
+  criadoEm       DateTime    @default(now())
+  atualizadoEm   DateTime    @updatedAt
+
+  unidade    Unidade              @relation(fields: [unidadeId], references: [id])
+  modalidade Modalidade           @relation(fields: [modalidadeId], references: [id])
+  instrutor  Profissional         @relation(fields: [profissionalId], references: [id])
+  matriculas MatriculaEsportiva[]
+
+  @@index([unidadeId, status])
+  @@map("turmas_esportivas")
+}
+
+model MatriculaEsportiva {
+  id            String          @id @default(cuid())
+  unidadeId     String
+  turmaId       String
+  fichaId       String
+  membroId      String? // dependente matriculado; ausente = titular
+  status        StatusMatricula @default(ATIVA)
+  posicaoEspera Int?
+  criadoPor     String? // userId de quem matriculou
+  criadoEm      DateTime        @default(now())
+  atualizadoEm  DateTime        @updatedAt
+
+  unidade    Unidade         @relation(fields: [unidadeId], references: [id])
+  turma      TurmaEsportiva  @relation(fields: [turmaId], references: [id])
+  ficha      FichaCidada     @relation(fields: [fichaId], references: [id])
+  membro     MembroFamiliar? @relation(fields: [membroId], references: [id])
+  graduacoes Graduacao[]
+
+  @@unique([turmaId, fichaId, membroId])
+  @@index([unidadeId, status])
+  @@map("matriculas_esportivas")
+}
+
+model Graduacao {
+  id                String   @id @default(cuid())
+  unidadeId         String
+  matriculaId       String
+  nivel             String // precisa pertencer à trilha da modalidade
+  codigoVerificacao String   @unique @default(cuid()) // validação pública (molde certificado)
+  observacao        String?
+  concedidaEm       DateTime @default(now())
+  concedidaPor      String? // userId de quem concedeu
+
+  unidade   Unidade            @relation(fields: [unidadeId], references: [id])
+  matricula MatriculaEsportiva @relation(fields: [matriculaId], references: [id])
+
+  @@unique([matriculaId, nivel]) // mesmo nível não é concedido duas vezes
+  @@map("graduacoes")
+}

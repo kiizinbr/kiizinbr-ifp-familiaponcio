@@ -13,6 +13,7 @@ import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
 import { MedicoModule } from "./medico/medico.module";
 import { CapacitacaoModule } from "./capacitacao/capacitacao.module";
 import { EducacionalModule } from "./educacional/educacional.module";
+import { EsportivoModule } from "./esportivo/esportivo.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { EducacionalModule } from "./educacional/educacional.module";
     MedicoModule,
     CapacitacaoModule,
     EducacionalModule,
+    EsportivoModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
