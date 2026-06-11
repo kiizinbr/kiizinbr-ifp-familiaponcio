@@ -178,6 +178,7 @@ export default function PerfilCriancaPage({
 
   const [cadastrando, setCadastrando] = useState(false);
   const [revogandoId, setRevogandoId] = useState<string | null>(null);
+  const [escopoPendente, setEscopoPendente] = useState<EscopoImagem | null>(null);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
 
   const ehGestor = session?.perfis?.some((p) => PERFIS_GESTAO.includes(p)) ?? false;
@@ -211,10 +212,13 @@ export default function PerfilCriancaPage({
 
   async function alternarImagem(escopo: EscopoImagem, concedido: boolean) {
     setErroAcao(null);
+    setEscopoPendente(escopo);
     try {
       await atualizarImagem.mutateAsync({ membroId, escopo, concedido });
     } catch (e: unknown) {
       setErroAcao(e instanceof Error ? e.message : "Falha ao atualizar autorização de imagem");
+    } finally {
+      setEscopoPendente(null);
     }
   }
 
@@ -373,7 +377,7 @@ export default function PerfilCriancaPage({
                 {ehGestor ? (
                   <button
                     type="button"
-                    disabled={atualizarImagem.isPending}
+                    disabled={escopoPendente === escopo}
                     onClick={() => alternarImagem(escopo, !concedida)}
                     className={cn(
                       "mt-1.5 text-xs font-semibold hover:underline disabled:opacity-60",

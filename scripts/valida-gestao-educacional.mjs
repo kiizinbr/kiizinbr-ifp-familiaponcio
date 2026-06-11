@@ -85,6 +85,9 @@ caso("todos os itens trazem nº de leituras", true, Boolean(comLeituras));
 
 const listaFamilia = await req(familia, "GET", "/familia/educacional/comunicados");
 caso("família -> vê comunicados", 200, listaFamilia.status);
+
+const familiaConsole = await req(familia, "GET", "/educacional/comunicados");
+caso("família -> console da equipe (RBAC)", 403, familiaConsole.status);
 const familiaVe = listaFamilia.json?.items?.some((c) => c.id === novo.json?.id);
 caso("família vê o recém-publicado", true, Boolean(familiaVe));
 
