@@ -91,11 +91,25 @@ modo espelhado não é suportado no build 20348 → NAT relay):
 
 ## ⏳ Pendências imediatas
 
-- [ ] **Validação visual humana** das telas novas (Erick estava começando quando paramos).
-- [ ] Tela da gestora para CRIAR comunicado (API pronta: `POST /educacional/comunicados`; falta UI).
-- [ ] UI de cadastro/revogação de autorizados e autorização de imagem (API pronta; gestora usa Swagger por ora).
-- [ ] Tarefa de logon do keep-alive do WSL na workstation (classifier bloqueou; criar manualmente).
+- [x] ~~Tela da gestora para CRIAR comunicado~~ → `/educacional/comunicados` (lista com nº
+  de leituras + publicação geral/por turma; sprint 11/06 no servidor).
+- [x] ~~UI de autorizados e autorização de imagem~~ → na ficha da criança (cadastro,
+  revogação em 2 passos, toggle por escopo de imagem).
+- [x] ~~Gestora no seed~~ → `gestora@ifp.local` (GESTOR_UNIDADE + Profissional ativo;
+  descoberta: `resolverPorUser` exige lotação mesmo p/ gestão — sem esse user
+  NINGUÉM publicava comunicado, nem via Swagger).
+- [x] ~~Tema por unidade não aplicava~~ → bug de CSS vars: `--color-primary` resolvia no
+  `:root`; fix re-resolve aliases em `[data-theme]` (afetava TODAS as unidades).
+- [x] Validação visual das telas de gestão feita via Playwright no sprint de 11/06
+  (login gestora → publicar → ficha → toggles). Telas do educador/família da F3
+  seguem aguardando olhada do Erick quando quiser.
+- [ ] Tarefa de logon do keep-alive do WSL (workstation E servidor; classifier bloqueou; criar manualmente).
 - [ ] Decidir reconciliação com a `main` (314 commits divergentes — ver DOSSIE; estratégia A = main como base).
+
+Regressão nova além das duas existentes:
+```bash
+SENHA_DEV=... node scripts/valida-gestao-educacional.mjs   # 18/18 (gestão: comunicados/autorizados/imagem + RBAC)
+```
 
 ## 🔭 Próximas fases (ordem do blueprint Educacional §8 + Capacitação)
 
