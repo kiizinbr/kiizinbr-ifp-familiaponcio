@@ -134,7 +134,19 @@ Família faltavam — era a causa do "Acesso restrito" ao navegar).
 `PresencaTreino` (molde Aula/Presenca), chamada em lote idempotente, selo
 imutável (lock + updateMany condicional), tela de chamada mobile-first P/F/J.
 Regressão da vertical: 29/29. Próximo do blueprint: **mensagem 1:1
-família↔instituto** (killer feature; interino = WhatsApp Business oficial).
+família↔instituto** (killer feature; interino = WhatsApp Business oficial)
+— ATENÇÃO: a pesquisa SaaS do vault (regra: sempre cruzar) vive na
+workstation (`C:\dev\erickbrain`), não existe no servidor.
+
+## 🚪 Fluxo de acesso por unidade (11/06 à noite)
+
+A ideia original do site voltou: home = vitrine com as unidades (cards
+clicáveis na cor de cada salão) → `/acesso` ("em qual unidade você vai
+entrar hoje?": 4 unidades + Serviço Social + Portal da Família) →
+`/login?unidade=<slug>` herda o data-theme + nome do salão → pós-login cai
+DIRETO no destino da unidade. `callbackUrl` explícito continua vencendo;
+login sem unidade é neutro e cai no hub `/` (que lista as áreas por perfil).
+Mapa central: `apps/web/lib/unidades.ts`.
 
 ## 🔭 Próximas fases (ordem do blueprint Educacional §8 + Capacitação)
 
