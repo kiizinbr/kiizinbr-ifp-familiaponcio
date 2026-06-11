@@ -67,6 +67,28 @@ agente-clean-local: `_nucleo/memoria/docker-wsl2-engine.md`). Consequências par
    getServerSession — NO_SECRET no log).
 6. CORS: `WEB_ORIGIN` aceita lista → `"http://localhost:3000,http://127.0.0.1:3000"`.
 
+### ⚠ Receita do servidor CL-SRV-DC01 (retomada de 2026-06-11)
+
+Difere da workstation — aqui o app roda no **Windows nativo** (Node 24 + pnpm 9.12.3)
+e só os bancos vivem no docker-ce do WSL (distro chama-se `Ubuntu`, não `Ubuntu-24.04`;
+modo espelhado não é suportado no build 20348 → NAT relay):
+
+1. Worktree do sprint: `~/.config/superpowers/worktrees/ifp-connect/casa-sprint`
+   (o checkout principal `~/ifp-connect` fica na `main`, que tem WIP próprio).
+2. **Porta 5432 do Windows é de OUTRO Postgres nativo** e **3333 é do IIS (HTTP.sys)**:
+   o Nest sobe, mapeia rotas e morre no bind sem erro visível no turbo. Solução:
+   `docker-compose.override.yml` (gitignored) adiciona mapeamento extra `5434:5432`
+   no postgres; `.env` usa `127.0.0.1:5434` e `PORT=3334` (+ `API_URL`/
+   `NEXT_PUBLIC_API_URL` em 3334 nos DOIS arquivos de env).
+3. Redis não precisa de porta no Windows (dev não usa `REDIS_URL`; a 6379 local é de outro serviço).
+4. Containers: `ifp-postgres`/`ifp-redis` (compose do repo) — NÃO confundir com
+   `ifp_postgres_dev`:5433/`ifp_minio_dev`, que são do app da `main`.
+5. Prisma não lê o `.env` da raiz → exportar antes: `set -a; source .env; set +a`
+   e então `pnpm db:migrate && pnpm db:seed`.
+6. Regressão (com API em 3334): `API_URL_TESTE=http://127.0.0.1:3334/api/v1 SENHA_DEV=... node scripts/valida-tenant.mjs` (e `valida-educacional.mjs`).
+7. Keep-alive do WSL: mesmo problema da workstation (`wsl -d Ubuntu --exec sleep infinity`);
+   tarefa de logon ainda pendente também aqui.
+
 ## ⏳ Pendências imediatas
 
 - [ ] **Validação visual humana** das telas novas (Erick estava começando quando paramos).
