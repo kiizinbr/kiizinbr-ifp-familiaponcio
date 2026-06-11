@@ -18,6 +18,8 @@ const atendimentoInclude = {
   agendamento: true,
 } satisfies Prisma.AtendimentoInclude;
 
+const MSG_SELADO = "Atendimento já encerrado — prontuário é imutável após o selo.";
+
 @Injectable()
 export class AtendimentosService {
   constructor(
@@ -37,9 +39,7 @@ export class AtendimentosService {
 
   private assertEditavel(atendimento: { encerradoEm: Date | null }) {
     if (atendimento.encerradoEm) {
-      throw new ConflictException(
-        "Atendimento já encerrado — prontuário é imutável após o selo.",
-      );
+      throw new ConflictException(MSG_SELADO);
     }
   }
 
@@ -49,8 +49,11 @@ export class AtendimentosService {
     this.profissionais.assertOwnership(atendimento.profissionalId, profissional, user);
     this.assertEditavel(atendimento);
 
-    const atualizado = await this.prisma.atendimento.update({
-      where: { id },
+    // Guard atômico: o WHERE inclui o selo — se outro request encerrou entre a
+    // checagem acima e o write, nada é atualizado e devolvemos 409 (não há
+    // janela para alterar prontuário selado).
+    const r = await this.prisma.atendimento.updateMany({
+      where: { id, encerradoEm: null },
       data: {
         subjetivo: dto.subjetivo,
         objetivo: dto.objetivo,
@@ -58,8 +61,8 @@ export class AtendimentosService {
         plano: dto.plano,
         cid10: dto.cid10,
       },
-      include: atendimentoInclude,
     });
+    if (r.count === 0) throw new ConflictException(MSG_SELADO);
 
     this.audit.registrar({
       userId: user.id,
@@ -69,7 +72,7 @@ export class AtendimentosService {
       metadados: { campos: Object.keys(dto) },
     });
 
-    return atualizado;
+    return this.carregar(id);
   }
 
   async upsertVitais(user: AuthenticatedUser, id: string, dto: UpsertVitaisDto) {
@@ -94,10 +97,21 @@ export class AtendimentosService {
       registradosPor: user.id,
     };
 
-    await this.prisma.sinaisVitais.upsert({
-      where: { atendimentoId: id },
-      create: { atendimentoId: id, unidadeId: atendimento.unidadeId, ...valores },
-      update: valores,
+    // Upsert não tem WHERE condicional — o lock da linha do atendimento
+    // serializa com o encerrar(): ou os vitais entram antes do selo, ou o
+    // selo vence e devolvemos 409.
+    await this.prisma.$transaction(async (tx) => {
+      const [row] = await tx.$queryRaw<{ encerradoEm: Date | null }[]>`
+        SELECT "encerradoEm" FROM atendimentos WHERE id = ${id} FOR UPDATE
+      `;
+      if (!row) throw new NotFoundException("Atendimento não encontrado");
+      if (row.encerradoEm) throw new ConflictException(MSG_SELADO);
+
+      await tx.sinaisVitais.upsert({
+        where: { atendimentoId: id },
+        create: { atendimentoId: id, unidadeId: atendimento.unidadeId, ...valores },
+        update: valores,
+      });
     });
 
     this.audit.registrar({
@@ -123,18 +137,24 @@ export class AtendimentosService {
     }
 
     const selado = await this.prisma.$transaction(async (tx) => {
-      const atualizado = await tx.atendimento.update({
-        where: { id },
+      // updateMany condicional: dois selos simultâneos → o segundo conta 0 e
+      // recebe 409 (mesma disciplina do salvarSoap).
+      const r = await tx.atendimento.updateMany({
+        where: { id, encerradoEm: null },
         data: { encerradoEm: new Date() },
-        include: atendimentoInclude,
       });
+      if (r.count === 0) throw new ConflictException(MSG_SELADO);
+
       if (atendimento.agendamentoId) {
         await tx.agendamento.update({
           where: { id: atendimento.agendamentoId },
           data: { status: StatusAgendamento.CONCLUIDO },
         });
       }
-      return atualizado;
+      return tx.atendimento.findUniqueOrThrow({
+        where: { id },
+        include: atendimentoInclude,
+      });
     });
 
     this.audit.registrar({

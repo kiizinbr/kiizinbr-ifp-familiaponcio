@@ -115,6 +115,15 @@ export class TurmasService {
       ORDER BY f."nomeCompleto" ASC
       LIMIT 10
     `;
+
+    // Busca lê dado pessoal — entra na trilha LGPD mesmo quando vazia.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "FichaCidada",
+      metadados: { contexto: "capacitacao.fichasElegiveis", resultados: linhas.length },
+    });
+
     if (linhas.length === 0) return { items: [] };
 
     const items = await this.prisma.fichaCidada.findMany({
@@ -178,7 +187,7 @@ export class TurmasService {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const turma = await this.prisma.turma.findUnique({
       where: { id: turmaId },
-      include: { _count: { select: { matriculas: { where: { status: StatusMatricula.ATIVA } } } } },
+      select: { id: true, unidadeId: true, profissionalId: true, status: true },
     });
     if (!turma) throw new NotFoundException("Turma não encontrada");
     this.profissionais.assertOwnership(turma.profissionalId, profissional, user);
@@ -200,36 +209,53 @@ export class TurmasService {
       );
     }
 
-    const duplicada = await this.prisma.matricula.findFirst({
-      where: { turmaId, fichaId: dto.fichaId, membroId: dto.membroId ?? null },
-    });
-    if (duplicada) {
-      throw new ConflictException("Este aluno já está matriculado nesta turma.");
-    }
+    // Lock da linha da turma: matrículas concorrentes serializam aqui — mata o
+    // overbooking (contagem sempre fresca), a posição de espera duplicada e a
+    // matrícula dupla do titular (o unique composto não cobre membroId NULL).
+    const matricula = await this.prisma.$transaction(async (tx) => {
+      const [lockada] = await tx.$queryRaw<{ vagasTotais: number; status: string }[]>`
+        SELECT "vagasTotais", status FROM turmas WHERE id = ${turmaId} FOR UPDATE
+      `;
+      if (!lockada) throw new NotFoundException("Turma não encontrada");
+      if (lockada.status === StatusTurma.ENCERRADA) {
+        throw new BadRequestException("A turma já foi encerrada.");
+      }
 
-    const temVaga = turma._count.matriculas < turma.vagasTotais;
-    let posicaoEspera: number | null = null;
-    if (!temVaga) {
-      const naEspera = await this.prisma.matricula.count({
-        where: { turmaId, status: StatusMatricula.LISTA_ESPERA },
+      const duplicada = await tx.matricula.findFirst({
+        where: { turmaId, fichaId: dto.fichaId, membroId: dto.membroId ?? null },
+        select: { id: true },
       });
-      posicaoEspera = naEspera + 1;
-    }
+      if (duplicada) {
+        throw new ConflictException("Este aluno já está matriculado nesta turma.");
+      }
 
-    const matricula = await this.prisma.matricula.create({
-      data: {
-        unidadeId: turma.unidadeId,
-        turmaId,
-        fichaId: dto.fichaId,
-        membroId: dto.membroId,
-        status: temVaga ? StatusMatricula.ATIVA : StatusMatricula.LISTA_ESPERA,
-        posicaoEspera,
-        criadoPor: user.id,
-      },
-      include: {
-        ficha: { select: { id: true, protocolo: true, nomeCompleto: true } },
-        membro: { select: { id: true, nomeCompleto: true } },
-      },
+      const ativas = await tx.matricula.count({
+        where: { turmaId, status: StatusMatricula.ATIVA },
+      });
+      const temVaga = ativas < lockada.vagasTotais;
+      let posicaoEspera: number | null = null;
+      if (!temVaga) {
+        const naEspera = await tx.matricula.count({
+          where: { turmaId, status: StatusMatricula.LISTA_ESPERA },
+        });
+        posicaoEspera = naEspera + 1;
+      }
+
+      return tx.matricula.create({
+        data: {
+          unidadeId: turma.unidadeId,
+          turmaId,
+          fichaId: dto.fichaId,
+          membroId: dto.membroId,
+          status: temVaga ? StatusMatricula.ATIVA : StatusMatricula.LISTA_ESPERA,
+          posicaoEspera,
+          criadoPor: user.id,
+        },
+        include: {
+          ficha: { select: { id: true, protocolo: true, nomeCompleto: true } },
+          membro: { select: { id: true, nomeCompleto: true } },
+        },
+      });
     });
 
     this.audit.registrar({
@@ -258,6 +284,15 @@ export class TurmasService {
       throw new ForbiddenException("Esta turma pertence a outra unidade.");
     }
 
+    // Detalhe expõe nomes e presença dos alunos — leitura entra na trilha LGPD.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Turma",
+      entidadeId: id,
+      metadados: { contexto: "detalhe", matriculas: turma.matriculas.length },
+    });
+
     const aulasEncerradas = turma.aulas.filter((a) => a.encerradaEm).length;
     const matriculas = turma.matriculas.map(({ presencas, ...m }) => ({
       ...m,
@@ -270,28 +305,63 @@ export class TurmasService {
   /** Encerra a turma e emite certificados para quem atingiu a presença mínima. */
   async encerrar(user: AuthenticatedUser, id: string) {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
-    const turma = await this.prisma.turma.findUnique({
+    const previa = await this.prisma.turma.findUnique({
       where: { id },
-      include: turmaDetalheInclude,
+      select: { id: true, profissionalId: true, status: true },
     });
-    if (!turma) throw new NotFoundException("Turma não encontrada");
-    this.profissionais.assertOwnership(turma.profissionalId, profissional, user);
-    if (turma.status === StatusTurma.ENCERRADA) {
+    if (!previa) throw new NotFoundException("Turma não encontrada");
+    this.profissionais.assertOwnership(previa.profissionalId, profissional, user);
+    if (previa.status === StatusTurma.ENCERRADA) {
       throw new ConflictException("Turma já encerrada.");
     }
 
-    const aulasEncerradas = turma.aulas.filter((a) => a.encerradaEm).length;
-    if (aulasEncerradas === 0) {
-      throw new BadRequestException(
-        "Encerre ao menos uma aula com chamada antes de encerrar a turma.",
-      );
-    }
+    // Tudo dentro da transação, com lock na turma: o snapshot de presenças é
+    // lido DEPOIS do lock (nenhuma chamada concorrente muda o resultado) e dois
+    // encerramentos simultâneos não emitem certificado duplicado.
+    const resultado = await this.prisma.$transaction(async (tx) => {
+      const [lockada] = await tx.$queryRaw<{ status: string }[]>`
+        SELECT status FROM turmas WHERE id = ${id} FOR UPDATE
+      `;
+      if (!lockada) throw new NotFoundException("Turma não encontrada");
+      if (lockada.status === StatusTurma.ENCERRADA) {
+        throw new ConflictException("Turma já encerrada.");
+      }
 
-    const codigos: string[] = [];
-    let evadidas = 0;
+      const turma = await tx.turma.findUniqueOrThrow({
+        where: { id },
+        include: turmaDetalheInclude,
+      });
 
-    await this.prisma.$transaction(async (tx) => {
+      // O certificado atesta carga horária do curso inteiro — toda aula criada
+      // precisa estar encerrada para o % de presença refletir o curso completo.
+      const abertas = turma.aulas.filter((a) => !a.encerradaEm).length;
+      if (abertas > 0) {
+        throw new BadRequestException(
+          `Há ${abertas} aula(s) sem selo — encerre todas as aulas antes de encerrar a turma.`,
+        );
+      }
+      const aulasEncerradas = turma.aulas.length;
+      if (aulasEncerradas === 0) {
+        throw new BadRequestException(
+          "Encerre ao menos uma aula com chamada antes de encerrar a turma.",
+        );
+      }
+
+      const codigos: string[] = [];
+      let evadidas = 0;
+      let esperaCanceladas = 0;
+
       for (const mat of turma.matriculas) {
+        // Lista de espera nunca atendida morre no encerramento (não é evasão —
+        // o aluno nunca cursou; sem isso o KPI de espera ficava inflado p/ sempre).
+        if (mat.status === StatusMatricula.LISTA_ESPERA) {
+          await tx.matricula.update({
+            where: { id: mat.id },
+            data: { status: StatusMatricula.CANCELADA },
+          });
+          esperaCanceladas++;
+          continue;
+        }
         if (mat.status !== StatusMatricula.ATIVA) continue;
         const pct = this.presencaPct(mat.presencas, aulasEncerradas);
 
@@ -324,6 +394,8 @@ export class TurmasService {
         where: { id },
         data: { status: StatusTurma.ENCERRADA, fimEm: new Date() },
       });
+
+      return { codigos, evadidas, esperaCanceladas, aulasEncerradas };
     });
 
     this.audit.registrar({
@@ -331,9 +403,21 @@ export class TurmasService {
       acao: AcaoAuditoria.UPDATE,
       entidade: "Turma",
       entidadeId: id,
-      metadados: { acao: "encerramento", certificadosEmitidos: codigos.length, evadidas },
+      metadados: {
+        acao: "encerramento",
+        certificadosEmitidos: resultado.codigos.length,
+        evadidas: resultado.evadidas,
+        esperaCanceladas: resultado.esperaCanceladas,
+        // Trilha do que sustenta a carga horária dos certificados emitidos.
+        aulasEncerradas: resultado.aulasEncerradas,
+      },
     });
 
-    return { certificadosEmitidos: codigos.length, evadidas, codigos };
+    return {
+      certificadosEmitidos: resultado.codigos.length,
+      evadidas: resultado.evadidas,
+      esperaCanceladas: resultado.esperaCanceladas,
+      codigos: resultado.codigos,
+    };
   }
 }

@@ -183,7 +183,8 @@ async function seedCentroMedico() {
   }
 
   // 3) Histórico clínico da ficha 1 — alimenta os chips da prancha
-  const [joao] = fichas;
+  const joao = fichas[0];
+  if (!joao) throw new Error("Seed: nenhuma ficha criada para o módulo médico.");
   const jaTemAlergia = await prisma.alergia.findFirst({
     where: { fichaId: joao.id, descricao: "Dipirona" },
   });
@@ -224,8 +225,9 @@ async function seedCentroMedico() {
     { hora: 10, minuto: 30, motivo: "Dor de cabeça recorrente" },
     { hora: 14, minuto: 0, motivo: "Retorno — exames" },
   ];
-  for (let i = 0; i < horarios.length; i++) {
-    const h = horarios[i];
+  for (const [i, h] of horarios.entries()) {
+    const fichaDoHorario = fichas[i];
+    if (!fichaDoHorario) continue;
     const inicio = new Date(hoje0);
     inicio.setHours(h.hora, h.minuto, 0, 0);
     const fim = new Date(inicio.getTime() + 30 * 60 * 1000);
@@ -236,7 +238,7 @@ async function seedCentroMedico() {
       await prisma.agendamento.create({
         data: {
           unidadeId: unidadeMedico.id,
-          fichaId: fichas[i].id,
+          fichaId: fichaDoHorario.id,
           profissionalId: profissional.id,
           inicioEm: inicio,
           fimEm: fim,
@@ -374,8 +376,7 @@ async function seedCapacitacao() {
     { diasAtras: 7, conteudo: "Fundamentos e biossegurança" },
     { diasAtras: 3, conteudo: "Corte na prática" },
   ];
-  for (let i = 0; i < aulasDef.length; i++) {
-    const def = aulasDef[i];
+  for (const [i, def] of aulasDef.entries()) {
     const dataAula = new Date();
     dataAula.setDate(dataAula.getDate() - def.diasAtras);
     dataAula.setHours(14, 0, 0, 0);
@@ -394,14 +395,14 @@ async function seedCapacitacao() {
         },
       });
     }
-    for (let m = 0; m < matriculas.length; m++) {
+    for (const [m, matricula] of matriculas.entries()) {
       // aula 2: terceiro aluno faltou (alimenta o painel de evasão)
       const status =
         i === 1 && m === 2 ? StatusPresenca.FALTA : StatusPresenca.PRESENTE;
       await prisma.presenca.upsert({
-        where: { aulaId_matriculaId: { aulaId: aula.id, matriculaId: matriculas[m].id } },
+        where: { aulaId_matriculaId: { aulaId: aula.id, matriculaId: matricula.id } },
         update: { status },
-        create: { aulaId: aula.id, matriculaId: matriculas[m].id, status },
+        create: { aulaId: aula.id, matriculaId: matricula.id, status },
       });
     }
   }

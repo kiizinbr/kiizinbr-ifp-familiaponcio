@@ -14,6 +14,8 @@ import type { CriarAulaDto } from "./dto/criar-aula.dto";
 import type { LancarChamadaDto } from "./dto/lancar-chamada.dto";
 import { ProfissionaisService } from "../medico/profissionais.service";
 
+const MSG_AULA_SELADA = "Aula encerrada — chamada é imutável após o selo.";
+
 @Injectable()
 export class AulasService {
   constructor(
@@ -31,6 +33,15 @@ export class AulasService {
     return aula;
   }
 
+  /** Presença/chamada só fazem sentido com a turma viva — bloqueia depois do encerramento. */
+  private assertTurmaEmAndamento(turma: { status: StatusTurma }) {
+    if (turma.status !== StatusTurma.EM_ANDAMENTO) {
+      throw new BadRequestException(
+        "A turma não está em andamento — chamada e selo de aula estão bloqueados.",
+      );
+    }
+  }
+
   /** Aula com presenças já lançadas (hidrata a tela de chamada). */
   async detalhe(user: AuthenticatedUser, aulaId: string) {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
@@ -41,6 +52,16 @@ export class AulasService {
     ) {
       throw new ForbiddenException("Esta aula pertence a outra unidade.");
     }
+
+    // Chamada expõe presença de alunos — leitura entra na trilha LGPD.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Aula",
+      entidadeId: aulaId,
+      metadados: { turmaId: aula.turmaId, contexto: "detalhe" },
+    });
+
     return aula;
   }
 
@@ -79,8 +100,9 @@ export class AulasService {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const aula = await this.carregarAula(aulaId);
     this.profissionais.assertOwnership(aula.turma.profissionalId, profissional, user);
+    this.assertTurmaEmAndamento(aula.turma);
     if (aula.encerradaEm) {
-      throw new ConflictException("Aula encerrada — chamada é imutável após o selo.");
+      throw new ConflictException(MSG_AULA_SELADA);
     }
 
     const ids = dto.itens.map((i) => i.matriculaId);
@@ -91,15 +113,25 @@ export class AulasService {
       throw new BadRequestException("Há matrículas que não pertencem a esta turma.");
     }
 
-    await this.prisma.$transaction(
-      dto.itens.map((item) =>
-        this.prisma.presenca.upsert({
-          where: { aulaId_matriculaId: { aulaId, matriculaId: item.matriculaId } },
-          update: { status: item.status },
-          create: { aulaId, matriculaId: item.matriculaId, status: item.status },
-        }),
-      ),
-    );
+    // Lock da linha da aula: serializa com o encerrar(). Sem ele, uma chamada
+    // em voo podia gravar presença DEPOIS do selo (chamada imutável violada).
+    await this.prisma.$transaction(async (tx) => {
+      const [row] = await tx.$queryRaw<{ encerradaEm: Date | null }[]>`
+        SELECT "encerradaEm" FROM aulas WHERE id = ${aulaId} FOR UPDATE
+      `;
+      if (!row) throw new NotFoundException("Aula não encontrada");
+      if (row.encerradaEm) throw new ConflictException(MSG_AULA_SELADA);
+
+      await Promise.all(
+        dto.itens.map((item) =>
+          tx.presenca.upsert({
+            where: { aulaId_matriculaId: { aulaId, matriculaId: item.matriculaId } },
+            update: { status: item.status },
+            create: { aulaId, matriculaId: item.matriculaId, status: item.status },
+          }),
+        ),
+      );
+    });
 
     this.audit.registrar({
       userId: user.id,
@@ -116,15 +148,24 @@ export class AulasService {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const aula = await this.carregarAula(aulaId);
     this.profissionais.assertOwnership(aula.turma.profissionalId, profissional, user);
+    this.assertTurmaEmAndamento(aula.turma);
     if (aula.encerradaEm) throw new ConflictException("Aula já encerrada.");
     if (aula.presencas.length === 0) {
       throw new BadRequestException("Lance a chamada antes de encerrar a aula.");
     }
 
-    const encerrada = await this.prisma.aula.update({
-      where: { id: aulaId },
-      data: { encerradaEm: new Date() },
-      include: { presencas: true },
+    // updateMany condicional: o WHERE com o selo garante que só um encerramento
+    // vence; o write toma o lock da linha e serializa com a chamada em voo.
+    const encerrada = await this.prisma.$transaction(async (tx) => {
+      const r = await tx.aula.updateMany({
+        where: { id: aulaId, encerradaEm: null },
+        data: { encerradaEm: new Date() },
+      });
+      if (r.count === 0) throw new ConflictException("Aula já encerrada.");
+      return tx.aula.findUniqueOrThrow({
+        where: { id: aulaId },
+        include: { presencas: true },
+      });
     });
 
     this.audit.registrar({

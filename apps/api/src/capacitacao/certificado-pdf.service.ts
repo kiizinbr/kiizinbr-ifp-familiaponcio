@@ -24,7 +24,10 @@ export class CertificadoPdfService {
     private readonly audit: AuditService,
   ) {}
 
-  async gerar(codigo: string): Promise<{ buffer: Buffer; filename: string }> {
+  async gerar(
+    codigo: string,
+    origem?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const cert = await this.prisma.certificado.findUnique({
       where: { codigoVerificacao: codigo },
       include: {
@@ -162,10 +165,13 @@ export class CertificadoPdfService {
     doc.end();
     const buffer = await fim;
 
+    // Endpoint público: sem ip/userAgent a trilha do EXPORT seria anônima.
     this.audit.registrar({
       acao: AcaoAuditoria.EXPORT,
       entidade: "Certificado",
       entidadeId: cert.id,
+      ip: origem?.ip,
+      userAgent: origem?.userAgent,
       metadados: { formato: "pdf", codigo: cert.codigoVerificacao },
     });
 
