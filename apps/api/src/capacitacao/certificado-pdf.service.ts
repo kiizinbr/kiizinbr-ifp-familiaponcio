@@ -169,7 +169,14 @@ export class CertificadoPdfService {
       metadados: { formato: "pdf", codigo: cert.codigoVerificacao },
     });
 
-    const filename = `certificado-${turma.codigo}-${(aluno.split(" ")[0] ?? "aluno").toLowerCase()}.pdf`;
+    // Sanitiza o nome para o header Content-Disposition (aspas/acentos quebrariam o header).
+    const slug =
+      (aluno.split(" ")[0] ?? "aluno")
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "") || "aluno";
+    const filename = `certificado-${turma.codigo.replace(/[^a-zA-Z0-9-]/g, "")}-${slug}.pdf`;
     return { buffer, filename };
   }
 }

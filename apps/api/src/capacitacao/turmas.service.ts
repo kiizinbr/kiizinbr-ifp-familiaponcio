@@ -13,6 +13,7 @@ import {
   StatusMatricula,
   StatusPresenca,
   StatusTurma,
+  TipoUnidade,
 } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
@@ -55,7 +56,7 @@ export class TurmasService {
   }
 
   async listar(user: AuthenticatedUser) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const items = await this.prisma.turma.findMany({
       where: { unidadeId: profissional.unidadeId },
       orderBy: { criadoEm: "desc" },
@@ -69,7 +70,7 @@ export class TurmasService {
 
   /** Cursos ativos da unidade (para o formulário de nova turma). */
   async cursos(user: AuthenticatedUser) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const items = await this.prisma.curso.findMany({
       where: { unidadeId: profissional.unidadeId, ativo: true },
       orderBy: { nome: "asc" },
@@ -79,7 +80,7 @@ export class TurmasService {
 
   /** KPIs da unidade (dashboard). */
   async resumo(user: AuthenticatedUser) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const unidadeId = profissional.unidadeId;
     const [turmasEmAndamento, alunosAtivos, certificadosEmitidos, listaEspera] =
       await this.prisma.$transaction([
@@ -99,7 +100,7 @@ export class TurmasService {
 
   /** Fichas APROVADAS na Capacitação (para o formulário de matrícula). */
   async fichasElegiveis(user: AuthenticatedUser, q?: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const termo = q?.trim();
     if (!termo || termo.length < 2) return { items: [] };
 
@@ -131,7 +132,7 @@ export class TurmasService {
 
   /** Cria uma turma; o profissional logado é o instrutor responsável. */
   async criar(user: AuthenticatedUser, dto: CriarTurmaDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
 
     const curso = await this.prisma.curso.findFirst({
       where: { id: dto.cursoId, unidadeId: profissional.unidadeId, ativo: true },
@@ -174,7 +175,7 @@ export class TurmasService {
 
   /** Matricula respeitando a regra de ouro (elegibilidade APROVADA) e as vagas. */
   async matricular(user: AuthenticatedUser, turmaId: string, dto: CriarMatriculaDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const turma = await this.prisma.turma.findUnique({
       where: { id: turmaId },
       include: { _count: { select: { matriculas: { where: { status: StatusMatricula.ATIVA } } } } },
@@ -243,7 +244,7 @@ export class TurmasService {
   }
 
   async detalhe(user: AuthenticatedUser, id: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const turma = await this.prisma.turma.findUnique({
       where: { id },
       include: turmaDetalheInclude,
@@ -268,7 +269,7 @@ export class TurmasService {
 
   /** Encerra a turma e emite certificados para quem atingiu a presença mínima. */
   async encerrar(user: AuthenticatedUser, id: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const turma = await this.prisma.turma.findUnique({
       where: { id },
       include: turmaDetalheInclude,

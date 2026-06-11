@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Prisma, StatusAgendamento } from "@ifp/database";
+import { AcaoAuditoria, Prisma, StatusAgendamento, TipoUnidade } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -44,7 +44,7 @@ export class AtendimentosService {
   }
 
   async salvarSoap(user: AuthenticatedUser, id: string, dto: UpdateSoapDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
     const atendimento = await this.carregar(id);
     this.profissionais.assertOwnership(atendimento.profissionalId, profissional, user);
     this.assertEditavel(atendimento);
@@ -73,7 +73,7 @@ export class AtendimentosService {
   }
 
   async upsertVitais(user: AuthenticatedUser, id: string, dto: UpsertVitaisDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
     const atendimento = await this.carregar(id);
     this.profissionais.assertOwnership(atendimento.profissionalId, profissional, user);
     this.assertEditavel(atendimento);
@@ -111,7 +111,7 @@ export class AtendimentosService {
   }
 
   async encerrar(user: AuthenticatedUser, id: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
     const atendimento = await this.carregar(id);
     this.profissionais.assertOwnership(atendimento.profissionalId, profissional, user);
     this.assertEditavel(atendimento);

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { AcaoAuditoria, Prisma, StatusAgendamento } from "@ifp/database";
+import { AcaoAuditoria, Prisma, StatusAgendamento, TipoUnidade } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -52,7 +52,7 @@ export class AgendaService {
   }
 
   async listarDia(user: AuthenticatedUser, data?: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
     const { inicio, fim } = this.janelaDoDia(data);
 
     const items = await this.prisma.agendamento.findMany({
@@ -68,7 +68,7 @@ export class AgendaService {
   }
 
   async prancha(user: AuthenticatedUser, agendamentoId: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
 
     const agendamento = await this.prisma.agendamento.findUnique({
       where: { id: agendamentoId },
@@ -91,7 +91,7 @@ export class AgendaService {
 
   /** Busca enxuta de pacientes para agendar — só o necessário (privacidade). */
   async buscarFichas(user: AuthenticatedUser, q?: string) {
-    await this.profissionais.resolverPorUser(user);
+    await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
     const termo = q?.trim();
     if (!termo || termo.length < 2) return { items: [] };
 
@@ -126,7 +126,7 @@ export class AgendaService {
 
   /** Agenda um paciente para o profissional logado. */
   async criarAgendamento(user: AuthenticatedUser, dto: CriarAgendamentoDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
 
     const ficha = await this.prisma.fichaCidada.findUnique({
       where: { id: dto.fichaId },
@@ -180,7 +180,7 @@ export class AgendaService {
 
   /** Cria o atendimento do agendamento (idempotente: se já existe, retorna o existente). */
   async iniciar(user: AuthenticatedUser, agendamentoId: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
 
     const agendamento = await this.prisma.agendamento.findUnique({
       where: { id: agendamentoId },

@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Perfil, StatusTurma } from "@ifp/database";
+import { AcaoAuditoria, Perfil, StatusTurma, TipoUnidade } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -33,7 +33,7 @@ export class AulasService {
 
   /** Aula com presenças já lançadas (hidrata a tela de chamada). */
   async detalhe(user: AuthenticatedUser, aulaId: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const aula = await this.carregarAula(aulaId);
     if (
       !user.perfis.includes(Perfil.SUPER_ADMIN) &&
@@ -45,7 +45,7 @@ export class AulasService {
   }
 
   async criar(user: AuthenticatedUser, turmaId: string, dto: CriarAulaDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const turma = await this.prisma.turma.findUnique({ where: { id: turmaId } });
     if (!turma) throw new NotFoundException("Turma não encontrada");
     this.profissionais.assertOwnership(turma.profissionalId, profissional, user);
@@ -76,7 +76,7 @@ export class AulasService {
 
   /** Lança/atualiza a chamada em lote — idempotente; 409 após o selo da aula. */
   async lancarChamada(user: AuthenticatedUser, aulaId: string, dto: LancarChamadaDto) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const aula = await this.carregarAula(aulaId);
     this.profissionais.assertOwnership(aula.turma.profissionalId, profissional, user);
     if (aula.encerradaEm) {
@@ -113,7 +113,7 @@ export class AulasService {
   }
 
   async encerrar(user: AuthenticatedUser, aulaId: string) {
-    const profissional = await this.profissionais.resolverPorUser(user);
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const aula = await this.carregarAula(aulaId);
     this.profissionais.assertOwnership(aula.turma.profissionalId, profissional, user);
     if (aula.encerradaEm) throw new ConflictException("Aula já encerrada.");
