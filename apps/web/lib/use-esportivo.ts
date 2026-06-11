@@ -1,0 +1,209 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+
+import { useAuthFetch } from "./use-auth-fetch";
+
+// ============================================================
+// Tipos (espelham as respostas do módulo esportivo no NestJS)
+// ============================================================
+
+export interface ResumoEsportivo {
+  turmasEmAndamento: number;
+  atletasAtivos: number;
+  graduacoesConcedidas: number;
+  listaEspera: number;
+}
+
+export interface ModalidadeItem {
+  id: string;
+  nome: string;
+  trilhaGraduacoes: string[];
+  ativo: boolean;
+  _count: { turmas: number };
+}
+
+export interface TurmaEsportivaResumo {
+  id: string;
+  codigo: string;
+  diasHorario: string;
+  local: string | null;
+  faixaEtariaMin: number | null;
+  faixaEtariaMax: number | null;
+  vagasTotais: number;
+  status: "INSCRICOES_ABERTAS" | "EM_ANDAMENTO" | "ENCERRADA";
+  modalidade: { id: string; nome: string; trilhaGraduacoes: string[] };
+  _count: { matriculas: number };
+}
+
+export interface GraduacaoItem {
+  id: string;
+  nivel: string;
+  codigoVerificacao: string;
+  observacao: string | null;
+  concedidaEm: string;
+}
+
+export interface MatriculaEsportivaItem {
+  id: string;
+  status: string;
+  posicaoEspera: number | null;
+  ficha: { id: string; protocolo: string; nomeCompleto: string };
+  membro: { id: string; nomeCompleto: string; dataNascimento: string } | null;
+  graduacoes: GraduacaoItem[];
+}
+
+export interface TurmaEsportivaDetalhe extends Omit<TurmaEsportivaResumo, "_count"> {
+  instrutor: { user: { nome: string } };
+  matriculas: MatriculaEsportivaItem[];
+}
+
+export interface FichaElegivelEsportivo {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+  membros: { id: string; nomeCompleto: string; parentesco: string }[];
+}
+
+// ============================================================
+// Consultas
+// ============================================================
+
+export function useResumoEsportivo() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "resumo"],
+    queryFn: () => authFetch<ResumoEsportivo>("/esportivo/resumo"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useModalidades() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "modalidades"],
+    queryFn: () => authFetch<{ items: ModalidadeItem[] }>("/esportivo/modalidades"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useTurmasEsportivas() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "turmas"],
+    queryFn: () => authFetch<{ items: TurmaEsportivaResumo[] }>("/esportivo/turmas"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useTurmaEsportiva(id: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "turma", id],
+    queryFn: () => authFetch<TurmaEsportivaDetalhe>(`/esportivo/turmas/${id}`),
+    enabled: status === "authenticated" && !!id,
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useFichasElegiveisEsportivo(q: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  const termo = q.trim();
+  return useQuery({
+    queryKey: ["esportivo", "fichas-elegiveis", termo],
+    queryFn: () =>
+      authFetch<{ items: FichaElegivelEsportivo[] }>(
+        `/esportivo/fichas-elegiveis?q=${encodeURIComponent(termo)}`,
+      ),
+    enabled: status === "authenticated" && termo.length >= 2,
+  });
+}
+
+// ============================================================
+// Mutações
+// ============================================================
+
+export interface CriarTurmaEsportivaPayload {
+  modalidadeId: string;
+  codigo: string;
+  diasHorario: string;
+  local?: string;
+  faixaEtariaMin?: number;
+  faixaEtariaMax?: number;
+  inicioEm: string;
+  vagasTotais: number;
+}
+
+export function useCriarTurmaEsportiva() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CriarTurmaEsportivaPayload) =>
+      authFetch<TurmaEsportivaResumo>("/esportivo/turmas", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}
+
+export function useMatricularEsportivo() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      turmaId,
+      fichaId,
+      membroId,
+    }: {
+      turmaId: string;
+      fichaId: string;
+      membroId?: string;
+    }) =>
+      authFetch<MatriculaEsportivaItem>(`/esportivo/turmas/${turmaId}/matriculas`, {
+        method: "POST",
+        body: JSON.stringify({ fichaId, ...(membroId ? { membroId } : {}) }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}
+
+export function useGraduar() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      matriculaId,
+      nivel,
+      observacao,
+    }: {
+      matriculaId: string;
+      nivel: string;
+      observacao?: string;
+    }) =>
+      authFetch<GraduacaoItem>(`/esportivo/matriculas/${matriculaId}/graduacoes`, {
+        method: "POST",
+        body: JSON.stringify({ nivel, ...(observacao ? { observacao } : {}) }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}
+
+export function useEncerrarTurmaEsportiva() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (turmaId: string) =>
+      authFetch<{ concluidas: number; esperaCanceladas: number }>(
+        `/esportivo/turmas/${turmaId}/encerrar`,
+        { method: "POST" },
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}

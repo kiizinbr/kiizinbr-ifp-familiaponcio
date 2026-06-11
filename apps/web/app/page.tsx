@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { ArrowRight, GraduationCap, HeartHandshake, Stethoscope } from "lucide-react";
+import {
+  ArrowRight,
+  Baby,
+  GraduationCap,
+  HeartHandshake,
+  Home,
+  Medal,
+  Stethoscope,
+} from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 
@@ -39,6 +47,27 @@ const AREAS: {
     descricao: "Turmas, chamada e certificados verificáveis.",
     perfis: ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE"],
     icone: <GraduationCap className="h-6 w-6" />,
+  },
+  {
+    href: "/educacional",
+    nome: "Centro Educacional",
+    descricao: "Turmas infantis, check-in/out, diário e comunicados.",
+    perfis: ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE"],
+    icone: <Baby className="h-6 w-6" />,
+  },
+  {
+    href: "/esportivo",
+    nome: "Centro Esportivo",
+    descricao: "Modalidades, turmas e graduações verificáveis.",
+    perfis: ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE"],
+    icone: <Medal className="h-6 w-6" />,
+  },
+  {
+    href: "/familia",
+    nome: "Portal da Família",
+    descricao: "Diário do dia, comunicados e ficha da criança.",
+    perfis: ["RESPONSAVEL_FAMILIAR"],
+    icone: <Home className="h-6 w-6" />,
   },
 ];
 
