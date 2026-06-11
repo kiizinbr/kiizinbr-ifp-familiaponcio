@@ -122,9 +122,14 @@ parede de tenant (ESPORTIVO), regra de ouro, lock `FOR UPDATE` na matrícula
 certificado (código de verificação público em `GET /esportivo/graduacoes/verificar/:codigo`),
 com `nivel` validado contra `Modalidade.trilhaGraduacoes` e `@@unique` por
 matrícula+nível. Seed: `esporte@ifp.local` (Sensei Ricardo) + Judô (6 faixas)
-+ Futsal + 2 fichas aprovadas. Próximos passos da vertical:
-1. Telas (`apps/web/app/esportivo/*` — gabarito = telas da capacitação).
-2. Treinos + chamada selada (molde `Aula`/`Presenca`).
++ Futsal + 2 fichas aprovadas.
+
+**Telas entregues (11/06 à noite)**: `/esportivo` (painel KPIs + turmas + nova
+turma), `/esportivo/turmas/[id]` (matrícula por busca elegível, graduação pela
+trilha com select filtrado, encerramento) e `/verificar-graduacao/[codigo]`
+(pública). O hub da home agora lista TODAS as áreas (Educacional/Esportivo/
+Família faltavam — era a causa do "Acesso restrito" ao navegar).
+Falta da vertical: **treinos + chamada selada** (molde `Aula`/`Presenca`).
 
 ## 🔭 Próximas fases (ordem do blueprint Educacional §8 + Capacitação)
 
