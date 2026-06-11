@@ -1,14 +1,19 @@
 import { hash } from "bcryptjs";
 import {
+  EscopoImagem,
   GravidadeAlergia,
   ModalidadeCurso,
+  Parentesco,
   Perfil,
   PrismaClient,
+  SentidoCheck,
   StatusAgendamento,
+  StatusDiario,
   StatusElegibilidade,
   StatusMatricula,
   StatusPresenca,
   StatusTurma,
+  TipoRegistroRotina,
   TipoUnidade,
 } from "@prisma/client";
 
@@ -83,6 +88,7 @@ async function main() {
 
   await seedCentroMedico();
   await seedCapacitacao();
+  await seedEducacional();
 }
 
 // ============================================================
@@ -443,6 +449,327 @@ async function seedCapacitacao() {
     }
   }
   console.log("  ✓ Turma BB-2026-2 fresca (3 matrículas, sem aulas)");
+}
+
+// ============================================================
+// Educacional / Creche (Fase 3) — educadora, família Sandra+Ana,
+// Jardim A, autorizados (1 revogado), autorizações de imagem
+// (default negado) e 1 dia completo com diário FECHADO.
+// ============================================================
+async function seedEducacional() {
+  const senha = process.env.SEED_MEDICO_PASSWORD; // reusa a senha dev dos profissionais
+  if (!senha) {
+    console.warn("  ! SEED_MEDICO_PASSWORD não definido — pulando seed do Educacional.");
+    return;
+  }
+
+  const unidadeEdu = await prisma.unidade.findUniqueOrThrow({
+    where: { slug: "educacional" },
+  });
+
+  // 1) Educadora (PROFISSIONAL lotada na unidade educacional — sem conselho)
+  const senhaHash = await hash(senha, 12);
+  const educadoraUser = await prisma.user.upsert({
+    where: { email: "educadora@ifp.local" },
+    update: { senhaHash, ativo: true },
+    create: {
+      email: "educadora@ifp.local",
+      senhaHash,
+      nome: "Prof. Carla Mendes",
+      ativo: true,
+    },
+  });
+  await prisma.usuarioPerfil.upsert({
+    where: { userId_perfil: { userId: educadoraUser.id, perfil: Perfil.PROFISSIONAL } },
+    update: {},
+    create: { userId: educadoraUser.id, perfil: Perfil.PROFISSIONAL },
+  });
+  await prisma.usuarioUnidade.upsert({
+    where: { userId_unidadeId: { userId: educadoraUser.id, unidadeId: unidadeEdu.id } },
+    update: {},
+    create: { userId: educadoraUser.id, unidadeId: unidadeEdu.id },
+  });
+  const educadora = await prisma.profissional.upsert({
+    where: { userId: educadoraUser.id },
+    update: { ativo: true },
+    create: {
+      userId: educadoraUser.id,
+      unidadeId: unidadeEdu.id,
+      especialidade: "Educadora Infantil",
+    },
+  });
+  console.log("  ✓ Educadora Prof. Carla (educadora@ifp.local)");
+
+  // 2) Família: Sandra (titular, com login de responsável) + Ana (5 anos)
+  const sandra = await prisma.fichaCidada.upsert({
+    where: { cpf: "44444444444" },
+    update: {},
+    create: {
+      protocolo: "IFP-2026-900004",
+      nomeCompleto: "Sandra Silva",
+      cpf: "44444444444",
+      dataNascimento: new Date("1994-02-18"),
+      telefone: "(21) 99999-0004",
+    },
+  });
+  await prisma.elegibilidadePorUnidade.upsert({
+    where: { fichaId_unidadeId: { fichaId: sandra.id, unidadeId: unidadeEdu.id } },
+    update: { status: StatusElegibilidade.APROVADO },
+    create: {
+      fichaId: sandra.id,
+      unidadeId: unidadeEdu.id,
+      status: StatusElegibilidade.APROVADO,
+      motivo: "Seed de desenvolvimento",
+    },
+  });
+  // Portal da família: ownership vem de User.fichaCidadaId (nunca do client)
+  const responsavelUser = await prisma.user.upsert({
+    where: { email: "familia@ifp.local" },
+    update: { senhaHash, ativo: true, fichaCidadaId: sandra.id },
+    create: {
+      email: "familia@ifp.local",
+      senhaHash,
+      nome: "Sandra Silva",
+      ativo: true,
+      fichaCidadaId: sandra.id,
+    },
+  });
+  await prisma.usuarioPerfil.upsert({
+    where: {
+      userId_perfil: { userId: responsavelUser.id, perfil: Perfil.RESPONSAVEL_FAMILIAR },
+    },
+    update: {},
+    create: { userId: responsavelUser.id, perfil: Perfil.RESPONSAVEL_FAMILIAR },
+  });
+
+  let ana = await prisma.membroFamiliar.findFirst({
+    where: { fichaId: sandra.id, nomeCompleto: "Ana Silva" },
+  });
+  if (!ana) {
+    ana = await prisma.membroFamiliar.create({
+      data: {
+        fichaId: sandra.id,
+        nomeCompleto: "Ana Silva",
+        dataNascimento: new Date("2021-04-10"),
+        parentesco: Parentesco.FILHA,
+      },
+    });
+  }
+  const jaTemAlergiaAna = await prisma.alergia.findFirst({
+    where: { membroId: ana.id, descricao: "Amendoim" },
+  });
+  if (!jaTemAlergiaAna) {
+    await prisma.alergia.create({
+      data: {
+        fichaId: sandra.id,
+        membroId: ana.id, // alergia é DA CRIANÇA (membroId já existia no modelo)
+        descricao: "Amendoim",
+        gravidade: GravidadeAlergia.GRAVE,
+      },
+    });
+  }
+  console.log("  ✓ Família Sandra Silva (familia@ifp.local) + Ana, 5 anos (alergia amendoim)");
+
+  // 3) Turma Jardim A + matrícula da Ana (consentimento Art. 14 na matrícula)
+  let turmaInf = await prisma.turmaInfantil.findFirst({
+    where: { unidadeId: unidadeEdu.id, nome: "Jardim A" },
+  });
+  if (!turmaInf) {
+    turmaInf = await prisma.turmaInfantil.create({
+      data: {
+        unidadeId: unidadeEdu.id,
+        nome: "Jardim A",
+        faixaEtariaMin: 48,
+        faixaEtariaMax: 72,
+        capacidade: 15,
+        profissionalId: educadora.id,
+      },
+    });
+  }
+  await prisma.matriculaInfantil.upsert({
+    where: { turmaId_membroId: { turmaId: turmaInf.id, membroId: ana.id } },
+    update: { ativa: true },
+    create: {
+      unidadeId: unidadeEdu.id,
+      turmaId: turmaInf.id,
+      fichaId: sandra.id,
+      membroId: ana.id,
+      consentimentoLgpdEm: new Date(),
+      criadoPor: educadoraUser.id,
+    },
+  });
+
+  // 4) Autorizações de imagem — default NEGADO; só uso interno concedido
+  const escopos: Array<{ escopo: EscopoImagem; concedido: boolean }> = [
+    { escopo: EscopoImagem.USO_INTERNO, concedido: true },
+    { escopo: EscopoImagem.REDES_IFP, concedido: false },
+    { escopo: EscopoImagem.IMPRENSA, concedido: false },
+  ];
+  for (const { escopo, concedido } of escopos) {
+    await prisma.autorizacaoImagem.upsert({
+      where: {
+        membroId_escopo_versaoTermo: {
+          membroId: ana.id,
+          escopo,
+          versaoTermo: "v1-2026",
+        },
+      },
+      update: { concedido },
+      create: {
+        fichaId: sandra.id,
+        membroId: ana.id,
+        escopo,
+        concedido,
+        versaoTermo: "v1-2026",
+        criadoPor: educadoraUser.id,
+      },
+    });
+  }
+
+  // 5) Responsáveis autorizados: mãe, avó (com foto) e tio REVOGADO (testa bloqueio)
+  const autorizadosDef = [
+    {
+      nome: "Sandra Silva",
+      documento: "RG 11.111.111-1",
+      parentesco: "mãe",
+      fotoUrl: null as string | null,
+      revogado: false,
+    },
+    {
+      nome: "Maria das Graças",
+      documento: "RG 22.222.222-2",
+      parentesco: "avó",
+      fotoUrl: "https://i.pravatar.cc/96?u=avo-ana",
+      revogado: false,
+    },
+    {
+      nome: "Roberto Silva",
+      documento: "RG 33.333.333-3",
+      parentesco: "tio",
+      fotoUrl: null as string | null,
+      revogado: true,
+    },
+  ];
+  const autorizadosPorNome = new Map<string, { id: string }>();
+  for (const def of autorizadosDef) {
+    let aut = await prisma.responsavelAutorizado.findFirst({
+      where: { membroId: ana.id, nome: def.nome },
+    });
+    if (!aut) {
+      aut = await prisma.responsavelAutorizado.create({
+        data: {
+          fichaId: sandra.id,
+          membroId: ana.id,
+          nome: def.nome,
+          documento: def.documento,
+          parentesco: def.parentesco,
+          fotoUrl: def.fotoUrl,
+          revogadoEm: def.revogado ? new Date() : null,
+          revogadoPor: def.revogado ? educadoraUser.id : null,
+          criadoPor: educadoraUser.id,
+        },
+      });
+    }
+    autorizadosPorNome.set(def.nome, aut);
+  }
+  console.log("  ✓ Jardim A + matrícula da Ana + 3 autorizados (1 revogado)");
+
+  // 6) Dia completo de ONTEM: check-in pela mãe, 3 registros, saída pela avó,
+  //    diário FECHADO (visível no portal da família)
+  const ontem = new Date();
+  ontem.setDate(ontem.getDate() - 1);
+  const dataDiario = new Date(
+    `${new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(ontem)}T00:00:00.000Z`,
+  );
+  const mae = autorizadosPorNome.get("Sandra Silva");
+  const avo = autorizadosPorNome.get("Maria das Graças");
+  if (!mae || !avo) throw new Error("Seed: responsáveis autorizados não criados.");
+
+  const diarioExistente = await prisma.diarioDia.findUnique({
+    where: { membroId_data: { membroId: ana.id, data: dataDiario } },
+  });
+  if (!diarioExistente) {
+    const ts = (h: number, m: number) => {
+      const d = new Date(ontem);
+      d.setHours(h, m, 0, 0);
+      return d;
+    };
+    const diario = await prisma.diarioDia.create({
+      data: {
+        unidadeId: unidadeEdu.id,
+        membroId: ana.id,
+        data: dataDiario,
+        status: StatusDiario.FECHADO,
+        fechadoEm: ts(17, 30),
+        profissionalId: educadora.id,
+      },
+    });
+    await prisma.registroRotina.createMany({
+      data: [
+        {
+          diarioId: diario.id,
+          tipo: TipoRegistroRotina.ALIMENTACAO,
+          descricao: "Café da manhã: aceitou bem",
+          ocorridoEm: ts(8, 30),
+          profissionalId: educadora.id,
+        },
+        {
+          diarioId: diario.id,
+          tipo: TipoRegistroRotina.SONO,
+          descricao: "Sono 12h30–14h00",
+          ocorridoEm: ts(14, 0),
+          profissionalId: educadora.id,
+        },
+        {
+          diarioId: diario.id,
+          tipo: TipoRegistroRotina.ATIVIDADE,
+          descricao: "Pintura com guache — participou animada",
+          ocorridoEm: ts(15, 30),
+          profissionalId: educadora.id,
+        },
+      ],
+    });
+    await prisma.checkInOut.createMany({
+      data: [
+        {
+          unidadeId: unidadeEdu.id,
+          membroId: ana.id,
+          sentido: SentidoCheck.ENTRADA,
+          ocorridoEm: ts(7, 45),
+          autorizadoId: mae.id,
+          profissionalId: educadora.id,
+        },
+        {
+          unidadeId: unidadeEdu.id,
+          membroId: ana.id,
+          sentido: SentidoCheck.SAIDA,
+          ocorridoEm: ts(17, 10),
+          autorizadoId: avo.id,
+          profissionalId: educadora.id,
+        },
+      ],
+    });
+    console.log("  ✓ Dia de ontem completo (check-in/out + 3 registros + diário FECHADO)");
+  }
+
+  // 7) Comunicado crítico sem leitura (pendência no painel da gestora)
+  const jaTemComunicado = await prisma.comunicado.findFirst({
+    where: { unidadeId: unidadeEdu.id, titulo: "Reunião de responsáveis — Jardim A" },
+  });
+  if (!jaTemComunicado) {
+    await prisma.comunicado.create({
+      data: {
+        unidadeId: unidadeEdu.id,
+        turmaId: turmaInf.id,
+        titulo: "Reunião de responsáveis — Jardim A",
+        corpo:
+          "Reunião na próxima sexta-feira às 17h30 para apresentação do projeto pedagógico do semestre. A presença de ao menos um responsável é importante.",
+        critico: true,
+        enviadoPor: educadoraUser.id,
+      },
+    });
+    console.log("  ✓ Comunicado crítico sem leitura");
+  }
 }
 
 main()

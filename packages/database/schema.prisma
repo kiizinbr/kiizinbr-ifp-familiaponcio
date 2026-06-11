@@ -36,27 +36,32 @@ enum TipoUnidade {
 }
 
 model Unidade {
-  id          String       @id @default(cuid())
-  tipo        TipoUnidade  @unique
-  nome        String
-  slug        String       @unique          // "medico", "capacitacao", "esportivo", "educacional"
-  endereco    String?
-  telefone    String?
-  email       String?
-  ativo       Boolean      @default(true)
-  criadoEm    DateTime     @default(now())
+  id           String      @id @default(cuid())
+  tipo         TipoUnidade @unique
+  nome         String
+  slug         String      @unique // "medico", "capacitacao", "esportivo", "educacional"
+  endereco     String?
+  telefone     String?
+  email        String?
+  ativo        Boolean     @default(true)
+  criadoEm     DateTime    @default(now())
   atualizadoEm DateTime    @updatedAt
 
-  usuarios       UsuarioUnidade[]
-  elegibilidades ElegibilidadePorUnidade[]
-  profissionais  Profissional[]
-  agendamentos   Agendamento[]
-  atendimentos   Atendimento[]
-  cursos         Curso[]
-  turmas         Turma[]
-  matriculas     Matricula[]
-  aulas          Aula[]
-  certificados   Certificado[]
+  usuarios           UsuarioUnidade[]
+  elegibilidades     ElegibilidadePorUnidade[]
+  profissionais      Profissional[]
+  agendamentos       Agendamento[]
+  atendimentos       Atendimento[]
+  cursos             Curso[]
+  turmas             Turma[]
+  matriculas         Matricula[]
+  aulas              Aula[]
+  certificados       Certificado[]
+  turmasInfantis     TurmaInfantil[]
+  matriculasInfantis MatriculaInfantil[]
+  checksInOut        CheckInOut[]
+  diariosDia         DiarioDia[]
+  comunicados        Comunicado[]
 
   @@map("unidades")
 }
@@ -76,20 +81,20 @@ enum Perfil {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  senhaHash   String?                       // null se usar magic link / SSO
-  nome        String
-  cpf         String?  @unique
-  ativo       Boolean  @default(true)
-  ultimoLogin DateTime?
-  criadoEm    DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  id           String    @id @default(cuid())
+  email        String    @unique
+  senhaHash    String? // null se usar magic link / SSO
+  nome         String
+  cpf          String?   @unique
+  ativo        Boolean   @default(true)
+  ultimoLogin  DateTime?
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
 
-  perfis    UsuarioPerfil[]
-  unidades  UsuarioUnidade[]
-  fichaCidada FichaCidada? @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
-  fichaCidadaId String? @unique
+  perfis        UsuarioPerfil[]
+  unidades      UsuarioUnidade[]
+  fichaCidada   FichaCidada?     @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
+  fichaCidadaId String?          @unique
   profissional  Profissional?
 
   @@map("usuarios")
@@ -109,7 +114,7 @@ model UsuarioPerfil {
 
 // Usuário pode atuar em N unidades (raro, mas existe)
 model UsuarioUnidade {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   userId    String
   unidadeId String
 
@@ -153,53 +158,57 @@ enum Escolaridade {
 }
 
 model FichaCidada {
-  id              String    @id @default(cuid())
-  protocolo       String    @unique         // ex.: "IFP-2025-000123"
+  id        String @id @default(cuid())
+  protocolo String @unique // ex.: "IFP-2025-000123"
 
   // Dados do titular (responsável familiar)
-  nomeCompleto    String
-  cpf             String    @unique
-  rg              String?
-  dataNascimento  DateTime
-  estadoCivil     EstadoCivil?
-  escolaridade    Escolaridade?
-  fotoUrl         String?
+  nomeCompleto   String
+  cpf            String        @unique
+  rg             String?
+  dataNascimento DateTime
+  estadoCivil    EstadoCivil?
+  escolaridade   Escolaridade?
+  fotoUrl        String?
 
   // Contato
-  telefone        String
-  telefoneAlt     String?
-  email           String?
-  whatsappOptIn   Boolean   @default(false)
+  telefone      String
+  telefoneAlt   String?
+  email         String?
+  whatsappOptIn Boolean @default(false)
 
   // Endereço
-  cep             String?
-  logradouro      String?
-  numero          String?
-  complemento     String?
-  bairro          String?
-  cidade          String    @default("Duque de Caxias")
-  uf              String    @default("RJ")
+  cep         String?
+  logradouro  String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String  @default("Duque de Caxias")
+  uf          String  @default("RJ")
 
   // Status geral
-  ativa           Boolean   @default(true)
-  observacoes     String?
+  ativa       Boolean @default(true)
+  observacoes String?
 
-  criadoEm        DateTime  @default(now())
-  atualizadoEm    DateTime  @updatedAt
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 
-  user            User?     @relation("UserToFichaCidada")
+  user User? @relation("UserToFichaCidada")
 
-  membros         MembroFamiliar[]
-  dadosSocio     DadosSocioeconomicos?
-  documentos      Documento[]
-  entrevistas     Entrevista[]
-  elegibilidades  ElegibilidadePorUnidade[]
-  consentimentos  Consentimento[]
-  agendamentos    Agendamento[]
-  atendimentos    Atendimento[]
-  alergias        Alergia[]
-  condicoesCronicas CondicaoCronica[]
-  matriculas      Matricula[]
+  membros                 MembroFamiliar[]
+  dadosSocio              DadosSocioeconomicos?
+  documentos              Documento[]
+  entrevistas             Entrevista[]
+  elegibilidades          ElegibilidadePorUnidade[]
+  consentimentos          Consentimento[]
+  agendamentos            Agendamento[]
+  atendimentos            Atendimento[]
+  alergias                Alergia[]
+  condicoesCronicas       CondicaoCronica[]
+  matriculas              Matricula[]
+  autorizacoesImagem      AutorizacaoImagem[]
+  matriculasInfantis      MatriculaInfantil[]
+  responsaveisAutorizados ResponsavelAutorizado[]
+  comunicadosLeituras     ComunicadoLeitura[]
 
   @@map("fichas_cidadas")
 }
@@ -221,7 +230,7 @@ enum Parentesco {
 }
 
 model MembroFamiliar {
-  id             String     @id @default(cuid())
+  id             String        @id @default(cuid())
   fichaId        String
   nomeCompleto   String
   cpf            String?
@@ -229,41 +238,46 @@ model MembroFamiliar {
   parentesco     Parentesco
   ocupacao       String?
   escolaridade   Escolaridade?
-  rendaMensal    Decimal?   @db.Decimal(10, 2)
+  rendaMensal    Decimal?      @db.Decimal(10, 2)
   observacoes    String?
 
   ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
 
-  agendamentos      Agendamento[]
-  atendimentos      Atendimento[]
-  alergias          Alergia[]
-  condicoesCronicas CondicaoCronica[]
-  matriculas        Matricula[]
+  agendamentos            Agendamento[]
+  atendimentos            Atendimento[]
+  alergias                Alergia[]
+  condicoesCronicas       CondicaoCronica[]
+  matriculas              Matricula[]
+  autorizacoesImagem      AutorizacaoImagem[]
+  matriculasInfantis      MatriculaInfantil[]
+  responsaveisAutorizados ResponsavelAutorizado[]
+  checksInOut             CheckInOut[]
+  diariosDia              DiarioDia[]
 
   @@map("membros_familiares")
 }
 
 model DadosSocioeconomicos {
-  id                    String   @id @default(cuid())
-  fichaId               String   @unique
+  id      String @id @default(cuid())
+  fichaId String @unique
 
-  rendaFamiliarTotal    Decimal  @db.Decimal(10, 2)
-  rendaPerCapita        Decimal  @db.Decimal(10, 2)
-  recebeBolsaFamilia    Boolean  @default(false)
-  recebeBPC             Boolean  @default(false)
-  recebeAuxilioGas      Boolean  @default(false)
-  outrosBeneficios      String?
+  rendaFamiliarTotal Decimal @db.Decimal(10, 2)
+  rendaPerCapita     Decimal @db.Decimal(10, 2)
+  recebeBolsaFamilia Boolean @default(false)
+  recebeBPC          Boolean @default(false)
+  recebeAuxilioGas   Boolean @default(false)
+  outrosBeneficios   String?
 
-  situacaoMoradia       SituacaoMoradia
-  numeroPessoasMoradia  Int
-  numeroComodos         Int?
-  temAguaEncanada       Boolean  @default(true)
-  temEsgoto             Boolean  @default(true)
-  temEnergiaEletrica    Boolean  @default(true)
+  situacaoMoradia      SituacaoMoradia
+  numeroPessoasMoradia Int
+  numeroComodos        Int?
+  temAguaEncanada      Boolean         @default(true)
+  temEsgoto            Boolean         @default(true)
+  temEnergiaEletrica   Boolean         @default(true)
 
-  vulnerabilidades      String?  // texto livre da assistente social
+  vulnerabilidades String? // texto livre da assistente social
 
-  atualizadoEm          DateTime @updatedAt
+  atualizadoEm DateTime @updatedAt
 
   ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
 
@@ -283,15 +297,15 @@ enum TipoDocumento {
 }
 
 model Documento {
-  id          String        @id @default(cuid())
-  fichaId     String
-  tipo        TipoDocumento
-  nomeArquivo String
-  url         String                         // S3 / R2 / MinIO
+  id           String        @id @default(cuid())
+  fichaId      String
+  tipo         TipoDocumento
+  nomeArquivo  String
+  url          String // S3 / R2 / MinIO
   tamanhoBytes Int
-  mimeType    String
-  enviadoPor  String?                        // userId
-  enviadoEm   DateTime      @default(now())
+  mimeType     String
+  enviadoPor   String? // userId
+  enviadoEm    DateTime      @default(now())
 
   ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
 
@@ -299,12 +313,12 @@ model Documento {
 }
 
 model Entrevista {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   fichaId      String
-  realizadaPor String                        // userId do assistente social
+  realizadaPor String // userId do assistente social
   realizadaEm  DateTime
-  resumo       String                        // markdown
-  proximaEm    DateTime?                     // reavaliação agendada
+  resumo       String // markdown
+  proximaEm    DateTime? // reavaliação agendada
 
   ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
 
@@ -320,16 +334,16 @@ enum StatusElegibilidade {
 }
 
 model ElegibilidadePorUnidade {
-  id          String              @id @default(cuid())
-  fichaId     String
-  unidadeId   String
-  status      StatusElegibilidade @default(PENDENTE)
-  avaliadoPor String?                                // userId do assistente
-  avaliadoEm  DateTime?
-  motivo      String?
-  reavaliarEm DateTime?
-  criadoEm    DateTime            @default(now())
-  atualizadoEm DateTime           @updatedAt
+  id           String              @id @default(cuid())
+  fichaId      String
+  unidadeId    String
+  status       StatusElegibilidade @default(PENDENTE)
+  avaliadoPor  String? // userId do assistente
+  avaliadoEm   DateTime?
+  motivo       String?
+  reavaliarEm  DateTime?
+  criadoEm     DateTime            @default(now())
+  atualizadoEm DateTime            @updatedAt
 
   ficha   FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
   unidade Unidade     @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
@@ -347,14 +361,14 @@ enum TipoConsentimento {
 }
 
 model Consentimento {
-  id        String            @id @default(cuid())
-  fichaId   String
-  tipo      TipoConsentimento
-  concedido Boolean
-  versaoTermo String                          // versão do termo aceito
-  ip          String?
-  userAgent   String?
-  registradoEm DateTime        @default(now())
+  id           String            @id @default(cuid())
+  fichaId      String
+  tipo         TipoConsentimento
+  concedido    Boolean
+  versaoTermo  String // versão do termo aceito
+  ip           String?
+  userAgent    String?
+  registradoEm DateTime          @default(now())
 
   ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
 
@@ -380,7 +394,7 @@ model AuditLog {
   id         String        @id @default(cuid())
   userId     String?
   acao       AcaoAuditoria
-  entidade   String                          // ex.: "FichaCidada"
+  entidade   String // ex.: "FichaCidada"
   entidadeId String?
   ip         String?
   userAgent  String?
@@ -421,34 +435,38 @@ model Profissional {
   id               String   @id @default(cuid())
   userId           String   @unique
   unidadeId        String
-  registroConselho String?                // CRM/COREN — opcional: instrutor não tem conselho
+  registroConselho String? // CRM/COREN — opcional: instrutor não tem conselho
   ufConselho       String   @default("RJ")
   especialidade    String?
   ativo            Boolean  @default(true)
   criadoEm         DateTime @default(now())
   atualizadoEm     DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id])
-  unidade      Unidade       @relation(fields: [unidadeId], references: [id])
-  agendamentos Agendamento[]
-  atendimentos Atendimento[]
-  turmas       Turma[]
-  aulas        Aula[]
+  user              User             @relation(fields: [userId], references: [id])
+  unidade           Unidade          @relation(fields: [unidadeId], references: [id])
+  agendamentos      Agendamento[]
+  atendimentos      Atendimento[]
+  turmas            Turma[]
+  aulas             Aula[]
+  turmasInfantis    TurmaInfantil[]
+  checksRegistrados CheckInOut[]
+  diariosFechados   DiarioDia[]
+  registrosRotina   RegistroRotina[]
 
   @@map("profissionais")
 }
 
 model Agendamento {
   id             String            @id @default(cuid())
-  unidadeId      String                              // tenant obrigatório
+  unidadeId      String // tenant obrigatório
   fichaId        String
-  membroId       String?                             // dependente atendido
+  membroId       String? // dependente atendido
   profissionalId String
   inicioEm       DateTime
   fimEm          DateTime
   status         StatusAgendamento @default(AGENDADO)
   motivo         String?
-  criadoPor      String?                             // userId de quem agendou
+  criadoPor      String? // userId de quem agendou
   criadoEm       DateTime          @default(now())
   atualizadoEm   DateTime          @updatedAt
 
@@ -470,13 +488,13 @@ model Atendimento {
   membroId       String?
   profissionalId String
   agendamentoId  String?   @unique
-  subjetivo      String?                  // S — queixa
-  objetivo       String?                  // O — exame físico (Fase 1: texto)
-  avaliacao      String?                  // A — hipótese diagnóstica
-  plano          String?                  // P — conduta, atestado, retorno
+  subjetivo      String? // S — queixa
+  objetivo       String? // O — exame físico (Fase 1: texto)
+  avaliacao      String? // A — hipótese diagnóstica
+  plano          String? // P — conduta, atestado, retorno
   cid10          String?
   iniciadoEm     DateTime  @default(now())
-  encerradoEm    DateTime?                // "selo" — imutável após preenchido
+  encerradoEm    DateTime? // "selo" — imutável após preenchido
   criadoEm       DateTime  @default(now())
   atualizadoEm   DateTime  @updatedAt
 
@@ -495,8 +513,8 @@ model Atendimento {
 model SinaisVitais {
   id                     String   @id @default(cuid())
   unidadeId              String
-  atendimentoId          String   @unique          // 1-1 com o atendimento
-  registradosPor         String                    // userId
+  atendimentoId          String   @unique // 1-1 com o atendimento
+  registradosPor         String // userId
   pressaoSistolica       Int?
   pressaoDiastolica      Int?
   frequenciaCardiaca     Int?
@@ -521,9 +539,9 @@ model Alergia {
   id            String            @id @default(cuid())
   fichaId       String
   membroId      String?
-  descricao     String                              // ex.: "Dipirona"
+  descricao     String // ex.: "Dipirona"
   gravidade     GravidadeAlergia?
-  registradaPor String?                             // userId
+  registradaPor String? // userId
   ativa         Boolean           @default(true)
   criadoEm      DateTime          @default(now())
   atualizadoEm  DateTime          @updatedAt
@@ -539,7 +557,7 @@ model CondicaoCronica {
   id              String    @id @default(cuid())
   fichaId         String
   membroId        String?
-  descricao       String                            // ex.: "Asma"
+  descricao       String // ex.: "Asma"
   cid10           String?
   diagnosticadaEm DateTime?
   observacoes     String?
@@ -611,9 +629,9 @@ model Turma {
   id             String      @id @default(cuid())
   unidadeId      String
   cursoId        String
-  codigo         String      @unique          // ex.: "BB-2026-1"
-  profissionalId String                       // instrutor responsável
-  diasHorario    String                       // ex.: "Seg/Qua 14h-17h"
+  codigo         String      @unique // ex.: "BB-2026-1"
+  profissionalId String // instrutor responsável
+  diasHorario    String // ex.: "Seg/Qua 14h-17h"
   sala           String?
   inicioEm       DateTime
   fimEm          DateTime?
@@ -633,16 +651,16 @@ model Turma {
 }
 
 model Matricula {
-  id           String          @id @default(cuid())
-  unidadeId    String
-  turmaId      String
-  fichaId      String
-  membroId     String?                        // dependente matriculado
-  status       StatusMatricula @default(ATIVA)
-  posicaoEspera Int?                          // posição na lista de espera
-  criadoPor    String?                        // userId de quem matriculou
-  criadoEm     DateTime        @default(now())
-  atualizadoEm DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  unidadeId     String
+  turmaId       String
+  fichaId       String
+  membroId      String? // dependente matriculado
+  status        StatusMatricula @default(ATIVA)
+  posicaoEspera Int? // posição na lista de espera
+  criadoPor     String? // userId de quem matriculou
+  criadoEm      DateTime        @default(now())
+  atualizadoEm  DateTime        @updatedAt
 
   unidade     Unidade         @relation(fields: [unidadeId], references: [id])
   turma       Turma           @relation(fields: [turmaId], references: [id])
@@ -662,8 +680,8 @@ model Aula {
   turmaId        String
   data           DateTime
   conteudo       String?
-  profissionalId String                       // instrutor que ministrou
-  encerradaEm    DateTime?                    // chamada encerrada ("selo")
+  profissionalId String // instrutor que ministrou
+  encerradaEm    DateTime? // chamada encerrada ("selo")
   criadoEm       DateTime  @default(now())
   atualizadoEm   DateTime  @updatedAt
 
@@ -695,16 +713,212 @@ model Certificado {
   id                   String   @id @default(cuid())
   unidadeId            String
   matriculaId          String   @unique
-  codigoVerificacao    String   @unique @default(cuid())  // validação pública
+  codigoVerificacao    String   @unique @default(cuid()) // validação pública
   cargaHorariaCumprida Int
   presencaPct          Decimal  @db.Decimal(5, 2)
   emitidoEm            DateTime @default(now())
-  emitidoPor           String?                            // userId de quem emitiu
+  emitidoPor           String? // userId de quem emitiu
 
   unidade   Unidade   @relation(fields: [unidadeId], references: [id])
   matricula Matricula @relation(fields: [matriculaId], references: [id])
 
   @@map("certificados")
+}
+
+// ============================================================
+// Educacional / Creche (Fase 3) — blueprint docs/BLUEPRINT-EDUCACIONAL-FASE3.md
+// Criança = MembroFamiliar (sem modelo novo); responsável = titular da FichaCidada;
+// alergias usam o modelo Alergia existente (Alergia.membroId).
+// ============================================================
+
+enum StatusDiario {
+  ABERTO
+  FECHADO
+}
+
+enum TipoRegistroRotina {
+  ALIMENTACAO
+  SONO
+  HIGIENE
+  ATIVIDADE
+  OCORRENCIA
+}
+
+enum SentidoCheck {
+  ENTRADA
+  SAIDA
+}
+
+// Autorização de imagem granular, POR CRIANÇA e POR FINALIDADE, revogável,
+// default NEGADO (LGPD Art. 14). Transversal: será reutilizada pelo Esportivo
+// e pelo Banco de Modelos da Capacitação (Fase 2).
+enum EscopoImagem {
+  USO_INTERNO // identificação interna (ficha, chamada)
+  REDES_IFP // divulgação nas redes do instituto
+  IMPRENSA // cessão para imprensa/parceiros
+}
+
+model AutorizacaoImagem {
+  id           String         @id @default(cuid())
+  fichaId      String
+  ficha        FichaCidada    @relation(fields: [fichaId], references: [id])
+  membroId     String // o menor — autorização é POR CRIANÇA
+  membro       MembroFamiliar @relation(fields: [membroId], references: [id])
+  escopo       EscopoImagem
+  concedido    Boolean        @default(false) // default: NÃO
+  versaoTermo  String
+  registradoEm DateTime       @default(now())
+  revogadoEm   DateTime? // revogação = efeito imediato; nunca deletar (trilha)
+  revogadoPor  String? // userId
+  criadoPor    String?
+
+  @@unique([membroId, escopo, versaoTermo])
+  @@index([membroId])
+  @@map("autorizacoes_imagem")
+}
+
+model TurmaInfantil {
+  id             String              @id @default(cuid())
+  unidadeId      String
+  unidade        Unidade             @relation(fields: [unidadeId], references: [id])
+  nome           String // "Jardim A"
+  faixaEtariaMin Int // em meses
+  faixaEtariaMax Int
+  capacidade     Int
+  profissionalId String // educador(a) referência
+  educador       Profissional        @relation(fields: [profissionalId], references: [id])
+  ativa          Boolean             @default(true)
+  criadoEm       DateTime            @default(now())
+  atualizadoEm   DateTime            @updatedAt
+  matriculas     MatriculaInfantil[]
+  comunicados    Comunicado[]
+
+  @@index([unidadeId])
+  @@map("turmas_infantis")
+}
+
+model MatriculaInfantil {
+  id                  String         @id @default(cuid())
+  unidadeId           String
+  unidade             Unidade        @relation(fields: [unidadeId], references: [id])
+  turmaId             String
+  turma               TurmaInfantil  @relation(fields: [turmaId], references: [id])
+  fichaId             String
+  ficha               FichaCidada    @relation(fields: [fichaId], references: [id])
+  membroId            String // a criança — SEMPRE um MembroFamiliar (não-opcional aqui)
+  crianca             MembroFamiliar @relation(fields: [membroId], references: [id])
+  consentimentoLgpdEm DateTime // Art. 14: consentimento específico e destacado do responsável legal
+  ativa               Boolean        @default(true)
+  criadoPor           String?
+  criadoEm            DateTime       @default(now())
+  atualizadoEm        DateTime       @updatedAt
+
+  @@unique([turmaId, membroId])
+  @@index([unidadeId])
+  @@map("matriculas_infantis")
+}
+
+model ResponsavelAutorizado {
+  id                String         @id @default(cuid())
+  fichaId           String
+  ficha             FichaCidada    @relation(fields: [fichaId], references: [id])
+  membroId          String // autorização é POR CRIANÇA, não por família
+  crianca           MembroFamiliar @relation(fields: [membroId], references: [id])
+  nome              String
+  documento         String // doc conferido no ato
+  parentesco        String // "avó", "tio", "van escolar"
+  fotoUrl           String? // identificação visual no check-out
+  restricaoJudicial Boolean        @default(false) // destaque vermelho: NUNCA liberar
+  vigenteAte        DateTime?
+  revogadoEm        DateTime? // revogação = efeito imediato; nunca deletar (trilha)
+  revogadoPor       String? // userId
+  criadoPor         String?
+  criadoEm          DateTime       @default(now())
+  atualizadoEm      DateTime       @updatedAt
+  checks            CheckInOut[]
+
+  @@index([membroId])
+  @@map("responsaveis_autorizados")
+}
+
+model CheckInOut {
+  id             String                @id @default(cuid())
+  unidadeId      String
+  unidade        Unidade               @relation(fields: [unidadeId], references: [id])
+  membroId       String
+  crianca        MembroFamiliar        @relation(fields: [membroId], references: [id])
+  sentido        SentidoCheck
+  ocorridoEm     DateTime              @default(now())
+  autorizadoId   String // quem entregou (ENTRADA) ou retirou (SAIDA)
+  autorizado     ResponsavelAutorizado @relation(fields: [autorizadoId], references: [id])
+  profissionalId String // educador que registrou — FK forte (segurança física = autoria de prontuário)
+  registradoPor  Profissional          @relation(fields: [profissionalId], references: [id])
+
+  @@index([unidadeId, ocorridoEm])
+  @@index([membroId, ocorridoEm])
+  @@map("checkins_saidas")
+}
+
+model DiarioDia {
+  id             String           @id @default(cuid())
+  unidadeId      String
+  unidade        Unidade          @relation(fields: [unidadeId], references: [id])
+  membroId       String
+  crianca        MembroFamiliar   @relation(fields: [membroId], references: [id])
+  data           DateTime         @db.Date
+  status         StatusDiario     @default(ABERTO)
+  fechadoEm      DateTime? // selo: só visível à família após fechar (padrão Atendimento.encerradoEm)
+  profissionalId String? // educador que fechou
+  fechadoPor     Profissional?    @relation(fields: [profissionalId], references: [id])
+  criadoEm       DateTime         @default(now())
+  atualizadoEm   DateTime         @updatedAt
+  registros      RegistroRotina[]
+
+  @@unique([membroId, data])
+  @@map("diarios_dia")
+}
+
+model RegistroRotina {
+  id             String             @id @default(cuid())
+  diarioId       String
+  diario         DiarioDia          @relation(fields: [diarioId], references: [id])
+  tipo           TipoRegistroRotina
+  descricao      String // "Almoço: aceitou bem" (alimentada por tags de 1 toque — meta 5–10s)
+  ocorridoEm     DateTime           @default(now())
+  profissionalId String
+  registradoPor  Profissional       @relation(fields: [profissionalId], references: [id])
+
+  @@index([diarioId])
+  @@map("registros_rotina")
+}
+
+model Comunicado {
+  id         String              @id @default(cuid())
+  unidadeId  String
+  unidade    Unidade             @relation(fields: [unidadeId], references: [id])
+  turmaId    String? // null = geral da unidade
+  turma      TurmaInfantil?      @relation(fields: [turmaId], references: [id])
+  titulo     String
+  corpo      String
+  critico    Boolean             @default(false) // crítico exige confirmação de leitura
+  enviadoPor String? // userId administrativo
+  criadoEm   DateTime            @default(now())
+  leituras   ComunicadoLeitura[]
+
+  @@index([unidadeId])
+  @@map("comunicados")
+}
+
+model ComunicadoLeitura {
+  id           String      @id @default(cuid())
+  comunicadoId String
+  comunicado   Comunicado  @relation(fields: [comunicadoId], references: [id])
+  fichaId      String
+  ficha        FichaCidada @relation(fields: [fichaId], references: [id])
+  lidoEm       DateTime    @default(now())
+
+  @@unique([comunicadoId, fichaId])
+  @@map("comunicados_leituras")
 }
 
 // ============================================================
@@ -714,8 +928,9 @@ model Certificado {
 //   adendos pós-selo (imutabilidade médico-legal), fluxo de enfermagem.
 // - Capacitação fase 2: AulaPlano (planejamento de aulas), lista de espera
 //   automática, PDF do certificado.
-// - Esportivo: Modalidade, Turma, Aluno, Graduacao, AtestadoMedico.
-// - Educacional: Crianca, ResponsavelAutorizado, RotinaDiaria, Comunicado,
-//   FichaSaudeCrianca, CheckInOut.
+// - Esportivo: Modalidade, Turma, Aluno, Graduacao, AtestadoMedico (reusa
+//   AutorizacaoImagem do Educacional).
+// - Educacional fase 2: FichaSaudeCrianca (laudos/medicação), mensagem 1:1
+//   família↔instituto, fotos no diário (watermark), esporte/graduações.
 // - Comum: Notificacao, MensagemWhatsApp, MensagemEmail.
 // - RLS: configurar policies no Postgres por unidadeId após migration inicial.
