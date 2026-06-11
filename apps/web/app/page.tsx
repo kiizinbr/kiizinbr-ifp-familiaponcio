@@ -11,13 +11,7 @@ import {
 } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
-
-const vitrine = [
-  { nome: "Centro Médico", descricao: "Atendimento médico filantrópico em diversas especialidades.", cor: "bg-ifp-teal-bright" },
-  { nome: "Centro de Capacitação", descricao: "Cursos gratuitos para inserção no mercado de trabalho.", cor: "bg-ifp-orange" },
-  { nome: "Centro Esportivo", descricao: "Modalidades esportivas, hoje com foco em Jiu-Jitsu.", cor: "bg-ifp-orange-deep" },
-  { nome: "Centro Recreativo", descricao: "Atividades e cuidados para a primeira infância.", cor: "bg-ifp-teal-deep" },
-] as const;
+import { UNIDADES_ACESSO } from "@/lib/unidades";
 
 /** Áreas de trabalho por perfil — o hub de quem está logado. */
 const AREAS: {
@@ -119,24 +113,30 @@ export default async function HomePage() {
       ) : (
         <div className="mb-16 text-center">
           <Link
-            href="/login"
+            href="/acesso"
             className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-ifp-sm transition hover:bg-primary-hover"
           >
-            Entrar no sistema <ArrowRight className="h-4 w-4" />
+            Acesso ao Sistema <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       )}
 
+      {/* Vitrine: cada unidade leva ao login já com o tema do salão. */}
       <section aria-label="Unidades" className="grid gap-6 md:grid-cols-2">
-        {vitrine.map((u) => (
-          <article
-            key={u.nome}
-            className="rounded-lg border border-border bg-surface p-6 shadow-ifp-sm"
-          >
-            <div className={`mb-4 h-2 w-12 rounded-full ${u.cor}`} aria-hidden />
-            <h2 className="text-xl font-semibold text-foreground">{u.nome}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{u.descricao}</p>
-          </article>
+        {UNIDADES_ACESSO.filter((u) => u.atendimento).map((u) => (
+          <div key={u.slug} data-theme={u.tema}>
+            <Link
+              href={`/login?unidade=${u.slug}`}
+              className="group block rounded-lg border border-border bg-surface p-6 shadow-ifp-sm transition hover:border-primary/60 hover:shadow-casa-sm"
+            >
+              <div className={`mb-4 h-2 w-12 rounded-full ${u.cor}`} aria-hidden />
+              <h2 className="flex items-center gap-1 text-xl font-semibold text-foreground group-hover:text-primary">
+                {u.nome}
+                <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">{u.descricao}</p>
+            </Link>
+          </div>
         ))}
       </section>
     </main>
