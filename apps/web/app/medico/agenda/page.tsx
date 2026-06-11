@@ -12,6 +12,7 @@ import {
 } from "@/lib/use-medico";
 import { Alerta, Botao, Campo, Input, Spinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { idade } from "@/lib/idade";
 
 const statusEstilo: Record<StatusAgendamento, string> = {
   AGENDADO: "border-border text-muted-foreground",
@@ -24,10 +25,6 @@ const statusEstilo: Record<StatusAgendamento, string> = {
 
 function hora(iso: string) {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-}
-
-function idade(dataNascimento: string) {
-  return Math.floor((Date.now() - new Date(dataNascimento).getTime()) / (365.25 * 24 * 3600 * 1000));
 }
 
 /** Form de novo agendamento: busca paciente → escolhe → data/hora + motivo. */

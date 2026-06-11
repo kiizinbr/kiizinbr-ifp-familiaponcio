@@ -14,14 +14,11 @@ import { usePrancha, useIniciarAtendimento, useSalvarSoap, useSalvarVitais, useE
 import { Alerta, Botao, Campo, Input, Spinner, Textarea } from "@/components/ui";
 import { ChipClinico } from "@/components/medico/chip-clinico";
 import { PranchaStepper, PASSOS_PRANCHA } from "@/components/medico/prancha-stepper";
+import { idade } from "@/lib/idade";
 
 // ------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------
-function idade(dataNascimento: string) {
-  return Math.floor((Date.now() - new Date(dataNascimento).getTime()) / (365.25 * 24 * 3600 * 1000));
-}
-
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);
   return ((partes[0]?.[0] ?? "") + (partes[partes.length - 1]?.[0] ?? "")).toUpperCase();
