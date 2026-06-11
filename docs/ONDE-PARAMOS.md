@@ -109,7 +109,22 @@ modo espelhado não é suportado no build 20348 → NAT relay):
 Regressão nova além das duas existentes:
 ```bash
 SENHA_DEV=... node scripts/valida-gestao-educacional.mjs   # 18/18 (gestão: comunicados/autorizados/imagem + RBAC)
+SENHA_DEV=... node scripts/valida-esportivo.mjs            # 23/23 (trio Esporte: vagas/espera/graduação/verificação pública)
 ```
+O seed agora limpa o estado DO DIA do educacional — a suíte inteira é
+re-rodável: `pnpm db:seed` e depois os 4 scripts, sempre verdes.
+
+## 🥋 Vertical Esporte (4ª vertical — API entregue 11/06, telas pendentes)
+
+Trio `Modalidade/TurmaEsportiva/Graduacao` no molde da Capacitação: mesma
+parede de tenant (ESPORTIVO), regra de ouro, lock `FOR UPDATE` na matrícula
+(vagas/lista de espera) e encerramento idempotente. Graduação = molde do
+certificado (código de verificação público em `GET /esportivo/graduacoes/verificar/:codigo`),
+com `nivel` validado contra `Modalidade.trilhaGraduacoes` e `@@unique` por
+matrícula+nível. Seed: `esporte@ifp.local` (Sensei Ricardo) + Judô (6 faixas)
++ Futsal + 2 fichas aprovadas. Próximos passos da vertical:
+1. Telas (`apps/web/app/esportivo/*` — gabarito = telas da capacitação).
+2. Treinos + chamada selada (molde `Aula`/`Presenca`).
 
 ## 🔭 Próximas fases (ordem do blueprint Educacional §8 + Capacitação)
 
