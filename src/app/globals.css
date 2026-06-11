@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "../styles/ifp-tokens.css";
 @import "../styles/ifp-components.css";
+/* PELE CASA (opt-in via [data-skin="casa"]): dormente sem o atributo no <html>. */
+@import "../styles/ifp-tokens-casa.css";
 
 /* === Fontes self-hosted (kit "Ferramenta Clínica Premium") =================
    Hanken Grotesk (UI, variável 100–900) + IBM Plex Mono (dados, 400/500/600).

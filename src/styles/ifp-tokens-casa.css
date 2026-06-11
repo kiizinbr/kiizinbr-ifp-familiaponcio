@@ -55,7 +55,7 @@
   /* --- Tipografia editorial -----------------------------------------------
      Garet é a oficial; Jost é a substituta geométrica (Google). As @font-face
      entram no Passo 1.2 (self-host, padrão da main). Até lá, cai no fallback. */
-  --font-ui: "Garet", "Jost", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-ui: var(--font-jost), "Jost", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 /* O sotaque por unidade ([data-unit]/[data-unit-accent]) do ifp-tokens.css
