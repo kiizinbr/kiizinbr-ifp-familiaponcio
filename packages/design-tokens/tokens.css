@@ -155,3 +155,12 @@
   --unidade-escuro: #5a2204;
   --unidade-suave:  #F1E7DF;
 }
+
+/* Re-resolve os aliases semânticos NO elemento que carrega o tema.
+ * Sem isto, --color-primary fica congelada no valor resolvido em :root
+ * (marrom institucional) e o data-theme aplicado num <div> de layout
+ * não tem efeito — só funcionaria no próprio <html>. */
+[data-theme] {
+  --color-primary:       var(--unidade);
+  --color-primary-hover: var(--unidade-escuro);
+}
