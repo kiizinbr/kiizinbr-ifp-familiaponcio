@@ -129,7 +129,12 @@ turma), `/esportivo/turmas/[id]` (matrícula por busca elegível, graduação pe
 trilha com select filtrado, encerramento) e `/verificar-graduacao/[codigo]`
 (pública). O hub da home agora lista TODAS as áreas (Educacional/Esportivo/
 Família faltavam — era a causa do "Acesso restrito" ao navegar).
-Falta da vertical: **treinos + chamada selada** (molde `Aula`/`Presenca`).
+
+**Treinos entregues (11/06 à noite) — VERTICAL COMPLETA**: `TreinoEsportivo` +
+`PresencaTreino` (molde Aula/Presenca), chamada em lote idempotente, selo
+imutável (lock + updateMany condicional), tela de chamada mobile-first P/F/J.
+Regressão da vertical: 29/29. Próximo do blueprint: **mensagem 1:1
+família↔instituto** (killer feature; interino = WhatsApp Business oficial).
 
 ## 🔭 Próximas fases (ordem do blueprint Educacional §8 + Capacitação)
 
