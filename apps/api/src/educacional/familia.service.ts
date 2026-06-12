@@ -4,6 +4,9 @@ import { AcaoAuditoria, StatusDiario } from "@ifp/database";
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
+import { ConversasService } from "./conversas.service";
+import type { CriarConversaDto } from "./dto/criar-conversa.dto";
+import type { CriarMensagemDto } from "./dto/criar-mensagem.dto";
 import { janelaDoDiaSP } from "./dia-util";
 
 const VERSAO_TERMO_VIGENTE = "v1-2026";
@@ -18,6 +21,7 @@ export class FamiliaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly conversasService: ConversasService,
   ) {}
 
   private async resolverFichaId(user: AuthenticatedUser): Promise<string> {
@@ -194,5 +198,31 @@ export class FamiliaService {
     });
 
     return leitura;
+  }
+
+  // ───── Mensagem 1:1 família↔instituto (delegada ao ConversasService) ─────
+
+  /** Abre (get-or-create) a conversa de uma criança da própria família. */
+  async abrirConversa(user: AuthenticatedUser, dto: CriarConversaDto) {
+    const fichaId = await this.resolverFichaId(user);
+    return this.conversasService.abrirConversaFamilia(fichaId, dto);
+  }
+
+  /** Conversas das crianças da ficha (não lidas = mensagens da equipe sem recibo). */
+  async listarConversas(user: AuthenticatedUser) {
+    const fichaId = await this.resolverFichaId(user);
+    return this.conversasService.listarConversasFamilia(fichaId);
+  }
+
+  /** Thread da conversa; marca as mensagens da equipe como lidas (recibo). */
+  async threadConversa(user: AuthenticatedUser, conversaId: string) {
+    const fichaId = await this.resolverFichaId(user);
+    return this.conversasService.abrirThreadFamilia(user, fichaId, conversaId);
+  }
+
+  /** Envia mensagem como responsável (ladoEquipe=false). */
+  async enviarMensagem(user: AuthenticatedUser, conversaId: string, dto: CriarMensagemDto) {
+    const fichaId = await this.resolverFichaId(user);
+    return this.conversasService.enviarMensagemFamilia(user, fichaId, conversaId, dto);
   }
 }

@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -15,6 +16,8 @@ import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decora
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
+import { CriarConversaDto } from "./dto/criar-conversa.dto";
+import { CriarMensagemDto } from "./dto/criar-mensagem.dto";
 import { FamiliaService } from "./familia.service";
 
 /**
@@ -65,5 +68,35 @@ export class FamiliaController {
   @HttpCode(HttpStatus.OK)
   confirmarLeitura(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.familia.confirmarLeitura(user, id);
+  }
+
+  @Post("conversas")
+  @ApiOperation({ summary: "Abre (get-or-create) a conversa 1:1 da criança com o instituto" })
+  abrirConversa(@Body() dto: CriarConversaDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.familia.abrirConversa(user, dto);
+  }
+
+  @Get("conversas")
+  @ApiOperation({ summary: "Minhas conversas (última mensagem + não lidas da equipe)" })
+  conversas(@CurrentUser() user: AuthenticatedUser) {
+    return this.familia.listarConversas(user);
+  }
+
+  @Get("conversas/:id")
+  @ApiOperation({ summary: "Thread da conversa (marca mensagens da equipe como lidas)" })
+  @ApiParam({ name: "id", description: "cuid da conversa" })
+  conversa(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.familia.threadConversa(user, id);
+  }
+
+  @Post("conversas/:id/mensagens")
+  @ApiOperation({ summary: "Envia mensagem como responsável (ladoEquipe=false)" })
+  @ApiParam({ name: "id", description: "cuid da conversa" })
+  enviarMensagem(
+    @Param("id") id: string,
+    @Body() dto: CriarMensagemDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.familia.enviarMensagem(user, id, dto);
   }
 }

@@ -3,6 +3,8 @@ import { Module } from "@nestjs/common";
 import { MedicoModule } from "../medico/medico.module";
 import { ComunicadosController } from "./comunicados.controller";
 import { ComunicadosService } from "./comunicados.service";
+import { ConversasController } from "./conversas.controller";
+import { ConversasService } from "./conversas.service";
 import { CriancasController } from "./criancas.controller";
 import { CriancasService } from "./criancas.service";
 import { FamiliaController } from "./familia.controller";
@@ -19,6 +21,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     CriancasController,
     RotinaController,
     ComunicadosController,
+    ConversasController,
     FamiliaController,
   ],
   providers: [
@@ -26,6 +29,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     CriancasService,
     RotinaService,
     ComunicadosService,
+    ConversasService,
     FamiliaService,
   ],
 })
