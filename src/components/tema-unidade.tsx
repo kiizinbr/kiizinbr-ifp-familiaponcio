@@ -8,7 +8,7 @@ interface TemaUnidadeProps {
 }
 
 /**
- * Provider mínimo do tema CASA — aplica `data-theme="<unidade>"` num subtree.
+ * Provider mínimo do tema CASA — aplica `data-unit="<unidade>"` num subtree.
  * 100% CSS, sem JS de tema (Server Component): o bloco combinado de
  * src/styles/casa-tokens.css re-resolve o trio --unidade e os aliases
  * --casa-* e --accent dentro deste container. Componentes do kit e classes da
@@ -20,7 +20,7 @@ interface TemaUnidadeProps {
  */
 export function TemaUnidade({ tema, className, children }: TemaUnidadeProps) {
   return (
-    <div data-theme={tema ?? undefined} className={className}>
+    <div data-unit={tema ?? undefined} className={className}>
       {children}
     </div>
   );

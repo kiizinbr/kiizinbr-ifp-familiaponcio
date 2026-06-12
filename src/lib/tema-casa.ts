@@ -1,8 +1,8 @@
 import { UNIDADE_SLUGS, type UnidadeSlug } from "@/lib/unidades";
 
 /**
- * Temas CASA — tematização por unidade via atributo `data-theme="<slug>"`
- * num container (4º contrato de atributo; ver src/styles/casa-tokens.css).
+ * Temas CASA — tematização por unidade via atributo `data-unit="<slug>"`
+ * num container (contrato data-unit do kit; ver src/styles/casa-tokens.css).
  *
  * ESTRATÉGIA A da reconciliação: os temas SÃO os slugs canônicos das
  * unidades da main (não os nomes do protótipo CASA — educacional/

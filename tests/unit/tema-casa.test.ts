@@ -26,18 +26,18 @@ describe("tema CASA — helper de tematização por unidade", () => {
   });
 });
 
-describe("casa-tokens.css — contrato do data-theme por unidade", () => {
+describe("casa-tokens.css — contrato do data-unit por unidade", () => {
   const css = readFileSync(join(process.cwd(), "src/styles/casa-tokens.css"), "utf8");
 
-  it("toda unidade canônica tem bloco [data-theme] próprio", () => {
+  it("toda unidade canônica tem bloco [data-unit] próprio", () => {
     for (const slug of UNIDADE_SLUGS) {
-      expect(css).toContain(`[data-theme="${slug}"]`);
+      expect(css).toContain(`[data-unit="${slug}"]`);
     }
   });
 
   it("fix crítico: aliases re-resolvidos no elemento que carrega o tema", () => {
-    // Sem isto o data-theme num <div> não tem efeito (alias congela no :root).
-    const blocoCombinado = css.match(/\[data-theme="medico"\],[\s\S]*?\}/);
+    // Sem isto o data-unit num <div> não tem efeito (alias congela no :root).
+    const blocoCombinado = css.match(/\[data-unit="medico"\],[\s\S]*?\}/);
     expect(blocoCombinado).not.toBeNull();
     expect(blocoCombinado![0]).toContain("--casa-primary: var(--unidade)");
     expect(blocoCombinado![0]).toContain("--casa-primary-hover: var(--unidade-escuro)");

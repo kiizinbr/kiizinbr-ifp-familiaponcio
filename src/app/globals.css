@@ -5,7 +5,7 @@
 
 /* === Ponte Tailwind ↔ camada CASA (Tailwind v4) ==============================
    `inline` = o utilitário emite `var(--casa-*)` direto (nada de variável nova
-   no output) → as classes reagem ao data-theme="<unidade>" do subtree em
+   no output) → as classes reagem ao data-unit="<unidade>" do subtree em
    runtime. Gera: bg-primary, hover:bg-primary-hover, bg-surface, text-foreground,
    text-muted-foreground, border-border, bg-unidade-suave, text-tinta,
    shadow-casa(-sm), shadow-ifp-sm/md/lg, font-display, bg-papel… */
