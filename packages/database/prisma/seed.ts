@@ -471,9 +471,14 @@ async function seedEducacional() {
   // 0) Limpa o estado DE HOJE (checks + diário): a regressão valida-educacional
   // faz check-in/out e sela o diário do dia — sem esta limpeza ela só fica
   // verde na primeira execução do dia (re-rodar = falsas falhas de 409).
-  // Meia-noite UTC: DiarioDia.data é @db.Date (00:00Z) — corte em meia-noite
-  // LOCAL (UTC-3) passaria 3h depois e não apagaria o dia corrente.
-  const hoje = new Date(new Date().toISOString().slice(0, 10));
+  // DiarioDia.data é @db.Date (00:00Z do dia CIVIL em São Paulo — ver
+  // janelaDoDiaSP). O dia civil precisa vir do fuso do negócio: usar a data
+  // UTC (toISOString) vira o dia seguinte a partir das 21h SP e o seed
+  // deixaria de apagar o dia corrente (diário fechado/check-ins sobrando).
+  const diaSP = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date());
+  const hoje = new Date(`${diaSP}T00:00:00.000Z`);
   await prisma.registroRotina.deleteMany({
     where: { diario: { unidadeId: unidadeEdu.id, data: { gte: hoje } } },
   });
@@ -482,6 +487,15 @@ async function seedEducacional() {
   });
   await prisma.checkInOut.deleteMany({
     where: { unidadeId: unidadeEdu.id, ocorridoEm: { gte: hoje } },
+  });
+  // Mensageria 1:1 família↔instituto: zera as threads da unidade para a
+  // regressão (valida-mensagens) começar sempre de contadores limpos.
+  // Ordem importa: mensagens referenciam a conversa (FK).
+  await prisma.mensagemFamilia.deleteMany({
+    where: { conversa: { unidadeId: unidadeEdu.id } },
+  });
+  await prisma.conversaFamilia.deleteMany({
+    where: { unidadeId: unidadeEdu.id },
   });
 
   // 1) Educadora (PROFISSIONAL lotada na unidade educacional — sem conselho)
@@ -620,6 +634,25 @@ async function seedEducacional() {
     });
   }
   console.log("  ✓ Família Sandra Silva (familia@ifp.local) + Ana, 5 anos (alergia amendoim)");
+
+  // 2b) Criança de OUTRA família, sem matrícula infantil nesta unidade — id
+  // fixo para a regressão (valida-mensagens) testar a parede de tenant do
+  // POST /educacional/conversas sem precisar de login extra.
+  const joao = await prisma.fichaCidada.findUnique({ where: { cpf: "11111111111" } });
+  if (joao) {
+    await prisma.membroFamiliar.upsert({
+      where: { id: "seed-membro-fora-unidade" },
+      update: {},
+      create: {
+        id: "seed-membro-fora-unidade",
+        fichaId: joao.id,
+        nomeCompleto: "Caio da Silva",
+        dataNascimento: new Date("2020-01-15"),
+        parentesco: Parentesco.FILHO,
+      },
+    });
+    console.log("  ✓ Caio da Silva (criança fora da unidade — fixture de tenant)");
+  }
 
   // 3) Turma Jardim A + matrícula da Ana (consentimento Art. 14 na matrícula)
   let turmaInf = await prisma.turmaInfantil.findFirst({

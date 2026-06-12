@@ -66,6 +66,7 @@ model Unidade {
   turmasEsportivas     TurmaEsportiva[]
   matriculasEsportivas MatriculaEsportiva[]
   graduacoes           Graduacao[]
+  conversasFamilia     ConversaFamilia[]
   treinosEsportivos    TreinoEsportivo[]
 
   @@map("unidades")
@@ -101,6 +102,7 @@ model User {
   fichaCidada   FichaCidada?     @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
   fichaCidadaId String?          @unique
   profissional  Profissional?
+  mensagensFamilia MensagemFamilia[]
 
   @@map("usuarios")
 }
@@ -215,6 +217,7 @@ model FichaCidada {
   responsaveisAutorizados ResponsavelAutorizado[]
   comunicadosLeituras     ComunicadoLeitura[]
   matriculasEsportivas    MatriculaEsportiva[]
+  conversasFamilia        ConversaFamilia[]
 
   @@map("fichas_cidadas")
 }
@@ -260,6 +263,7 @@ model MembroFamiliar {
   checksInOut             CheckInOut[]
   diariosDia              DiarioDia[]
   matriculasEsportivas    MatriculaEsportiva[]
+  conversa                ConversaFamilia?
 
   @@map("membros_familiares")
 }
@@ -1069,4 +1073,44 @@ model PresencaTreino {
 
   @@unique([treinoId, matriculaId])
   @@map("presencas_treino")
+}
+
+// ============================================================
+// Mensagem 1:1 família ↔ instituto (killer feature — ClassApp)
+// Protege o número pessoal da equipe; 1 conversa por criança.
+// ============================================================
+
+model ConversaFamilia {
+  id           String   @id @default(cuid())
+  unidadeId    String
+  membroId     String   @unique // 1 thread por criança
+  fichaId      String // família dona (ownership do portal)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  unidade   Unidade           @relation(fields: [unidadeId], references: [id])
+  crianca   MembroFamiliar    @relation(fields: [membroId], references: [id])
+  ficha     FichaCidada       @relation(fields: [fichaId], references: [id])
+  mensagens MensagemFamilia[]
+
+  @@index([unidadeId])
+  @@map("conversas_familia")
+}
+
+model MensagemFamilia {
+  id         String    @id @default(cuid())
+  conversaId String
+  autorId    String // userId de quem escreveu
+  /// true = equipe do instituto; false = responsável familiar.
+  ladoEquipe Boolean
+  corpo      String
+  /// Quando o lado OPOSTO leu (recibo de leitura por mensagem).
+  lidaEm     DateTime?
+  criadoEm   DateTime  @default(now())
+
+  conversa ConversaFamilia @relation(fields: [conversaId], references: [id])
+  autor    User            @relation(fields: [autorId], references: [id])
+
+  @@index([conversaId, criadoEm])
+  @@map("mensagens_familia")
 }
