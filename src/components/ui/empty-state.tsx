@@ -14,7 +14,9 @@ interface Props {
 export function EmptyState({ titulo, descricao, cta }: Props) {
   return (
     <div className="empty">
-      <Image src="/logo/ifp-symbol.png" alt="IFP" width={96} height={96} />
+      {/* Mascote decorativo (~30% opacidade): alt vazio segue o kit
+          (docs/design-kit/scaffolds/estados.html) — quem comunica é o e-title. */}
+      <Image src="/logo/ifp-symbol.png" alt="" width={96} height={96} />
       <div className="e-title">{titulo}</div>
       <p className="e-msg">{descricao}</p>
       {cta ? <div style={{ marginTop: 12 }}>{cta}</div> : null}

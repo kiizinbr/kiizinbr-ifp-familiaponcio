@@ -4,26 +4,23 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
-import { KpiCard } from "@/components/kpi-card";
+import { TemaUnidade } from "@/components/tema-unidade";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getCidadaoStats } from "@/lib/cidadao";
-import { getLandingPath } from "@/lib/rbac";
-import { countTriagensAbertas, listTriagensPendentes } from "@/lib/triagem";
-import type { UnitScope } from "@/lib/rbac-types";
-
-const UNIT_LABELS: Record<UnitScope, string> = {
-  medico: "Centro Médico",
-  capacitacao: "Capacitação",
-  esportivo: "Esportivo",
-  recreativo: "Recreativo",
-};
-
-/** Cor de dado (identidade da unidade) — preservada nos ladrilhos. */
-const UNIT_COLOR: Record<UnitScope, string> = {
-  medico: "var(--u-medico)",
-  capacitacao: "var(--u-capacitacao)",
-  esportivo: "var(--u-esportivo)",
-  recreativo: "var(--u-recreativo)",
-};
+import { getLandingPath, hasAnyRole } from "@/lib/rbac";
+import { countTriagensAbertas, listTriagensPendentes, podeFazerTriagem } from "@/lib/triagem";
+import { unidadeFromSlug } from "@/lib/unidades";
+import { cn } from "@/lib/utils";
+import {
+  saudacao,
+  horaEmSaoPaulo,
+  diasAguardando,
+  labelEspera,
+  fraseEstado,
+  quadroDasCasas,
+  type LinhaCasa,
+} from "@/lib/hub-inicio";
+import styles from "./inicio.module.css";
 
 const ACTIVITY_LABELS: Record<string, string> = {
   signin_success: "entrou no sistema",
@@ -47,102 +44,39 @@ function formatDateTime(date: Date): string {
   });
 }
 
-interface PanelItem {
-  key: string;
-  primary: string;
-  secondary?: string;
-  href?: string;
-}
-
-/** Painel kit: card com header (tick + título) + lista de itens (primary/secondary/href). */
-function Panel({
-  title,
-  items,
-  emptyText,
-}: {
-  title: string;
-  items: PanelItem[];
-  emptyText: string;
-}) {
+/**
+ * Linha do quadro "As casas, hoje" — filete lateral e hover por casa via
+ * <TemaUnidade>. A métrica (valor/nota) já vem decidida da camada pura
+ * (quadroDasCasas), nada de slug hardcoded aqui.
+ */
+function CasaRow({ casa }: { casa: LinhaCasa }) {
   return (
-    <div className="card">
-      <header>
-        <span className="tick" aria-hidden="true" />
-        <h3>{title}</h3>
-      </header>
-      <div className="body">
-        {items.length === 0 ? (
-          <p className="t-small" style={{ color: "var(--text-3)", margin: 0 }}>
-            {emptyText}
-          </p>
-        ) : (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {items.map((it, i) => (
-              <li
-                key={it.key}
-                style={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: "10px 0",
-                  borderTop: i === 0 ? "none" : "1px solid var(--line)",
-                }}
-              >
-                {it.href ? (
-                  <Link
-                    href={it.href as Route}
-                    style={{
-                      fontSize: 13.5,
-                      fontWeight: 600,
-                      color: "var(--text)",
-                      textDecoration: "none",
-                      minWidth: 0,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {it.primary}
-                  </Link>
-                ) : (
-                  <span
-                    style={{
-                      fontSize: 13.5,
-                      fontWeight: 600,
-                      color: "var(--text)",
-                      minWidth: 0,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {it.primary}
-                  </span>
-                )}
-                {it.secondary && (
-                  <span
-                    className="mono"
-                    style={{ fontSize: 11.5, color: "var(--text-3)", flexShrink: 0 }}
-                  >
-                    {it.secondary}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+    <TemaUnidade tema={casa.slug}>
+      <Link href={casa.href as Route} className={styles.casaRow}>
+        <span className={styles.casaInfo}>
+          <span className={styles.casaNome}>{casa.nome}</span>
+          <span className={styles.casaTagline}>{casa.tagline}</span>
+        </span>
+        <span className={styles.casaMetrica}>
+          {casa.metrica.valor !== null && (
+            <span className={cn("mono", styles.casaValor)}>{casa.metrica.valor}</span>
+          )}
+          <span className={styles.casaNota}>{casa.metrica.nota}</span>
+        </span>
+        <span className={styles.casaSeta} aria-hidden="true">
+          →
+        </span>
+      </Link>
+    </TemaUnidade>
   );
 }
 
 /**
- * "Início" — painel cross-unidade dos papéis globais (super_admin / presidência).
- * Antes vivia em /app (GlobalDashboard), inalcançável pelo alias do proxy; movido
- * para /inicio em 2026-06-08 (doc docs/ux-navegacao-ia-2026-06-08.md). Os ladrilhos
- * de unidade agora apontam para a home real da unidade (/medico, /capacitacao…),
- * não para o dashboard mock legado /app/[unit].
+ * "Início" — o Briefing do Plantão dos papéis globais (super_admin / presidência).
+ * Composição própria (manchete + fila numerada + livro-razão com filete lateral),
+ * deliberadamente distinta do molde grid-de-cards de /acesso. 100% Server
+ * Component: zero ação para presidência (read-only por construção — a tela só
+ * navega) e a fila de triagem só renderiza para quem podeFazerTriagem.
  */
 export default async function InicioDashboard() {
   const session = await auth();
@@ -177,125 +111,152 @@ export default async function InicioDashboard() {
   });
   const firstName = session.user.name?.split(" ")[0] ?? "Erick";
 
-  const triagensItems: PanelItem[] = pendentes.slice(0, 6).map((t) => ({
-    key: t.id,
-    primary: t.cidadao.nomeCompleto,
-    secondary: UNIT_LABELS[t.cidadao.unitIdOrigem as UnitScope],
-    href: `/app/cidadaos/${t.cidadao.id}/triagem`,
-  }));
-
-  const atividadeItems: PanelItem[] = atividade.map((a) => ({
-    key: a.id,
-    primary: `${a.user?.name ?? a.user?.email ?? "Sistema"} ${
-      ACTIVITY_LABELS[a.action] ?? a.action
-    }`,
-    secondary: formatDateTime(a.createdAt),
-  }));
+  const veTriagem = podeFazerTriagem(session); // false p/ presidência (gate de triagem.ts)
+  const isSuper = hasAnyRole(session, "super_admin");
+  const isPresidencia = hasAnyRole(session, "presidencia") && !isSuper;
+  const cumprimento = saudacao(horaEmSaoPaulo(agora));
+  const segmentos = fraseEstado({
+    ativos: stats?.ativos ?? 0,
+    triagens: triagensAbertas,
+    veTriagem,
+  });
+  const { atendimento, transversais } = quadroDasCasas(porUnidade, {
+    abertas: triagensAbertas,
+    veTriagem,
+  });
+  const fila = pendentes.slice(0, 5);
 
   return (
     <AppShell session={session}>
-      <header style={{ marginBottom: 24 }}>
-        <p className="micro" style={{ color: "var(--accent)", marginBottom: 7 }}>
-          Instituto Família Pôncio · Início
-        </p>
-        <h1 className="t-h1" style={{ color: "var(--text)" }}>
-          Olá, {firstName}
+      {/* ===== Seção A — Briefing (manchete direto no canvas) ===== */}
+      <header className={styles.briefing}>
+        <div className={styles.carimboRow}>
+          <p className="micro" style={{ color: "var(--text-3)", margin: 0 }}>
+            Instituto Família Pôncio · {dataWeekday} · {dataFull}
+          </p>
+          {isPresidencia && <span className="badge badge-default">Leitura institucional</span>}
+        </div>
+        <h1 className="t-display" style={{ color: "var(--text)" }}>
+          {cumprimento}, {firstName}.
         </h1>
-        <p style={{ marginTop: 6, fontSize: 13, color: "var(--text-3)" }}>
-          {dataWeekday} · {dataFull}
+        <p className={styles.lede}>
+          {segmentos.map((s, i) =>
+            s.mono ? (
+              <strong key={i} className="mono">
+                {s.t}
+              </strong>
+            ) : (
+              <span key={i}>{s.t}</span>
+            ),
+          )}
+        </p>
+        <p className={cn("micro", styles.registro)}>
+          <span>{stats?.total ?? 0} cadastros</span>
+          <span>{stats?.ativos ?? 0} ativos</span>
+          {veTriagem && (
+            <span className={cn(triagensAbertas > 0 && styles.registroVivo)}>
+              {triagensAbertas} triagens em aberto
+            </span>
+          )}
+          <span>{stats?.deletados ?? 0} excluídos lgpd</span>
         </p>
       </header>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 16,
-          marginBottom: 28,
-        }}
-      >
-        <KpiCard label="Total de cidadãos" value={`${stats?.total ?? 0}`} hint="cadastros" />
-        <KpiCard label="Ativos" value={`${stats?.ativos ?? 0}`} hint="vigentes" />
-        <KpiCard label="Triagens pendentes" value={`${triagensAbertas}`} hint="em aberto" />
-        <KpiCard label="Excluídos" value={`${stats?.deletados ?? 0}`} hint="LGPD" />
+      {/* ===== Seção B — grid assimétrico: fila de decisão + quadro das casas ===== */}
+      <div className={cn(styles.grid, !veTriagem && styles.gridSolo)}>
+        {veTriagem && (
+          <section className="card">
+            <header>
+              <span className="tick" aria-hidden="true" />
+              <h3>Para decidir hoje</h3>
+              <Link className="act" href={"/social" as Route}>
+                Serviço Social →
+              </Link>
+            </header>
+            <div className="body">
+              {fila.length === 0 ? (
+                <EmptyState
+                  titulo="Sem decisões pendentes"
+                  descricao="Todas as triagens foram concluídas."
+                />
+              ) : (
+                <ol className={styles.fila}>
+                  {fila.map((t, i) => (
+                    <li key={t.id} className={styles.filaItem}>
+                      <span className={cn("mono", styles.filaNum)}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <Link
+                        href={`/app/cidadaos/${t.cidadao.id}/triagem` as Route}
+                        className={styles.filaNome}
+                      >
+                        {t.cidadao.nomeCompleto}
+                      </Link>
+                      <span className="chip">
+                        {unidadeFromSlug(t.cidadao.unitIdOrigem)?.nome ?? t.cidadao.unitIdOrigem}
+                      </span>
+                      <span className={cn("mono", styles.filaEspera)}>
+                        {labelEspera(diasAguardando(t.createdAt, agora))}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </section>
+        )}
+
+        <section className="card">
+          <header>
+            <span className="tick" aria-hidden="true" />
+            <h3>As casas, hoje</h3>
+          </header>
+          <div className={styles.quadroBody}>
+            <p className={cn("micro", styles.grupoLabel)}>Atendimento</p>
+            {atendimento.map((c) => (
+              <CasaRow key={c.slug} casa={c} />
+            ))}
+
+            <p className={cn("micro", styles.grupoLabel)}>Gestão e transversais</p>
+            {transversais.map((c) => (
+              <CasaRow key={c.slug} casa={c} />
+            ))}
+          </div>
+        </section>
       </div>
 
-      <h2 className="t-h2" style={{ color: "var(--text)", marginBottom: 14 }}>
-        Unidades
-      </h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 16,
-          marginBottom: 28,
-        }}
-      >
-        {(Object.keys(UNIT_LABELS) as UnitScope[]).map((u) => (
-          <Link
-            key={u}
-            href={`/${u}` as Route}
-            className="card card-hover"
-            style={{
-              position: "relative",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              padding: 17,
-              textDecoration: "none",
-            }}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                inset: "0 0 auto 0",
-                height: 3,
-                background: UNIT_COLOR[u],
-              }}
-            />
-            <span className="micro" style={{ color: "var(--text-3)" }}>
-              {UNIT_LABELS[u]}
-            </span>
-            <span
-              className="mono"
-              style={{
-                fontSize: 30,
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                lineHeight: 1,
-                color: "var(--text)",
-              }}
-            >
-              {porUnidade.get(u) ?? 0}
-            </span>
-            <span style={{ fontSize: 12, color: "var(--text-3)" }}>cidadãos ativos</span>
-          </Link>
-        ))}
-      </div>
-
-      <h2 className="t-h2" style={{ color: "var(--text)", marginBottom: 14 }}>
-        Acompanhamento
-      </h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 16,
-        }}
-      >
-        <Panel
-          title="Triagens pendentes"
-          items={triagensItems}
-          emptyText="Nenhuma triagem pendente."
-        />
-        <Panel
-          title="Atividade recente"
-          items={atividadeItems}
-          emptyText="Sem atividade registrada."
-        />
-      </div>
+      {/* ===== Seção C — Pulso (últimos movimentos, full-width sem card) ===== */}
+      <section className={styles.pulso}>
+        <div className={styles.pulsoHead}>
+          {/* h2 (não <p>): a seção precisa existir na navegação por cabeçalhos
+              de leitor de tela; .micro é puramente tipográfica, visual idêntico. */}
+          <h2 className="micro" style={{ color: "var(--text-3)", margin: 0 }}>
+            Últimos movimentos
+          </h2>
+          {/* Link "Auditoria completa" removido: /admin/audit é UI planejada
+              (F3.C, docs/superpowers/2026-06-01-escopo-visual-ifp-connect.md) e
+              ainda não existe — apontar pra ela era 404. Quando a page nascer,
+              o link volta aqui usando a variante .act do kit (gate de
+              super_admin já está pronto no proxy.ts). */}
+        </div>
+        {atividade.length === 0 ? (
+          <p className="t-small" style={{ color: "var(--text-3)" }}>
+            Sem movimentação registrada.
+          </p>
+        ) : (
+          <div className="timeline">
+            {atividade.map((a) => (
+              <div key={a.id} className="tl-item">
+                <div className="tl-when">{formatDateTime(a.createdAt)}</div>
+                <div className="tl-title">
+                  {a.user?.name ?? a.user?.email ?? "Sistema"}{" "}
+                  {ACTIVITY_LABELS[a.action] ?? a.action}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </AppShell>
   );
 }
