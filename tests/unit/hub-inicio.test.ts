@@ -61,6 +61,19 @@ describe("diasAguardando / labelEspera", () => {
     expect(labelEspera(1)).toBe("aguarda há 1 dia");
   });
 
+  it("aberta ontem à noite, vista hoje cedo (<24h corridas) → 1 dia-calendário", () => {
+    // 15h decorridas, mas o dia civil em SP já virou — não pode ser "chegou hoje"
+    const ontemANoite = new Date("2026-06-11T18:00:00-03:00");
+    const hojeCedo = new Date("2026-06-12T09:00:00-03:00");
+    expect(diasAguardando(ontemANoite, hojeCedo)).toBe(1);
+  });
+
+  it("dia já virou em UTC mas ainda é o mesmo dia civil em SP → 0", () => {
+    const noite = new Date("2026-06-11T22:00:00-03:00"); // 01:00Z do dia 12
+    const maisTarde = new Date("2026-06-11T23:30:00-03:00");
+    expect(diasAguardando(noite, maisTarde)).toBe(0);
+  });
+
   it("10 dias atrás → plural", () => {
     const dezDias = new Date(agora.getTime() - 10 * 86_400_000);
     expect(diasAguardando(dezDias, agora)).toBe(10);
@@ -111,8 +124,9 @@ describe("fraseEstado", () => {
 });
 
 describe("quadroDasCasas", () => {
-  // Arrange: só medico tem contagem — o resto deve cair em 0 (atendimento) ou null (transversal)
-  const { atendimento, transversais } = quadroDasCasas(new Map([["medico", 12]]));
+  // Arrange: só medico tem contagem — o resto deve cair em 0 (atendimento)
+  const triagem = { abertas: 7, veTriagem: true };
+  const { atendimento, transversais } = quadroDasCasas(new Map([["medico", 12]]), triagem);
 
   it("atendimento tem as 4 casas na ordem canônica", () => {
     expect(atendimento.map((c) => c.slug)).toEqual([
@@ -124,15 +138,31 @@ describe("quadroDasCasas", () => {
   });
 
   it("contagem vem do mapa; casa sem entrada cai em 0", () => {
-    expect(atendimento[0]?.ativos).toBe(12); // medico
-    expect(atendimento[1]?.ativos).toBe(0); // capacitacao
+    expect(atendimento[0]?.metrica).toEqual({ valor: "12", nota: "cidadãos ativos" }); // medico
+    expect(atendimento[1]?.metrica).toEqual({ valor: "0", nota: "cidadãos ativos" }); // capacitacao
   });
 
-  it("transversais são poncio e social (ordem de UNIDADE_SLUGS), sem contagem", () => {
+  it("transversais são poncio e social (ordem de UNIDADE_SLUGS)", () => {
     expect(transversais.map((c) => c.slug)).toEqual(["poncio", "social"]);
-    for (const linha of transversais) {
-      expect(linha.ativos).toBeNull();
-    }
+  });
+
+  it("poncio nunca tem valor numérico — só leitura executiva", () => {
+    const poncio = transversais.find((c) => c.slug === "poncio");
+    expect(poncio?.metrica).toEqual({ valor: null, nota: "leitura executiva" });
+  });
+
+  it("social com veTriagem mostra as triagens em aberto", () => {
+    const social = transversais.find((c) => c.slug === "social");
+    expect(social?.metrica).toEqual({ valor: "7", nota: "triagens em aberto" });
+  });
+
+  it("social sem veTriagem (presidência) não recebe número que o RBAC dela não vê", () => {
+    const { transversais: semTriagem } = quadroDasCasas(new Map(), {
+      abertas: 7,
+      veTriagem: false,
+    });
+    const social = semTriagem.find((c) => c.slug === "social");
+    expect(social?.metrica).toEqual({ valor: null, nota: "acompanhamento das famílias" });
   });
 
   it("nome/tagline derivam do mapa canônico UNIDADES (nada hardcoded)", () => {

@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
 import { TemaUnidade } from "@/components/tema-unidade";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getCidadaoStats } from "@/lib/cidadao";
 import { getLandingPath, hasAnyRole } from "@/lib/rbac";
 import { countTriagensAbertas, listTriagensPendentes, podeFazerTriagem } from "@/lib/triagem";
@@ -18,6 +18,7 @@ import {
   labelEspera,
   fraseEstado,
   quadroDasCasas,
+  type LinhaCasa,
 } from "@/lib/hub-inicio";
 import styles from "./inicio.module.css";
 
@@ -41,6 +42,33 @@ function formatDateTime(date: Date): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/**
+ * Linha do quadro "As casas, hoje" — filete lateral e hover por casa via
+ * <TemaUnidade>. A métrica (valor/nota) já vem decidida da camada pura
+ * (quadroDasCasas), nada de slug hardcoded aqui.
+ */
+function CasaRow({ casa }: { casa: LinhaCasa }) {
+  return (
+    <TemaUnidade tema={casa.slug}>
+      <Link href={casa.href as Route} className={styles.casaRow}>
+        <span className={styles.casaInfo}>
+          <span className={styles.casaNome}>{casa.nome}</span>
+          <span className={styles.casaTagline}>{casa.tagline}</span>
+        </span>
+        <span className={styles.casaMetrica}>
+          {casa.metrica.valor !== null && (
+            <span className={cn("mono", styles.casaValor)}>{casa.metrica.valor}</span>
+          )}
+          <span className={styles.casaNota}>{casa.metrica.nota}</span>
+        </span>
+        <span className={styles.casaSeta} aria-hidden="true">
+          →
+        </span>
+      </Link>
+    </TemaUnidade>
+  );
 }
 
 /**
@@ -92,7 +120,10 @@ export default async function InicioDashboard() {
     triagens: triagensAbertas,
     veTriagem,
   });
-  const { atendimento, transversais } = quadroDasCasas(porUnidade);
+  const { atendimento, transversais } = quadroDasCasas(porUnidade, {
+    abertas: triagensAbertas,
+    veTriagem,
+  });
   const fila = pendentes.slice(0, 5);
 
   return (
@@ -144,11 +175,10 @@ export default async function InicioDashboard() {
             </header>
             <div className="body">
               {fila.length === 0 ? (
-                <div className="empty">
-                  <Image src="/logo/ifp-symbol.png" alt="" width={96} height={96} />
-                  <p className="e-title">Sem decisões pendentes</p>
-                  <p className="e-msg">Todas as triagens foram concluídas.</p>
-                </div>
+                <EmptyState
+                  titulo="Sem decisões pendentes"
+                  descricao="Todas as triagens foram concluídas."
+                />
               ) : (
                 <ol className={styles.fila}>
                   {fila.map((t, i) => (
@@ -184,48 +214,12 @@ export default async function InicioDashboard() {
           <div className={styles.quadroBody}>
             <p className={cn("micro", styles.grupoLabel)}>Atendimento</p>
             {atendimento.map((c) => (
-              <TemaUnidade key={c.slug} tema={c.slug}>
-                <Link href={c.href as Route} className={styles.casaRow}>
-                  <span className={styles.casaInfo}>
-                    <span className={styles.casaNome}>{c.nome}</span>
-                    <span className={styles.casaTagline}>{c.tagline}</span>
-                  </span>
-                  <span className={styles.casaMetrica}>
-                    <span className={cn("mono", styles.casaValor)}>{c.ativos}</span>
-                    <span className={styles.casaNota}>cidadãos ativos</span>
-                  </span>
-                  <span className={styles.casaSeta} aria-hidden="true">
-                    →
-                  </span>
-                </Link>
-              </TemaUnidade>
+              <CasaRow key={c.slug} casa={c} />
             ))}
 
             <p className={cn("micro", styles.grupoLabel)}>Gestão e transversais</p>
             {transversais.map((c) => (
-              <TemaUnidade key={c.slug} tema={c.slug}>
-                <Link href={c.href as Route} className={styles.casaRow}>
-                  <span className={styles.casaInfo}>
-                    <span className={styles.casaNome}>{c.nome}</span>
-                    <span className={styles.casaTagline}>{c.tagline}</span>
-                  </span>
-                  <span className={styles.casaMetrica}>
-                    {c.slug === "social" && veTriagem ? (
-                      <>
-                        <span className={cn("mono", styles.casaValor)}>{triagensAbertas}</span>
-                        <span className={styles.casaNota}>triagens em aberto</span>
-                      </>
-                    ) : c.slug === "social" ? (
-                      <span className={styles.casaNota}>acompanhamento das famílias</span>
-                    ) : (
-                      <span className={styles.casaNota}>leitura executiva</span>
-                    )}
-                  </span>
-                  <span className={styles.casaSeta} aria-hidden="true">
-                    →
-                  </span>
-                </Link>
-              </TemaUnidade>
+              <CasaRow key={c.slug} casa={c} />
             ))}
           </div>
         </section>
@@ -234,14 +228,16 @@ export default async function InicioDashboard() {
       {/* ===== Seção C — Pulso (últimos movimentos, full-width sem card) ===== */}
       <section className={styles.pulso}>
         <div className={styles.pulsoHead}>
-          <p className="micro" style={{ color: "var(--text-3)", margin: 0 }}>
+          {/* h2 (não <p>): a seção precisa existir na navegação por cabeçalhos
+              de leitor de tela; .micro é puramente tipográfica, visual idêntico. */}
+          <h2 className="micro" style={{ color: "var(--text-3)", margin: 0 }}>
             Últimos movimentos
-          </p>
-          {isSuper && (
-            <Link href={"/admin/audit" as Route} className={styles.pulsoAct}>
-              Auditoria completa →
-            </Link>
-          )}
+          </h2>
+          {/* Link "Auditoria completa" removido: /admin/audit é UI planejada
+              (F3.C, docs/superpowers/2026-06-01-escopo-visual-ifp-connect.md) e
+              ainda não existe — apontar pra ela era 404. Quando a page nascer,
+              o link volta aqui usando a variante .act do kit (gate de
+              super_admin já está pronto no proxy.ts). */}
         </div>
         {atividade.length === 0 ? (
           <p className="t-small" style={{ color: "var(--text-3)" }}>

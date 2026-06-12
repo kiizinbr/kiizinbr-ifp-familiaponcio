@@ -29,9 +29,29 @@ export function saudacao(hora: number): string {
 
 const MS_POR_DIA = 86_400_000;
 
-/** Dias corridos de espera de uma triagem. Clock skew (createdAt no futuro) → 0. */
+/**
+ * Dia civil de São Paulo como contagem de dias desde a época (Date.UTC do
+ * Y-M-D local). `en-CA` formata YYYY-MM-DD, parseável sem ambiguidade.
+ */
+function diaCivilEmSaoPaulo(d: Date): number {
+  const ymd = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  }).format(d);
+  const [ano, mes, dia] = ymd.split("-").map(Number);
+  return Date.UTC(ano!, mes! - 1, dia!) / MS_POR_DIA;
+}
+
+/**
+ * Dias-CALENDÁRIO (America/Sao_Paulo) de espera de uma triagem — não janelas
+ * de 24h corridas: aberta ontem à noite e vista hoje cedo conta 1, que é o
+ * que "chegou hoje"/"aguarda há N dias" comunica. Clock skew (createdAt no
+ * futuro) → 0.
+ */
 export function diasAguardando(createdAt: Date, agora: Date): number {
-  return Math.max(0, Math.floor((agora.getTime() - createdAt.getTime()) / MS_POR_DIA));
+  return Math.max(0, diaCivilEmSaoPaulo(agora) - diaCivilEmSaoPaulo(createdAt));
 }
 
 /** Rótulo humano da espera na fila ("chegou hoje" / "aguarda há N dias"). */
@@ -83,21 +103,59 @@ export function fraseEstado(args: {
   return segmentos;
 }
 
-/** Linha do quadro "As casas, hoje". `ativos: null` → linha transversal (sem contagem). */
+/** Métrica da coluna direita de uma linha do quadro. `valor: null` → só a nota. */
+export interface MetricaCasa {
+  valor: string | null;
+  nota: string;
+}
+
+/** Linha do quadro "As casas, hoje". */
 export interface LinhaCasa {
   slug: UnidadeSlug;
   nome: string;
   tagline: string;
   href: string;
-  ativos: number | null;
+  metrica: MetricaCasa;
+}
+
+/** Visão de triagem que o quadro precisa pra montar a métrica do Serviço Social. */
+export interface TriagemDoQuadro {
+  abertas: number;
+  veTriagem: boolean;
 }
 
 /**
- * Deriva o quadro inteiro do mapa canônico UNIDADES (nada hardcoded), na ordem
- * de UNIDADE_SLUGS. `cidadaoScope === "self"` → casa de atendimento (com
- * contagem); `"all"` (poncio/social) → transversal (ativos: null).
+ * Único ponto do quadro que distingue casa por slug — aqui na camada pura e
+ * testada, nunca no JSX: o Serviço Social é a casa dona da triagem. Quem não
+ * vê triagem (presidência) recebe só a nota institucional — nunca um número
+ * que o RBAC dela não enxerga.
  */
-export function quadroDasCasas(porUnidade: ReadonlyMap<string, number>): {
+function metricaDaCasa(
+  slug: UnidadeSlug,
+  ehAtendimento: boolean,
+  porUnidade: ReadonlyMap<string, number>,
+  triagem: TriagemDoQuadro,
+): MetricaCasa {
+  if (ehAtendimento) {
+    return { valor: String(porUnidade.get(slug) ?? 0), nota: "cidadãos ativos" };
+  }
+  if (slug === "social") {
+    return triagem.veTriagem
+      ? { valor: String(triagem.abertas), nota: "triagens em aberto" }
+      : { valor: null, nota: "acompanhamento das famílias" };
+  }
+  return { valor: null, nota: "leitura executiva" };
+}
+
+/**
+ * Deriva o quadro inteiro do mapa canônico UNIDADES, na ordem de
+ * UNIDADE_SLUGS. `cidadaoScope === "self"` → casa de atendimento (com
+ * contagem); `"all"` (poncio/social) → transversal.
+ */
+export function quadroDasCasas(
+  porUnidade: ReadonlyMap<string, number>,
+  triagem: TriagemDoQuadro,
+): {
   atendimento: LinhaCasa[];
   transversais: LinhaCasa[];
 } {
@@ -111,7 +169,7 @@ export function quadroDasCasas(porUnidade: ReadonlyMap<string, number>): {
       nome: config.nome,
       tagline: config.tagline ?? "",
       href: `/${slug}`,
-      ativos: ehAtendimento ? (porUnidade.get(slug) ?? 0) : null,
+      metrica: metricaDaCasa(slug, ehAtendimento, porUnidade, triagem),
     };
     if (ehAtendimento) {
       atendimento.push(linha);
