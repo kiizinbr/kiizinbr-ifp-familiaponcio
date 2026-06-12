@@ -7,6 +7,7 @@ import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { reagendarConsultaAction } from "../reagendar-action";
 
@@ -114,10 +115,17 @@ export default async function ReagendarPage({
                   <form key={s.id} action={reagendarConsultaAction}>
                     <input type="hidden" name="consultaId" value={consulta.id} />
                     <input type="hidden" name="slotId" value={s.id} />
-                    <button
-                      type="submit"
-                      className="rounded-[var(--r-md)] border px-3 py-2 text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
-                      style={{ borderColor: "var(--line)" }}
+                    <SubmitButton
+                      variant="ghost"
+                      pendingLabel="Reagendando…"
+                      className="rounded-[var(--r-md)] border text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
+                      style={{
+                        display: "block",
+                        padding: "8px 12px",
+                        fontWeight: 400,
+                        lineHeight: 1.4,
+                        borderColor: "var(--line)",
+                      }}
                       title={`Mover para ${s.dataHoraInicio.toLocaleTimeString("pt-BR")} com ${s.profissional.nomeExibicao}`}
                     >
                       <span
@@ -132,7 +140,7 @@ export default async function ReagendarPage({
                       <span className="block text-[11px]" style={{ color: "var(--text-3)" }}>
                         {s.profissional.nomeExibicao}
                       </span>
-                    </button>
+                    </SubmitButton>
                   </form>
                 ))}
               </div>

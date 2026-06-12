@@ -124,9 +124,15 @@ describe("fraseEstado", () => {
 });
 
 describe("quadroDasCasas", () => {
-  // Arrange: só medico tem contagem — o resto deve cair em 0 (atendimento)
+  // Arrange: só medico tem contagem — o resto deve cair em 0 (atendimento);
+  // capacitação NÃO usa o mapa, e sim a atividade real (matrículas/turmas).
   const triagem = { abertas: 7, veTriagem: true };
-  const { atendimento, transversais } = quadroDasCasas(new Map([["medico", 12]]), triagem);
+  const capacitacao = { matriculasAtivas: 8, turmasEmAndamento: 2 };
+  const { atendimento, transversais } = quadroDasCasas(
+    new Map([["medico", 12]]),
+    triagem,
+    capacitacao,
+  );
 
   it("atendimento tem as 4 casas na ordem canônica", () => {
     expect(atendimento.map((c) => c.slug)).toEqual([
@@ -139,7 +145,55 @@ describe("quadroDasCasas", () => {
 
   it("contagem vem do mapa; casa sem entrada cai em 0", () => {
     expect(atendimento[0]?.metrica).toEqual({ valor: "12", nota: "cidadãos ativos" }); // medico
-    expect(atendimento[1]?.metrica).toEqual({ valor: "0", nota: "cidadãos ativos" }); // capacitacao
+    expect(atendimento[2]?.metrica).toEqual({ valor: "0", nota: "cidadãos ativos" }); // esportivo
+  });
+
+  it("capacitação mede atividade real, não o proxy unitIdOrigem do mapa", () => {
+    // Arrange: mapa diz 99 cidadãos com origem capacitacao — a métrica ignora
+    // (alunos chegam por triagem/importação; o proxy mostrava 0 com turma cheia)
+    const { atendimento: comProxy } = quadroDasCasas(
+      new Map([["capacitacao", 99]]),
+      triagem,
+      capacitacao,
+    );
+    expect(comProxy[1]?.metrica).toEqual({
+      valor: "8",
+      nota: "matrículas ativas · 2 turmas em andamento",
+    });
+  });
+
+  it("capacitação no singular: 1 matrícula ativa · 1 turma em andamento", () => {
+    const { atendimento: singular } = quadroDasCasas(new Map(), triagem, {
+      matriculasAtivas: 1,
+      turmasEmAndamento: 1,
+    });
+    expect(singular[1]?.metrica).toEqual({
+      valor: "1",
+      nota: "matrícula ativa · 1 turma em andamento",
+    });
+  });
+
+  it("capacitação zerada é honesta: 0 matrículas · 0 turmas (nunca proxy)", () => {
+    const { atendimento: zerada } = quadroDasCasas(new Map([["capacitacao", 99]]), triagem, {
+      matriculasAtivas: 0,
+      turmasEmAndamento: 0,
+    });
+    expect(zerada[1]?.metrica).toEqual({
+      valor: "0",
+      nota: "matrículas ativas · 0 turmas em andamento",
+    });
+  });
+
+  it("presidência (sem veTriagem) MANTÉM o número da capacitação — leitura global dela cobre matrículas/turmas; só triagem é gated", () => {
+    const { atendimento: semTriagem } = quadroDasCasas(
+      new Map(),
+      { abertas: 7, veTriagem: false },
+      capacitacao,
+    );
+    expect(semTriagem[1]?.metrica).toEqual({
+      valor: "8",
+      nota: "matrículas ativas · 2 turmas em andamento",
+    });
   });
 
   it("transversais são poncio e social (ordem de UNIDADE_SLUGS)", () => {
@@ -157,10 +211,11 @@ describe("quadroDasCasas", () => {
   });
 
   it("social sem veTriagem (presidência) não recebe número que o RBAC dela não vê", () => {
-    const { transversais: semTriagem } = quadroDasCasas(new Map(), {
-      abertas: 7,
-      veTriagem: false,
-    });
+    const { transversais: semTriagem } = quadroDasCasas(
+      new Map(),
+      { abertas: 7, veTriagem: false },
+      capacitacao,
+    );
     const social = semTriagem.find((c) => c.slug === "social");
     expect(social?.metrica).toEqual({ valor: null, nota: "acompanhamento das famílias" });
   });

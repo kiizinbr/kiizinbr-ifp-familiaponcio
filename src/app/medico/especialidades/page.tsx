@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { criarEspecialidadeAction, toggleEspecialidadeAction } from "./actions";
 
 export default async function EspecialidadesPage() {
@@ -66,9 +67,9 @@ export default async function EspecialidadesPage() {
                 />
               </label>
             </div>
-            <button type="submit" className="btn btn-primary btn-block">
+            <SubmitButton className="btn-block" pendingLabel="Adicionando…">
               Adicionar especialidade
-            </button>
+            </SubmitButton>
           </form>
         </Card>
 
@@ -105,12 +106,21 @@ export default async function EspecialidadesPage() {
                 <span className="mono text-3 text-[11px]">{esp.corDestaque}</span>
                 <form action={toggleEspecialidadeAction}>
                   <input type="hidden" name="id" value={esp.id} />
-                  <button
-                    type="submit"
-                    className="text-accent text-xs font-semibold underline-offset-2 hover:underline"
+                  <SubmitButton
+                    variant="ghost"
+                    size="sm"
+                    pendingLabel="Aplicando…"
+                    className="underline-offset-2 hover:underline"
+                    style={{
+                      padding: 0,
+                      background: "transparent",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "var(--accent)",
+                    }}
                   >
                     {esp.ativa ? "Desativar" : "Reativar"}
-                  </button>
+                  </SubmitButton>
                 </form>
               </div>
             </div>

@@ -126,9 +126,9 @@ export default async function NovaConsultaPage({
               placeholder="Buscar por nome, CPF ou telefone"
               className="input"
             />
-            <button type="submit" className="btn btn-primary shrink-0">
+            <SubmitButton className="shrink-0" pendingLabel="Buscando…">
               Buscar
-            </button>
+            </SubmitButton>
           </form>
 
           {sp.q && matches.length === 0 && (
@@ -307,10 +307,17 @@ export default async function NovaConsultaPage({
                     {encaminhamentoId ? (
                       <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
                     ) : null}
-                    <button
-                      type="submit"
-                      className="rounded-[var(--r-md)] border px-3 py-2 text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
-                      style={{ borderColor: "var(--line)" }}
+                    <SubmitButton
+                      variant="ghost"
+                      pendingLabel="Reservando…"
+                      className="rounded-[var(--r-md)] border text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
+                      style={{
+                        display: "block",
+                        padding: "8px 12px",
+                        fontWeight: 400,
+                        lineHeight: 1.4,
+                        borderColor: "var(--line)",
+                      }}
                       title={`Reservar ${s.dataHoraInicio.toLocaleTimeString("pt-BR")} com ${s.profissional.nomeExibicao}`}
                     >
                       <span
@@ -325,7 +332,7 @@ export default async function NovaConsultaPage({
                       <span className="block text-[11px]" style={{ color: "var(--text-3)" }}>
                         {s.profissional.nomeExibicao}
                       </span>
-                    </button>
+                    </SubmitButton>
                   </form>
                 ))}
               </div>

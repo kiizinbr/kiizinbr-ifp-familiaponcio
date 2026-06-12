@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell } from "@/components/medico/medico-shell";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SubmitButton } from "@/components/ui/submit-button";
 import {
   podeTransicionarConsulta,
   podeMarcarConsulta,
@@ -245,29 +246,30 @@ export default async function ConsultaDetalhePage({
                     })}
                     <form action={desfazerCheckinAction}>
                       <input type="hidden" name="id" value={consulta.id} />
-                      <button
-                        type="submit"
+                      <SubmitButton
+                        variant="ghost"
+                        size="sm"
+                        pendingLabel="Desfazendo…"
                         style={{
                           background: "none",
                           border: 0,
                           padding: 0,
-                          cursor: "pointer",
                           fontSize: 11,
+                          fontWeight: 400,
                           color: "var(--text-3)" as string,
                           textDecoration: "underline",
-                          fontFamily: "inherit",
                         }}
                       >
                         desfazer
-                      </button>
+                      </SubmitButton>
                     </form>
                   </span>
                 ) : (
                   <form action={marcarCheckinAction}>
                     <input type="hidden" name="id" value={consulta.id} />
-                    <button type="submit" className={`${styles.btn} ${styles.btnSecondary}`}>
+                    <SubmitButton variant="secondary" pendingLabel="Registrando chegada…">
                       Paciente chegou
-                    </button>
+                    </SubmitButton>
                   </form>
                 )
               ) : null}
@@ -282,14 +284,13 @@ export default async function ConsultaDetalhePage({
                   <form key={p} action={transitionAction}>
                     <input type="hidden" name="id" value={consulta.id} />
                     <input type="hidden" name="para" value={p} />
-                    <button
-                      type="submit"
+                    <SubmitButton
                       disabled={!ok}
-                      className={`${styles.btn} ${styles.btnPrimary}`}
+                      pendingLabel="Aplicando…"
                       style={{ opacity: ok ? 1 : 0.4 }}
                     >
                       {ACAO_LABEL[p] ?? p}
-                    </button>
+                    </SubmitButton>
                   </form>
                 );
               })}
@@ -524,9 +525,9 @@ export default async function ConsultaDetalhePage({
                             Salvar mantém em rascunho. Assinar torna a nota imutável e conclui a
                             consulta — correções depois entram como addendo.
                           </span>
-                          <button type="submit" className={`${styles.btn} ${styles.btnSecondary}`}>
+                          <SubmitButton variant="secondary" pendingLabel="Salvando rascunho…">
                             Salvar rascunho
-                          </button>
+                          </SubmitButton>
                         </div>
                       </form>
                       {nota && (
@@ -536,9 +537,9 @@ export default async function ConsultaDetalhePage({
                         >
                           <input type="hidden" name="consultaId" value={consulta.id} />
                           <input type="hidden" name="notaId" value={nota.id} />
-                          <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
+                          <SubmitButton pendingLabel="Assinando…">
                             Assinar e concluir →
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
                     </>
@@ -613,13 +614,13 @@ export default async function ConsultaDetalhePage({
                               placeholder="Adicionar addendo (append-only)…"
                             />
                             <div style={{ textAlign: "right", marginTop: 8 }}>
-                              <button
-                                type="submit"
-                                className={`${styles.btn} ${styles.btnSecondary}`}
+                              <SubmitButton
+                                variant="secondary"
+                                pendingLabel="Adicionando addendo…"
                                 style={{ marginTop: 8 }}
                               >
                                 Adicionar addendo
-                              </button>
+                              </SubmitButton>
                             </div>
                           </form>
                         </>
@@ -706,9 +707,7 @@ export default async function ConsultaDetalhePage({
                         placeholder="Observações (opcional)"
                       />
                       <div className={styles.docActions}>
-                        <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
-                          Emitir receita
-                        </button>
+                        <SubmitButton pendingLabel="Emitindo receita…">Emitir receita</SubmitButton>
                       </div>
                     </form>
                   ) : (
@@ -772,9 +771,9 @@ export default async function ConsultaDetalhePage({
                         placeholder="Observação (opcional)"
                       />
                       <div className={styles.docActions}>
-                        <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
+                        <SubmitButton pendingLabel="Emitindo atestado…">
                           Emitir atestado
-                        </button>
+                        </SubmitButton>
                       </div>
                     </form>
                   ) : (

@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { podeGerenciarCurso } from "@/lib/capacitacao/rbac";
 import { PageHead } from "../_components/ui";
 import { criarCursoAction } from "../actions";
@@ -100,9 +101,7 @@ export default async function CatalogoPage() {
                       className={styles.input}
                     />
                   </label>
-                  <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
-                    Adicionar curso
-                  </button>
+                  <SubmitButton pendingLabel="Adicionando curso…">Adicionar curso</SubmitButton>
                 </form>
               </div>
             </div>

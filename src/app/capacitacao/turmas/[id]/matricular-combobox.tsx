@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { matricularAction, buscarCandidatosAction } from "../../actions";
+import { SubmitButton } from "@/components/ui/submit-button";
 import styles from "../../capacitacao.module.css";
 
 type Candidato = { id: string; nome: string };
@@ -103,9 +104,9 @@ export function MatricularCombobox({ turmaId }: { turmaId: string }) {
         </label>
       )}
 
-      <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={!escolhido}>
+      <SubmitButton disabled={!escolhido} pendingLabel="Matriculando…">
         Matricular
-      </button>
+      </SubmitButton>
     </form>
   );
 }

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { formatarDiasSemana } from "@/lib/medico/ui";
 import { atualizarProfissionalAction, toggleProfissionalAction } from "../actions";
@@ -46,16 +47,16 @@ export default async function ProfissionalDetalhePage({
           podeGerenciarProfissional(session) ? (
             <form action={toggleProfissionalAction}>
               <input type="hidden" name="id" value={prof.id} />
-              <button
-                type="submit"
-                className="btn btn-secondary"
+              <SubmitButton
+                variant="secondary"
+                pendingLabel="Aplicando…"
                 style={{
                   borderColor: prof.ativo ? "var(--danger)" : "var(--accent)",
                   color: prof.ativo ? "var(--danger)" : "var(--accent)",
                 }}
               >
                 {prof.ativo ? "Desativar" : "Reativar"}
-              </button>
+              </SubmitButton>
             </form>
           ) : undefined
         }
@@ -125,9 +126,7 @@ export default async function ProfissionalDetalhePage({
                 <span className="label">Bio</span>
                 <textarea name="bio" defaultValue={prof.bio ?? ""} rows={3} className="textarea" />
               </label>
-              <button type="submit" className="btn btn-primary">
-                Salvar alterações
-              </button>
+              <SubmitButton pendingLabel="Salvando…">Salvar alterações</SubmitButton>
             </form>
           </Card>
         ) : (

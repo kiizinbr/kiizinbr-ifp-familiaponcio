@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { podeCriarTurma } from "@/lib/capacitacao/rbac";
 import { PageHead } from "../../_components/ui";
 import { criarTurmaAction } from "../../actions";
@@ -127,9 +128,7 @@ export default async function NovaTurmaPage() {
                   </select>
                 </label>
 
-                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
-                  Criar turma
-                </button>
+                <SubmitButton pendingLabel="Criando turma…">Criar turma</SubmitButton>
               </form>
             </div>
           </div>

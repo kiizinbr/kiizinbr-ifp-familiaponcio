@@ -1,4 +1,4 @@
-import type { StatusNota } from "@prisma/client";
+import type { Prisma, StatusNota } from "@prisma/client";
 import { db } from "@/lib/db";
 import { aplicarTransicaoConsulta } from "@/lib/medico/agenda";
 
@@ -8,6 +8,28 @@ import { aplicarTransicaoConsulta } from "@/lib/medico/agenda";
  * da nota. A parte transacional (salvarRascunho/assinarNota/adicionarAddendo)
  * entra na T5, neste mesmo arquivo.
  */
+
+/**
+ * Select do contexto clínico fixo do paciente (timeline /medico/pacientes/[id]).
+ * Vive aqui — não inline na page — pra que o teste de integração
+ * (tests/unit/medico-paciente-timeline.test.ts) execute EXATAMENTE o mesmo
+ * select contra o PG real: `tsc` não valida campos de select passados ao
+ * Prisma (SelectSubset aceita campo inexistente, ex.: `medicamentos` em vez de
+ * `medicamentosEmUso`) — o erro só estoura em runtime como
+ * PrismaClientValidationError. O `satisfies` pega drift em compile-time E o
+ * teste cobre o runtime.
+ */
+export const SELECT_CONTEXTO_PACIENTE = {
+  id: true,
+  nomeCompleto: true,
+  nomeSocial: true,
+  dataNascimento: true,
+  genero: true,
+  tipoSanguineo: true,
+  alergias: true,
+  condicoesCronicas: true,
+  medicamentosEmUso: true,
+} as const satisfies Prisma.CidadaoSelect;
 
 export interface SinaisVitaisInput {
   paSistolica?: number | null;

@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { podeCriarTurma, podeGerenciarCurso } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge } from "../../_components/ui";
@@ -50,12 +51,12 @@ export default async function CursoDetalhePage({ params }: { params: Promise<{ i
               {podeGerenciarCurso(session) ? (
                 <form action={toggleCursoAtivoAction}>
                   <input type="hidden" name="cursoId" value={curso.id} />
-                  <button
-                    type="submit"
-                    className={`${styles.btn} ${curso.ativo ? styles.btnGhost : styles.btnPrimary}`}
+                  <SubmitButton
+                    variant={curso.ativo ? "ghost" : "primary"}
+                    pendingLabel="Alterando status do curso…"
                   >
                     {curso.ativo ? "Desativar curso" : "Reativar curso"}
-                  </button>
+                  </SubmitButton>
                 </form>
               ) : null}
               <Link

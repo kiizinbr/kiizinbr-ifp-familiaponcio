@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
 import { TemaUnidade } from "@/components/tema-unidade";
 import { EmptyState } from "@/components/ui/empty-state";
+import { STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { getCidadaoStats } from "@/lib/cidadao";
 import { getLandingPath, hasAnyRole } from "@/lib/rbac";
 import { countTriagensAbertas, listTriagensPendentes, podeFazerTriagem } from "@/lib/triagem";
@@ -89,16 +90,22 @@ export default async function InicioDashboard() {
   const home = getLandingPath(session);
   if (home !== "/inicio") redirect(home as Route);
 
-  const [stats, triagensAbertas, pendentes, atividade] = await Promise.all([
-    getCidadaoStats(session),
-    countTriagensAbertas(session),
-    listTriagensPendentes(session),
-    db.auditLog.findMany({
-      take: 6,
-      orderBy: { createdAt: "desc" },
-      include: { user: { select: { name: true, email: true } } },
-    }),
-  ]);
+  const [stats, triagensAbertas, pendentes, atividade, matriculasAtivas, turmasEmAndamento] =
+    await Promise.all([
+      getCidadaoStats(session),
+      countTriagensAbertas(session),
+      listTriagensPendentes(session),
+      db.auditLog.findMany({
+        take: 6,
+        orderBy: { createdAt: "desc" },
+        include: { user: { select: { name: true, email: true } } },
+      }),
+      // Métrica honesta da Capacitação (quadroDasCasas): atividade real em vez
+      // do proxy Cidadao.unitIdOrigem. "Ativas" = STATUS_OCUPA_VAGA, o mesmo
+      // conjunto canônico que conta capacidade na matrícula.
+      db.matricula.count({ where: { status: { in: [...STATUS_OCUPA_VAGA] } } }),
+      db.turma.count({ where: { status: "em_andamento" } }),
+    ]);
 
   const porUnidade = new Map((stats?.porUnidade ?? []).map((u) => [u.unidade, u.total]));
 
@@ -120,10 +127,11 @@ export default async function InicioDashboard() {
     triagens: triagensAbertas,
     veTriagem,
   });
-  const { atendimento, transversais } = quadroDasCasas(porUnidade, {
-    abertas: triagensAbertas,
-    veTriagem,
-  });
+  const { atendimento, transversais } = quadroDasCasas(
+    porUnidade,
+    { abertas: triagensAbertas, veTriagem },
+    { matriculasAtivas, turmasEmAndamento },
+  );
   const fila = pendentes.slice(0, 5);
 
   return (

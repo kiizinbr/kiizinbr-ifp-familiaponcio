@@ -84,9 +84,9 @@ export default async function RecepcaoPage({
             className="input"
             style={{ flex: 1 }}
           />
-          <button type="submit" className="btn btn-secondary">
+          <SubmitButton variant="secondary" pendingLabel="Buscando…">
             Buscar
-          </button>
+          </SubmitButton>
         </form>
         {q && matches.length === 0 ? (
           <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-3)" }}>
