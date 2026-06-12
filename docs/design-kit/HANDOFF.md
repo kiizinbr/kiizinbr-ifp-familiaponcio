@@ -41,6 +41,17 @@ Quatro camadas, todas em `ifp-tokens.css`:
 
 > **Regra de ouro:** uma marca só. O que muda entre unidades é o **acento** (a "cor do crachá") — nunca a tipografia, o layout, a densidade ou o fundo.
 
+### 4º contrato — tema CASA por subtree (camada aditiva, 2026-06-12)
+
+| Atributo | Onde | Efeito |
+|---|---|---|
+| `data-theme="medico\|capacitacao\|esportivo\|recreativo\|poncio\|social"` | **container** (`<div>` de layout/card) | Tematiza o subtree inteiro com o trio CASA `--unidade`/`--unidade-escuro`/`--unidade-suave` **e** equivale a `data-unit` + `data-unit-accent` dentro dele (a ponte re-resolve `--unit`/`--unit-2`/`--accent`). 100% CSS, sem JS. |
+
+- Fonte: `src/styles/casa-tokens.css` (porte da direção editorial "CASA", reconciliação estratégia A — main canônica, camada só estende).
+- Não colide com o `data-theme="light|dark"` do `<html>`: os seletores claro/escuro são escopados em `html[data-theme=…]`.
+- Helper React: `<TemaUnidade tema="medico">` (`src/components/tema-unidade.tsx`) + `temaCasaDoSlug()` (`src/lib/tema-casa.ts`).
+- Ponte Tailwind (`@theme inline` no `globals.css`): `bg-primary`, `hover:bg-primary-hover`, `bg-unidade-suave`, `bg-papel`, `text-tinta`, `shadow-casa(-sm)`, `font-display` (Jost p/ display/headings) etc. — tudo resolve em runtime contra o tema do subtree.
+
 ---
 
 ## 5. Design tokens (valores exatos)
