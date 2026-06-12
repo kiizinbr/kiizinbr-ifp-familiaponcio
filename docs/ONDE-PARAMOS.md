@@ -45,7 +45,7 @@ pnpm dev                    # web :3000 + api :3333
 ```
 
 Logins de teste: ver `SEED_*` no `.env` (educadora@ifp.local, familia@ifp.local,
-medico@ifp.local, instrutor@ifp.local, admin@ifp.local — senha = `SEED_MEDICO_PASSWORD`,
+medico@ifp.local, instrutor@ifp.local, admin@ifp.local; espelhos pessoais erick.<perfil>@ifp.local via SEED_ERICK_PASSWORD — senha = `SEED_MEDICO_PASSWORD`,
 admin usa `SEED_SUPER_ADMIN_PASSWORD`).
 
 ### ⚠ Pegadinhas de ambiente descobertas a tapa (Windows + Docker no WSL2)

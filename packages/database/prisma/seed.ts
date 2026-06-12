@@ -90,6 +90,106 @@ async function main() {
   await seedCapacitacao();
   await seedEducacional();
   await seedEsportivo();
+  await seedUsuariosErick();
+}
+
+// ============================================================
+// Usuários pessoais do Erick — um por perfil/unidade, p/ teste
+// manual rápido. Senha única em SEED_ERICK_PASSWORD (gitignored).
+// ============================================================
+async function seedUsuariosErick() {
+  const senha = process.env.SEED_ERICK_PASSWORD;
+  if (!senha) {
+    console.warn("  ! SEED_ERICK_PASSWORD não definido — pulando usuários do Erick.");
+    return;
+  }
+  const senhaHash = await hash(senha, 12);
+
+  // Espelhos dos personas de cada vertical. GESTOR/PROFISSIONAL precisam de
+  // Profissional ATIVO lotado na unidade (resolverPorUser exige lotação).
+  const personas: Array<{
+    email: string;
+    nome: string;
+    perfil: Perfil;
+    unidadeSlug?: string;
+    profissional?: { registroConselho?: string; ufConselho?: string; especialidade: string };
+  }> = [
+    {
+      email: "erick.medico@ifp.local",
+      nome: "Erick (Médico)",
+      perfil: Perfil.PROFISSIONAL,
+      unidadeSlug: "medico",
+      profissional: {
+        registroConselho: "52-99999-9",
+        ufConselho: "RJ",
+        especialidade: "Clínica Geral",
+      },
+    },
+    {
+      email: "erick.capacitacao@ifp.local",
+      nome: "Erick (Instrutor)",
+      perfil: Perfil.PROFISSIONAL,
+      unidadeSlug: "capacitacao",
+      profissional: { especialidade: "Instrutor" },
+    },
+    {
+      email: "erick.educacional@ifp.local",
+      nome: "Erick (Educador)",
+      perfil: Perfil.PROFISSIONAL,
+      unidadeSlug: "educacional",
+      profissional: { especialidade: "Educador Infantil" },
+    },
+    {
+      email: "erick.gestor@ifp.local",
+      nome: "Erick (Gestor)",
+      perfil: Perfil.GESTOR_UNIDADE,
+      unidadeSlug: "educacional",
+      profissional: { especialidade: "Gestão Escolar" },
+    },
+    {
+      email: "erick.esporte@ifp.local",
+      nome: "Erick (Sensei)",
+      perfil: Perfil.PROFISSIONAL,
+      unidadeSlug: "esportivo",
+      profissional: { especialidade: "Sensei" },
+    },
+    {
+      email: "erick.social@ifp.local",
+      nome: "Erick (Serviço Social)",
+      perfil: Perfil.SERVICO_SOCIAL,
+    },
+  ];
+
+  for (const p of personas) {
+    const user = await prisma.user.upsert({
+      where: { email: p.email },
+      update: { senhaHash, ativo: true },
+      create: { email: p.email, senhaHash, nome: p.nome, ativo: true },
+    });
+    await prisma.usuarioPerfil.upsert({
+      where: { userId_perfil: { userId: user.id, perfil: p.perfil } },
+      update: {},
+      create: { userId: user.id, perfil: p.perfil },
+    });
+    if (p.unidadeSlug) {
+      const unidade = await prisma.unidade.findUniqueOrThrow({
+        where: { slug: p.unidadeSlug },
+      });
+      await prisma.usuarioUnidade.upsert({
+        where: { userId_unidadeId: { userId: user.id, unidadeId: unidade.id } },
+        update: {},
+        create: { userId: user.id, unidadeId: unidade.id },
+      });
+      if (p.profissional) {
+        await prisma.profissional.upsert({
+          where: { userId: user.id },
+          update: { ativo: true },
+          create: { userId: user.id, unidadeId: unidade.id, ...p.profissional },
+        });
+      }
+    }
+    console.log(`  ✓ ${p.nome} (${p.email})`);
+  }
 }
 
 // ============================================================
