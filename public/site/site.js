@@ -58,22 +58,42 @@
     accessBtn.classList.remove("open");
     accessBtn.setAttribute("aria-expanded", "false");
   }
-  accessBtn.addEventListener("click", function (e) {
-    e.stopPropagation();
-    accessMenu.classList.contains("open") ? closeAccess() : openAccess();
-  });
-  accessScrim.addEventListener("click", closeAccess);
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeAccess();
-  });
-  // links do rodapé que abrem o menu
-  document.querySelectorAll("[data-open-access]").forEach(function (el) {
-    el.addEventListener("click", function (e) {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-      openAccess();
+  // Logado (window.__IFP_HOME__ injetado por page.tsx): o CTA "Acesso ao Sistema"
+  // vira "Meu painel" e leva DIRETO ao painel, sem abrir o dropdown de unidades.
+  var IFP_HOME = typeof window !== "undefined" ? window.__IFP_HOME__ : null;
+  if (IFP_HOME) {
+    accessBtn.setAttribute("aria-haspopup", "false");
+    accessBtn.removeAttribute("aria-expanded");
+    accessBtn.classList.add("is-logged");
+    accessBtn.childNodes.forEach(function (n) {
+      if (n.nodeType === 3 && n.textContent.trim()) n.textContent = " Meu painel ";
     });
-  });
+    var goHome = function (e) {
+      if (e) e.preventDefault();
+      window.location.href = IFP_HOME;
+    };
+    accessBtn.addEventListener("click", goHome);
+    document.querySelectorAll("[data-open-access]").forEach(function (el) {
+      el.addEventListener("click", goHome);
+    });
+  } else {
+    accessBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      accessMenu.classList.contains("open") ? closeAccess() : openAccess();
+    });
+    accessScrim.addEventListener("click", closeAccess);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeAccess();
+    });
+    // links do rodapé que abrem o menu
+    document.querySelectorAll("[data-open-access]").forEach(function (el) {
+      el.addEventListener("click", function (e) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+        openAccess();
+      });
+    });
+  }
 
   /* ---- TRANSIÇÃO de leão → navega p/ login da unidade ---- */
   var pt = document.getElementById("pageTransition");

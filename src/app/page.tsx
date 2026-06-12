@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { redirect } from "next/navigation";
-import type { Route } from "next";
 import "@/styles/site.css";
 import { siteHtml } from "@/components/site/site-content";
 import { auth } from "@/lib/auth";
@@ -24,10 +22,13 @@ export const metadata: Metadata = {
  * (`data-go`) já apontam pras rotas reais `/<unidade>/login`.
  */
 export default async function LandingPage() {
-  // Logado vai pra sua home (getLandingPath) em vez de ficar preso na landing
-  // pública — corrige D5 (pós-login fazia redirectTo: "/"). Deslogado vê o site.
+  // O site institucional é a porta de entrada e aparece SEMPRE — logado ou não
+  // (decisão do Erick, 2026-06-09). O pós-login NÃO cai mais aqui: vai pro
+  // resolvedor /inicio (login actions), então o `/` pode ser sempre a vitrine sem
+  // reintroduzir o "preso na landing" (D5). Logado: o CTA "Acesso ao Sistema" vira
+  // "Meu painel" via window.__IFP_HOME__ (lido pelo site.js).
   const session = await auth();
-  if (session) redirect(getLandingPath(session) as Route);
+  const homePath = session ? getLandingPath(session) : null;
 
   return (
     <>
@@ -36,6 +37,12 @@ export default async function LandingPage() {
         sem nenhuma entrada de usuário — não há vetor de XSS aqui.
       */}
       <div dangerouslySetInnerHTML={{ __html: siteHtml }} />
+      {homePath && homePath !== "/login" ? (
+        <script
+          // homePath vem de getLandingPath (nosso) — JSON.stringify evita injeção.
+          dangerouslySetInnerHTML={{ __html: `window.__IFP_HOME__=${JSON.stringify(homePath)}` }}
+        />
+      ) : null}
       <Script src="/site/image-slot.js" strategy="afterInteractive" />
       <Script src="/site/site.js" strategy="afterInteractive" />
     </>

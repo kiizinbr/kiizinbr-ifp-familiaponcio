@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { AppShell } from "@/components/app-shell";
 import { KpiCard } from "@/components/kpi-card";
 import { getCidadaoStats } from "@/lib/cidadao";
+import { getLandingPath } from "@/lib/rbac";
 import { countTriagensAbertas, listTriagensPendentes } from "@/lib/triagem";
 import type { UnitScope } from "@/lib/rbac-types";
 
@@ -146,6 +147,13 @@ function Panel({
 export default async function InicioDashboard() {
   const session = await auth();
   if (!session) redirect("/login");
+
+  // /inicio é o painel cross-unidade dos papéis globais (super_admin/presidência,
+  // conforme getLandingPath). Qualquer outro papel — que o pós-login agora pode
+  // mandar pra cá — é resolvido pro seu destino real (ex.: recepção → /medico),
+  // evitando parar no dashboard errado. Sem loop: só redireciona se home !== /inicio.
+  const home = getLandingPath(session);
+  if (home !== "/inicio") redirect(home as Route);
 
   const [stats, triagensAbertas, pendentes, atividade] = await Promise.all([
     getCidadaoStats(session),

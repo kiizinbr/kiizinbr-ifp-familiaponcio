@@ -9,9 +9,11 @@ import { loginRateLimited } from "@/lib/rate-limit";
 /**
  * Sign in com role-based landing.
  *
- * Estrategia: signIn redireciona pra /, que e server component que le auth()
- * e calcula getLandingPath(session). Isso evita o bug do Auth.js v5 beta com
- * { redirect: false } sempre lancando, e funciona ponta-a-ponta.
+ * Estrategia: signIn redireciona pra /inicio (resolvedor que le auth() e manda
+ * cada papel pro seu destino via getLandingPath). Antes apontava pra /, mas o /
+ * agora e a vitrine institucional (aparece sempre, logado ou nao) — entao o
+ * pos-login usa o /inicio gateado. Mesmo padrao ja provado no login por unidade
+ * (-> /<slug>). Evita o bug do Auth.js v5 beta com { redirect: false } lancando.
  */
 export async function signInAction(formData: FormData) {
   const emailRaw = formData.get("email");
@@ -26,7 +28,7 @@ export async function signInAction(formData: FormData) {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/",
+      redirectTo: "/inicio",
     });
   } catch (error) {
     if (error instanceof AuthError) {
