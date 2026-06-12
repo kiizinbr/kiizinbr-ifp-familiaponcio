@@ -125,17 +125,49 @@ export interface TriagemDoQuadro {
 }
 
 /**
+ * Atividade real da Capacitação pro quadro: matrículas em estados ativos
+ * (inscrito/confirmado/cursando — STATUS_OCUPA_VAGA) + turmas em andamento.
+ * A page busca as contagens; aqui é só apresentação.
+ */
+export interface CapacitacaoDoQuadro {
+  matriculasAtivas: number;
+  turmasEmAndamento: number;
+}
+
+/**
+ * Métrica honesta da Capacitação: alunos chegam por triagem/importação de
+ * outras casas, então `Cidadao.unitIdOrigem === "capacitacao"` é um proxy
+ * enganoso — mostrava 0 com turmas lotadas. Valor = matrículas ativas; a nota
+ * carrega o rótulo + turmas em andamento (singular/plural corretos).
+ */
+function metricaCapacitacao(c: CapacitacaoDoQuadro): MetricaCasa {
+  const matriculas = c.matriculasAtivas === 1 ? "matrícula ativa" : "matrículas ativas";
+  const turmas =
+    c.turmasEmAndamento === 1
+      ? "1 turma em andamento"
+      : `${c.turmasEmAndamento} turmas em andamento`;
+  return { valor: String(c.matriculasAtivas), nota: `${matriculas} · ${turmas}` };
+}
+
+/**
  * Único ponto do quadro que distingue casa por slug — aqui na camada pura e
- * testada, nunca no JSX: o Serviço Social é a casa dona da triagem. Quem não
- * vê triagem (presidência) recebe só a nota institucional — nunca um número
- * que o RBAC dela não enxerga.
+ * testada, nunca no JSX: o Serviço Social é a casa dona da triagem e a
+ * Capacitação mede atividade real (matrículas/turmas), não unitIdOrigem.
+ * Quem não vê triagem (presidência) recebe só a nota institucional — nunca um
+ * número que o RBAC dela não enxerga. A contagem de Capacitação NÃO é gated:
+ * presidência tem leitura global das unidades (canAccessUnidade/getUserUnits),
+ * só a triagem é restrita (podeFazerTriagem = social + super_admin).
  */
 function metricaDaCasa(
   slug: UnidadeSlug,
   ehAtendimento: boolean,
   porUnidade: ReadonlyMap<string, number>,
   triagem: TriagemDoQuadro,
+  capacitacao: CapacitacaoDoQuadro,
 ): MetricaCasa {
+  if (slug === "capacitacao") {
+    return metricaCapacitacao(capacitacao);
+  }
   if (ehAtendimento) {
     return { valor: String(porUnidade.get(slug) ?? 0), nota: "cidadãos ativos" };
   }
@@ -155,6 +187,7 @@ function metricaDaCasa(
 export function quadroDasCasas(
   porUnidade: ReadonlyMap<string, number>,
   triagem: TriagemDoQuadro,
+  capacitacao: CapacitacaoDoQuadro,
 ): {
   atendimento: LinhaCasa[];
   transversais: LinhaCasa[];
@@ -169,7 +202,7 @@ export function quadroDasCasas(
       nome: config.nome,
       tagline: config.tagline ?? "",
       href: `/${slug}`,
-      metrica: metricaDaCasa(slug, ehAtendimento, porUnidade, triagem),
+      metrica: metricaDaCasa(slug, ehAtendimento, porUnidade, triagem, capacitacao),
     };
     if (ehAtendimento) {
       atendimento.push(linha);
