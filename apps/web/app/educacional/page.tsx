@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Baby, BellRing, BookOpenCheck, ChevronRight, Users } from "lucide-react";
+import {
+  Baby,
+  BellRing,
+  BookOpenCheck,
+  ChevronRight,
+  MessagesSquare,
+  Users,
+} from "lucide-react";
 
 import { Alerta, Spinner } from "@/components/ui";
 import { useResumoEducacional, useTurmasInfantis } from "@/lib/use-educacional";
+import { useConversas } from "@/lib/use-mensagens";
 
 function Kpi({
   rotulo,
@@ -31,6 +39,8 @@ function Kpi({
 export default function PainelEducacional() {
   const { data: resumo, isLoading: carregandoResumo, error } = useResumoEducacional();
   const { data: turmas, isLoading: carregandoTurmas } = useTurmasInfantis();
+  const { data: conversas } = useConversas("equipe");
+  const naoLidas = (conversas ?? []).reduce((soma, c) => soma + c.naoLidas, 0);
 
   if (carregandoResumo || carregandoTurmas) {
     return (
@@ -51,12 +61,28 @@ export default function PainelEducacional() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Painel do dia</h1>
-        <Link
-          href="/educacional/comunicados"
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/50"
-        >
-          <BellRing className="h-3.5 w-3.5 text-primary" /> Comunicados
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/educacional/mensagens"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/50"
+          >
+            <MessagesSquare className="h-3.5 w-3.5 text-primary" /> Mensagens
+            {naoLidas > 0 ? (
+              <span
+                className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+                aria-label={`${naoLidas} ${naoLidas === 1 ? "mensagem não lida" : "mensagens não lidas"}`}
+              >
+                {naoLidas > 99 ? "99+" : naoLidas}
+              </span>
+            ) : null}
+          </Link>
+          <Link
+            href="/educacional/comunicados"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/50"
+          >
+            <BellRing className="h-3.5 w-3.5 text-primary" /> Comunicados
+          </Link>
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

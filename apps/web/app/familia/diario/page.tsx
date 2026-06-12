@@ -5,7 +5,8 @@
  * Linguagem simples, ícones grandes, navegação por dia.
  */
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Lock, Moon, Apple, Paintbrush, Droplets, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, Lock, Moon, Apple, Paintbrush, Droplets, AlertCircle, MessagesSquare } from "lucide-react";
 
 import { Alerta, Spinner } from "@/components/ui";
 import {
@@ -14,6 +15,7 @@ import {
   useMinhasCriancas,
   type TipoRegistroRotina,
 } from "@/lib/use-educacional";
+import { useConversas } from "@/lib/use-mensagens";
 
 const ICONE_TIPO: Record<TipoRegistroRotina, React.ReactNode> = {
   ALIMENTACAO: <Apple className="h-5 w-5" />,
@@ -41,6 +43,8 @@ export default function DiarioFamiliaPage() {
 
   const data = diaISO(offset);
   const { data: diario, isLoading } = useDiarioFamilia(selecionado ?? undefined, data);
+  const { data: conversas } = useConversas("familia");
+  const mensagensNaoLidas = (conversas ?? []).reduce((soma, c) => soma + c.naoLidas, 0);
 
   if (carregandoCriancas) {
     return (
@@ -162,6 +166,31 @@ export default function DiarioFamiliaPage() {
           </ul>
         </div>
       )}
+
+      {/* Entrada para o canal oficial de mensagens com a equipe */}
+      <Link
+        href="/familia/mensagens"
+        className="mt-6 flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 transition hover:border-primary/50"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <MessagesSquare className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-foreground">Mensagens</span>
+          <span className="text-xs text-muted-foreground">
+            {mensagensNaoLidas > 0
+              ? `${mensagensNaoLidas} ${mensagensNaoLidas === 1 ? "mensagem nova" : "mensagens novas"} da equipe`
+              : "Fale com a equipe do instituto"}
+          </span>
+        </span>
+        {mensagensNaoLidas > 0 ? (
+          <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+            {mensagensNaoLidas > 99 ? "99+" : mensagensNaoLidas}
+          </span>
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        )}
+      </Link>
     </main>
   );
 }
