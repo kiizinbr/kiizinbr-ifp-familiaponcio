@@ -56,6 +56,26 @@ build    : ✓ Compiled successfully in 13.4s + Finished TypeScript in 24.6s
 
 **Como reverter:** `git revert e5dbcb2` na branch da noite (ou na main, se já mergeado). Camada 100% aditiva — nenhuma classe da ponte é usada pela main hoje; o revert não quebra nada.
 
+### `7f84273` — `refactor(design): tema por unidade no contrato data-unit do kit; remove Jost` (continuação ~01h40)
+
+O orquestrador retomou o run e detectou DUAS violações do CLAUDE.md do projeto no trabalho acima: (1) o contrato canônico reserva `data-theme` para light|dark e usa **`data-unit`** por unidade — o "4º contrato" criava convenção concorrente; (2) **"regra de ouro: nunca tipografia"** — Jost (display) viola. Conformado:
+
+- Seletores `[data-theme="<slug>"]` → `[data-unit="<slug>"]` em `casa-tokens.css` (os blocos agora SOMAM ao `[data-unit]` que o kit já define); `<TemaUnidade>` emite `data-unit`; comentários/teste atualizados.
+- Jost removida de `layout.tsx`; `--ifp-font-display: var(--font-ui)` (Hanken Grotesk) — a var fica como ponto único de troca futura. Reintroduzir Jost = decisão do dono (🟡 (d) abaixo).
+
+**Como reverter:** `git revert 7f84273` (volta ao estado data-theme+Jost de `e5dbcb2`).
+
+### `19186af` — `feat(acesso): rota /acesso por unidade + login tematizado (skin CASA)` (continuação ~01h45)
+
+Item que o run inicial deixou sem veredito — concluído pelo ciclo completo do porteiro:
+
+- `src/app/acesso/page.tsx` (NOVO): "em qual unidade você vai entrar hoje?" — cards das 6 unidades canônicas nas cores de cada salão (via `<TemaUnidade>`/`data-unit`), linkando `/login?unidade=<slug>`.
+- `login/page.tsx` + `login-form.tsx`: o login herda tema + nome do salão pelo searchParam; slug inválido/ausente → neutro idêntico ao atual. `actions.ts` (WIP do dono) **intocado**.
+
+**Evidência (`checks/03-acesso.sh` v2, log em `checks/03-run.log`, EXIT=0):** prettier OK · typecheck OK · eslint OK · vitest 6/6 · build `Compiled successfully` (falha só o prerender flaky pré-existente, ver achado nº 2) · smoke `next dev :3002`: `/acesso` 200 com `data-unit` por card + links tematizados + sem Jost no HTML; `/login?unidade=medico` 200 com tema + nome do salão; `/login` neutro preservado (`bg-slate-50`); slug inválido não vaza pro atributo. `ACESSO_OK`.
+
+**Como reverter:** `git revert 19186af`.
+
 ## 🟡 Pronto pra 1 clique
 
 ### (a) DEPLOY STAGING — NÃO executado (documentado)
@@ -76,7 +96,7 @@ git checkout main
 git merge overnight/2026-06-12
 ```
 
-Há WIP do dono em `page.tsx`/`inicio` que **combina com esta base** (os temas `data-theme="<unidade>"` ficam disponíveis pro hub dele consumir). O commit da noite não toca nenhum arquivo do WIP (diff vazio nos protegidos — verificado pelo revisor), então não há conflito de arquivo esperado.
+Há WIP do dono em `page.tsx`/`inicio` que **combina com esta base** (os temas `data-unit="<unidade>"`/`<TemaUnidade>` ficam disponíveis pro hub dele consumir). Os commits da noite não tocam nenhum arquivo do WIP (diff vazio nos protegidos — verificado pelo revisor), então não há conflito de arquivo esperado.
 
 ### (c) Próximos slices da estratégia A
 
@@ -84,15 +104,18 @@ Há WIP do dono em `page.tsx`/`inicio` que **combina com esta base** (os temas `
 2. **Port das verticais** — Educacional / Esportivo / chat 1:1, referência no worktree `casa-sprint`.
 3. **E2E** — login → hub → vertical nos 6 temas (Playwright).
 
+### (d) Tipografia CASA (Jost) — decisão de direção visual
+
+O kit manda "nunca tipografia" e por isso a noite REMOVEU a Jost (commit `7f84273`). Mas a direção CASA original usa Jost como display — se você quiser a cara CASA completa na main, é uma mudança de regra do kit (HANDOFF), não um patch: reintroduzir = reverter o trecho do `7f84273` (layout.tsx + `--ifp-font-display`) E atualizar a regra no `docs/design-kit/HANDOFF.md` + `CLAUDE.md`. Fica pra você decidir com o kit aberto do lado.
+
 ## ⏸️ Tentado e revertido
 
-- **Nada foi derrubado pelo revisor nem revertido nesta noite.**
-- **Em andamento (não commitado, não revertido) — item "acesso":** `src/app/(auth)/login/login-form.tsx` e `login/page.tsx` modificados + `src/app/acesso/` e `checks/03-acesso.sh` untracked. O prettier do check já formatou os arquivos (reordenação de classes), mas a verificação completa (typecheck+lint+build+smoke) ficou em background e **não concluiu dentro da janela** — sem veredito, sem commit. Fica como WIP na árvore do worktree da noite pra decisão de manhã (ver "Como aceitar / descartar").
+- **Nada foi derrubado pelo revisor nem revertido nesta noite.** O item "acesso", que o run inicial deixou sem veredito, foi concluído na continuação (`19186af`, ver ✅).
 
 ## 📊 Achados / 💡 Sugestões (ranqueados por ROI)
 
 1. ⚠️ **Overlap com o WIP do dono** (atenção nº 1 de manhã): o repo principal tem WIP não commitado em `src/app/page.tsx`, `src/app/inicio/**`, `src/app/(auth)/login/actions.ts`, `public/site.js` (+agenda). O commit da noite NÃO toca nenhum desses. Reconciliação sugerida: (1) dono commita ou stasheia o WIP dele; (2) merge da branch da noite; (3) o hub WIP dele passa a poder usar `data-theme="<unidade>"`/`<TemaUnidade>`. Risco semântico só se o WIP dele mexer em `globals.css`/`layout.tsx` (hoje não mexe).
-2. **Build de produção quebrado PRÉ-EXISTENTE no worktree** — falha no prerender até para origin/main pura (A/B duplo; logs em `overnight-2026-06-12/checks/91-build-head.log` e `92-build-baseline.log`). Hipótese: Next 16.2.6 + Turbopack rodando em `/mnt/c` (DrvFS). Sugestão: reproduzir build no repo nativo ou em path ext4 do WSL ANTES de qualquer gate que dependa de build verde. Não é causado pelos commits da noite.
+2. **Prerender da main é FLAKY (race), não só quebrado** — revisão do achado original com mais evidência: em 5 builds na noite, a falha de prerender (`TypeError: Cannot read properties of null (reading 'useContext')` em chunk do next) atingiu páginas DIFERENTES — `/_global-error` (2×, head E origin/main pura), `/inicio` (1×), `/_not-found` (1×) — e **1 build passou 100% verde** no mesmo código. O export aborta no primeiro erro, então cada build revela uma vítima diferente. Logs: `checks/91-build-head.log`, `92-build-baseline.log`, `03-run.log`. Hipótese: race do Next 16.2.6 + Turbopack (possivelmente agravado por /mnt/c DrvFS). O gate da noite tolera SÓ essa assinatura e NUNCA nas páginas novas (`03-acesso.sh` v2). Sugestão de fix real: reproduzir em ext4/repo nativo e/ou atualizar canary — vale investigar ANTES de confiar em gate de build no CI.
 3. **`prisma generate` é pré-requisito de typecheck em worktree novo** — sem ele o tsc do worktree inteiro falha (tipos `@prisma/client` ausentes). `checks/02a-prisma-generate.sh` resolve sem tocar banco. Sugestão: documentar no setup de dev/CI.
 4. **Suíte vitest escreve no PG dev persistente (5433)** — por isso a noite rodou só unitários puros. Sugestão: separar `projects` no vitest (unit puro × integração com banco) pra ter gate rápido e seguro.
 5. **Evidências do revisor estão untracked** em `overnight-2026-06-12/checks/9*` (scripts + logs do A/B e smoke) — manter como evidência local ou commitar se quiser trilha completa.
@@ -121,19 +144,18 @@ cd C:/Users/Administrador/.config/superpowers/worktrees/ifp-connect/overnight-20
 git revert e5dbcb2
 ```
 
-**Concluir o item acesso (WIP na árvore do worktree da noite):**
+**Descartar só o item acesso (já commitado):**
 
 ```
 cd C:/Users/Administrador/.config/superpowers/worktrees/ifp-connect/overnight-20260612
-wsl -d Ubuntu -- bash overnight-2026-06-12/checks/03-acesso.sh   # se verde → git add + commit
+git revert 19186af
 ```
 
-**Descartar o item acesso:**
+**Voltar ao tema data-theme+Jost (desfazer a conformidade — exige também mudar a regra do kit):**
 
 ```
 cd C:/Users/Administrador/.config/superpowers/worktrees/ifp-connect/overnight-20260612
-git checkout -- "src/app/(auth)/login/login-form.tsx" "src/app/(auth)/login/page.tsx"
-rm -rf src/app/acesso overnight-2026-06-12/checks/03-acesso.sh
+git revert 7f84273
 ```
 
 **Descartar a noite inteira:**
