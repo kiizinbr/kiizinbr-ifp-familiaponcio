@@ -106,13 +106,18 @@ modo espelhado não é suportado no build 20348 → NAT relay):
 - [ ] Tarefa de logon do keep-alive do WSL (workstation E servidor; classifier bloqueou; criar manualmente).
 - [ ] Decidir reconciliação com a `main` (314 commits divergentes — ver DOSSIE; estratégia A = main como base).
 
-Regressão nova além das duas existentes:
+Regressão completa (SEMPRE rodar `pnpm db:seed` antes — ele limpa o estado do
+dia, inclusive conversas; sem a seed o valida-educacional falha por estado):
 ```bash
+SENHA_DEV=... node scripts/valida-tenant.mjs               # 7/7
+SENHA_DEV=... node scripts/valida-educacional.mjs          # vertical creche
 SENHA_DEV=... node scripts/valida-gestao-educacional.mjs   # 18/18 (gestão: comunicados/autorizados/imagem + RBAC)
-SENHA_DEV=... node scripts/valida-esportivo.mjs            # 23/23 (trio Esporte: vagas/espera/graduação/verificação pública)
+SENHA_DEV=... node scripts/valida-esportivo.mjs            # 29/29 (Esporte completo c/ treinos)
+SENHA_DEV=... node scripts/valida-mensagens.mjs            # 29/29 (chat 1:1 família↔instituto)
 ```
-O seed agora limpa o estado DO DIA do educacional — a suíte inteira é
-re-rodável: `pnpm db:seed` e depois os 4 scripts, sempre verdes.
+Placar de 11/06 madrugada (pós-fixes da revisão): 5/5 suítes verdes.
+O seed também corrige o fuso da limpeza do dia (era UTC — quebrava após 21h
+em São Paulo) e cria a fixture `seed-membro-fora-unidade` p/ testes cross-tenant.
 
 ## 🥋 Vertical Esporte (4ª vertical — API entregue 11/06, telas pendentes)
 
@@ -133,10 +138,40 @@ Família faltavam — era a causa do "Acesso restrito" ao navegar).
 **Treinos entregues (11/06 à noite) — VERTICAL COMPLETA**: `TreinoEsportivo` +
 `PresencaTreino` (molde Aula/Presenca), chamada em lote idempotente, selo
 imutável (lock + updateMany condicional), tela de chamada mobile-first P/F/J.
-Regressão da vertical: 29/29. Próximo do blueprint: **mensagem 1:1
-família↔instituto** (killer feature; interino = WhatsApp Business oficial)
-— ATENÇÃO: a pesquisa SaaS do vault (regra: sempre cruzar) vive na
-workstation (`C:\dev\erickbrain`), não existe no servidor.
+Regressão da vertical: 29/29. — ATENÇÃO: a pesquisa SaaS do vault (regra:
+sempre cruzar) vive na workstation (`C:\dev\erickbrain`), não existe no servidor.
+
+## 💬 Mensagem 1:1 família↔instituto (killer feature — ENTREGUE 11/06 madrugada)
+
+Estilo ClassApp: protege o número pessoal da equipe; **1 conversa por criança**
+(`ConversaFamilia.membroId @unique`, migração `20260611223231`), recibo de
+leitura POR MENSAGEM (`MensagemFamilia.lidaEm` = quando o lado oposto abriu a
+thread). Get-or-create idempotente nos dois lados (upsert nativo do Postgres —
+sem P2002 em corrida).
+
+- **API** (`apps/api/src/educacional/conversas.{controller,service}.ts` +
+  extensão do `familia.controller`): 4 rotas equipe (`/educacional/conversas`)
+  + 4 família (`/familia/educacional/conversas`). Tenant EDUCACIONAL via
+  `resolverPorUser`; ownership via `User.fichaCidadaId`; audit READ na thread e
+  CREATE no envio; selects mínimos (LGPD).
+- **Anti-enumeração (review de segurança)**: recurso de outro tenant/outra
+  ficha responde **404**, nunca 403 — conversa/criança de outrem é
+  indistinguível de inexistente. Prévia da última mensagem na lista truncada
+  em 200 chars (minimização Art. 6º V).
+- **Web**: `/educacional/mensagens` (console 2 painéis + "Nova conversa" por
+  criança da unidade, badge no Painel do dia) e `/familia/mensagens` (nav
+  inferior 4 itens + card no diário com contagem). Componentes compartilhados
+  em `components/mensagens/`; polling react-query 10s thread / 15s lista.
+  Validado visualmente via Playwright nos dois lados (bolhas, recibo "Lida
+  HH:mm", badges zerando).
+- **Regressão**: `valida-mensagens.mjs` 29/29 (idempotência, recibo nas duas
+  direções, RBAC/tenant/ownership, validações, anti-enumeração).
+- **Débitos registrados (review)**: (1) thread janela das últimas 200 msgs e
+  lista top-100 SEM paginação por cursor — o recibo em lote marca tudo da
+  conversa; se um dia houver paginação, revisar o recibo junto; (2) sem rate
+  limiting específico no envio (risco baixo em intranet); (3) overlay da
+  thread da família cobre o header no desktop (design mobile-first — famílias
+  usam celular).
 
 ## 🚪 Fluxo de acesso por unidade (11/06 à noite)
 
@@ -150,9 +185,9 @@ Mapa central: `apps/web/lib/unidades.ts`.
 
 ## 🔭 Próximas fases (ordem do blueprint Educacional §8 + Capacitação)
 
-1. **Mensagem 1:1 família↔instituto** (killer feature ClassApp; interino = WhatsApp Business oficial).
-2. Fotos no diário (exige checagem de `AutorizacaoImagem` + watermark).
-3. Esporte (Modalidade/TurmaEsportiva/Graduação — molde = trio da Capacitação).
+1. ~~Mensagem 1:1 família↔instituto~~ → **ENTREGUE** (seção acima).
+2. **Fotos no diário** (exige checagem de `AutorizacaoImagem` + watermark) ← PRÓXIMO.
+3. ~~Esporte~~ → ENTREGUE (vertical completa c/ treinos).
 4. Banco de Modelos da Capacitação (reusa `AutorizacaoImagem`).
 5. Áudio no portal família (literacia baixa — Famly).
 
