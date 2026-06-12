@@ -15,8 +15,14 @@ import {
   NotaNaoAssinadaError,
   salvarRascunho,
   TransicaoNotaInvalidaError,
+  type DiagnosticoInput,
   type SinaisVitaisInput,
 } from "@/lib/medico/prontuario";
+import {
+  canonicalizarDescricoes,
+  DiagnosticosSchema,
+  normalizarDiagnosticos,
+} from "@/lib/medico/cid10";
 
 function num(formData: FormData, key: string): number | null {
   const v = String(formData.get(key) ?? "").trim();
@@ -53,11 +59,48 @@ export async function salvarRascunhoAction(formData: FormData) {
     spo2: num(formData, "spo2"),
   };
   const texto = String(formData.get("texto") ?? "").trim() || null;
-  const cidDescricao = String(formData.get("cidDescricao") ?? "").trim();
-  const cidCodigo = String(formData.get("cidCodigo") ?? "").trim() || null;
-  const diagnosticos = cidDescricao
-    ? [{ codigoCid: cidCodigo, descricao: cidDescricao, principal: true }]
-    : undefined;
+
+  // CID-10 estruturado: o combobox envia o hidden `diagnosticosJson` (SEMPRE
+  // presente — [] limpa a lista em salvarRascunho). Form antigo sem o hidden
+  // (rascunho aberto durante o deploy) cai no caminho legado cidCodigo/cidDescricao.
+  const raw = formData.get("diagnosticosJson");
+  let diagnosticos: DiagnosticoInput[] | undefined;
+  if (raw != null) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(String(raw));
+    } catch {
+      parsed = undefined; // JSON inválido → reprovado pelo schema abaixo
+    }
+    const valido = DiagnosticosSchema.safeParse(parsed);
+    if (!valido.success) {
+      redirect(`/medico/consultas/${consultaId}?erro=diagnosticos` as Route);
+    }
+    const normalizados = normalizarDiagnosticos(valido.data);
+    // Anti-tampering híbrido: descrição canônica quando o código existe na
+    // tabela Cid10; fora dela (ou tabela indisponível) mantém a enviada —
+    // nunca bloqueia o atendimento.
+    const codigos = normalizados.flatMap((d) => (d.codigoCid ? [d.codigoCid] : []));
+    let oficiais = new Map<string, string>();
+    if (codigos.length > 0) {
+      try {
+        const linhas = await db.cid10.findMany({
+          where: { codigo: { in: codigos } },
+          select: { codigo: true, descricao: true },
+        });
+        oficiais = new Map(linhas.map((c) => [c.codigo, c.descricao]));
+      } catch {
+        oficiais = new Map();
+      }
+    }
+    diagnosticos = canonicalizarDescricoes(normalizados, oficiais);
+  } else {
+    const cidDescricao = String(formData.get("cidDescricao") ?? "").trim();
+    const cidCodigo = String(formData.get("cidCodigo") ?? "").trim() || null;
+    diagnosticos = cidDescricao
+      ? [{ codigoCid: cidCodigo, descricao: cidDescricao, principal: true }]
+      : undefined;
+  }
 
   try {
     const nota = await salvarRascunho({

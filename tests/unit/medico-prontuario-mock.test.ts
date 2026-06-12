@@ -86,6 +86,57 @@ describe("salvarRascunho", () => {
     const cre = dbMock.diagnosticoNota.createMany.mock.invocationCallOrder[0] ?? 0;
     expect(del).toBeLessThan(cre);
   });
+
+  it("3 diagnósticos (CID-10 estruturado) → createMany com 3 itens e exatamente 1 principal", async () => {
+    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
+    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    dbMock.diagnosticoNota.deleteMany.mockResolvedValue({ count: 0 });
+    dbMock.diagnosticoNota.createMany.mockResolvedValue({ count: 3 });
+    await salvarRascunho({
+      ...base,
+      diagnosticos: [
+        { codigoCid: "J06.9", descricao: "IVAS", principal: true },
+        { codigoCid: "E11.9", descricao: "Diabetes mellitus tipo 2", principal: false },
+        { codigoCid: null, descricao: "Queixa inespecífica", principal: false },
+      ],
+    });
+    expect(dbMock.diagnosticoNota.deleteMany).toHaveBeenCalledTimes(1);
+    const arg = dbMock.diagnosticoNota.createMany.mock.calls[0]?.[0] as {
+      data: { notaId: string; codigoCid: string | null; principal: boolean }[];
+    };
+    expect(arg.data).toHaveLength(3);
+    expect(arg.data.filter((d) => d.principal)).toHaveLength(1);
+    expect(arg.data.map((d) => d.codigoCid)).toEqual(["J06.9", "E11.9", null]);
+  });
+
+  it("diagnosticos [] → limpa (deleteMany) SEM createMany", async () => {
+    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
+    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    dbMock.diagnosticoNota.deleteMany.mockResolvedValue({ count: 2 });
+    await salvarRascunho({ ...base, diagnosticos: [] });
+    expect(dbMock.diagnosticoNota.deleteMany).toHaveBeenCalledTimes(1);
+    expect(dbMock.diagnosticoNota.createMany).not.toHaveBeenCalled();
+  });
+
+  it("diagnosticos undefined → NÃO toca diagnosticoNota (nem deleteMany nem createMany)", async () => {
+    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
+    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    await salvarRascunho(base);
+    expect(dbMock.diagnosticoNota.deleteMany).not.toHaveBeenCalled();
+    expect(dbMock.diagnosticoNota.createMany).not.toHaveBeenCalled();
+  });
+
+  it("nota assinada + diagnosticos → NotaAssinadaError e NÃO toca diagnosticoNota", async () => {
+    dbMock.notaEvolucao.findUnique.mockResolvedValue({ id: "n1", status: "assinada" });
+    await expect(
+      salvarRascunho({
+        ...base,
+        diagnosticos: [{ codigoCid: "J06.9", descricao: "IVAS", principal: true }],
+      }),
+    ).rejects.toBeInstanceOf(NotaAssinadaError);
+    expect(dbMock.diagnosticoNota.deleteMany).not.toHaveBeenCalled();
+    expect(dbMock.diagnosticoNota.createMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("assinarNota", () => {
@@ -147,6 +198,13 @@ describe("assinarNota", () => {
       NotaNaoPertenceAConsultaError,
     );
     expect(dbMock.notaEvolucao.update).not.toHaveBeenCalled();
+  });
+
+  it("regressão transação sagrada: assinar NÃO chama diagnosticoNota.*", async () => {
+    armRascunho();
+    await assinarNota("n1", "user-X", "c1");
+    expect(dbMock.diagnosticoNota.deleteMany).not.toHaveBeenCalled();
+    expect(dbMock.diagnosticoNota.createMany).not.toHaveBeenCalled();
   });
 });
 
