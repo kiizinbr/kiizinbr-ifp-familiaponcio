@@ -1,6 +1,37 @@
 @import "tailwindcss";
 @import "../styles/ifp-tokens.css";
 @import "../styles/ifp-components.css";
+@import "../styles/casa-tokens.css";
+
+/* === Ponte Tailwind ↔ camada CASA (Tailwind v4) ==============================
+   `inline` = o utilitário emite `var(--casa-*)` direto (nada de variável nova
+   no output) → as classes reagem ao data-unit="<unidade>" do subtree em
+   runtime. Gera: bg-primary, hover:bg-primary-hover, bg-surface, text-foreground,
+   text-muted-foreground, border-border, bg-unidade-suave, text-tinta,
+   shadow-casa(-sm), shadow-ifp-sm/md/lg, font-display, bg-papel… */
+@theme inline {
+  --color-primary: var(--casa-primary);
+  --color-primary-hover: var(--casa-primary-hover);
+  --color-primary-soft: var(--casa-primary-soft);
+  --color-primary-foreground: var(--casa-surface);
+  --color-background: var(--casa-bg);
+  --color-surface: var(--casa-surface);
+  --color-foreground: var(--casa-text);
+  --color-muted-foreground: var(--casa-text-muted);
+  --color-border: var(--casa-border);
+  --color-unidade: var(--unidade);
+  --color-unidade-escuro: var(--unidade-escuro);
+  --color-unidade-suave: var(--unidade-suave);
+  --color-papel: var(--ifp-papel);
+  --color-tinta: var(--ifp-tinta);
+  --color-dourado: var(--ifp-dourado);
+  --shadow-ifp-sm: var(--ifp-shadow-sm);
+  --shadow-ifp-md: var(--ifp-shadow-md);
+  --shadow-ifp-lg: var(--ifp-shadow-lg);
+  --shadow-casa: var(--ifp-shadow-casa);
+  --shadow-casa-sm: var(--ifp-shadow-casa-sm);
+  --font-display: var(--ifp-font-display);
+}
 
 /* === Fontes self-hosted (kit "Ferramenta Clínica Premium") =================
    Hanken Grotesk (UI, variável 100–900) + IBM Plex Mono (dados, 400/500/600).

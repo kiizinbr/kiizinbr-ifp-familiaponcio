@@ -1,0 +1,148 @@
+/* ============================================================================
+   IFP CONNECT · Camada CASA — TOKENS DE TEMA POR UNIDADE
+   Direção editorial "CASA" (porte do worktree casa-sprint, 2026-06-12),
+   reconciliada com o Design Kit "Ferramenta Clínica Premium" — ESTRATÉGIA A:
+   a main é canônica (paleta --ifp-*, pares --u-* e semânticos do kit ficam
+   intactos); esta camada é ADITIVA e só estende.
+
+   O QUE ESTA CAMADA ADICIONA
+   1. Paleta CASA (--ifp-papel/tinta/dourado/linha/…) derivada do brandbook.
+   2. Trio por unidade: --unidade / --unidade-escuro / --unidade-suave
+      (default = "Corte" Pôncio, marrom institucional).
+   3. Aliases semânticos CASA (--casa-*) consumidos pela ponte Tailwind
+      (@theme inline no globals.css → bg-primary, text-foreground, shadow-casa…).
+   4. Tipografia display: --ifp-font-display = --font-ui (Hanken Grotesk).
+      Regra de ouro do kit: "nunca tipografia" — Jost (direção CASA) foi
+      removida; reintroduzir só com decisão explícita do dono no HANDOFF.
+
+   CONTRATO DE ATRIBUTO (reusa o data-unit canônico do HANDOFF)
+   `data-unit="medico|capacitacao|esportivo|recreativo|poncio|social"` num
+   CONTAINER (div de layout) tematiza o subtree inteiro — 100% CSS, sem JS.
+   Os blocos abaixo SOMAM ao [data-unit] do kit (que define --unit/--unit-2).
+   Não colide com o data-theme="light|dark" do <html>: todos os seletores de
+   tema claro/escuro do kit são escopados em `html[data-theme=…]`.
+   Dentro do subtree, data-unit="<unidade>" ⊇ data-unit + data-unit-accent
+   (a ponte abaixo re-resolve --unit/--unit-2/--accent).
+
+   FIX CRÍTICO (herdado do CASA): custom properties substituem var() no
+   elemento onde são DECLARADAS — um alias declarado só no :root congela no
+   valor default e ignora o data-unit aplicado num <div>. Por isso o bloco
+   combinado re-declara TODOS os aliases derivados no próprio elemento
+   que carrega o tema.
+
+   Regra de ouro mantida: nunca inventar cor — tudo deriva de --ifp-* e --u-*;
+   tons intermediários via color-mix(in srgb, var(--unidade) X%, …).
+   ============================================================================ */
+
+:root {
+  /* === 1. PALETA CASA (derivada do brandbook --ifp-*) ===================== */
+  --ifp-papel: #faf7f2; /* fundo "papel" quente do app                        */
+  --ifp-tinta: rgb(var(--ifp-brown-900)); /* tinta — títulos, heráldica       */
+  --ifp-dourado: #c9962f; /* acento heráldico (selos, destaques)              */
+  --ifp-linha: rgb(var(--ifp-brown-900) / 0.1); /* linhas/bordas quentes      */
+  --ifp-erro-bg: #fcedec; /* fundo de estado de erro                          */
+  --ifp-ambar: rgb(var(--ifp-orange-700)); /* alerta âmbar                    */
+  --ifp-ambar-bg: #fbeee3; /* fundo de alerta âmbar                           */
+
+  /* Degradês oficiais do brandbook */
+  --ifp-gradient-orange: linear-gradient(
+    90deg,
+    rgb(var(--ifp-orange-500)) 0%,
+    rgb(var(--ifp-orange-700)) 50%,
+    rgb(var(--ifp-brown-900)) 100%
+  );
+  --ifp-gradient-teal: linear-gradient(
+    90deg,
+    rgb(var(--ifp-teal-500)) 0%,
+    rgb(var(--ifp-teal-700)) 100%
+  );
+
+  /* Sombras de tinta quente (cards hero da direção CASA) */
+  --ifp-shadow-casa: 0 18px 50px -22px rgb(var(--ifp-brown-900) / 0.4);
+  --ifp-shadow-casa-sm: 0 8px 22px -14px rgb(var(--ifp-brown-900) / 0.45);
+
+  /* Tipografia display — segue o corpo (Hanken Grotesk): "nunca tipografia"
+     (regra de ouro do kit). A var existe como ponto único de troca futura. */
+  --ifp-font-display: var(--font-ui);
+
+  /* === 2. TRIO DA UNIDADE ATIVA (default = "Corte" / Pôncio) ============== */
+  --unidade: var(--u-poncio);
+  --unidade-escuro: color-mix(in srgb, var(--u-poncio) 80%, black);
+  --unidade-suave: color-mix(in srgb, var(--u-poncio) 12%, white);
+
+  /* === 3. ALIASES SEMÂNTICOS CASA (consumidos pela ponte Tailwind) ======== */
+  --casa-bg: var(--ifp-papel);
+  --casa-surface: rgb(var(--ifp-white));
+  --casa-text: rgb(var(--ifp-ink));
+  --casa-text-muted: rgb(var(--ifp-muted));
+  --casa-border: var(--ifp-linha);
+  --casa-primary: var(--unidade);
+  --casa-primary-hover: var(--unidade-escuro);
+  --casa-primary-soft: var(--unidade-suave);
+}
+
+/* === FIX CRÍTICO + PONTE COM O KIT (re-resolve NO elemento do tema) ========
+   ORDEM IMPORTA: este bloco combinado vem ANTES dos blocos por unidade —
+   mesma especificidade [0,1,0], então um par brandbook fixado num bloco de
+   unidade abaixo VENCE a derivação genérica daqui (last-wins da cascata).
+   - Derivações do trio: escuro/suave via color-mix sobre a --unidade local.
+   - Aliases --casa-*: re-declarados aqui senão congelam no valor do :root
+     (substituição de var() acontece no elemento que declara, não no que usa).
+   - Ponte: data-unit="<unidade>" também remapeia o acento de SISTEMA
+     (mesma fórmula do [data-unit-accent] do kit) — componentes do kit
+     dentro do subtree seguem a unidade sem atributo extra. */
+[data-unit="medico"],
+[data-unit="capacitacao"],
+[data-unit="esportivo"],
+[data-unit="recreativo"],
+[data-unit="poncio"],
+[data-unit="social"] {
+  --unidade-escuro: color-mix(in srgb, var(--unidade) 80%, black);
+  --unidade-suave: color-mix(in srgb, var(--unidade) 12%, white);
+  --casa-primary: var(--unidade);
+  --casa-primary-hover: var(--unidade-escuro);
+  --casa-primary-soft: var(--unidade-suave);
+  --accent: var(--unidade);
+  --accent-soft: color-mix(in srgb, var(--unidade) 11%, transparent);
+  --accent-line: color-mix(in srgb, var(--unidade) 32%, transparent);
+}
+
+/* === TEMA POR UNIDADE ("salões") — cor base do trio + paridade com o kit ===
+   Cada bloco define --unidade a partir do par canônico --u-* e mantém
+   --unit/--unit-2 idênticos ao [data-unit] correspondente (paridade exata
+   p/ componentes do kit dentro do subtree tematizado). Onde o par --u-*-2 é
+   MAIS ESCURO que a cor base, ele vira o --unidade-escuro (par brandbook >
+   derivação); onde é mais claro (medico/poncio/social), fica o color-mix. */
+[data-unit="medico"] {
+  --unidade: var(--u-medico);
+  --unit: var(--u-medico);
+  --unit-2: var(--u-medico-2);
+}
+[data-unit="capacitacao"] {
+  --unidade: var(--u-capacitacao);
+  --unidade-escuro: var(--u-capacitacao-2); /* par brandbook (mais escuro)    */
+  --unit: var(--u-capacitacao);
+  --unit-2: var(--u-capacitacao-2);
+}
+[data-unit="esportivo"] {
+  --unidade: var(--u-esportivo);
+  --unidade-escuro: var(--u-esportivo-2); /* par brandbook (mais escuro)      */
+  --unit: var(--u-esportivo);
+  --unit-2: var(--u-esportivo-2);
+}
+[data-unit="recreativo"] {
+  --unidade: var(--u-recreativo);
+  --unidade-escuro: var(--u-recreativo-2); /* par brandbook (mais escuro)     */
+  --unit: var(--u-recreativo);
+  --unit-2: var(--u-recreativo-2);
+}
+[data-unit="poncio"] {
+  --unidade: var(--u-poncio);
+  --unit: var(--u-poncio);
+  --unit-2: var(--u-poncio-2);
+}
+[data-unit="social"] {
+  --unidade: var(--u-social);
+  --unit: var(--u-social);
+  --unit-2: var(--u-social-2);
+}
