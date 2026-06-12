@@ -7,6 +7,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { proximosStatusTurma } from "@/lib/capacitacao/turma";
@@ -153,14 +154,13 @@ export default async function TurmaDetalhePage({
                       <form key={st} action={transicionarTurmaAction}>
                         <input type="hidden" name="turmaId" value={turma.id} />
                         <input type="hidden" name="para" value={st} />
-                        <button
-                          type="submit"
-                          className={`${styles.btn} ${styles.btnSm} ${
-                            st === "cancelada" ? styles.btnDanger : styles.btnGhost
-                          }`}
+                        <SubmitButton
+                          variant={st === "cancelada" ? "danger" : "ghost"}
+                          size="sm"
+                          pendingLabel="Mudando status da turma…"
                         >
                           {STATUS_TURMA_VISUAL[st].label}
-                        </button>
+                        </SubmitButton>
                       </form>
                     ))}
                   </div>
@@ -254,12 +254,13 @@ export default async function TurmaDetalhePage({
                                     <input type="hidden" name="matriculaId" value={m.id} />
                                     <input type="hidden" name="turmaId" value={turma.id} />
                                     <input type="hidden" name="para" value={a} />
-                                    <button
-                                      type="submit"
-                                      className={`${styles.btn} ${styles.btnSm} ${styles.btnGhost}`}
+                                    <SubmitButton
+                                      variant="ghost"
+                                      size="sm"
+                                      pendingLabel="Mudando status da matrícula…"
                                     >
                                       {MATRICULA_VISUAL[a].label}
-                                    </button>
+                                    </SubmitButton>
                                   </form>
                                 ),
                               )}
@@ -308,13 +309,13 @@ export default async function TurmaDetalhePage({
                   <div className={styles.body} style={{ borderTop: "1px solid var(--line)" }}>
                     <form action={promoverListaEsperaAction}>
                       <input type="hidden" name="turmaId" value={turma.id} />
-                      <button
-                        type="submit"
-                        className={`${styles.btn} ${styles.btnGhost}`}
+                      <SubmitButton
+                        variant="ghost"
                         disabled={ocupadas >= turma.capacidade}
+                        pendingLabel="Promovendo próximo da fila…"
                       >
                         Promover próximo da fila
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 ) : null}

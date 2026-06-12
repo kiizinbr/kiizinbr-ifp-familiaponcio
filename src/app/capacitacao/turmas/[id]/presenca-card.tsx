@@ -1,5 +1,6 @@
 import { registrarPresencasAction } from "../../actions";
 import { resumoFrequencia } from "@/lib/capacitacao/presenca";
+import { SubmitButton } from "@/components/ui/submit-button";
 import styles from "../../capacitacao.module.css";
 
 type MatriculadoPresenca = {
@@ -70,9 +71,7 @@ export function PresencaCard({
             })}
           </ul>
 
-          <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
-            Salvar presença do dia
-          </button>
+          <SubmitButton pendingLabel="Salvando presença…">Salvar presença do dia</SubmitButton>
         </form>
       </div>
     </div>

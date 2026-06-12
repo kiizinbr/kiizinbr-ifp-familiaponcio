@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import type { Especialidade, Encaminhamento } from "@prisma/client";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { criarEncaminhamentoAction } from "./encaminhamento-actions";
 import styles from "./prontuario.module.css";
 
@@ -84,9 +85,7 @@ export function EncaminhamentoPanel({
               className={styles.note}
               style={{ minHeight: 64 }}
             />
-            <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
-              Encaminhar
-            </button>
+            <SubmitButton pendingLabel="Encaminhando…">Encaminhar</SubmitButton>
           </form>
         ) : (
           <p className={styles.muted}>Só o profissional/gestão registra encaminhamento.</p>

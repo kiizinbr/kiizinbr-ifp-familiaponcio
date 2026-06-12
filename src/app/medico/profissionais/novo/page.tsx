@@ -7,6 +7,7 @@ import { podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { criarProfissionalAction } from "../actions";
 
 export default async function NovoProfissionalPage() {
@@ -121,9 +122,7 @@ export default async function NovoProfissionalPage() {
             </label>
 
             <div className="flex items-center gap-3 pt-1">
-              <button type="submit" className="btn btn-primary">
-                Cadastrar profissional
-              </button>
+              <SubmitButton pendingLabel="Cadastrando…">Cadastrar profissional</SubmitButton>
               <Link
                 href={"/medico/profissionais" as Route}
                 className="text-3 text-sm font-semibold"

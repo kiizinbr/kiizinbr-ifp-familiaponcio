@@ -7,6 +7,7 @@ import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { formatarDiasSemana, SLOT_VISUAL } from "@/lib/medico/ui";
 import { criarTemplateAction, bloquearSlotAction, desbloquearSlotAction } from "./actions";
 
@@ -196,9 +197,9 @@ export default async function MinhaAgendaPage() {
                 </label>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-block">
+              <SubmitButton className="btn-block" pendingLabel="Criando template…">
                 Criar template e gerar slots
-              </button>
+              </SubmitButton>
             </form>
           </Card>
         </div>
@@ -251,25 +252,27 @@ export default async function MinhaAgendaPage() {
                             required
                             className="input w-24 px-2 py-1 text-xs"
                           />
-                          <button
-                            type="submit"
-                            className="btn btn-ghost btn-sm"
+                          <SubmitButton
+                            variant="ghost"
+                            size="sm"
+                            pendingLabel="Bloqueando…"
                             style={{ color: "var(--warn)" }}
                           >
                             Bloquear
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
                       {s.status === "bloqueado" && (
                         <form action={desbloquearSlotAction}>
                           <input type="hidden" name="slotId" value={s.id} />
-                          <button
-                            type="submit"
-                            className="btn btn-ghost btn-sm"
+                          <SubmitButton
+                            variant="ghost"
+                            size="sm"
+                            pendingLabel="Liberando…"
                             style={{ color: "var(--accent)" }}
                           >
                             Liberar
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
                     </div>

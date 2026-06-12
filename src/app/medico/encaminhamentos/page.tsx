@@ -6,6 +6,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { podeAgendarEncaminhamento, podeEncaminhar } from "@/lib/medico/rbac";
 import { cancelarEncaminhamentoAction, encaixarEncaminhamentoAction } from "./actions";
 
@@ -132,7 +133,7 @@ export default async function EncaminhamentosPage({
                           style={{ display: "inline", marginRight: 8 }}
                         >
                           <input type="hidden" name="encaminhamentoId" value={e.id} />
-                          <button type="submit" className="btn btn-secondary btn-sm">
+                          <SubmitButton variant="secondary" size="sm" pendingLabel="Encaixando…">
                             Encaixar{" "}
                             {proxSlot.get(e.especialidadeId)!.toLocaleString("pt-BR", {
                               day: "2-digit",
@@ -140,7 +141,7 @@ export default async function EncaminhamentosPage({
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
-                          </button>
+                          </SubmitButton>
                         </form>
                       ) : null}
                       {podeAgendar ? (
@@ -157,9 +158,9 @@ export default async function EncaminhamentosPage({
                           style={{ display: "inline", marginLeft: 8 }}
                         >
                           <input type="hidden" name="encaminhamentoId" value={e.id} />
-                          <button type="submit" className="btn btn-ghost btn-sm">
+                          <SubmitButton variant="ghost" size="sm" pendingLabel="Cancelando…">
                             Cancelar
-                          </button>
+                          </SubmitButton>
                         </form>
                       ) : null}
                     </td>

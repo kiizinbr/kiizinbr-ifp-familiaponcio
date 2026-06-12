@@ -5,6 +5,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 const HORA_INICIO = 7;
 const HORA_FIM = 20;
@@ -118,9 +119,9 @@ export default async function AgendaSemanalPage({
             </option>
           ))}
         </select>
-        <button type="submit" className="btn btn-primary btn-sm">
+        <SubmitButton size="sm" pendingLabel="Filtrando…">
           Filtrar
-        </button>
+        </SubmitButton>
         {/* legenda de cor por especialidade */}
         <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1">
           {especialidades.slice(0, 6).map((e) => (

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { podeGerenciarInstrutor } from "@/lib/capacitacao/rbac";
 import { PageHead, KitBadge } from "../_components/ui";
 import {
@@ -80,9 +81,9 @@ export default async function InstrutoresPage({
                     className={styles.textarea}
                   />
                 </label>
-                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
+                <SubmitButton pendingLabel="Adicionando instrutor…">
                   Adicionar instrutor
-                </button>
+                </SubmitButton>
               </form>
             </div>
           </div>
@@ -130,12 +131,9 @@ export default async function InstrutoresPage({
                             className={styles.input}
                             style={{ maxWidth: 240 }}
                           />
-                          <button
-                            type="submit"
-                            className={`${styles.btn} ${styles.btnSm} ${styles.btnGhost}`}
-                          >
+                          <SubmitButton variant="ghost" size="sm" pendingLabel="Vinculando login…">
                             Vincular login
-                          </button>
+                          </SubmitButton>
                         </form>
                       ) : null}
                       <details style={{ marginTop: 8 }}>
@@ -162,12 +160,9 @@ export default async function InstrutoresPage({
                             placeholder="Bio / especialidade"
                             className={styles.textarea}
                           />
-                          <button
-                            type="submit"
-                            className={`${styles.btn} ${styles.btnSm} ${styles.btnPrimary}`}
-                          >
+                          <SubmitButton size="sm" pendingLabel="Salvando…">
                             Salvar
-                          </button>
+                          </SubmitButton>
                         </form>
                       </details>
                     </div>
@@ -181,14 +176,13 @@ export default async function InstrutoresPage({
                       </span>
                       <form action={toggleInstrutorAtivoAction}>
                         <input type="hidden" name="instrutorId" value={i.id} />
-                        <button
-                          type="submit"
-                          className={`${styles.btn} ${styles.btnSm} ${
-                            i.ativo ? styles.btnDanger : styles.btnGhost
-                          }`}
+                        <SubmitButton
+                          variant={i.ativo ? "danger" : "ghost"}
+                          size="sm"
+                          pendingLabel="Alterando status…"
                         >
                           {i.ativo ? "Desativar" : "Reativar"}
-                        </button>
+                        </SubmitButton>
                       </form>
                     </div>
                   </div>
