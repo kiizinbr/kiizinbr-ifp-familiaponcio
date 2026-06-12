@@ -88,6 +88,12 @@ modo espelhado não é suportado no build 20348 → NAT relay):
 6. Regressão (com API em 3334): `API_URL_TESTE=http://127.0.0.1:3334/api/v1 SENHA_DEV=... node scripts/valida-tenant.mjs` (e `valida-educacional.mjs`).
 7. Keep-alive do WSL: mesmo problema da workstation (`wsl -d Ubuntu --exec sleep infinity`);
    tarefa de logon ainda pendente também aqui.
+8. **Porta 3000 pertence ao CleanCampo** (`C:\CleanCampo`, `next start` com watchdog que
+   religa sozinho) — o web do IFP roda em **3001** neste servidor: subir api e web
+   separados (`pnpm --filter @ifp/api dev` + `npx next dev --port 3001` em apps/web).
+   Acesso remoto via Tailscale: `http://cl-srv-dc01.taile04c66.ts.net:3001` (NEXTAUTH_URL
+   e NEXT_PUBLIC_API_URL nos envs apontam pra esse host; firewall libera 3001/3334 só
+   para 100.64.0.0/10). `prisma generate` dá EPERM com a API no ar — derrubar antes.
 
 ## ⏳ Pendências imediatas
 
