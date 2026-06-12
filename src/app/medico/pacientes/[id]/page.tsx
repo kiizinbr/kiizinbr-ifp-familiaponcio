@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
-import { calcularImc } from "@/lib/medico/prontuario";
+import { calcularImc, SELECT_CONTEXTO_PACIENTE } from "@/lib/medico/prontuario";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 
@@ -52,17 +52,9 @@ export default async function PacienteTimelinePage({
 
   const cidadao = await db.cidadao.findUnique({
     where: { id },
-    select: {
-      id: true,
-      nomeCompleto: true,
-      nomeSocial: true,
-      dataNascimento: true,
-      genero: true,
-      tipoSanguineo: true,
-      alergias: true,
-      condicoesCronicas: true,
-      medicamentos: true,
-    },
+    // Select compartilhado com o teste de integração: o campo real do model é
+    // `medicamentosEmUso` (não `medicamentos`) e tsc não pega select errado.
+    select: SELECT_CONTEXTO_PACIENTE,
   });
   if (!cidadao) notFound();
 
@@ -125,7 +117,7 @@ export default async function PacienteTimelinePage({
           <Ctx label="Tipo sanguíneo" valor={cidadao.tipoSanguineo} />
           <Ctx label="Alergias" valor={alergias.length ? alergias.join(", ") : null} alerta />
           <Ctx label="Condições crônicas" valor={cronicas.length ? cronicas.join(", ") : null} />
-          <Ctx label="Medicamentos" valor={cidadao.medicamentos} />
+          <Ctx label="Medicamentos" valor={cidadao.medicamentosEmUso} />
         </div>
       </Card>
 
