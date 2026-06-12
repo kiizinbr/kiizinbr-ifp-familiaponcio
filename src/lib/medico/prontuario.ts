@@ -42,27 +42,6 @@ export interface SinaisVitaisInput {
   spo2?: number | null;
 }
 
-/**
- * IMC derivado (NÃO persistido — §0.5). Retorna `null` se peso ou altura
- * estiverem ausentes ou não-positivos (evita divisão por zero). Arredonda 1 casa.
- */
-export function calcularImc(
-  pesoKg: number | null | undefined,
-  alturaCm: number | null | undefined,
-): number | null {
-  if (pesoKg == null || alturaCm == null) return null;
-  if (pesoKg <= 0 || alturaCm <= 0) return null;
-  const alturaM = alturaCm / 100;
-  const imc = pesoKg / (alturaM * alturaM);
-  return Math.round(imc * 10) / 10;
-}
-
-export interface VitalWarning {
-  campo: keyof SinaisVitaisInput;
-  valor: number;
-  mensagem: string;
-}
-
 /** Faixas plausíveis por sinal vital (warning, nunca bloqueia — §0.5). [min, max] inclusivo. */
 const FAIXAS_PLAUSIVEIS: Record<keyof SinaisVitaisInput, readonly [number, number]> = {
   paSistolica: [70, 250],
@@ -74,6 +53,34 @@ const FAIXAS_PLAUSIVEIS: Record<keyof SinaisVitaisInput, readonly [number, numbe
   alturaCm: [30, 250],
   spo2: [50, 100],
 };
+
+/**
+ * IMC derivado (NÃO persistido — §0.5). Retorna `null` se peso ou altura
+ * estiverem ausentes OU fora da faixa plausível (reusa FAIXAS_PLAUSIVEIS:
+ * pesoKg 0.5–400, alturaCm 30–250). Guard display-only para o dado migrado da
+ * Amplimed, que gravava altura em METROS — `intSeguro(1.68) = 2` passou batido
+ * e o IMC derivado explodia (93.4 kg / 0.02 m² = 233500). A UI já trata `null`
+ * como "—"; a nota assinada de origem NÃO é tocada. Arredonda 1 casa.
+ */
+export function calcularImc(
+  pesoKg: number | null | undefined,
+  alturaCm: number | null | undefined,
+): number | null {
+  if (pesoKg == null || alturaCm == null) return null;
+  const [pesoMin, pesoMax] = FAIXAS_PLAUSIVEIS.pesoKg;
+  const [alturaMin, alturaMax] = FAIXAS_PLAUSIVEIS.alturaCm;
+  if (pesoKg < pesoMin || pesoKg > pesoMax) return null;
+  if (alturaCm < alturaMin || alturaCm > alturaMax) return null;
+  const alturaM = alturaCm / 100;
+  const imc = pesoKg / (alturaM * alturaM);
+  return Math.round(imc * 10) / 10;
+}
+
+export interface VitalWarning {
+  campo: keyof SinaisVitaisInput;
+  valor: number;
+  mensagem: string;
+}
 
 /**
  * Valida sinais vitais como WARNING — nunca lança, nunca bloqueia o atendimento (§0.5).

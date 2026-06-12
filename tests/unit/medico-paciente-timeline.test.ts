@@ -16,7 +16,22 @@ import { SELECT_CONTEXTO_PACIENTE } from "@/lib/medico/prontuario";
 
 const CPF = "90000000050";
 
+// Datas-sentinela dos slots de teste (ordenação por data clínica — F2).
+// Fixas e antigas o bastante pra não colidir com dado real; a limpeza de slots
+// filtra por elas + consulta órfã, então nunca toca slot real em uso.
+const DATA_CLINICA_ANTIGA = new Date("2003-03-03T11:00:00.000Z");
+const DATA_CLINICA_NOVA = new Date("2003-03-04T11:00:00.000Z");
+
 async function limpar() {
+  // Ordem respeita os onDelete: Restrict (nota → consulta → slot → cidadão).
+  await db.notaEvolucao.deleteMany({ where: { cidadao: { cpf: CPF } } });
+  await db.consulta.deleteMany({ where: { cidadao: { cpf: CPF } } });
+  await db.slot.deleteMany({
+    where: {
+      dataHoraInicio: { in: [DATA_CLINICA_ANTIGA, DATA_CLINICA_NOVA] },
+      consulta: { is: null },
+    },
+  });
   await db.cidadao.deleteMany({ where: { cpf: CPF } });
 }
 
@@ -70,5 +85,85 @@ describe("timeline clínica — select do contexto do paciente (DB-real)", () =>
     await expect(
       db.cidadao.findUnique({ where: { id: cidadaoId }, select: selectComCampoErrado }),
     ).rejects.toBeInstanceOf(Prisma.PrismaClientValidationError);
+  });
+
+  it("ordena a timeline pela data CLÍNICA (slot.dataHoraInicio), não por createdAt da nota", async () => {
+    // Arrange: 2 notas assinadas com createdAt INVERTIDO em relação à data
+    // clínica — o cenário real das ~94k notas migradas da Amplimed, onde
+    // createdAt é a data em que a migração RODOU, não a data do atendimento.
+    const erick = await db.user.findUniqueOrThrow({
+      where: { email: "erick.ramos@familiaponcio.org.br" },
+    });
+    const profissional = await db.profissional.findFirstOrThrow();
+    const especialidade = await db.especialidade.findFirstOrThrow();
+
+    const casos = [
+      // atendimento mais ANTIGO chegou por último na migração (createdAt maior)
+      { dataClinica: DATA_CLINICA_ANTIGA, createdAt: new Date("2026-06-02T00:00:00.000Z") },
+      // atendimento mais NOVO chegou primeiro na migração (createdAt menor)
+      { dataClinica: DATA_CLINICA_NOVA, createdAt: new Date("2026-06-01T00:00:00.000Z") },
+    ];
+    for (const caso of casos) {
+      const slot = await db.slot.create({
+        data: {
+          profissionalId: profissional.id,
+          especialidadeId: especialidade.id,
+          dataHoraInicio: caso.dataClinica,
+          duracaoMin: 30,
+          status: "realizado",
+        },
+      });
+      const consulta = await db.consulta.create({
+        data: {
+          slotId: slot.id,
+          cidadaoId,
+          profissionalId: profissional.id,
+          especialidadeId: especialidade.id,
+          status: "realizada",
+          createdBy: erick.id,
+        },
+      });
+      await db.notaEvolucao.create({
+        data: {
+          consultaId: consulta.id,
+          cidadaoId,
+          profissionalId: profissional.id,
+          texto: `Atendimento de ${caso.dataClinica.toISOString().slice(0, 10)}`,
+          status: "assinada",
+          assinadaEm: caso.dataClinica,
+          assinadaPor: erick.id,
+          createdAt: caso.createdAt,
+        },
+      });
+    }
+
+    // Act: a query exata da page /medico/pacientes/[id] (include + orderBy
+    // aninhado to-one). tsc não valida orderBy aninhado em runtime — este
+    // teste é o gate de que o Prisma/PG aceita e ordena de fato.
+    const notas = await db.notaEvolucao.findMany({
+      where: { cidadaoId, status: "assinada" },
+      include: {
+        consulta: {
+          include: {
+            especialidade: { select: { nome: true } },
+            slot: { select: { dataHoraInicio: true } },
+          },
+        },
+        profissional: { select: { nomeExibicao: true } },
+        diagnosticos: true,
+      },
+      orderBy: { consulta: { slot: { dataHoraInicio: "desc" } } },
+    });
+
+    // Assert: data clínica desc — a nota do atendimento mais novo vem primeiro…
+    expect(notas).toHaveLength(2);
+    expect(notas[0]?.consulta.slot.dataHoraInicio.toISOString()).toBe(
+      DATA_CLINICA_NOVA.toISOString(),
+    );
+    expect(notas[1]?.consulta.slot.dataHoraInicio.toISOString()).toBe(
+      DATA_CLINICA_ANTIGA.toISOString(),
+    );
+    // …e a regressão: por createdAt desc a ordem seria a INVERSA.
+    expect(notas[0]!.createdAt.getTime()).toBeLessThan(notas[1]!.createdAt.getTime());
   });
 });

@@ -9,6 +9,7 @@ import { logEvent } from "@/lib/audit";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { calcularImc, SELECT_CONTEXTO_PACIENTE } from "@/lib/medico/prontuario";
+import { chipsClinicos } from "@/lib/texto-clinico";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 
@@ -19,14 +20,6 @@ function idade(d: Date | null): number | null {
   const m = h.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && h.getDate() < d.getDate())) a--;
   return a;
-}
-
-function chips(texto: string | null): string[] {
-  if (!texto) return [];
-  return texto
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
 }
 
 function pa(s: number | null, d: number | null): string | null {
@@ -70,7 +63,10 @@ export default async function PacienteTimelinePage({
       profissional: { select: { nomeExibicao: true } },
       diagnosticos: true,
     },
-    orderBy: { createdAt: "desc" },
+    // Ordena pela data CLÍNICA do atendimento (slot.dataHoraInicio) — NUNCA por
+    // NotaEvolucao.createdAt: nas ~94k notas migradas da Amplimed, createdAt é
+    // a data em que a migração RODOU, não a data da consulta.
+    orderBy: { consulta: { slot: { dataHoraInicio: "desc" } } },
   });
 
   await logEvent({
@@ -96,8 +92,11 @@ export default async function PacienteTimelinePage({
       };
     });
 
-  const alergias = chips(cidadao.alergias);
-  const cronicas = chips(cidadao.condicoesCronicas);
+  // chipsClinicos limpa o HTML legado da Amplimed (`<br>` literal etc.) antes
+  // de dividir — exibição apenas; a fonte não é reescrita nesta sprint.
+  const alergias = chipsClinicos(cidadao.alergias);
+  const cronicas = chipsClinicos(cidadao.condicoesCronicas);
+  const medicamentos = chipsClinicos(cidadao.medicamentosEmUso);
 
   return (
     <MedicoShell session={session}>
@@ -117,7 +116,7 @@ export default async function PacienteTimelinePage({
           <Ctx label="Tipo sanguíneo" valor={cidadao.tipoSanguineo} />
           <Ctx label="Alergias" valor={alergias.length ? alergias.join(", ") : null} alerta />
           <Ctx label="Condições crônicas" valor={cronicas.length ? cronicas.join(", ") : null} />
-          <Ctx label="Medicamentos" valor={cidadao.medicamentosEmUso} />
+          <Ctx label="Medicamentos" valor={medicamentos.length ? medicamentos.join(", ") : null} />
         </div>
       </Card>
 
