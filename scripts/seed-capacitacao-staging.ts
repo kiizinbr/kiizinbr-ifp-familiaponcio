@@ -7,27 +7,39 @@
  *      (espelho de seedCapacitacao em prisma/seed.ts — duplicado aqui porque
  *      seed.ts executa main() no import; importar rodaria a seed inteira).
  *   2. Os 5 cidadãos demo de capacitação de prisma/seed-cidadaos.ts (CPFs
- *      fictícios determinísticos). "Demo" segue a convenção do projeto
- *      (ops/vm/_count-demo.sh): demo = id FORA do MigracaoAmplimedMap.
- *      Este script só CRIA cidadãos e nunca insere no map → continuam
- *      distinguíveis dos migrados.
+ *      fictícios determinísticos). Todo registro demo criado aqui carrega
+ *      MARCADOR POSITIVO: id fixo "seed-*" (curso, instrutor, turma, família,
+ *      cidadão). A convenção do projeto (ops/vm/_count-demo.sh): demo = id
+ *      FORA do MigracaoAmplimedMap continua valendo (nunca inserimos no map),
+ *      mas NÃO serve pra limpeza: cadastros reais feitos pelo app também
+ *      ficam fora do map. Limpeza futura deve keyar nos ids "seed-*".
  *   3. User da instrutora (papel profissional:capacitacao, senha
- *      DEMO_PASSWORD — mesma mecânica da seed dev) + Instrutor.userId.
+ *      DEMO_PASSWORD + mustChangePassword — staging tem PII real) +
+ *      Instrutor.userId.
  *
  * GUARDAS:
  *   (a) Nenhum delete/deleteMany/updateMany. UPDATE apenas em registros de
- *       capacitação de ids/códigos fixos "seed-*" criados por este script
- *       (Curso/Instrutor/Turma/Matricula dos cidadãos demo). Cidadao, Familia,
- *       User e Role: find → create; NUNCA update. Se um CPF demo colidir com
- *       cidadão migrado (presente no MigracaoAmplimedMap), ABORTA.
- *   (b) Contagens antes/depois por model: "AUDIT: <model> antes=N depois=M".
- *   (c) Aborta com erro claro se DATABASE_URL não estiver definida.
+ *       capacitação reconhecíveis como criados por seed (id fixo "seed-*" ou,
+ *       p/ bases semeadas antes do id fixo, turma cujo cursoId é "seed-curso-*").
+ *       Colisão com dado NÃO-seed ABORTA (transação reverte tudo):
+ *         - Turma: codigo já usado por turma não-seed (codigo é digitável por
+ *           humano — a UI sugere "Ex: INFO-2026-01");
+ *         - Cidadao: CPF já usado por registro não reconhecido como o demo
+ *           (migrado do Amplimed OU cadastro manual da equipe);
+ *         - User: e-mail da instrutora já usado por conta cuja senha não é a
+ *           DEMO_PASSWORD (conta real).
+ *   (b) Contagens antes/depois por model: "AUDIT: <model> antes=N depois=M" —
+ *       impressas também no caminho de erro (prefixo "AUDIT(erro)").
+ *   (c) Aborta se DATABASE_URL não estiver definida ou SEED_CONFIRM !== "staging"
+ *       (confirmação explícita do banco-alvo; alvo logado sem credenciais).
+ *   (d) Todos os writes numa ÚNICA transação: abort = zero writes.
  *
- * Uso local:    pnpm seed:capacitacao:staging   (carrega .env.local)
- * Uso staging:  DATABASE_URL do PG da staging no ambiente + tsx scripts/seed-capacitacao-staging.ts
+ * Uso local:    SEED_CONFIRM=staging pnpm seed:capacitacao:staging   (carrega .env.local)
+ * Uso staging:  SEED_CONFIRM=staging DATABASE_URL=<staging> tsx scripts/seed-capacitacao-staging.ts
  * Idempotente: rodável N vezes sem duplicar nada.
  */
 import { PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 // ── Guarda (c): DATABASE_URL obrigatória, antes de qualquer conexão ─────────
@@ -38,6 +50,25 @@ if (!process.env.DATABASE_URL) {
       "Staging: exporte DATABASE_URL do Postgres da staging antes de rodar.",
   );
   process.exit(1);
+}
+
+// ── Guarda (c): confirmação explícita do banco-alvo ─────────────────────────
+// O pnpm script carrega .env.local via dotenv-cli, mas uma DATABASE_URL já
+// exportada (ex.: sessão anterior apontando pra staging) vence silenciosamente
+// — e o CL-SRV-DC01 tem múltiplos Postgres. Exigimos SEED_CONFIRM=staging e
+// logamos o alvo (sem credenciais) antes de qualquer write.
+if (process.env.SEED_CONFIRM !== "staging") {
+  console.error(
+    "[seed-capacitacao-staging] ERRO: defina SEED_CONFIRM=staging para confirmar o banco-alvo. " +
+      "Ex.: SEED_CONFIRM=staging pnpm seed:capacitacao:staging",
+  );
+  process.exit(1);
+}
+try {
+  const alvo = new URL(String(process.env.DATABASE_URL));
+  console.log(`[seed] banco-alvo: ${alvo.hostname}:${alvo.port || "5432"}${alvo.pathname}`);
+} catch {
+  console.log("[seed] banco-alvo: DATABASE_URL não parseável como URL (prosseguindo)");
 }
 
 const db = new PrismaClient();
@@ -138,6 +169,8 @@ const INSTRUTORES_SEED = [
 
 // ── Os 5 cidadãos demo de capacitação (espelho de prisma/seed-cidadaos.ts) ──
 interface CidadaoDemoSpec {
+  /** Marcador POSITIVO de demo: id fixo "seed-cid-*" (colisão com cuid impossível). */
+  seedId: string;
   familia: string;
   nomeCompleto: string;
   dataNascimento: string; // YYYY-MM-DD
@@ -166,6 +199,7 @@ const END_SILVA = {
 
 const CIDADAOS_CAPACITACAO: CidadaoDemoSpec[] = [
   {
+    seedId: "seed-cid-ana-beatriz",
     familia: "Família Silva",
     nomeCompleto: "Ana Beatriz Silva",
     dataNascimento: "2008-07-22",
@@ -174,6 +208,7 @@ const CIDADAOS_CAPACITACAO: CidadaoDemoSpec[] = [
     endereco: END_SILVA,
   },
   {
+    seedId: "seed-cid-carla-regina",
     familia: "Família Silva",
     nomeCompleto: "Carla Regina Silva",
     dataNascimento: "1982-05-14",
@@ -183,6 +218,7 @@ const CIDADAOS_CAPACITACAO: CidadaoDemoSpec[] = [
     endereco: END_SILVA,
   },
   {
+    seedId: "seed-cid-rafael-augusto",
     familia: "Família Oliveira",
     nomeCompleto: "Rafael Augusto Oliveira",
     dataNascimento: "1995-06-17",
@@ -191,6 +227,7 @@ const CIDADAOS_CAPACITACAO: CidadaoDemoSpec[] = [
     beneficioSocial: "nenhum",
   },
   {
+    seedId: "seed-cid-camila",
     familia: "Família Rodrigues",
     nomeCompleto: "Camila Rodrigues",
     dataNascimento: "2006-11-29",
@@ -198,6 +235,7 @@ const CIDADAOS_CAPACITACAO: CidadaoDemoSpec[] = [
     genero: "feminino",
   },
   {
+    seedId: "seed-cid-beatriz-mendes",
     familia: "Família Carvalho",
     nomeCompleto: "Beatriz Carvalho Mendes",
     dataNascimento: "1992-09-21",
@@ -206,6 +244,18 @@ const CIDADAOS_CAPACITACAO: CidadaoDemoSpec[] = [
     rendaFamiliar: 2400,
   },
 ];
+
+/**
+ * Ids fixos das famílias demo. Familia.nomeReferencia NÃO é unique e
+ * "Família Silva" etc. são sobrenomes comuníssimos — buscar por nome poderia
+ * anexar cidadão demo a uma família REAL. Busca/criação SEMPRE por estes ids.
+ */
+const FAMILIA_SEED_IDS: Record<string, string> = {
+  "Família Silva": "seed-fam-silva",
+  "Família Oliveira": "seed-fam-oliveira",
+  "Família Rodrigues": "seed-fam-rodrigues",
+  "Família Carvalho": "seed-fam-carvalho",
+};
 
 // ── AUDIT (guarda b) ─────────────────────────────────────────────────────────
 const AUDIT_MODELS = [
@@ -239,10 +289,10 @@ async function contagens(): Promise<Record<string, number>> {
 // ── Passos ───────────────────────────────────────────────────────────────────
 
 /** Role 'profissional': find → create. NUNCA update (fora do escopo do script). */
-async function garantirRoleProfissional(): Promise<string> {
-  const existente = await db.role.findUnique({ where: { name: "profissional" } });
+async function garantirRoleProfissional(tx: Prisma.TransactionClient): Promise<string> {
+  const existente = await tx.role.findUnique({ where: { name: "profissional" } });
   if (existente) return existente.id;
-  const criado = await db.role.create({
+  const criado = await tx.role.create({
     data: {
       name: "profissional",
       description: "Profissional que atende em uma unidade",
@@ -252,40 +302,61 @@ async function garantirRoleProfissional(): Promise<string> {
   return criado.id;
 }
 
-/** User da instrutora: find → create (nunca update) + UserRole profissional:capacitacao. */
-async function seedInstrutoraUser(roleId: string): Promise<string> {
-  let user = await db.user.findUnique({ where: { email: INSTRUTORA_LOGIN.email } });
+/**
+ * User da instrutora: find → create (nunca update) + UserRole profissional:capacitacao.
+ * Guarda (a): se o e-mail já existir, só prosseguimos se for a conta demo deste
+ * seed (senha ainda = DEMO_PASSWORD). Conta real com esse e-mail → ABORT, sem
+ * conceder papel nem vincular Instrutor.userId a conta alheia.
+ */
+async function seedInstrutoraUser(
+  tx: Prisma.TransactionClient,
+  roleId: string,
+  hashedPassword: string,
+): Promise<string> {
+  let user = await tx.user.findUnique({ where: { email: INSTRUTORA_LOGIN.email } });
   if (!user) {
-    const hashedPassword = await bcrypt.hash(DEMO_PASSWORD, 12);
-    user = await db.user.create({
+    user = await tx.user.create({
       data: {
         email: INSTRUTORA_LOGIN.email,
         name: INSTRUTORA_LOGIN.name,
         hashedPassword,
+        mustChangePassword: true, // staging tem PII real — senha demo não pode persistir
         primaryRoleName: "profissional",
         primaryUnitScope: "capacitacao",
       },
     });
     console.log(`[seed] user instrutora criado: ${INSTRUTORA_LOGIN.email}`);
   } else {
-    console.log(`[seed] user instrutora já existe: ${INSTRUTORA_LOGIN.email} (sem update)`);
+    const ehContaSeed =
+      user.hashedPassword !== null && (await bcrypt.compare(DEMO_PASSWORD, user.hashedPassword));
+    if (!ehContaSeed) {
+      throw new Error(
+        `[seed-capacitacao-staging] ABORTADO: ${INSTRUTORA_LOGIN.email} já existe e NÃO é ` +
+          `a conta demo deste seed (senha difere da DEMO_PASSWORD — conta real ou senha já ` +
+          `trocada). Nenhum papel concedido nem vínculo de instrutor alterado.`,
+      );
+    }
+    console.log(
+      `[seed] user instrutora já existe (conta demo reconhecida pela senha; sem update): ${INSTRUTORA_LOGIN.email}`,
+    );
   }
 
-  const jaTemPapel = await db.userRole.findFirst({
+  const jaTemPapel = await tx.userRole.findFirst({
     where: { userId: user.id, roleId, unitScope: "capacitacao" },
   });
   if (!jaTemPapel) {
-    await db.userRole.create({ data: { userId: user.id, roleId, unitScope: "capacitacao" } });
+    await tx.userRole.create({ data: { userId: user.id, roleId, unitScope: "capacitacao" } });
   }
   return user.id;
 }
 
 async function seedCursosInstrutoresTurmas(
+  tx: Prisma.TransactionClient,
   createdById: string,
   instrutoraUserId: string,
 ): Promise<Map<string, string>> {
   for (const c of CURSOS_SEED) {
-    await db.curso.upsert({
+    await tx.curso.upsert({
       where: { id: c.id },
       update: {
         nome: c.nome,
@@ -312,7 +383,7 @@ async function seedCursosInstrutoresTurmas(
   for (const i of INSTRUTORES_SEED) {
     // Marta ganha o vínculo de login (F1.A.2): Instrutor.userId → user instrutora.
     const userId = i.id === INSTRUTORA_LOGIN.instrutorId ? instrutoraUserId : undefined;
-    await db.instrutor.upsert({
+    await tx.instrutor.upsert({
       where: { id: i.id },
       update: { nomeExibicao: i.nomeExibicao, bio: i.bio, ativo: true, ...(userId && { userId }) },
       create: { id: i.id, nomeExibicao: i.nomeExibicao, bio: i.bio, ...(userId && { userId }) },
@@ -322,6 +393,7 @@ async function seedCursosInstrutoresTurmas(
   const hoje = startOfDaySeed(new Date());
   const TURMAS_SEED = [
     {
+      id: "seed-turma-info",
       codigo: "INFO-2026-01",
       cursoId: "seed-curso-info",
       instrutorId: "seed-instr-carlos",
@@ -332,6 +404,7 @@ async function seedCursosInstrutoresTurmas(
       fim: addDaysSeed(hoje, 45),
     },
     {
+      id: "seed-turma-cost",
       codigo: "COST-2026-01",
       cursoId: "seed-curso-costura",
       instrutorId: "seed-instr-marta",
@@ -342,6 +415,7 @@ async function seedCursosInstrutoresTurmas(
       fim: addDaysSeed(hoje, 30),
     },
     {
+      id: "seed-turma-pao",
       codigo: "PAO-2026-01",
       cursoId: "seed-curso-padaria",
       instrutorId: null,
@@ -355,28 +429,29 @@ async function seedCursosInstrutoresTurmas(
 
   const turmaIdByCodigo = new Map<string, string>();
   for (const t of TURMAS_SEED) {
-    const turma = await db.turma.upsert({
-      where: { codigo: t.codigo },
-      update: {
-        cursoId: t.cursoId,
-        instrutorId: t.instrutorId,
-        status: t.status,
-        capacidade: t.capacidade,
-        local: t.local,
-        dataInicio: t.inicio,
-        dataFim: t.fim,
-      },
-      create: {
-        codigo: t.codigo,
-        cursoId: t.cursoId,
-        instrutorId: t.instrutorId,
-        status: t.status,
-        capacidade: t.capacidade,
-        local: t.local,
-        dataInicio: t.inicio,
-        dataFim: t.fim,
-      },
-    });
+    // Guarda (a): Turma.codigo é @unique mas digitável por humano (o form de
+    // turma nova até sugere "Ex: INFO-2026-01"). UPDATE só em turma
+    // reconhecível como seed: id fixo "seed-turma-*" ou (base semeada antes do
+    // id fixo) cursoId "seed-curso-*". Qualquer outra → ABORT, sem tocar nela.
+    const existente = await tx.turma.findUnique({ where: { codigo: t.codigo } });
+    if (existente && existente.id !== t.id && !existente.cursoId.startsWith("seed-curso-")) {
+      throw new Error(
+        `[seed-capacitacao-staging] ABORTADO: turma ${t.codigo} já existe (id=${existente.id}) ` +
+          `e NÃO é reconhecível como turma seed. Nada foi alterado nela.`,
+      );
+    }
+    const dados = {
+      cursoId: t.cursoId,
+      instrutorId: t.instrutorId,
+      status: t.status,
+      capacidade: t.capacidade,
+      local: t.local,
+      dataInicio: t.inicio,
+      dataFim: t.fim,
+    };
+    const turma = existente
+      ? await tx.turma.update({ where: { id: existente.id }, data: dados })
+      : await tx.turma.create({ data: { id: t.id, codigo: t.codigo, ...dados } });
     turmaIdByCodigo.set(t.codigo, turma.id);
   }
   console.log(
@@ -386,20 +461,26 @@ async function seedCursosInstrutoresTurmas(
 }
 
 /**
- * Cidadãos demo: find por CPF → create. NUNCA update.
- * Guarda (a): se o CPF já existir E pertencer a um cidadão MIGRADO do Amplimed
- * (presente no MigracaoAmplimedMap), aborta — colisão com dado real.
+ * Cidadãos demo: find por CPF → create com id fixo "seed-cid-*" (marcador
+ * positivo de demo). NUNCA update.
+ * Guarda (a): se o CPF já existir e o registro NÃO for reconhecível como o
+ * próprio demo (id "seed-cid-*" OU mesmo nome+nascimento — a origem do CPF
+ * determinístico), ABORTA. Cobre cidadão MIGRADO do Amplimed E cadastro
+ * manual feito pela equipe (ambos fora do nosso escopo).
  */
-async function seedCidadaosDemo(createdById: string): Promise<string[]> {
+async function seedCidadaosDemo(
+  tx: Prisma.TransactionClient,
+  createdById: string,
+): Promise<string[]> {
   const familiaIdByNome = new Map<string, string>();
   const ids: string[] = [];
 
   for (const spec of CIDADAOS_CAPACITACAO) {
     const cpf = generateValidCpf(`${spec.nomeCompleto}-${spec.dataNascimento}`);
-    const existente = await db.cidadao.findUnique({ where: { cpf } });
+    const existente = await tx.cidadao.findUnique({ where: { cpf } });
 
     if (existente) {
-      const migrado = await db.migracaoAmplimedMap.findFirst({
+      const migrado = await tx.migracaoAmplimedMap.findFirst({
         where: { entidade: "cidadao", idDestino: existente.id },
       });
       if (migrado) {
@@ -408,25 +489,43 @@ async function seedCidadaosDemo(createdById: string): Promise<string[]> {
             `colide com cidadão MIGRADO do Amplimed (id=${existente.id}). Nada foi alterado nele.`,
         );
       }
+      const reconhecidoComoDemo =
+        existente.id === spec.seedId ||
+        (existente.nomeCompleto === spec.nomeCompleto &&
+          existente.dataNascimento?.toISOString().slice(0, 10) === spec.dataNascimento);
+      if (!reconhecidoComoDemo) {
+        throw new Error(
+          `[seed-capacitacao-staging] ABORTADO: CPF demo ${cpf} (${spec.nomeCompleto}) ` +
+            `pertence a registro NÃO reconhecido como demo (id=${existente.id}; provável ` +
+            `cadastro manual da equipe). Nada foi alterado nele.`,
+        );
+      }
       console.log(`[seed] cidadão demo já existe (reusado, sem update): ${spec.nomeCompleto}`);
       ids.push(existente.id);
       continue;
     }
 
-    // Família: find → create (nunca update)
+    // Família demo: busca/criação por id fixo "seed-fam-*" (nomeReferencia NÃO
+    // é unique — buscar por nome poderia anexar demo a uma família REAL).
     let familiaId = familiaIdByNome.get(spec.familia);
     if (!familiaId) {
-      const familiaExistente = await db.familia.findFirst({
-        where: { nomeReferencia: spec.familia },
-      });
+      const familiaSeedId = FAMILIA_SEED_IDS[spec.familia];
+      if (!familiaSeedId) {
+        throw new Error(
+          `[seed-capacitacao-staging] família demo sem id seed mapeado: ${spec.familia}`,
+        );
+      }
+      const familiaExistente = await tx.familia.findUnique({ where: { id: familiaSeedId } });
       const familia =
-        familiaExistente ?? (await db.familia.create({ data: { nomeReferencia: spec.familia } }));
+        familiaExistente ??
+        (await tx.familia.create({ data: { id: familiaSeedId, nomeReferencia: spec.familia } }));
       familiaId = familia.id;
       familiaIdByNome.set(spec.familia, familiaId);
     }
 
-    const criado = await db.cidadao.create({
+    const criado = await tx.cidadao.create({
       data: {
+        id: spec.seedId,
         nomeCompleto: spec.nomeCompleto,
         cpf,
         dataNascimento: new Date(spec.dataNascimento),
@@ -468,6 +567,7 @@ async function seedCidadaosDemo(createdById: string): Promise<string[]> {
  * andamento com 1 concluído.
  */
 async function seedMatriculas(
+  tx: Prisma.TransactionClient,
   cidadaoIds: string[],
   turmaIdByCodigo: Map<string, string>,
   createdById: string,
@@ -489,7 +589,7 @@ async function seedMatriculas(
     const cidadaoId = cidadaoIds[m.ci];
     const turmaId = turmaIdByCodigo.get(m.turma);
     if (!cidadaoId || !turmaId) continue;
-    await db.matricula.upsert({
+    await tx.matricula.upsert({
       where: { turmaId_cidadaoId: { turmaId, cidadaoId } },
       update: { status: m.status },
       create: { turmaId, cidadaoId, status: m.status, createdBy: createdById },
@@ -503,23 +603,49 @@ async function seedMatriculas(
 async function main() {
   const antes = await contagens();
 
-  const roleId = await garantirRoleProfissional();
-  const instrutoraUserId = await seedInstrutoraUser(roleId);
+  try {
+    // bcrypt é caro (~centenas de ms) — calcula FORA da transação.
+    const hashedPassword = await bcrypt.hash(DEMO_PASSWORD, 12);
 
-  // createdBy: prefere um super_admin existente; senão a própria instrutora.
-  const admin = await db.user.findFirst({ where: { primaryRoleName: "super_admin" } });
-  const createdById = admin?.id ?? instrutoraUserId;
+    // Guarda (d): transação única — qualquer abort reverte TUDO (zero writes),
+    // honrando o "Nada foi alterado" das mensagens de erro.
+    await db.$transaction(
+      async (tx) => {
+        const roleId = await garantirRoleProfissional(tx);
+        const instrutoraUserId = await seedInstrutoraUser(tx, roleId, hashedPassword);
 
-  const turmaIdByCodigo = await seedCursosInstrutoresTurmas(createdById, instrutoraUserId);
-  const cidadaoIds = await seedCidadaosDemo(createdById);
-  await seedMatriculas(cidadaoIds, turmaIdByCodigo, createdById);
+        // createdBy: SEMPRE a instrutora seed — nunca um admin real (atribuição
+        // limpa na auditoria; mesmo padrão do user dedicado do ETL Amplimed).
+        const createdById = instrutoraUserId;
+
+        const turmaIdByCodigo = await seedCursosInstrutoresTurmas(
+          tx,
+          createdById,
+          instrutoraUserId,
+        );
+        const cidadaoIds = await seedCidadaosDemo(tx, createdById);
+        await seedMatriculas(tx, cidadaoIds, turmaIdByCodigo, createdById);
+      },
+      { maxWait: 15_000, timeout: 120_000 },
+    );
+  } catch (erro) {
+    // Guarda (b) também no erro: evidência do estado do banco na falha.
+    const aposErro = await contagens().catch(() => null);
+    if (aposErro) {
+      for (const model of AUDIT_MODELS) {
+        console.log(`AUDIT(erro): ${model} antes=${antes[model]} depois=${aposErro[model]}`);
+      }
+    }
+    throw erro;
+  }
 
   const depois = await contagens();
   for (const model of AUDIT_MODELS) {
     console.log(`AUDIT: ${model} antes=${antes[model]} depois=${depois[model]}`);
   }
   console.log(
-    `[seed-capacitacao-staging] ok — instrutora ${INSTRUTORA_LOGIN.email} (senha demo padrão da seed)`,
+    `[seed-capacitacao-staging] ok — instrutora ${INSTRUTORA_LOGIN.email} ` +
+      `(senha demo padrão da seed; mustChangePassword=true)`,
   );
 }
 
