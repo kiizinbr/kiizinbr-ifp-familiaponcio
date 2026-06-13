@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { buildJanelaDia, getConsultasHoje } from "@/lib/medico/agenda-dia";
 
 const STATUS_EM_FILA = ["agendada", "confirmada", "em_atendimento"] as const;
 
@@ -33,19 +34,12 @@ export default async function MedicoHomePage() {
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
 
   const agora = new Date();
-  const inicioDia = new Date(agora);
-  inicioDia.setHours(0, 0, 0, 0);
-  const fimDia = new Date(agora);
-  fimDia.setHours(23, 59, 59, 999);
+  const { inicioDia, fimDia } = buildJanelaDia(agora);
   const em7Dias = new Date(inicioDia);
   em7Dias.setDate(em7Dias.getDate() + 7);
 
   const [consultasHoje, consultas7d, slotsLivresHoje] = await Promise.all([
-    db.consulta.findMany({
-      where: { slot: { dataHoraInicio: { gte: inicioDia, lte: fimDia } } },
-      include: { slot: true, cidadao: true, profissional: true, especialidade: true },
-      orderBy: { slot: { dataHoraInicio: "asc" } },
-    }),
+    getConsultasHoje({ agora }),
     db.consulta.count({
       where: {
         slot: { dataHoraInicio: { gte: inicioDia, lte: em7Dias } },

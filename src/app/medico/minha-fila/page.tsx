@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade, hasAnyRole } from "@/lib/rbac";
-import { db } from "@/lib/db";
+import { getConsultasHoje } from "@/lib/medico/agenda-dia";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,16 +19,13 @@ export default async function MinhaFilaPage() {
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
   if (!hasAnyRole(session, "profissional")) redirect("/medico" as Route);
 
-  const inicioDia = new Date();
-  inicioDia.setHours(0, 0, 0, 0);
-  const fimDia = new Date();
-  fimDia.setHours(23, 59, 59, 999);
+  const agora = new Date();
 
-  const consultas = await db.consulta.findMany({
-    where: {
+  const consultas = await getConsultasHoje({
+    agora,
+    filtro: {
       profissional: { userId: session.user.id },
       status: { in: ["agendada", "confirmada", "em_atendimento"] },
-      slot: { dataHoraInicio: { gte: inicioDia, lte: fimDia } },
     },
     include: {
       slot: { select: { dataHoraInicio: true } },
@@ -36,10 +33,7 @@ export default async function MinhaFilaPage() {
       especialidade: { select: { nome: true } },
       profissional: { select: { nomeExibicao: true } },
     },
-    orderBy: { slot: { dataHoraInicio: "asc" } },
   });
-
-  const agora = new Date();
 
   return (
     <MedicoShell session={session}>
