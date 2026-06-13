@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup ATM — Bloqueio Judicial (FICTÍCIO)</title>
+<style>
+  :root {
+    --bg: #2b2f36;
+    --panel: #3a3f47;
+    --screen: #f3f5f8;
+    --ink: #1c2430;
+    --muted: #6b7686;
+    --brand: #0a7d4d;
+    --danger: #c2241c;
+    --line: #d8dde6;
+    --mono: "Courier New", ui-monospace, monospace;
+    --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: grid; place-items: center;
+    background: #11141a; font-family: var(--sans);
+    padding: 32px;
+  }
+
+  /* corpo do caixa */
+  .atm {
+    width: 440px; background: var(--bg);
+    border-radius: 18px; padding: 22px 22px 30px;
+    box-shadow: 0 30px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .atm__brandbar {
+    background: #1f232a; color: #cfd6e0;
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; letter-spacing: .5px;
+  }
+  .atm__dot { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); }
+
+  /* moldura da tela + botões laterais */
+  .bezel {
+    position: relative; background: #20242b;
+    border-radius: 12px; padding: 14px;
+  }
+  .sidebtns {
+    position: absolute; top: 28px; bottom: 28px; width: 10px;
+    display: flex; flex-direction: column; justify-content: space-around;
+  }
+  .sidebtns--l { left: -2px; } .sidebtns--r { right: -2px; }
+  .sidebtns span { width: 10px; height: 16px; background: #555c66; border-radius: 3px; }
+
+  /* a TELA */
+  .screen {
+    position: relative; overflow: hidden;
+    background: var(--screen); color: var(--ink);
+    border-radius: 6px; min-height: 360px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+  }
+
+  /* topo da conta logada */
+  .acct {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+    background: linear-gradient(var(--brand), #096b42); color: #fff;
+  }
+  .acct__who { font-size: 14px; font-weight: 700; }
+  .acct__meta { font-size: 11px; opacity: .9; font-family: var(--mono); }
+  .acct__online { font-size: 10px; display: flex; align-items: center; gap: 6px; }
+  .acct__online::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #6bf3a8; box-shadow: 0 0 6px #6bf3a8; }
+
+  /* conteúdo "logado" (fica desfocado atrás do modal) */
+  .dash { padding: 16px; }
+  .balance-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .balance { font-size: 30px; font-weight: 800; font-family: var(--mono); margin: 2px 0 14px; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .actions button {
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    padding: 14px 10px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    text-align: left; cursor: default;
+  }
+  .blurred { filter: blur(3px); pointer-events: none; user-select: none; }
+
+  /* overlay + modal de bloqueio */
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(15,18,24,.55);
+    display: grid; place-items: center; padding: 18px;
+  }
+  .modal {
+    width: 100%; background: #fff; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,.4);
+    border-top: 6px solid var(--danger);
+    animation: pop .18s ease-out;
+  }
+  @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal__head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 18px 4px;
+  }
+  .modal__icon {
+    flex: none; width: 40px; height: 40px; border-radius: 50%;
+    background: #fdeceb; color: var(--danger);
+    display: grid; place-items: center; font-size: 22px; font-weight: 900;
+  }
+  .modal__title { font-size: 18px; font-weight: 800; color: var(--danger); letter-spacing: .3px; }
+  .modal__body { padding: 6px 18px 8px; }
+  .modal__body p { font-size: 12.5px; line-height: 1.5; color: #36404e; margin: 8px 0; }
+  .modal__ref {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    background: #f4f6f9; border: 1px dashed var(--line);
+    padding: 8px 10px; border-radius: 6px;
+  }
+  .modal__foot { padding: 8px 18px 18px; display: flex; gap: 10px; }
+  .modal__foot button {
+    flex: 1; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: default; border: 0;
+  }
+  .btn-ghost { background: #eef1f5; color: #36404e; }
+  .btn-main { background: var(--danger); color: #fff; }
+
+  /* marca d'água FICTÍCIO */
+  .wm {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    display: grid; place-items: center;
+  }
+  .wm span {
+    transform: rotate(-24deg);
+    font-size: 34px; font-weight: 900; letter-spacing: 6px;
+    color: rgba(120,130,145,.16);
+    border: 3px solid rgba(120,130,145,.16);
+    padding: 6px 18px; border-radius: 8px;
+    white-space: nowrap;
+  }
+
+  .caption { color: #9aa3b0; font-size: 12px; text-align: center; margin-top: 14px; font-family: var(--mono); }
+
+  /* teclado físico simplificado */
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .keypad button {
+    background: #2a2e35; color: #cfd6e0; border: 1px solid #444b55;
+    border-radius: 8px; padding: 12px 0; font-family: var(--mono); font-size: 16px; cursor: default;
+  }
+</style>
+</head>
+<body>
+  <div>
+    <div class="atm" role="img" aria-label="Mockup fictício de tela de caixa eletrônico com aviso de bloqueio judicial">
+      <div class="atm__brandbar"><span class="atm__dot"></span> BANCO EXEMPLO</div>
+
+      <div class="bezel">
+        <div class="sidebtns sidebtns--l"><span></span><span></span><span></span><span></span></div>
+        <div class="sidebtns sidebtns--r"><span></span><span></span><span></span><span></span></div>
+
+        <div class="screen">
+          <!-- conteúdo da conta logada -->
+          <div class="logged blurred">
+            <div class="acct">
+              <div>
+                <div class="acct__who">Olá, Fulano de Tal</div>
+                <div class="acct__meta">Ag 0001 · C/C 12.345-6</div>
+              </div>
+              <div class="acct__online">conectado</div>
+            </div>
+            <div class="dash">
+              <div class="balance-label">Saldo disponível</div>
+              <div class="balance">R$ 4.812,57</div>
+              <div class="actions">
+                <button>Saque</button>
+                <button>Extrato</button>
+                <button>Transferência</button>
+                <button>Pagamentos</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- pop-up por cima -->
+          <div class="overlay">
+            <div class="modal">
+              <div class="modal__head">
+                <div class="modal__icon">!</div>
+                <div class="modal__title">BLOQUEIO JUDICIAL</div>
+              </div>
+              <div class="modal__body">
+                <p>Existe uma restrição judicial ativa sobre esta conta. As movimentações estão temporariamente indisponíveis neste terminal.</p>
+                <div class="modal__ref">Processo nº 0000000-00.0000.0.00.0000 · Ref. EX-FICTICIO</div>
+              </div>
+              <div class="modal__foot">
+                <button class="btn-ghost">Detalhes</button>
+                <button class="btn-main">Ciente</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- marca d'água -->
+          <div class="wm"><span>EXEMPLO FICTÍCIO</span></div>
+        </div>
+
+        <div class="keypad">
+          <button>1</button><button>2</button><button>3</button>
+          <button>4</button><button>5</button><button>6</button>
+          <button>7</button><button>8</button><button>9</button>
+          <button>CANC</button><button>0</button><button>OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="caption">// mockup de UI · banco fictício · sem marca real · não usar como comunicado</div>
+  </div>
+</body>
+</html>
