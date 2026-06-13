@@ -33,6 +33,21 @@ describe("limparTextoClinico", () => {
     expect(limparTextoClinico("Linha 1\nLinha 2")).toBe("Linha 1\nLinha 2");
   });
 
+  it("preserva comparadores clínicos com < e > crus (não são tags HTML)", () => {
+    // Regressão: o strip /<[^>]+>/g engolia "<2h apos dose, melhora >" inteiro.
+    expect(limparTextoClinico("reação <2h após dose, melhora >24h")).toBe(
+      "reação <2h após dose, melhora >24h",
+    );
+    expect(limparTextoClinico("PA <120 e >80 mmHg")).toBe("PA <120 e >80 mmHg");
+    expect(limparTextoClinico("dose < 2 e resposta > 1")).toBe("dose < 2 e resposta > 1");
+    expect(limparTextoClinico("febre>38°C há <3 dias")).toBe("febre>38°C há <3 dias");
+  });
+
+  it("remove tag real mas mantém comparador cru na mesma string", () => {
+    expect(limparTextoClinico("<p>reação <2h após dose</p>")).toBe("reação <2h após dose");
+    expect(limparTextoClinico("AAS<br>dose <2cp/dia")).toBe("AAS\ndose <2cp/dia");
+  });
+
   it("colapsa whitespace horizontal preservando \\n e descarta linhas vazias", () => {
     expect(limparTextoClinico("Dipirona   500mg <br><br>  AAS ")).toBe("Dipirona 500mg\nAAS");
     expect(limparTextoClinico("a\n\n\nb")).toBe("a\nb");

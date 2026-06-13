@@ -175,9 +175,17 @@ export interface SalvarRascunhoInput {
 }
 
 /**
- * Upsert da nota de evolução enquanto a consulta está em atendimento (§0.3).
- * Rejeita com NotaAssinadaError se a nota já foi assinada (imutável — §0.4).
- * Quando `diagnosticos` é fornecido, recria a lista (deleteMany → createMany).
+ * Salva (cria/atualiza) a nota de evolução enquanto a consulta está em
+ * atendimento (§0.3). Rejeita com NotaAssinadaError se a nota já foi assinada
+ * (imutável — §0.4). Quando `diagnosticos` é fornecido, recria a lista
+ * (deleteMany → createMany).
+ *
+ * TOCTOU: em READ COMMITTED, ler status='rascunho' e depois fazer um UPDATE
+ * incondicional (where só por consultaId) abriria janela pra sobrescrever uma
+ * nota assinada por assinarNota numa corrida (duas abas / duplo submit). Por
+ * isso o UPDATE é Compare-And-Set — `where: { consultaId, status: 'rascunho' }`
+ * — mesmo padrão de core.reservarCAS na agenda. count===0 no caminho de update
+ * significa que a nota foi assinada no meio da corrida → NotaAssinadaError.
  */
 export async function salvarRascunho(input: SalvarRascunhoInput) {
   return db.$transaction(async (tx) => {
@@ -203,18 +211,33 @@ export async function salvarRascunho(input: SalvarRascunhoInput) {
       spo2: vitais?.spo2 ?? null,
     };
 
-    const nota = await tx.notaEvolucao.upsert({
-      where: { consultaId: input.consultaId },
-      create: { consultaId: input.consultaId, ...dados },
-      update: dados,
-    });
+    let notaId: string;
+    if (existente) {
+      // CAS: só atualiza se AINDA for rascunho. Se assinarNota commitou no meio
+      // da corrida, o predicado de status não casa e count===0 → rejeita.
+      const atualizadas = await tx.notaEvolucao.updateMany({
+        where: { consultaId: input.consultaId, status: "rascunho" },
+        data: dados,
+      });
+      if (atualizadas.count === 0) {
+        throw new NotaAssinadaError(existente.id);
+      }
+      notaId = existente.id;
+    } else {
+      // Sem nota ainda → cria. A unique em consultaId protege o double-create:
+      // a 2ª transação concorrente estoura P2002 em vez de duplicar.
+      const criada = await tx.notaEvolucao.create({
+        data: { consultaId: input.consultaId, ...dados },
+      });
+      notaId = criada.id;
+    }
 
     if (input.diagnosticos) {
-      await tx.diagnosticoNota.deleteMany({ where: { notaId: nota.id } });
+      await tx.diagnosticoNota.deleteMany({ where: { notaId } });
       if (input.diagnosticos.length > 0) {
         await tx.diagnosticoNota.createMany({
           data: input.diagnosticos.map((d) => ({
-            notaId: nota.id,
+            notaId,
             codigoCid: d.codigoCid ?? null,
             descricao: d.descricao,
             principal: d.principal ?? false,
@@ -223,7 +246,7 @@ export async function salvarRascunho(input: SalvarRascunhoInput) {
       }
     }
 
-    return nota;
+    return tx.notaEvolucao.findUniqueOrThrow({ where: { id: notaId } });
   });
 }
 

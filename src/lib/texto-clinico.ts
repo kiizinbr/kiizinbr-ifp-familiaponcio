@@ -19,8 +19,18 @@ const ENTIDADES_HTML: Record<string, string> = {
 };
 
 /**
+ * Casa SÓ tags HTML reais — `<tag …>` / `</tag>` começando por uma letra
+ * (nome de elemento). NÃO casa `<` solto seguido de `>` mais à frente
+ * (comparadores clínicos: `alergia <2h`, `PA <120 e >80`), que o legado
+ * Amplimed nunca gerou como markup e são dado de segurança do paciente. O `<`
+ * cru é preservado; só HTML estruturado é removido.
+ */
+const TAG_HTML_RE = /<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^>]*)?>/g;
+
+/**
  * Remove HTML cru de texto clínico: `<br>` (qualquer variação) vira `\n`,
- * demais tags são removidas, entidades básicas são decodificadas e o whitespace
+ * demais tags REAIS são removidas (ver TAG_HTML_RE — `<` solto entre números
+ * NÃO é tag e sobrevive), entidades básicas são decodificadas e o whitespace
  * horizontal é colapsado PRESERVANDO as quebras de linha (`\n` é separador
  * semântico — `chipsClinicos` divide por ele). Texto já limpo passa intacto.
  * Retorna `""` para entrada nula/vazia.
@@ -29,7 +39,7 @@ export function limparTextoClinico(texto: string | null | undefined): string {
   if (!texto) return "";
   const semHtml = texto
     .replace(/<br\s*\/?\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
+    .replace(TAG_HTML_RE, "")
     .replace(/&(?:nbsp|amp|lt|gt|quot);/g, (entidade) => ENTIDADES_HTML[entidade] ?? entidade);
   return semHtml
     .split("\n")

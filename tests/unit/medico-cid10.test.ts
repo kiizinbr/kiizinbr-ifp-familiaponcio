@@ -163,20 +163,32 @@ describe("canonicalizarDescricoes", () => {
     const r = canonicalizarDescricoes(
       [{ codigoCid: "J06.9", descricao: "texto adulterado", principal: true }],
       oficiais,
+      true,
     );
     expect(r[0]?.descricao).toBe("Infecção aguda das vias aéreas superiores NE");
   });
 
-  it("código fora da map → mantém a descrição enviada (nunca bloqueia)", () => {
+  it("código forjado numa tabela CONSULTADA → rebaixa a texto livre (codigoCid null), mantém descrição", () => {
+    const r = canonicalizarDescricoes(
+      [{ codigoCid: "A99.8", descricao: "diagnóstico inventado", principal: true }],
+      oficiais,
+      true,
+    );
+    expect(r[0]).toEqual({ codigoCid: null, descricao: "diagnóstico inventado", principal: true });
+  });
+
+  it("código fora da map com tabela INDISPONÍVEL → mantém o código enviado (nunca bloqueia)", () => {
     const r = canonicalizarDescricoes(
       [{ codigoCid: "Z99.9", descricao: "descrição do médico", principal: true }],
       oficiais,
+      false,
     );
-    expect(r[0]?.descricao).toBe("descrição do médico");
+    expect(r[0]).toEqual({ codigoCid: "Z99.9", descricao: "descrição do médico", principal: true });
   });
 
-  it("sem código → intocado", () => {
+  it("sem código → intocado (tabela consultada ou não)", () => {
     const item = { codigoCid: null, descricao: "texto livre", principal: true };
-    expect(canonicalizarDescricoes([item], oficiais)[0]).toEqual(item);
+    expect(canonicalizarDescricoes([item], oficiais, true)[0]).toEqual(item);
+    expect(canonicalizarDescricoes([item], oficiais, false)[0]).toEqual(item);
   });
 });

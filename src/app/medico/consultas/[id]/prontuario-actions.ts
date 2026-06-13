@@ -77,11 +77,15 @@ export async function salvarRascunhoAction(formData: FormData) {
       redirect(`/medico/consultas/${consultaId}?erro=diagnosticos` as Route);
     }
     const normalizados = normalizarDiagnosticos(valido.data);
-    // Anti-tampering híbrido: descrição canônica quando o código existe na
-    // tabela Cid10; fora dela (ou tabela indisponível) mantém a enviada —
-    // nunca bloqueia o atendimento.
+    // Anti-tampering híbrido + anti-forja: descrição canônica quando o código
+    // existe na tabela Cid10; código regex-válido inexistente numa tabela
+    // CONSULTADA com sucesso é rebaixado a texto livre (não finge CID oficial);
+    // tabela indisponível mantém o enviado — nunca bloqueia o atendimento.
     const codigos = normalizados.flatMap((d) => (d.codigoCid ? [d.codigoCid] : []));
     let oficiais = new Map<string, string>();
+    // `true` quando não há código a checar (nada a forjar) ou quando o SELECT
+    // rodou; só vira `false` se a consulta lançar (tabela/DB indisponível).
+    let tabelaConsultada = true;
     if (codigos.length > 0) {
       try {
         const linhas = await db.cid10.findMany({
@@ -91,9 +95,10 @@ export async function salvarRascunhoAction(formData: FormData) {
         oficiais = new Map(linhas.map((c) => [c.codigo, c.descricao]));
       } catch {
         oficiais = new Map();
+        tabelaConsultada = false;
       }
     }
-    diagnosticos = canonicalizarDescricoes(normalizados, oficiais);
+    diagnosticos = canonicalizarDescricoes(normalizados, oficiais, tabelaConsultada);
   } else {
     const cidDescricao = String(formData.get("cidDescricao") ?? "").trim();
     const cidCodigo = String(formData.get("cidCodigo") ?? "").trim() || null;

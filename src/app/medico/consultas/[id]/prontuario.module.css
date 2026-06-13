@@ -427,6 +427,12 @@
 .cidComboInput {
   width: 100%;
 }
+/* Limite atingido: input em readOnly (continua focável p/ não derrubar o foco). */
+.cidComboInput[aria-disabled="true"] {
+  background: var(--surface-sunken);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
 .cidListbox {
   position: absolute;
   top: calc(100% + 4px);
@@ -464,10 +470,8 @@
 .cidOption:hover {
   background: var(--surface-sunken);
 }
-.cidOption:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
+/* Sem :focus-visible nas options: o padrão é aria-activedescendant (o foco DOM
+   fica no input, options não recebem foco). O estado ativo real é .cidOptionAtiva. */
 .cidOptionAtiva,
 .cidOptionAtiva:hover {
   background: var(--accent-soft);
@@ -487,9 +491,12 @@
 .cidChipBtn {
   display: inline-grid;
   place-items: center;
-  min-width: 36px; /* hit-area ≥36px sem inflar o chip (margens negativas) */
-  min-height: 36px;
-  margin: -10px -4px;
+  /* Hit-area ≥44px (piso do ux-audit): o alvo de toque é o border-box, então é o
+     min-width/min-height que precisa ter 44px — não a margem. As margens negativas
+     absorvem o excedente p/ não inflar a altura do chip (glyph fica centralizado). */
+  min-width: 44px;
+  min-height: 44px;
+  margin: -14px -7px;
   padding: 0;
   border: 0;
   border-radius: 8px;

@@ -38,6 +38,16 @@ export function pareceCodigoCid(q: string): boolean {
 /**
  * Filtro Prisma da busca de CID-10: termo código-like busca por prefixo de
  * código E por descrição; termo textual busca só na descrição (insensitive).
+ *
+ * LIMITAÇÃO CONHECIDA (fix exige migration — fora desta branch):
+ * - `mode: "insensitive"` vira ILIKE no Postgres: faz fold de CAIXA, NÃO de
+ *   ACENTO. Como as descrições DATASUS são acentuadas, "infeccao" não acha
+ *   "Infecção". Não bloqueia (cai no texto livre), mas degrada a captura do
+ *   código estruturado. Fix correto: extensão `unaccent` (queryRaw
+ *   `unaccent(descricao) ILIKE unaccent($1)`) ou coluna `descricaoNorm`.
+ * - `contains` (ILIKE '%termo%') não usa o @@index([descricao]) btree → seq
+ *   scan. Aceitável no volume fixo (~12k linhas read-only, take 12); índice de
+ *   verdade exigiria GIN pg_trgm. Ambos atacados juntos numa migration futura.
  */
 export function buildCid10Filter(q: string): Prisma.Cid10WhereInput {
   const termo = q.trim();
@@ -106,18 +116,31 @@ export function normalizarDiagnosticos(itens: DiagnosticosInput): DiagnosticoChi
 }
 
 /**
- * Anti-tampering híbrido: quando o código existe na tabela Cid10, a descrição
- * gravada é a OFICIAL (snapshot canônico em DiagnosticoNota); código
- * regex-válido fora da tabela mantém a descrição enviada — tabela incompleta
- * ou busca indisponível nunca bloqueia o atendimento.
+ * Anti-tampering híbrido + anti-forja de código:
+ * - código existe na tabela Cid10 → descrição gravada é a OFICIAL (snapshot
+ *   canônico em DiagnosticoNota);
+ * - código NÃO existe MAS a tabela foi consultada com sucesso
+ *   (`tabelaConsultada`) → REBAIXA a texto livre (codigoCid = null), mantendo a
+ *   descrição: o registro não finge estrutura CID oficial com código forjado,
+ *   sem bloquear o atendimento (o diagnóstico continua salvo);
+ * - tabela indisponível (`tabelaConsultada = false`) → mantém o código enviado
+ *   intocado, pois não há como afirmar que o código é inválido — nunca bloqueia.
+ *
+ * Pela UI um código sempre vem da própria tabela (busca server-side), então o
+ * caminho de rebaixamento só dispara em POST forjado pelo profissional.
  */
 export function canonicalizarDescricoes(
   itens: DiagnosticoChip[],
   oficiais: Map<string, string>,
+  tabelaConsultada: boolean,
 ): DiagnosticoChip[] {
   return itens.map((d) => {
     if (!d.codigoCid) return d;
     const oficial = oficiais.get(d.codigoCid);
-    return oficial ? { ...d, descricao: oficial } : d;
+    if (oficial) return { ...d, descricao: oficial };
+    // Código inexistente numa tabela consultada com sucesso → rebaixa a texto livre.
+    if (tabelaConsultada) return { ...d, codigoCid: null };
+    // Tabela indisponível: não dá pra refutar o código → mantém intocado.
+    return d;
   });
 }

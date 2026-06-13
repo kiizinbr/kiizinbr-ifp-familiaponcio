@@ -56,14 +56,23 @@ export function Cid10Combobox({ defaultDiagnosticos }: { defaultDiagnosticos: Di
   const cheio = itens.length >= MAX_DIAGNOSTICOS;
   const termo = query.trim();
 
-  // Opções do listbox: resultados + escape hatch de texto livre quando a busca
-  // volta vazia ou está indisponível.
+  // Foco visível na navegação por teclado: o cursor é virtual
+  // (aria-activedescendant mantém o foco DOM no input), então o browser NÃO
+  // rola sozinho — rolamos a opção ativa para a área visível quando `ativo` muda.
+  useEffect(() => {
+    document.getElementById(`${baseId}-opt-${ativo}`)?.scrollIntoView({ block: "nearest" });
+  }, [ativo, baseId]);
+
+  // Opções do listbox: resultados + escape hatch de texto livre SEMPRE como
+  // último item quando há termo (≥ MIN_CHARS). Mesmo com matches que não servem,
+  // o médico adiciona o diagnóstico pretendido sem deformar o termo até zerar a
+  // busca — CID continua opcional, nunca bloqueia.
   const opcoes: Opcao[] = resultados.map((r) => ({
     tipo: "cid" as const,
     codigo: r.codigo,
     descricao: r.descricao,
   }));
-  if (termo.length >= MIN_CHARS && (erroBusca || resultados.length === 0)) {
+  if (termo.length >= MIN_CHARS) {
     opcoes.push({ tipo: "livre", descricao: termo });
   }
   const mostrarLista = aberto && opcoes.length > 0;
@@ -126,6 +135,14 @@ export function Cid10Combobox({ defaultDiagnosticos }: { defaultDiagnosticos: Di
   }
 
   function adicionar(chip: DiagnosticoChip) {
+    // No limite: NÃO adiciona (a lista já tem o máximo) e anuncia na live region
+    // — evita desabilitar o input com o foco nele (que derrubaria o foco pro body)
+    // e dá feedback audível do limite, não só visual no placeholder.
+    if (itens.length >= MAX_DIAGNOSTICOS) {
+      setAnuncio(`Limite de ${MAX_DIAGNOSTICOS} diagnósticos atingido`);
+      limparBusca();
+      return;
+    }
     setItens([...itens, chip]);
     setAnuncio(`Adicionado: ${rotuloChip(chip)}`);
     limparBusca();
@@ -164,6 +181,8 @@ export function Cid10Combobox({ defaultDiagnosticos }: { defaultDiagnosticos: Di
     }
     setItens(restantes);
     setAnuncio(`Removido: ${rotuloChip(alvo)}`);
+    // O botão × focado é desmontado com o chip — sem isto o foco cai pro <body>.
+    inputRef.current?.focus();
   }
 
   function tornarPrincipal(idx: number) {
@@ -171,6 +190,8 @@ export function Cid10Combobox({ defaultDiagnosticos }: { defaultDiagnosticos: Di
     if (!alvo) return;
     setItens(itens.map((d, i) => ({ ...d, principal: i === idx })));
     setAnuncio(`Diagnóstico principal: ${rotuloChip(alvo)}`);
+    // O ☆ focado some quando o chip vira principal — devolve o foco ao input.
+    inputRef.current?.focus();
   }
 
   function aoTeclar(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -190,16 +211,8 @@ export function Cid10Combobox({ defaultDiagnosticos }: { defaultDiagnosticos: Di
       if (aberto && total > 0) setAtivo((a) => Math.max(a - 1, 0));
       return;
     }
-    if (e.key === "Home" && mostrarLista) {
-      e.preventDefault();
-      setAtivo(0);
-      return;
-    }
-    if (e.key === "End" && mostrarLista) {
-      e.preventDefault();
-      setAtivo(total - 1);
-      return;
-    }
+    // Home/End NÃO são sequestrados: num combobox editável (APG) eles movem o
+    // CURSOR no textbox para corrigir o termo. ArrowUp/Down já navegam a lista.
     if (e.key === "Enter") {
       // SEMPRE preventDefault: Enter neste input JAMAIS submete o formEvolucao.
       e.preventDefault();
@@ -276,7 +289,11 @@ export function Cid10Combobox({ defaultDiagnosticos }: { defaultDiagnosticos: Di
             cheio ? "Limite de diagnósticos atingido" : "Buscar CID — código ou descrição"
           }
           autoComplete="off"
-          disabled={cheio}
+          // `readOnly` (não `disabled`) no limite: o input continua FOCÁVEL, então
+          // adicionar o 10º não derruba o foco pro body. Bloqueia digitação e a
+          // tecla Enter; o anúncio do limite vem da live region em adicionar().
+          readOnly={cheio}
+          aria-disabled={cheio}
           value={query}
           onChange={(e) => aoDigitar(e.target.value)}
           onKeyDown={aoTeclar}

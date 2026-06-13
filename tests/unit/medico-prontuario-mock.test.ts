@@ -8,7 +8,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { dbMock } = vi.hoisted(() => {
   const f = () => vi.fn();
   const db = {
-    notaEvolucao: { findUnique: f(), findUniqueOrThrow: f(), upsert: f(), update: f() },
+    notaEvolucao: {
+      findUnique: f(),
+      findUniqueOrThrow: f(),
+      create: f(),
+      updateMany: f(),
+      update: f(),
+    },
     consulta: { findUniqueOrThrow: f(), update: f() },
     slot: { update: f() },
     addendoNota: { create: f() },
@@ -58,22 +64,56 @@ const base = { consultaId: "c1", cidadaoId: "cid1", profissionalId: "prof1", tex
 describe("salvarRascunho", () => {
   beforeEach(reset);
 
-  it("nota inexistente → chama upsert 1x", async () => {
+  /** Nota existente em rascunho: arma findUnique + updateMany (CAS) bem-sucedido. */
+  function armRascunhoExistente(notaId = "n1") {
+    dbMock.notaEvolucao.findUnique.mockResolvedValue({ id: notaId, status: "rascunho" });
+    dbMock.notaEvolucao.updateMany.mockResolvedValue({ count: 1 });
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({ id: notaId, status: "rascunho" });
+  }
+
+  it("nota inexistente → create 1x (sem updateMany)", async () => {
     dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
-    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    dbMock.notaEvolucao.create.mockResolvedValue({ id: "n1", status: "rascunho" });
+    dbMock.notaEvolucao.findUniqueOrThrow.mockResolvedValue({ id: "n1", status: "rascunho" });
     await salvarRascunho(base);
-    expect(dbMock.notaEvolucao.upsert).toHaveBeenCalledTimes(1);
+    expect(dbMock.notaEvolucao.create).toHaveBeenCalledTimes(1);
+    expect(dbMock.notaEvolucao.updateMany).not.toHaveBeenCalled();
   });
 
-  it("nota já assinada → NotaAssinadaError e NÃO faz upsert", async () => {
+  it("nota existente em rascunho → updateMany CAS (where status=rascunho), sem create", async () => {
+    armRascunhoExistente();
+    await salvarRascunho(base);
+    expect(dbMock.notaEvolucao.create).not.toHaveBeenCalled();
+    expect(dbMock.notaEvolucao.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ consultaId: "c1", status: "rascunho" }),
+      }),
+    );
+  });
+
+  it("nota já assinada (pré-check) → NotaAssinadaError e NÃO escreve", async () => {
     dbMock.notaEvolucao.findUnique.mockResolvedValue({ id: "n1", status: "assinada" });
     await expect(salvarRascunho(base)).rejects.toBeInstanceOf(NotaAssinadaError);
-    expect(dbMock.notaEvolucao.upsert).not.toHaveBeenCalled();
+    expect(dbMock.notaEvolucao.create).not.toHaveBeenCalled();
+    expect(dbMock.notaEvolucao.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("TOCTOU: assinada ENTRE o read e o update (CAS count=0) → NotaAssinadaError, sem tocar diagnósticos", async () => {
+    // findUnique vê rascunho, mas assinarNota commitou no meio → updateMany não casa.
+    dbMock.notaEvolucao.findUnique.mockResolvedValue({ id: "n1", status: "rascunho" });
+    dbMock.notaEvolucao.updateMany.mockResolvedValue({ count: 0 });
+    await expect(
+      salvarRascunho({
+        ...base,
+        diagnosticos: [{ codigoCid: "J06.9", descricao: "IVAS", principal: true }],
+      }),
+    ).rejects.toBeInstanceOf(NotaAssinadaError);
+    expect(dbMock.diagnosticoNota.deleteMany).not.toHaveBeenCalled();
+    expect(dbMock.diagnosticoNota.createMany).not.toHaveBeenCalled();
   });
 
   it("com diagnósticos → deleteMany ANTES de createMany", async () => {
-    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
-    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    armRascunhoExistente();
     dbMock.diagnosticoNota.deleteMany.mockResolvedValue({ count: 0 });
     dbMock.diagnosticoNota.createMany.mockResolvedValue({ count: 1 });
     await salvarRascunho({
@@ -88,8 +128,7 @@ describe("salvarRascunho", () => {
   });
 
   it("3 diagnósticos (CID-10 estruturado) → createMany com 3 itens e exatamente 1 principal", async () => {
-    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
-    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    armRascunhoExistente();
     dbMock.diagnosticoNota.deleteMany.mockResolvedValue({ count: 0 });
     dbMock.diagnosticoNota.createMany.mockResolvedValue({ count: 3 });
     await salvarRascunho({
@@ -110,8 +149,7 @@ describe("salvarRascunho", () => {
   });
 
   it("diagnosticos [] → limpa (deleteMany) SEM createMany", async () => {
-    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
-    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    armRascunhoExistente();
     dbMock.diagnosticoNota.deleteMany.mockResolvedValue({ count: 2 });
     await salvarRascunho({ ...base, diagnosticos: [] });
     expect(dbMock.diagnosticoNota.deleteMany).toHaveBeenCalledTimes(1);
@@ -119,8 +157,7 @@ describe("salvarRascunho", () => {
   });
 
   it("diagnosticos undefined → NÃO toca diagnosticoNota (nem deleteMany nem createMany)", async () => {
-    dbMock.notaEvolucao.findUnique.mockResolvedValue(null);
-    dbMock.notaEvolucao.upsert.mockResolvedValue({ id: "n1", status: "rascunho" });
+    armRascunhoExistente();
     await salvarRascunho(base);
     expect(dbMock.diagnosticoNota.deleteMany).not.toHaveBeenCalled();
     expect(dbMock.diagnosticoNota.createMany).not.toHaveBeenCalled();

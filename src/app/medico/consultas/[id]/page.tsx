@@ -30,6 +30,7 @@ import { marcarCheckinAction, desfazerCheckinAction } from "./checkin-action";
 import styles from "./prontuario.module.css";
 import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 import { Cid10Combobox } from "./cid10-combobox";
+import { AssinarButton } from "./assinar-button";
 
 const ACAO_LABEL: Record<string, string> = {
   confirmada: "Confirmar",
@@ -517,7 +518,11 @@ export default async function ConsultaDetalhePage({
                         <Cid10Combobox
                           defaultDiagnosticos={(nota?.diagnosticos ?? []).map((d) => ({
                             codigoCid: d.codigoCid,
-                            descricao: d.descricao,
+                            // Clamp a 500 (limite do DiagnosticosSchema): rascunho
+                            // legado (form antigo, descrição sem limite) round-tripa
+                            // pelo hidden diagnosticosJson; sem o clamp o safeParse
+                            // falharia SEMPRE e o save descartaria texto/vitais.
+                            descricao: d.descricao.slice(0, 500),
                             principal: d.principal,
                           }))}
                         />
@@ -532,16 +537,11 @@ export default async function ConsultaDetalhePage({
                         </div>
                       </form>
                       {nota && (
-                        <form
+                        <AssinarButton
                           action={assinarNotaAction}
-                          style={{ marginTop: 10, textAlign: "right" }}
-                        >
-                          <input type="hidden" name="consultaId" value={consulta.id} />
-                          <input type="hidden" name="notaId" value={nota.id} />
-                          <SubmitButton pendingLabel="Assinando…">
-                            Assinar e concluir →
-                          </SubmitButton>
-                        </form>
+                          consultaId={consulta.id}
+                          notaId={nota.id}
+                        />
                       )}
                     </>
                   ) : nota ? (
