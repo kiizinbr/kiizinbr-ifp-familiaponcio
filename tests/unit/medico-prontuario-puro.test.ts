@@ -17,6 +17,33 @@ describe("calcularImc", () => {
   it("retorna null se altura zero (sem divisão por zero)", () => {
     expect(calcularImc(70, 0)).toBeNull();
   });
+
+  // F2 (higiene da ficha) — guard de plausibilidade reusando FAIXAS_PLAUSIVEIS.
+  // Caso real: migração Amplimed gravou altura em METROS (intSeguro(1.68)=2) e
+  // a timeline exibia IMC 233500. Guard display-only: a nota não é reescrita.
+  it("caso real 233500: altura migrada em metros (93.4kg, 2cm) → null", () => {
+    expect(calcularImc(93.4, 2)).toBeNull();
+  });
+  it("mesmo paciente na escala correta (93.4kg, 168cm) ≈ 33.1", () => {
+    expect(calcularImc(93.4, 168)).toBeCloseTo(33.1, 1);
+  });
+  it("bordas de altura: 30 e 250 cm válidas; 29 e 251 → null", () => {
+    expect(calcularImc(70, 30)).not.toBeNull();
+    expect(calcularImc(70, 250)).not.toBeNull();
+    expect(calcularImc(70, 29)).toBeNull();
+    expect(calcularImc(70, 251)).toBeNull();
+  });
+  it("bordas de peso: 0.5 e 400 kg válidas; 0.4 e 401 → null", () => {
+    expect(calcularImc(0.5, 50)).not.toBeNull();
+    expect(calcularImc(400, 175)).not.toBeNull();
+    expect(calcularImc(0.4, 50)).toBeNull();
+    expect(calcularImc(401, 175)).toBeNull();
+  });
+  it("inputs null seguem retornando null com o guard", () => {
+    expect(calcularImc(null, null)).toBeNull();
+    expect(calcularImc(undefined, 170)).toBeNull();
+    expect(calcularImc(80, undefined)).toBeNull();
+  });
 });
 
 describe("validarSinaisVitais", () => {

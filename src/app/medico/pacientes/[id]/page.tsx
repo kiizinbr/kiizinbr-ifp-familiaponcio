@@ -9,6 +9,7 @@ import { logEvent } from "@/lib/audit";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { calcularImc, SELECT_CONTEXTO_PACIENTE } from "@/lib/medico/prontuario";
+import { chipsClinicos } from "@/lib/texto-clinico";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 
@@ -21,30 +22,33 @@ function idade(d: Date | null): number | null {
   return a;
 }
 
-function chips(texto: string | null): string[] {
-  if (!texto) return [];
-  return texto
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 function pa(s: number | null, d: number | null): string | null {
   if (s == null && d == null) return null;
   return `${s ?? "—"}/${d ?? "—"}`;
 }
 
 /**
- * Linha do tempo clínica do paciente: todas as notas ASSINADAS (o registro oficial)
+ * Linha do tempo clínica do paciente: as notas ASSINADAS (o registro oficial)
  * num só lugar, fora da consulta atual + a série de sinais vitais. É o que separa
  * "bloco de notas" de "prontuário". Acesso registrado em audit (LGPD art. 11).
+ *
+ * Paginação: paciente frequente da Amplimed pode ter centenas de notas
+ * assinadas — sem um teto, cada acesso renderiza TODOS os cards + a série de
+ * vitais inteira numa página só. "Ver mais" amplia o teto via ?mostrar=N (mesmo
+ * espírito do take:5 do histórico da consulta). O take é page-size, não muda a
+ * imutabilidade da nota.
  */
+const TIMELINE_PAGE = 50;
+
 export default async function PacienteTimelinePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ mostrar?: string }>;
 }) {
   const { id } = await params;
+  const { mostrar } = await searchParams;
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
@@ -58,7 +62,15 @@ export default async function PacienteTimelinePage({
   });
   if (!cidadao) notFound();
 
-  const notas = await db.notaEvolucao.findMany({
+  // Teto de cards solicitado (múltiplos de TIMELINE_PAGE). Puxa +1 pra saber se
+  // há mais notas além do teto sem um count() extra.
+  const mostrarN = (() => {
+    const n = Number.parseInt(mostrar ?? "", 10);
+    if (!Number.isFinite(n) || n < TIMELINE_PAGE) return TIMELINE_PAGE;
+    return Math.ceil(n / TIMELINE_PAGE) * TIMELINE_PAGE;
+  })();
+
+  const notasPage = await db.notaEvolucao.findMany({
     where: { cidadaoId: id, status: "assinada" },
     include: {
       consulta: {
@@ -70,8 +82,19 @@ export default async function PacienteTimelinePage({
       profissional: { select: { nomeExibicao: true } },
       diagnosticos: true,
     },
-    orderBy: { createdAt: "desc" },
+    // Ordena pela data CLÍNICA do atendimento (slot.dataHoraInicio) — NUNCA por
+    // NotaEvolucao.createdAt: nas ~94k notas migradas da Amplimed, createdAt é
+    // a data em que a migração RODOU, não a data da consulta.
+    orderBy: { consulta: { slot: { dataHoraInicio: "desc" } } },
+    take: mostrarN + 1,
   });
+  const temMais = notasPage.length > mostrarN;
+  const notas = temMais ? notasPage.slice(0, mostrarN) : notasPage;
+  // Total real (index-backed em cidadaoId) só quando há mais que a página — o
+  // header/audit reportam o total, não o teto renderizado.
+  const totalNotas = temMais
+    ? await db.notaEvolucao.count({ where: { cidadaoId: id, status: "assinada" } })
+    : notas.length;
 
   await logEvent({
     userId: session.user.id,
@@ -79,7 +102,7 @@ export default async function PacienteTimelinePage({
     entityType: "timeline_clinica",
     rootEntityType: "cidadao",
     rootEntityId: id,
-    meta: { notas: notas.length },
+    meta: { notas: notas.length, total: totalNotas },
   });
 
   const nome = cidadao.nomeSocial || cidadao.nomeCompleto;
@@ -96,15 +119,18 @@ export default async function PacienteTimelinePage({
       };
     });
 
-  const alergias = chips(cidadao.alergias);
-  const cronicas = chips(cidadao.condicoesCronicas);
+  // chipsClinicos limpa o HTML legado da Amplimed (`<br>` literal etc.) antes
+  // de dividir — exibição apenas; a fonte não é reescrita nesta sprint.
+  const alergias = chipsClinicos(cidadao.alergias);
+  const cronicas = chipsClinicos(cidadao.condicoesCronicas);
+  const medicamentos = chipsClinicos(cidadao.medicamentosEmUso);
 
   return (
     <MedicoShell session={session}>
       <MedicoHeader
         eyebrow="Centro Médico · Histórico"
         titulo={nome}
-        descricao={`${idade(cidadao.dataNascimento) ?? "—"} anos${cidadao.genero ? ` · ${cidadao.genero}` : ""} · ${notas.length} atendimento(s) registrado(s).`}
+        descricao={`${idade(cidadao.dataNascimento) ?? "—"} anos${cidadao.genero ? ` · ${cidadao.genero}` : ""} · ${totalNotas} atendimento(s) registrado(s).`}
         acao={
           <Link href={`/app/cidadaos/${cidadao.id}` as Route} className="btn btn-secondary">
             Ficha completa
@@ -117,7 +143,7 @@ export default async function PacienteTimelinePage({
           <Ctx label="Tipo sanguíneo" valor={cidadao.tipoSanguineo} />
           <Ctx label="Alergias" valor={alergias.length ? alergias.join(", ") : null} alerta />
           <Ctx label="Condições crônicas" valor={cronicas.length ? cronicas.join(", ") : null} />
-          <Ctx label="Medicamentos" valor={cidadao.medicamentosEmUso} />
+          <Ctx label="Medicamentos" valor={medicamentos.length ? medicamentos.join(", ") : null} />
         </div>
       </Card>
 
@@ -226,6 +252,18 @@ export default async function PacienteTimelinePage({
               </Card>
             );
           })}
+          {temMais && (
+            <div style={{ textAlign: "center", marginTop: 4 }}>
+              <Link
+                href={
+                  `/medico/pacientes/${cidadao.id}?mostrar=${mostrarN + TIMELINE_PAGE}` as Route
+                }
+                className="btn btn-secondary"
+              >
+                Ver mais atendimentos ({totalNotas - notas.length} restantes)
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </MedicoShell>

@@ -417,6 +417,105 @@
   font-family: var(--font-mono);
 }
 
+/* ===== CID combobox (busca estruturada na tabela Cid10) ===== */
+.cidCombo {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  margin-top: 8px;
+}
+.cidComboInput {
+  width: 100%;
+}
+/* Limite atingido: input em readOnly (continua focável p/ não derrubar o foco). */
+.cidComboInput[aria-disabled="true"] {
+  background: var(--surface-sunken);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+.cidListbox {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 60; /* acima dos cards do grid */
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow-pop);
+  max-height: 280px;
+  overflow: auto;
+  animation: cid-listbox-in var(--t-fast) both; /* molde da entrada do .toast do kit */
+}
+@keyframes cid-listbox-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.cidOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.cidOption:hover {
+  background: var(--surface-sunken);
+}
+/* Sem :focus-visible nas options: o padrão é aria-activedescendant (o foco DOM
+   fica no input, options não recebem foco). O estado ativo real é .cidOptionAtiva. */
+.cidOptionAtiva,
+.cidOptionAtiva:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cidOptionCode {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent);
+  flex: none;
+}
+.cidAddLivre {
+  border-top: 1px dashed var(--line-strong);
+  border-radius: 0 0 8px 8px;
+  margin-top: 4px;
+}
+.cidChipBtn {
+  display: inline-grid;
+  place-items: center;
+  /* Hit-area ≥44px (piso do ux-audit): o alvo de toque é o border-box, então é o
+     min-width/min-height que precisa ter 44px — não a margem. As margens negativas
+     absorvem o excedente p/ não inflar a altura do chip (glyph fica centralizado). */
+  min-width: 44px;
+  min-height: 44px;
+  margin: -14px -7px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cidChipBtn:hover {
+  color: var(--text);
+}
+.cidChipBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -6px;
+  color: var(--accent);
+}
+
 /* ===== ações de assinar ===== */
 .signbar {
   display: flex;

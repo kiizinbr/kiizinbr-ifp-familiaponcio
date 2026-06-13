@@ -42,27 +42,6 @@ export interface SinaisVitaisInput {
   spo2?: number | null;
 }
 
-/**
- * IMC derivado (NÃO persistido — §0.5). Retorna `null` se peso ou altura
- * estiverem ausentes ou não-positivos (evita divisão por zero). Arredonda 1 casa.
- */
-export function calcularImc(
-  pesoKg: number | null | undefined,
-  alturaCm: number | null | undefined,
-): number | null {
-  if (pesoKg == null || alturaCm == null) return null;
-  if (pesoKg <= 0 || alturaCm <= 0) return null;
-  const alturaM = alturaCm / 100;
-  const imc = pesoKg / (alturaM * alturaM);
-  return Math.round(imc * 10) / 10;
-}
-
-export interface VitalWarning {
-  campo: keyof SinaisVitaisInput;
-  valor: number;
-  mensagem: string;
-}
-
 /** Faixas plausíveis por sinal vital (warning, nunca bloqueia — §0.5). [min, max] inclusivo. */
 const FAIXAS_PLAUSIVEIS: Record<keyof SinaisVitaisInput, readonly [number, number]> = {
   paSistolica: [70, 250],
@@ -74,6 +53,34 @@ const FAIXAS_PLAUSIVEIS: Record<keyof SinaisVitaisInput, readonly [number, numbe
   alturaCm: [30, 250],
   spo2: [50, 100],
 };
+
+/**
+ * IMC derivado (NÃO persistido — §0.5). Retorna `null` se peso ou altura
+ * estiverem ausentes OU fora da faixa plausível (reusa FAIXAS_PLAUSIVEIS:
+ * pesoKg 0.5–400, alturaCm 30–250). Guard display-only para o dado migrado da
+ * Amplimed, que gravava altura em METROS — `intSeguro(1.68) = 2` passou batido
+ * e o IMC derivado explodia (93.4 kg / 0.02 m² = 233500). A UI já trata `null`
+ * como "—"; a nota assinada de origem NÃO é tocada. Arredonda 1 casa.
+ */
+export function calcularImc(
+  pesoKg: number | null | undefined,
+  alturaCm: number | null | undefined,
+): number | null {
+  if (pesoKg == null || alturaCm == null) return null;
+  const [pesoMin, pesoMax] = FAIXAS_PLAUSIVEIS.pesoKg;
+  const [alturaMin, alturaMax] = FAIXAS_PLAUSIVEIS.alturaCm;
+  if (pesoKg < pesoMin || pesoKg > pesoMax) return null;
+  if (alturaCm < alturaMin || alturaCm > alturaMax) return null;
+  const alturaM = alturaCm / 100;
+  const imc = pesoKg / (alturaM * alturaM);
+  return Math.round(imc * 10) / 10;
+}
+
+export interface VitalWarning {
+  campo: keyof SinaisVitaisInput;
+  valor: number;
+  mensagem: string;
+}
 
 /**
  * Valida sinais vitais como WARNING — nunca lança, nunca bloqueia o atendimento (§0.5).
@@ -168,9 +175,17 @@ export interface SalvarRascunhoInput {
 }
 
 /**
- * Upsert da nota de evolução enquanto a consulta está em atendimento (§0.3).
- * Rejeita com NotaAssinadaError se a nota já foi assinada (imutável — §0.4).
- * Quando `diagnosticos` é fornecido, recria a lista (deleteMany → createMany).
+ * Salva (cria/atualiza) a nota de evolução enquanto a consulta está em
+ * atendimento (§0.3). Rejeita com NotaAssinadaError se a nota já foi assinada
+ * (imutável — §0.4). Quando `diagnosticos` é fornecido, recria a lista
+ * (deleteMany → createMany).
+ *
+ * TOCTOU: em READ COMMITTED, ler status='rascunho' e depois fazer um UPDATE
+ * incondicional (where só por consultaId) abriria janela pra sobrescrever uma
+ * nota assinada por assinarNota numa corrida (duas abas / duplo submit). Por
+ * isso o UPDATE é Compare-And-Set — `where: { consultaId, status: 'rascunho' }`
+ * — mesmo padrão de core.reservarCAS na agenda. count===0 no caminho de update
+ * significa que a nota foi assinada no meio da corrida → NotaAssinadaError.
  */
 export async function salvarRascunho(input: SalvarRascunhoInput) {
   return db.$transaction(async (tx) => {
@@ -196,18 +211,33 @@ export async function salvarRascunho(input: SalvarRascunhoInput) {
       spo2: vitais?.spo2 ?? null,
     };
 
-    const nota = await tx.notaEvolucao.upsert({
-      where: { consultaId: input.consultaId },
-      create: { consultaId: input.consultaId, ...dados },
-      update: dados,
-    });
+    let notaId: string;
+    if (existente) {
+      // CAS: só atualiza se AINDA for rascunho. Se assinarNota commitou no meio
+      // da corrida, o predicado de status não casa e count===0 → rejeita.
+      const atualizadas = await tx.notaEvolucao.updateMany({
+        where: { consultaId: input.consultaId, status: "rascunho" },
+        data: dados,
+      });
+      if (atualizadas.count === 0) {
+        throw new NotaAssinadaError(existente.id);
+      }
+      notaId = existente.id;
+    } else {
+      // Sem nota ainda → cria. A unique em consultaId protege o double-create:
+      // a 2ª transação concorrente estoura P2002 em vez de duplicar.
+      const criada = await tx.notaEvolucao.create({
+        data: { consultaId: input.consultaId, ...dados },
+      });
+      notaId = criada.id;
+    }
 
     if (input.diagnosticos) {
-      await tx.diagnosticoNota.deleteMany({ where: { notaId: nota.id } });
+      await tx.diagnosticoNota.deleteMany({ where: { notaId } });
       if (input.diagnosticos.length > 0) {
         await tx.diagnosticoNota.createMany({
           data: input.diagnosticos.map((d) => ({
-            notaId: nota.id,
+            notaId,
             codigoCid: d.codigoCid ?? null,
             descricao: d.descricao,
             principal: d.principal ?? false,
@@ -216,7 +246,7 @@ export async function salvarRascunho(input: SalvarRascunhoInput) {
       }
     }
 
-    return nota;
+    return tx.notaEvolucao.findUniqueOrThrow({ where: { id: notaId } });
   });
 }
 

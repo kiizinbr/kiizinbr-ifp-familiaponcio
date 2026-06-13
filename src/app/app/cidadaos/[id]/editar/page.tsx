@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { getCidadaoView } from "@/lib/cidadao";
 import { can } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
+import { limparTextoClinico } from "@/lib/texto-clinico";
 import { NovoCidadaoForm } from "../../novo/form";
 
 export default async function EditarCidadaoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,9 +49,12 @@ export default async function EditarCidadaoPage({ params }: { params: Promise<{ 
     trabalha: cidadao.trabalha === null ? "" : String(cidadao.trabalha),
     trabalhoDescricao: cidadao.trabalhoDescricao ?? "",
     tipoSanguineo: cidadao.tipoSanguineo ?? "",
-    alergias: cidadao.alergias ?? "",
-    medicamentosEmUso: cidadao.medicamentosEmUso ?? "",
-    condicoesCronicas: cidadao.condicoesCronicas ?? "",
+    // limparTextoClinico no defaultValue: o legado Amplimed traz HTML cru
+    // (`<br>` literal) — o próximo save persiste o texto limpo (higiene
+    // gradual da fonte; Cidadao é editável, não fere imutabilidade de nota).
+    alergias: limparTextoClinico(cidadao.alergias),
+    medicamentosEmUso: limparTextoClinico(cidadao.medicamentosEmUso),
+    condicoesCronicas: limparTextoClinico(cidadao.condicoesCronicas),
     unitIdOrigem: unit,
   };
 

@@ -29,6 +29,8 @@ import { emitirReceitaAction, emitirAtestadoAction } from "./documento-actions";
 import { marcarCheckinAction, desfazerCheckinAction } from "./checkin-action";
 import styles from "./prontuario.module.css";
 import { EncaminhamentoPanel } from "./_encaminhamento-panel";
+import { Cid10Combobox } from "./cid10-combobox";
+import { AssinarButton } from "./assinar-button";
 
 const ACAO_LABEL: Record<string, string> = {
   confirmada: "Confirmar",
@@ -98,8 +100,15 @@ export default async function ConsultaDetalhePage({
 
   const historico = await db.notaEvolucao.findMany({
     where: { cidadaoId: consulta.cidadaoId, NOT: { consultaId: consulta.id } },
-    include: { profissional: true, consulta: { include: { especialidade: true } } },
-    orderBy: { createdAt: "desc" },
+    include: {
+      profissional: true,
+      consulta: {
+        include: { especialidade: true, slot: { select: { dataHoraInicio: true } } },
+      },
+    },
+    // Data CLÍNICA (slot da consulta), nunca NotaEvolucao.createdAt: nas notas
+    // migradas da Amplimed o createdAt é a data em que a migração RODOU.
+    orderBy: { consulta: { slot: { dataHoraInicio: "desc" } } },
     take: 5,
   });
 
@@ -150,7 +159,6 @@ export default async function ConsultaDetalhePage({
     !assinada &&
     podeEditarNota(session, consulta.profissional.userId, nota?.status ?? "rascunho");
   const cidadao = consulta.cidadao;
-  const principal = nota?.diagnosticos.find((d) => d.principal) ?? nota?.diagnosticos[0];
   const pesoNum = nota?.pesoKg != null ? Number(nota.pesoKg) : null;
   const imc = calcularImc(pesoNum, nota?.alturaCm ?? null);
   const visual = CONSULTA_VISUAL[consulta.status];
@@ -351,6 +359,8 @@ export default async function ConsultaDetalhePage({
               {erro === "assinatura" &&
                 "Não foi possível assinar (verifique se há nota e se a consulta está em atendimento)."}
               {erro === "nao_assinada" && "Addendo só é permitido após a assinatura."}
+              {erro === "diagnosticos" &&
+                "Não foi possível ler os diagnósticos do formulário — recarregue a página e tente novamente."}
               {erro === "nao_reagendavel" && "Esta consulta não pode mais ser reagendada."}
               {erro === "slot_indisponivel" &&
                 "O horário escolhido acabou de ser reservado. Tente outro."}
@@ -444,7 +454,7 @@ export default async function ConsultaDetalhePage({
                       {historico.map((h) => (
                         <div key={h.id} className={styles.tlItem}>
                           <div className={styles.tlWhen}>
-                            {h.createdAt.toLocaleDateString("pt-BR")}
+                            {h.consulta.slot.dataHoraInicio.toLocaleDateString("pt-BR")}
                           </div>
                           <div className={styles.tlTitle}>{h.profissional.nomeExibicao}</div>
                           <div className={styles.tlMeta}>{h.consulta.especialidade.nome}</div>
@@ -505,21 +515,17 @@ export default async function ConsultaDetalhePage({
                           <span className={styles.micro}>Diagnóstico (CID-10)</span>
                           <span className={styles.hr} />
                         </div>
-                        <div className={styles.cidrow}>
-                          <input
-                            className={`${styles.cidInput} ${styles.cidCodeInput}`}
-                            name="cidCodigo"
-                            placeholder="J06.9"
-                            defaultValue={principal?.codigoCid ?? ""}
-                          />
-                          <input
-                            className={styles.cidInput}
-                            name="cidDescricao"
-                            placeholder="Descrição do diagnóstico"
-                            defaultValue={principal?.descricao ?? ""}
-                            style={{ flex: 1 }}
-                          />
-                        </div>
+                        <Cid10Combobox
+                          defaultDiagnosticos={(nota?.diagnosticos ?? []).map((d) => ({
+                            codigoCid: d.codigoCid,
+                            // Clamp a 500 (limite do DiagnosticosSchema): rascunho
+                            // legado (form antigo, descrição sem limite) round-tripa
+                            // pelo hidden diagnosticosJson; sem o clamp o safeParse
+                            // falharia SEMPRE e o save descartaria texto/vitais.
+                            descricao: d.descricao.slice(0, 500),
+                            principal: d.principal,
+                          }))}
+                        />
                         <div className={styles.signbar}>
                           <span className={styles.hint}>
                             Salvar mantém em rascunho. Assinar torna a nota imutável e conclui a
@@ -531,16 +537,11 @@ export default async function ConsultaDetalhePage({
                         </div>
                       </form>
                       {nota && (
-                        <form
+                        <AssinarButton
                           action={assinarNotaAction}
-                          style={{ marginTop: 10, textAlign: "right" }}
-                        >
-                          <input type="hidden" name="consultaId" value={consulta.id} />
-                          <input type="hidden" name="notaId" value={nota.id} />
-                          <SubmitButton pendingLabel="Assinando…">
-                            Assinar e concluir →
-                          </SubmitButton>
-                        </form>
+                          consultaId={consulta.id}
+                          notaId={nota.id}
+                        />
                       )}
                     </>
                   ) : nota ? (
