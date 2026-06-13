@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
-import { canAccessUnidade, podeChamar } from "@/lib/rbac";
-import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { canAccessUnidade, podeChamar, hasAnyRole } from "@/lib/rbac";
+import { podeMarcarConsulta, podeTransicionarConsulta } from "@/lib/medico/rbac";
 import {
   getConsultasHoje,
   getSlotsHoje,
@@ -52,6 +52,12 @@ export default async function AgendaDiaPage() {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
+  // Board operacional: exige um papel que opere/supervisione a agenda. Bloqueia o
+  // quiosque "painel" (TV, sem acesso a dados) que passaria só pelo gate de unidade
+  // — espelha recepcao (podeMarcarConsulta) e minha-fila (profissional).
+  const podeOperarAgenda =
+    podeMarcarConsulta(session) || hasAnyRole(session, "profissional", "presidencia");
+  if (!podeOperarAgenda) redirect("/medico" as Route);
 
   const agora = new Date();
   const [consultas, slots] = await Promise.all([
@@ -189,16 +195,13 @@ export default async function AgendaDiaPage() {
         </div>
       )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) 320px",
-          gap: 20,
-          alignItems: "start",
-        }}
-      >
+      <div className="agenda-dia-layout">
         {/* ── Grade: colunas por profissional × horas ───────────────── */}
-        <Card className="overflow-x-auto !p-0">
+        <Card
+          className="overflow-x-auto !p-0"
+          role="region"
+          aria-label="Mapa do dia por profissional e horário"
+        >
           {colunas.length === 0 ? (
             <div style={{ padding: 24 }}>
               <EmptyState
@@ -313,6 +316,7 @@ export default async function AgendaDiaPage() {
                         >
                           <span className="block truncate" style={{ color: "var(--text-3)" }}>
                             Livre
+                            <span className="sr-only"> · {s.especialidade.nome}</span>
                           </span>
                         </div>
                       );
@@ -325,11 +329,12 @@ export default async function AgendaDiaPage() {
                         c.slot.dataHoraInicio.getMinutes();
                       const cor = c.especialidade.corDestaque;
                       const isNow = c.status === "em_atendimento";
+                      const nomeExibido = c.cidadao.nomeSocial || c.cidadao.nomeCompleto;
                       return (
                         <Link
                           key={c.id}
                           href={`/medico/consultas/${c.id}` as Route}
-                          title={`${c.cidadao.nomeCompleto} · ${horaCurta(c.slot.dataHoraInicio)} · ${c.especialidade.nome}`}
+                          title={`${nomeExibido} · ${horaCurta(c.slot.dataHoraInicio)} · ${c.especialidade.nome}`}
                           className="absolute right-0.5 left-0.5 block overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight no-underline"
                           style={{
                             top: minDia * PX_POR_MIN,
@@ -340,11 +345,17 @@ export default async function AgendaDiaPage() {
                           }}
                         >
                           <span className="block truncate" style={{ fontWeight: 600 }}>
-                            {c.cidadao.nomeCompleto}
+                            {nomeExibido}
                           </span>
                           <span className="block truncate" style={{ opacity: 0.85 }}>
                             {horaCurta(c.slot.dataHoraInicio)}
                             {isNow ? " · agora" : ""}
+                          </span>
+                          {/* Status + especialidade em texto: o chip distingue ambos só por
+                              cor (WCAG 1.4.1). sr-only mantém o visual e dá o sinal textual. */}
+                          <span className="sr-only">
+                            {" · "}
+                            {CONSULTA_VISUAL[c.status].label} · {c.especialidade.nome}
                           </span>
                         </Link>
                       );
@@ -368,13 +379,26 @@ export default async function AgendaDiaPage() {
           ) : (
             fila.map(({ c, atrasado }) => {
               const visual = CONSULTA_VISUAL[c.status];
+              const nomeExibido = c.cidadao.nomeSocial || c.cidadao.nomeCompleto;
               const espera =
                 c.checkinEm && c.status !== "em_atendimento"
                   ? Math.max(0, Math.floor((agora.getTime() - c.checkinEm.getTime()) / 60000))
                   : null;
               const ativa = STATUS_ATIVA.includes(c.status as (typeof STATUS_ATIVA)[number]);
-              const podeConfirmar = c.status === "agendada";
-              const podeIniciar = ativa;
+              // Gate por papel POR consulta (igual à tela de detalhe): o board mostra
+              // TODOS os profissionais, então um profissional não pode transicionar a
+              // consulta de um colega — esconder evita o "Sem permissão" (500) ao clicar.
+              const podeConfirmar =
+                c.status === "agendada" &&
+                podeTransicionarConsulta(session, c.status, "confirmada", c.profissional.userId);
+              const podeIniciar =
+                ativa &&
+                podeTransicionarConsulta(
+                  session,
+                  c.status,
+                  "em_atendimento",
+                  c.profissional.userId,
+                );
               return (
                 <Card key={c.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -386,7 +410,7 @@ export default async function AgendaDiaPage() {
                         href={`/medico/consultas/${c.id}` as Route}
                         style={{ color: "var(--text)", fontWeight: 600 }}
                       >
-                        {c.cidadao.nomeCompleto}
+                        {nomeExibido}
                       </Link>
                       <div className="t-small" style={{ color: "var(--text-3)" }}>
                         {c.especialidade.nome} · {c.profissional.nomeExibicao}
@@ -452,7 +476,7 @@ export default async function AgendaDiaPage() {
                     {canChamar ? (
                       <form action={chamarAction}>
                         <input type="hidden" name="unidade" value="medico" />
-                        <input type="hidden" name="nomeChamado" value={c.cidadao.nomeCompleto} />
+                        <input type="hidden" name="nomeChamado" value={nomeExibido} />
                         <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
                         <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
                         <input type="hidden" name="consultaId" value={c.id} />

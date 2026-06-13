@@ -153,7 +153,7 @@ describe("getConsultasHoje", () => {
 describe("getSlotsHoje", () => {
   beforeEach(reset);
 
-  it("janela do dia, include profissional+especialidade, orderBy dataHoraInicio asc", async () => {
+  it("janela do dia, status disponivel por default, include profissional+especialidade, orderBy dataHoraInicio asc", async () => {
     const agora = new Date(2026, 2, 10, 10, 0, 0, 0);
     await getSlotsHoje({ agora });
 
@@ -161,7 +161,18 @@ describe("getSlotsHoje", () => {
     const arg = dbMock.slot.findMany.mock.calls[0]![0];
     expect(arg.where.dataHoraInicio.gte.getHours()).toBe(0);
     expect(arg.where.dataHoraInicio.lte.getHours()).toBe(23);
+    // default filtra só vaga livre — usa @@index([status, dataHoraInicio]).
+    expect(arg.where.status).toBe("disponivel");
     expect(arg.include).toEqual({ profissional: true, especialidade: true });
     expect(arg.orderBy).toEqual({ dataHoraInicio: "asc" });
+  });
+
+  it("status: undefined traz todos os status (sem filtro de status)", async () => {
+    const agora = new Date(2026, 2, 10, 10, 0, 0, 0);
+    await getSlotsHoje({ agora, status: undefined });
+
+    const arg = dbMock.slot.findMany.mock.calls[0]![0];
+    expect(arg.where.status).toBeUndefined();
+    expect(arg.where.dataHoraInicio.gte).toBeInstanceOf(Date);
   });
 });

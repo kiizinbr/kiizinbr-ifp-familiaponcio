@@ -71,15 +71,28 @@ export function getConsultasHoje<
   }) as Promise<Prisma.ConsultaGetPayload<{ include: I }>[]>;
 }
 
-/** Slots do dia (todos os status) p/ a grade do board — inclui profissionais sem consulta ainda. */
+/** Slots do dia p/ a grade do board — inclui profissionais sem consulta ainda. */
 export type SlotDoDia = Prisma.SlotGetPayload<{
   include: { profissional: true; especialidade: true };
 }>;
 
-export function getSlotsHoje(opts?: { agora?: Date }): Promise<SlotDoDia[]> {
+/**
+ * `status` default = "disponivel": é o ÚNICO status que o board consome (vaga
+ * livre). Filtrar aqui aproveita o @@index([status, dataHoraInicio]) e evita
+ * carregar slots reservado/bloqueado que seriam descartados em memória. Passe
+ * `status: undefined` para trazer todos os status.
+ */
+export function getSlotsHoje(opts?: {
+  agora?: Date;
+  status?: Prisma.SlotWhereInput["status"];
+}): Promise<SlotDoDia[]> {
   const { inicioDia, fimDia } = buildJanelaDia(opts?.agora);
+  const status = opts && "status" in opts ? opts.status : "disponivel";
   return db.slot.findMany({
-    where: { dataHoraInicio: { gte: inicioDia, lte: fimDia } },
+    where: {
+      dataHoraInicio: { gte: inicioDia, lte: fimDia },
+      ...(status !== undefined ? { status } : {}),
+    },
     include: { profissional: true, especialidade: true },
     orderBy: { dataHoraInicio: "asc" },
   });

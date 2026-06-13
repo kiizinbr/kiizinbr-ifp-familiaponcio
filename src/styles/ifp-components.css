@@ -1072,12 +1072,25 @@ table.tbl .cell-mono {
   gap: 10px;
 }
 
+/* Layout do board Agenda do dia: grade + Fila de ação lateral (320px).
+   Colapsa para 1 coluna no mobile (Fila vai pra baixo) — espelha o colapso
+   multi-coluna dos scaffolds do kit. */
+.agenda-dia-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
 @media (max-width: 880px) {
   .shell {
     grid-template-columns: 1fr;
   }
   .sidebar {
     display: none;
+  }
+  .agenda-dia-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
