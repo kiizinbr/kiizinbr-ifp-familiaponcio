@@ -17,6 +17,7 @@ export function medicoNavItems(session: Session): NavItem[] {
   const items: NavItem[] = [
     { label: "Fila do dia", href: "/medico" },
     { label: "Agenda semanal", href: "/medico/agenda" },
+    { label: "Agenda do dia", href: "/medico/agenda-dia" },
   ];
   if (podeMarcarConsulta(session)) {
     items.push({ label: "Recepção", href: "/medico/recepcao" });

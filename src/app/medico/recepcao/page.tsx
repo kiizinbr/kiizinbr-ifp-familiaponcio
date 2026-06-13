@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
+import { getConsultasHoje } from "@/lib/medico/agenda-dia";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +29,7 @@ export default async function RecepcaoPage({
   if (!podeMarcarConsulta(session)) redirect("/medico" as Route);
 
   const { q } = await searchParams;
-  const inicioDia = new Date();
-  inicioDia.setHours(0, 0, 0, 0);
-  const fimDia = new Date();
-  fimDia.setHours(23, 59, 59, 999);
+  const agora = new Date();
 
   const digits = q?.replace(/\D/g, "") ?? "";
   const matches = q
@@ -49,18 +47,15 @@ export default async function RecepcaoPage({
       })
     : [];
 
-  const consultas = await db.consulta.findMany({
-    where: { slot: { dataHoraInicio: { gte: inicioDia, lte: fimDia } } },
+  const consultas = await getConsultasHoje({
+    agora,
     include: {
       slot: { select: { dataHoraInicio: true } },
       cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
       especialidade: { select: { nome: true } },
       profissional: { select: { nomeExibicao: true } },
     },
-    orderBy: { slot: { dataHoraInicio: "asc" } },
   });
-
-  const agora = new Date();
 
   return (
     <MedicoShell session={session}>
