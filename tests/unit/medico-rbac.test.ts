@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Session } from "next-auth";
 import type { RoleName, UnitScope } from "@/lib/rbac-types";
 import {
+  camposEditaveisProfissional,
   podeAgendarEncaminhamento,
   podeAssinarNota,
   podeAtualizarSaudeCidadao,
@@ -177,13 +178,13 @@ describe("podeEmitirDocumento", () => {
     const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
     expect(podeEmitirDocumento(s, "user-Y")).toBe(false);
   });
-  it("super_admin → true (emite em nome da unidade)", () => {
+  it("super_admin não-dono → false (documento carrega o CRM do profissional, sem bypass)", () => {
     const s = sessionWith([{ name: "super_admin", unitScope: null }], "admin-1");
-    expect(podeEmitirDocumento(s, "user-X")).toBe(true);
+    expect(podeEmitirDocumento(s, "user-X")).toBe(false);
   });
-  it("gestor_unidade → true (emite em nome da unidade)", () => {
+  it("gestor_unidade → false (não há CRM de unidade; emitir sairia com CRM alheio)", () => {
     const s = sessionWith([{ name: "gestor_unidade", unitScope: "medico" }], "gestor-1");
-    expect(podeEmitirDocumento(s, "user-X")).toBe(true);
+    expect(podeEmitirDocumento(s, "user-X")).toBe(false);
   });
   it("recepcao → false", () => {
     const s = sessionWith([{ name: "recepcao", unitScope: "medico" }], "rec-1");
@@ -195,6 +196,43 @@ describe("podeEmitirDocumento", () => {
   });
   it("sem sessão → false", () => {
     expect(podeEmitirDocumento(null, "user-X")).toBe(false);
+  });
+});
+
+// ── M5 Self-edit de CRM (allowlist por ramo) ─────────────────────────
+
+describe("camposEditaveisProfissional", () => {
+  it("gestão edita tudo (nome, bio, CRM, especialidades)", () => {
+    const s = sessionWith([{ name: "gestor_unidade", unitScope: "medico" }], "gestor-1");
+    // ehProprio=false: gestão edita QUALQUER profissional, inclusive CRM.
+    expect(camposEditaveisProfissional(s, false)).toEqual([
+      "nomeExibicao",
+      "bio",
+      "conselho",
+      "nroConselho",
+      "especialidades",
+    ]);
+  });
+  it("super_admin edita tudo", () => {
+    const s = sessionWith([{ name: "super_admin", unitScope: null }], "admin-1");
+    expect(camposEditaveisProfissional(s, false)).toContain("conselho");
+    expect(camposEditaveisProfissional(s, false)).toContain("especialidades");
+  });
+  it("dono NÃO-gestor edita só nomeExibicao + bio (NÃO o próprio CRM/especialidades)", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(camposEditaveisProfissional(s, true)).toEqual(["nomeExibicao", "bio"]);
+    // o gate de M5: o profissional não reescreve o próprio conselho/nroConselho
+    // (que documento-actions congela em receita/atestado — coerência com A2).
+    expect(camposEditaveisProfissional(s, true)).not.toContain("conselho");
+    expect(camposEditaveisProfissional(s, true)).not.toContain("nroConselho");
+    expect(camposEditaveisProfissional(s, true)).not.toContain("especialidades");
+  });
+  it("não-gestor e não-dono → nada editável", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(camposEditaveisProfissional(s, false)).toEqual([]);
+  });
+  it("sem sessão → nada editável", () => {
+    expect(camposEditaveisProfissional(null, true)).toEqual([]);
   });
 });
 

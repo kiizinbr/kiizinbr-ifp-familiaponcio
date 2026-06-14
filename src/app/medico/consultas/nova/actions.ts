@@ -12,6 +12,7 @@ import {
 } from "@/lib/medico/agenda";
 import { reservarConsultaSchema, criarSlotAdHocSchema } from "@/lib/medico/agenda-schema";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { logEvent } from "@/lib/audit";
 
 export async function reservarConsultaAction(formData: FormData) {
@@ -33,6 +34,10 @@ export async function reservarConsultaAction(formData: FormData) {
     especialidadeId,
   });
   if (!ids.success) throw new Error("Dados de agendamento inválidos");
+
+  // A1 IDOR guard: cidadaoId vem do cliente; exige acesso à unidade do cidadão.
+  // "edit" (não "create") para não barrar o fluxo legítimo de social (que tem edit).
+  await assertAcessoCidadao(session, cidadaoId, "edit");
 
   try {
     const consulta = await reservarSlot({
@@ -130,6 +135,9 @@ export async function criarSlotAdHocAction(formData: FormData) {
     );
   }
 
+  // A1 IDOR guard: exige acesso à unidade do cidadão antes de criar slot+consulta.
+  await assertAcessoCidadao(session, cidadaoId, "edit");
+
   await executarAdHoc(session!.user.id, parsed.data);
 }
 
@@ -153,6 +161,9 @@ export async function atenderAgoraAction(formData: FormData) {
       `/medico/consultas/nova?cidadaoId=${cidadaoId}&especialidadeId=${especialidadeId}&erro=adhoc_invalido` as Route,
     );
   }
+
+  // A1 IDOR guard: exige acesso à unidade do cidadão antes de criar slot+consulta.
+  await assertAcessoCidadao(session, cidadaoId, "edit");
 
   await executarAdHoc(session!.user.id, parsed.data);
 }

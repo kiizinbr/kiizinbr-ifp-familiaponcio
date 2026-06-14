@@ -6,7 +6,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessUnidade } from "@/lib/rbac";
-import { podeGerenciarProfissional } from "@/lib/medico/rbac";
+import { camposEditaveisProfissional, podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
 
 function parseEspecialidades(formData: FormData): string[] {
@@ -66,16 +66,26 @@ export async function atualizarProfissionalAction(formData: FormData) {
   const bio = String(formData.get("bio") ?? "").trim() || null;
   const espIds = parseEspecialidades(formData);
 
+  // M5 — allowlist por ramo: o profissional NÃO-gestor edita só nomeExibicao+bio.
+  // CRM (conselho/nroConselho) e especialidades só pela gestão — o dono não
+  // reescreve o próprio CRM (que documento-actions congela em receita/atestado, A2).
+  const campos = camposEditaveisProfissional(session, ehProprio);
+  const podeCrm = campos.includes("conselho"); // conselho+nroConselho andam juntos
+  const podeEspecialidades = campos.includes("especialidades");
+
   await db.$transaction(async (tx) => {
     await tx.profissional.update({
       where: { id },
-      data: { nomeExibicao, conselho, nroConselho, bio },
+      // conselho/nroConselho só quando o ramo permite — senão preserva o valor do banco.
+      data: podeCrm ? { nomeExibicao, conselho, nroConselho, bio } : { nomeExibicao, bio },
     });
-    await tx.profissionalEspecialidade.deleteMany({ where: { profissionalId: id } });
-    if (espIds.length > 0) {
-      await tx.profissionalEspecialidade.createMany({
-        data: espIds.map((eid) => ({ profissionalId: id, especialidadeId: eid })),
-      });
+    if (podeEspecialidades) {
+      await tx.profissionalEspecialidade.deleteMany({ where: { profissionalId: id } });
+      if (espIds.length > 0) {
+        await tx.profissionalEspecialidade.createMany({
+          data: espIds.map((eid) => ({ profissionalId: id, especialidadeId: eid })),
+        });
+      }
     }
   });
   await logEvent({

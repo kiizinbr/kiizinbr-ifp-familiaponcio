@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeEncaminhar } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { criarEncaminhamento } from "@/lib/medico/encaminhamento";
 import { logEvent } from "@/lib/audit";
 
@@ -16,6 +17,9 @@ export async function criarEncaminhamentoAction(formData: FormData) {
   const cidadaoId = String(formData.get("cidadaoId"));
   const especialidadeId = String(formData.get("especialidadeId"));
   const motivo = String(formData.get("motivo") ?? "").trim() || undefined;
+
+  // A1 IDOR guard: cidadaoId vem do cliente; exige acesso à unidade do cidadão.
+  await assertAcessoCidadao(session, cidadaoId, "edit");
 
   const enc = await criarEncaminhamento({
     cidadaoId,
