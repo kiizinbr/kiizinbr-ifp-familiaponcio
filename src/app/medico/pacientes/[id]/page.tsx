@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeVerProntuario } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
@@ -53,6 +54,15 @@ export default async function PacienteTimelinePage({
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
   if (!podeVerProntuario(session)) redirect("/medico" as Route);
+
+  // A1 IDOR guard (PHI): confere acesso à unidade do cidadão ANTES de ler
+  // prontuário/vitais e antes do logEvent. throw cross-unidade → notFound() pra
+  // não vazar a existência do paciente de outra unidade.
+  try {
+    await assertAcessoCidadao(session, id, "view");
+  } catch {
+    notFound();
+  }
 
   const cidadao = await db.cidadao.findUnique({
     where: { id },

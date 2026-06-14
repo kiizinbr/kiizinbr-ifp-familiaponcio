@@ -13,6 +13,33 @@ export function podeGerenciarProfissional(session: Session | null): boolean {
   return hasAnyRole(session, "super_admin", "gestor_unidade");
 }
 
+/** Campos editáveis de um Profissional. CRM (conselho/nroConselho) e especialidades só pela gestão. */
+export type CampoProfissional =
+  | "nomeExibicao"
+  | "bio"
+  | "conselho"
+  | "nroConselho"
+  | "especialidades";
+
+/**
+ * Allowlist por ramo do self-edit (M5). Gestão (podeGerenciarProfissional) edita
+ * tudo, inclusive o CRM (conselho/nroConselho) e especialidades. O próprio
+ * profissional NÃO-gestor edita só nomeExibicao + bio — NUNCA o próprio
+ * conselho/nroConselho (que documento-actions congela em receita/atestado, A2) nem
+ * suas especialidades. Função pura, testável sem DB; o gate real é a action.
+ */
+export function camposEditaveisProfissional(
+  session: Session | null,
+  ehProprio: boolean,
+): CampoProfissional[] {
+  if (!session) return [];
+  if (podeGerenciarProfissional(session)) {
+    return ["nomeExibicao", "bio", "conselho", "nroConselho", "especialidades"];
+  }
+  if (ehProprio) return ["nomeExibicao", "bio"];
+  return [];
+}
+
 export function podeConfigurarAgendaProfissional(
   session: Session | null,
   profissionalUserId: string,
@@ -120,18 +147,18 @@ export function podeAgendarEncaminhamento(session: Session | null): boolean {
 // ── F1.B.3 Documentos (Receita / Atestado) ───────────────────────────
 
 /**
- * Emitir receita/atestado (§F1.B.3): ato clínico do profissional DONO da
- * consulta. Gestão (super_admin/gestor_unidade) também pode emitir em nome da
- * unidade. Recepção/social NÃO emitem documentos clínicos.
+ * Emitir receita/atestado (§F1.B.3): ato clínico assinado, SÓ o profissional DONO
+ * da consulta. Sem bypass de admin/gestor — alinhado com podeAssinarNota (§0.4).
+ * O documento congela o conselho/nroConselho do profissional DA CONSULTA
+ * (documento-actions snapshot), então só ele pode legitimamente emitir com o
+ * próprio CRM: gestão "em nome da unidade" sairia com CRM alheio (impersonação).
+ * Não há CRM de unidade; co-assinatura exigiria schema novo (fora desta sprint).
+ * Recepção/social NÃO emitem documentos clínicos.
  */
 export function podeEmitirDocumento(
   session: Session | null,
   consultaProfissionalUserId: string,
 ): boolean {
   if (!session) return false;
-  if (hasAnyRole(session, "super_admin", "gestor_unidade")) return true;
-  if (hasAnyRole(session, "profissional") && session.user.id === consultaProfissionalUserId) {
-    return true;
-  }
-  return false;
+  return hasAnyRole(session, "profissional") && session.user.id === consultaProfissionalUserId;
 }

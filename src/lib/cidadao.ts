@@ -10,10 +10,69 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { normalizeCpf } from "@/lib/cpf";
 import { normalizeCep } from "@/lib/cep";
-import { can, getUserUnits, podeVerSaudeCidadao, podeVerSocioCidadao } from "@/lib/rbac";
+import {
+  can,
+  getUserUnits,
+  hasAnyRole,
+  podeVerSaudeCidadao,
+  podeVerSocioCidadao,
+} from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 
 export type CidadaoStatus = "ativo" | "anonimizado" | "deletado";
+
+/** Enum de status de compliance — fonte única para validar input do cliente. */
+export const STATUS_CIDADAO_VALIDOS = ["ativo", "anonimizado", "deletado"] as const;
+
+/**
+ * Quem pode VER cidadãos deletados/anonimizados (eixo de compliance LGPD).
+ * Ortogonal ao escopo de unidade (getUserUnits): `social` é global p/ unidade
+ * mas NÃO deve ver registros excluídos — por isso o gate usa só super_admin/gestor.
+ */
+export function podeVerCidadaosDeletados(session: Session | null): boolean {
+  return hasAnyRole(session, "super_admin", "gestor_unidade");
+}
+
+/**
+ * Pura: resolve o status efetivo da listagem a partir do pedido do cliente.
+ * Valida contra o enum E gate de papel: enum inválido OU pedido de
+ * deletado/anonimizado sem permissão → força "ativo" (defesa real no servidor,
+ * mesmo se o query param for forjado).
+ */
+export function resolveStatusCidadao(
+  statusPedido: string | undefined,
+  podeVerDeletados: boolean,
+): CidadaoStatus {
+  const valido = STATUS_CIDADAO_VALIDOS.includes(statusPedido as CidadaoStatus);
+  if (!valido) return "ativo";
+  const status = statusPedido as CidadaoStatus;
+  if (status === "ativo") return "ativo";
+  return podeVerDeletados ? status : "ativo";
+}
+
+/** Filtros da listagem de cidadãos que sobrevivem à paginação (URL state). */
+export interface CidadaoListUrlParams {
+  q?: string;
+  unidade?: string;
+  status?: string;
+  ciclo?: string;
+}
+
+/**
+ * Pura: monta o href de "Carregar mais" reanexando TODOS os filtros ativos +
+ * cursor. Sem isso, a página 2 perde q/unidade/status/ciclo (o link de paginação
+ * só levava o cursor). Reanexar `status` é seguro: o servidor (resolveStatusCidadao)
+ * força "ativo" p/ quem não pode ver deletados, então não reintroduz o gap M2.
+ */
+export function buildCarregarMaisHref(params: CidadaoListUrlParams, cursor: string): string {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set("q", params.q);
+  if (params.unidade) qs.set("unidade", params.unidade);
+  if (params.status) qs.set("status", params.status);
+  if (params.ciclo) qs.set("ciclo", params.ciclo);
+  qs.set("cursor", cursor);
+  return `/app/cidadaos?${qs.toString()}`;
+}
 
 export interface CidadaoListFilters {
   search?: string;
@@ -73,8 +132,9 @@ export async function listCidadaos(filters: CidadaoListFilters, session: Session
         : {}
       : { unitIdOrigem: { in: units } };
 
-  // Filtro de status: default = ativo
-  const status = filters.status ?? "ativo";
+  // Filtro de status: validado contra o enum + gated por papel. deletado/anonimizado
+  // só p/ super_admin/gestor (compliance LGPD); senão (ou enum inválido) → ativo.
+  const status = resolveStatusCidadao(filters.status, podeVerCidadaosDeletados(session));
   const statusFilter =
     status === "ativo"
       ? { deletedAt: null, anonimizadoEm: null }

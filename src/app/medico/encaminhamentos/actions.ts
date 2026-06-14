@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { podeEncaminhar, podeAgendarEncaminhamento } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { cancelarEncaminhamento } from "@/lib/medico/encaminhamento";
 import { reservarSlot, SlotIndisponivelError } from "@/lib/medico/agenda";
 import { logEvent } from "@/lib/audit";
@@ -18,6 +19,16 @@ export async function cancelarEncaminhamentoAction(formData: FormData) {
 
   const id = String(formData.get("encaminhamentoId"));
   const motivo = String(formData.get("motivo") ?? "").trim() || undefined;
+
+  // A1 IDOR guard: encaminhamentoId vem do cliente; carrega o enc e exige acesso
+  // à unidade do cidadão dele antes de cancelar.
+  const enc = await db.encaminhamento.findUnique({
+    where: { id },
+    select: { cidadaoId: true },
+  });
+  if (!enc) throw new Error("Encaminhamento não encontrado");
+  await assertAcessoCidadao(session, enc.cidadaoId, "edit");
+
   await cancelarEncaminhamento(id, motivo);
   await logEvent({
     userId: session!.user.id,
@@ -43,6 +54,10 @@ export async function encaixarEncaminhamentoAction(formData: FormData) {
   if (!enc || enc.status !== "aguardando_agendamento") {
     redirect("/medico/encaminhamentos?erro=encaixe" as Route);
   }
+
+  // A1 IDOR guard: exige acesso à unidade do cidadão do encaminhamento antes de
+  // reservar o slot e marcar a consulta.
+  await assertAcessoCidadao(session, enc.cidadaoId, "edit");
 
   const slot = await db.slot.findFirst({
     where: {

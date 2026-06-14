@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeEmitirDocumento } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { ReceitaItensSchema, normalizarReceitaItens } from "@/lib/medico/receita";
 
 /** Lê um campo de texto do FormData, normaliza para `string | null`. */
@@ -46,6 +47,10 @@ async function carregarConsultaParaDocumento(consultaId: string) {
   if (!podeEmitirDocumento(session, consulta.profissional.userId)) {
     throw new Error("Sem permissão para emitir documentos desta consulta");
   }
+
+  // A1 IDOR guard: confirma acesso à unidade do cidadão da consulta (consultaId
+  // vem do cliente; o gate de rota não confere a unidade do OBJETO).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
 
   return { session, consulta };
 }

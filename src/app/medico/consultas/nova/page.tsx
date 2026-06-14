@@ -1,9 +1,10 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
-import { canAccessUnidade } from "@/lib/rbac";
+import { canAccessUnidade, getUserUnits } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
@@ -90,6 +91,12 @@ export default async function NovaConsultaPage({
     }
   }
 
+  // A1: escopo de unidade da busca (mesmo shape de listCidadaos). super_admin/
+  // presidencia/social veem "all" (todas as unidades, por design); os demais só
+  // as suas — sem isso a busca do step-1 vaza cidadãos de todas as unidades.
+  const units = getUserUnits(session);
+  const unitFilter = units === "all" ? {} : { unitIdOrigem: { in: units } };
+
   // ---- Step 1: buscar cidadão ----
   if (!sp.cidadaoId) {
     // CPF só entra no OR se a query tiver dígitos: senão `contains: ""` vira
@@ -99,6 +106,7 @@ export default async function NovaConsultaPage({
       ? await db.cidadao.findMany({
           where: {
             deletedAt: null, // soft-delete real (NÃO existe status "deletado")
+            ...unitFilter,
             OR: [
               { nomeCompleto: { contains: sp.q, mode: "insensitive" } },
               { telefonePrincipal: { contains: sp.q } },
@@ -166,6 +174,14 @@ export default async function NovaConsultaPage({
         </Card>
       </MedicoShell>
     );
+  }
+
+  // A1 IDOR guard: cidadaoId vem da URL (cliente). Confere acesso à unidade do
+  // cidadão antes de pré-carregar; cross-unidade → notFound() (não vaza existência).
+  try {
+    await assertAcessoCidadao(session, sp.cidadaoId, "view");
+  } catch {
+    notFound();
   }
 
   const cidadao = await db.cidadao.findUniqueOrThrow({ where: { id: sp.cidadaoId } });

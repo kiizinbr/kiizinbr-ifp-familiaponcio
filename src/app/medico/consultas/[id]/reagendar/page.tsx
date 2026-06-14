@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
@@ -35,6 +36,16 @@ export default async function ReagendarPage({
     },
   });
   if (!consulta) notFound();
+
+  // A1 IDOR guard (read-side): o gate de rota/papel NÃO confere a unidade do
+  // OBJETO. Esta tela vaza nome do paciente e permite reagendar consulta de
+  // outra unidade. Exige acesso à unidade do cidadão (catch → notFound).
+  try {
+    await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
+  } catch {
+    notFound();
+  }
+
   if (!STATUS_REAGENDAVEL.has(consulta.status)) {
     redirect(`/medico/consultas/${id}?erro=nao_reagendavel` as Route);
   }

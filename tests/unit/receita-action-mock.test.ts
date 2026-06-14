@@ -34,6 +34,12 @@ vi.mock("@/lib/rbac", () => ({
 vi.mock("@/lib/medico/rbac", () => ({
   podeEmitirDocumento: vi.fn().mockReturnValue(true),
 }));
+// O guard de objeto (A1) é exercido em medico-idor-actions.test.ts; aqui é
+// passthrough pra focar na orquestração dos itens da receita (e porque @/lib/rbac
+// está mockado sem `can`, que assertAcessoCidadao real usaria).
+vi.mock("@/lib/cidadao-authz", () => ({
+  assertAcessoCidadao: vi.fn().mockResolvedValue({ id: "cid1", unitIdOrigem: "medico" }),
+}));
 vi.mock("@/lib/audit", () => ({ logEvent: logEventMock }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));

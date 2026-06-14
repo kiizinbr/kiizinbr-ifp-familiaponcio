@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { podeGerenciarProfissional } from "@/lib/medico/rbac";
+import { camposEditaveisProfissional, podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { formatarDiasSemana } from "@/lib/medico/ui";
 import { atualizarProfissionalAction, toggleProfissionalAction } from "../actions";
 
@@ -31,7 +31,13 @@ export default async function ProfissionalDetalhePage({
   });
   if (!prof) notFound();
 
-  const podeEditar = podeGerenciarProfissional(session) || session.user.id === prof.userId;
+  const ehProprio = session.user.id === prof.userId;
+  const campos = camposEditaveisProfissional(session, ehProprio);
+  const podeEditar = campos.length > 0;
+  // M5 — espelha a allowlist da action: o dono não-gestor não edita o próprio
+  // CRM/especialidades (defesa em profundidade; o gate real é a action).
+  const podeEditarCrm = campos.includes("conselho");
+  const podeEditarEspecialidades = campos.includes("especialidades");
   const especialidades = await db.especialidade.findMany({
     where: { ativa: true },
     orderBy: { nome: "asc" },
@@ -94,51 +100,92 @@ export default async function ProfissionalDetalhePage({
                   className="input"
                 />
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="field-group">
-                  <span className="label">Conselho</span>
-                  <input name="conselho" defaultValue={prof.conselho} required className="input" />
-                </label>
-                <label className="field-group">
-                  <span className="label">Nº conselho</span>
-                  <input
-                    name="nroConselho"
-                    defaultValue={prof.nroConselho}
-                    required
-                    className="input"
-                  />
-                </label>
-              </div>
-              <fieldset>
-                <legend className="label">Especialidades</legend>
-                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {especialidades.map((e) => (
-                    <label
-                      key={e.id}
-                      className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm transition hover:[border-color:var(--line-strong)]"
-                      style={{
-                        border: "1px solid var(--line)",
-                        borderRadius: "var(--r-sm)",
-                        background: "var(--surface)",
-                        color: "var(--text)",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        name="especialidadeIds"
-                        value={e.id}
-                        defaultChecked={selecionadas.has(e.id)}
-                        style={{ accentColor: "var(--accent)" }}
-                      />
-                      <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ background: e.corDestaque }}
-                      />
-                      <span className="truncate">{e.nome}</span>
-                    </label>
-                  ))}
+              {podeEditarCrm ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="field-group">
+                    <span className="label">Conselho</span>
+                    <input
+                      name="conselho"
+                      defaultValue={prof.conselho}
+                      required
+                      className="input"
+                    />
+                  </label>
+                  <label className="field-group">
+                    <span className="label">Nº conselho</span>
+                    <input
+                      name="nroConselho"
+                      defaultValue={prof.nroConselho}
+                      required
+                      className="input"
+                    />
+                  </label>
                 </div>
-              </fieldset>
+              ) : (
+                // Dono não-gestor: CRM é só leitura (a action também o preserva).
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="field-group">
+                    <span className="label">Conselho</span>
+                    <p className="t-body" style={{ color: "var(--text-3)" }}>
+                      {prof.conselho} {prof.nroConselho}
+                    </p>
+                    <span className="micro" style={{ color: "var(--text-3)" }}>
+                      Só a gestão altera o registro do conselho.
+                    </span>
+                  </div>
+                </div>
+              )}
+              {podeEditarEspecialidades ? (
+                <fieldset>
+                  <legend className="label">Especialidades</legend>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {especialidades.map((e) => (
+                      <label
+                        key={e.id}
+                        className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm transition hover:[border-color:var(--line-strong)]"
+                        style={{
+                          border: "1px solid var(--line)",
+                          borderRadius: "var(--r-sm)",
+                          background: "var(--surface)",
+                          color: "var(--text)",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          name="especialidadeIds"
+                          value={e.id}
+                          defaultChecked={selecionadas.has(e.id)}
+                          style={{ accentColor: "var(--accent)" }}
+                        />
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ background: e.corDestaque }}
+                        />
+                        <span className="truncate">{e.nome}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : (
+                // Dono não-gestor: especialidades em só leitura (a action as preserva).
+                <div className="field-group">
+                  <span className="label">Especialidades</span>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {prof.especialidades.map((pe) => (
+                      <span
+                        key={pe.especialidadeId}
+                        className="rounded-[var(--r-sm)] px-2 py-0.5 text-[11px] font-medium"
+                        style={{
+                          background: pe.especialidade.corDestaque + "1f",
+                          color: pe.especialidade.corDestaque,
+                        }}
+                      >
+                        {pe.especialidade.nome}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <label className="field-group">
                 <span className="label">Bio</span>
                 <textarea name="bio" defaultValue={prof.bio ?? ""} rows={3} className="textarea" />
