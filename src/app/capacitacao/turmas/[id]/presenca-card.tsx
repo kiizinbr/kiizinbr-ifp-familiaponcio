@@ -2,6 +2,8 @@ import { registrarPresencasAction } from "../../actions";
 import { resumoFrequencia } from "@/lib/capacitacao/presenca";
 import { SubmitButton } from "@/components/ui/submit-button";
 import styles from "../../capacitacao.module.css";
+import { PresencaToggle } from "./presenca-toggle";
+import { PresencaAtalho } from "./presenca-atalho";
 
 type MatriculadoPresenca = {
   id: string;
@@ -10,9 +12,11 @@ type MatriculadoPresenca = {
 };
 
 /**
- * Registro de presença mobile-first (F1.A.2): cada linha é um rótulo tappável com
- * checkbox (default = presente; toque marca falta). Mostra a frequência acumulada
- * por aluna. Server component — usa form action; idempotente por (matrícula, data).
+ * Registro de presença mobile-first (F1): a instrutora usa no CELULAR (~375px).
+ * Cada linha tem um toggle segmentado Presente/Falta com SEMÂNTICA CORRETA (1
+ * toque, alvo ≥44px no gate coarse) — substitui o checkbox 22px invertido. Mostra
+ * a frequência acumulada por aluna. Server Component — usa form action; idempotente
+ * por (matrícula, data). A lógica/contrato da action permanece INTOCADA.
  */
 export function PresencaCard({
   turmaId,
@@ -34,44 +38,80 @@ export function PresencaCard({
           <input type="hidden" name="turmaId" value={turmaId} />
           <input type="hidden" name="roster" value={matriculados.map((m) => m.id).join(",")} />
 
-          <label className={styles.label} style={{ maxWidth: 240 }}>
-            <span className={styles.labelText}>Data da aula</span>
-            <input type="date" name="data" defaultValue={hoje} required className={styles.select} />
-          </label>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <label className={styles.label} style={{ maxWidth: 240, marginBottom: 0 }}>
+              <span className={styles.labelText}>Data da aula</span>
+              <input
+                type="date"
+                name="data"
+                defaultValue={hoje}
+                required
+                className={styles.select}
+              />
+            </label>
+            <PresencaAtalho />
+          </div>
 
-          <ul style={{ listStyle: "none", margin: "14px 0", padding: 0, display: "grid", gap: 6 }}>
+          <ul style={{ listStyle: "none", margin: "14px 0", padding: 0, display: "grid", gap: 8 }}>
             {matriculados.map((m) => {
               const r = resumoFrequencia(m.presencas);
               return (
                 <li key={m.id}>
-                  <label
+                  <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
-                      padding: "12px 14px",
+                      gap: 12,
+                      minHeight: 56,
+                      padding: "8px 14px",
                       border: "1px solid var(--line)",
                       borderRadius: 10,
-                      cursor: "pointer",
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      name={`p_${m.id}`}
-                      defaultChecked
-                      style={{ width: 22, height: 22, flex: "none" }}
-                    />
-                    <span style={{ flex: 1, color: "var(--text)" }}>{m.nome}</span>
-                    <span className={styles.micro}>
-                      {r.total > 0 ? `${r.percentual}% · ${r.presentes}/${r.total}` : "—"}
-                    </span>
-                  </label>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          color: "var(--text)",
+                          fontWeight: 600,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {m.nome}
+                      </div>
+                      <span className={styles.micro}>
+                        {r.total > 0 ? `${r.percentual}% · ${r.presentes}/${r.total}` : "Sem aulas"}
+                      </span>
+                    </div>
+                    <PresencaToggle id={m.id} nomeAcessivel={m.nome} />
+                  </div>
                 </li>
               );
             })}
           </ul>
 
-          <SubmitButton pendingLabel="Salvando presença…">Salvar presença do dia</SubmitButton>
+          <div
+            style={{
+              position: "sticky",
+              bottom: 0,
+              paddingTop: 12,
+              paddingBottom: 4,
+              background: "var(--surface)",
+            }}
+          >
+            <SubmitButton pendingLabel="Salvando presença…" size="lg" className="btn-block">
+              Salvar chamada do dia
+            </SubmitButton>
+          </div>
         </form>
       </div>
     </div>
