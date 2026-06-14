@@ -7,6 +7,7 @@ import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { podeGerenciarProfissional } from "@/lib/medico/rbac";
 import { formatarDiasSemana } from "@/lib/medico/ui";
 import { atualizarProfissionalAction, toggleProfissionalAction } from "../actions";
@@ -45,19 +46,35 @@ export default async function ProfissionalDetalhePage({
         descricao={`${prof.conselho} ${prof.nroConselho}`}
         acao={
           podeGerenciarProfissional(session) ? (
-            <form action={toggleProfissionalAction}>
-              <input type="hidden" name="id" value={prof.id} />
-              <SubmitButton
-                variant="secondary"
-                pendingLabel="Aplicando…"
-                style={{
-                  borderColor: prof.ativo ? "var(--danger)" : "var(--accent)",
-                  color: prof.ativo ? "var(--danger)" : "var(--accent)",
-                }}
-              >
-                {prof.ativo ? "Desativar" : "Reativar"}
-              </SubmitButton>
-            </form>
+            prof.ativo ? (
+              // Desativar é destrutivo (some das novas reservas): confirma via
+              // ConfirmDialog do kit. A action (toggleProfissionalAction) e o
+              // campo `id` são idênticos — o diálogo só ENVOLVE.
+              <ConfirmDialog
+                action={toggleProfissionalAction}
+                danger
+                triggerVariant="secondary"
+                triggerLabel="Desativar"
+                title="Desativar profissional?"
+                message="Some das novas reservas na agenda."
+                confirmLabel="Desativar"
+                hiddenFields={{ id: prof.id }}
+              />
+            ) : (
+              <form action={toggleProfissionalAction}>
+                <input type="hidden" name="id" value={prof.id} />
+                <SubmitButton
+                  variant="secondary"
+                  pendingLabel="Aplicando…"
+                  style={{
+                    borderColor: "var(--accent)",
+                    color: "var(--accent)",
+                  }}
+                >
+                  Reativar
+                </SubmitButton>
+              </form>
+            )
           ) : undefined
         }
       />
