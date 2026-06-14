@@ -97,6 +97,12 @@
   --t-fast: 120ms ease-out;
   --t-base: 200ms ease-out;
   --t-slow: 320ms ease-out;
+
+  /* Responsivo / toque (WCAG 2.5.5). Breakpoint canônico do shell = 880px
+     (literal nas media queries — var() não vale em @media). */
+  --tap-min: 44px;
+  --tap-gap: 8px;
+  --z-drawer: 250; /* < modal-scrim (300), > topbar (20) */
 }
 
 /* === 3. CAMADA SEMÂNTICA — TEMA CLARO ===================================== */

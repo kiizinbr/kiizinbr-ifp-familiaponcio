@@ -14,7 +14,10 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname() ?? "";
 
   return (
-    <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <nav
+      aria-label="Navegação principal"
+      style={{ display: "flex", flexDirection: "column", gap: 2 }}
+    >
       {items.map((it) => {
         const active =
           pathname === it.href || (it.href !== "/app" && pathname.startsWith(`${it.href}/`));

@@ -918,7 +918,11 @@ table.tbl .cell-mono {
   gap: 10px;
   padding: 6px 8px 16px;
 }
-.sidebar .sb-brand .symbol {
+/* Símbolo da marca — fonte única compartilhada pela sidebar (desktop) e pela
+   faixa/drawer mobile (.mobile-topbar-brand), em vez de duas cópias das mesmas
+   medidas/tokens. */
+.sidebar .sb-brand .symbol,
+.mobile-topbar-brand .symbol {
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -929,7 +933,8 @@ table.tbl .cell-mono {
   overflow: hidden;
   flex: none;
 }
-.sidebar .sb-brand .symbol img {
+.sidebar .sb-brand .symbol img,
+.mobile-topbar-brand .symbol img {
   width: 23px;
   height: 23px;
   object-fit: contain;
@@ -1082,6 +1087,160 @@ table.tbl .cell-mono {
   align-items: start;
 }
 
+/* ===== NAV MOBILE — faixa com hambúrguer + drawer lateral ================
+   Peça IRMÃ da .sidebar (não a envolve). Default (desktop ≥881px) = TUDO
+   `display:none`: o desktop não muda. Aparecem só dentro do @media ≤880px
+   abaixo. Visual do scrim espelha o .modal-scrim; z-index disciplinado:
+   drawer (--z-drawer = 250) < modal-scrim (300), > topbar (20). */
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.mobile-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* .symbol e .symbol img da marca: regra compartilhada com .sb-brand (acima). */
+.mobile-topbar-brand b {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.mobile-topbar-burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px;
+}
+.drawer-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-drawer) - 1);
+  background: rgba(15, 18, 18, 0.45);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-base);
+}
+.drawer-scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.drawer {
+  display: none;
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(86vw, 320px);
+  height: 100dvh;
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  z-index: var(--z-drawer);
+  transform: translateX(-100%);
+  transition: transform var(--t-base);
+}
+.drawer.is-open {
+  transform: translateX(0);
+}
+.drawer .drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px 16px;
+}
+.drawer .drawer-close {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 6px;
+}
+.drawer .drawer-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+/* Botão-link discreto ("Sair") — fonte única do kit para o controle que antes
+   vivia como classe no drawer e como style inline na sidebar (drift de 13px↔12px).
+   Mantém o baseline do desktop (12px) para a sidebar não regredir. */
+.btn-link-muted {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ===== TAP TARGETS — fonte da verdade do toque (consumida por F2/F3) =====
+   `.tap-area`: hit-area p/ alvos minúsculos (ex.: "Sair", "desfazer") sem
+   inflar padding/fonte — absorve o excedente com margem negativa (padrão do
+   .cidChipBtn). O piso de 44px dos CONTROLES do kit é gated por LARGURA +
+   `pointer:coarse` (`max-width:880px` = breakpoint do shell): um desktop/2-em-1
+   com tela de toque reporta `pointer:coarse` MESMO a 1920px, então gatear só
+   pela modalidade inflaria botões/inputs/sidebar em largura de desktop
+   (regressão). Abaixo de 880px o piso vale; o desktop (≥881px, mouse ou toque)
+   segue idêntico ao baseline. */
+.tap-area {
+  display: inline-flex;
+  align-items: center;
+}
+@media (max-width: 880px) and (pointer: coarse) {
+  .tap-area {
+    min-height: var(--tap-min);
+    /* alvos só-ícone (hambúrguer, fechar, setas) precisam dos dois eixos
+       (WCAG 2.5.5) — sem min-width a largura ficava < 44px. */
+    min-width: var(--tap-min);
+    justify-content: center;
+    margin-block: -6px;
+  }
+  .btn,
+  .btn-sm,
+  .input,
+  .select,
+  .textarea,
+  .nav-item,
+  .toggle-pill,
+  .segmented button {
+    min-height: var(--tap-min);
+  }
+  /* botões garantem 44px nos DOIS eixos — setas de semana (←/→) e demais
+     botões só-glifo ficavam com largura < 44px só com o piso de altura. */
+  .btn,
+  .btn-sm {
+    min-width: var(--tap-min);
+  }
+  .btn + .btn {
+    margin-left: var(--tap-gap);
+  }
+}
+
 @media (max-width: 880px) {
   .shell {
     grid-template-columns: 1fr;
@@ -1091,6 +1250,27 @@ table.tbl .cell-mono {
   }
   .agenda-dia-layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+  /* Tablet: a grade por profissional é o destino do CTA "Abrir Agenda do dia",
+     então os 10px/10.5px do desktop precisam subir aqui (audit: fonte ilegível
+     p/ ~45 anos). Sobe horas, chips e nomes para ≥12.5px; desktop ≥881px segue
+     no baseline (estas regras só existem ≤880px). */
+  .agenda-dia-grade .ad-hour,
+  .agenda-dia-grade .ad-chip {
+    font-size: 12.5px;
+  }
+  .agenda-dia-grade .micro {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .mobile-topbar {
+    display: flex;
+  }
+  .drawer {
+    display: flex;
+  }
+  .drawer-scrim {
+    display: block;
   }
 }
 

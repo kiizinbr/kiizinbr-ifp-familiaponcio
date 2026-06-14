@@ -8,6 +8,7 @@ import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { criarEspecialidadeAction, toggleEspecialidadeAction } from "./actions";
 
 export default async function EspecialidadesPage() {
@@ -104,24 +105,41 @@ export default async function EspecialidadesPage() {
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <span className="mono text-3 text-[11px]">{esp.corDestaque}</span>
-                <form action={toggleEspecialidadeAction}>
-                  <input type="hidden" name="id" value={esp.id} />
-                  <SubmitButton
-                    variant="ghost"
-                    size="sm"
-                    pendingLabel="Aplicando…"
-                    className="underline-offset-2 hover:underline"
-                    style={{
-                      padding: 0,
-                      background: "transparent",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--accent)",
-                    }}
-                  >
-                    {esp.ativa ? "Desativar" : "Reativar"}
-                  </SubmitButton>
-                </form>
+                {esp.ativa ? (
+                  // Desativar é destrutivo (some do catálogo): confirma via
+                  // ConfirmDialog do kit. A action (toggleEspecialidadeAction) e
+                  // o campo `id` são idênticos — o diálogo só ENVOLVE.
+                  <ConfirmDialog
+                    action={toggleEspecialidadeAction}
+                    danger
+                    triggerVariant="ghost"
+                    triggerSize="sm"
+                    triggerLabel="Desativar"
+                    title="Desativar especialidade?"
+                    message="Some do catálogo de especialidades atendidas."
+                    confirmLabel="Desativar"
+                    hiddenFields={{ id: esp.id }}
+                  />
+                ) : (
+                  <form action={toggleEspecialidadeAction}>
+                    <input type="hidden" name="id" value={esp.id} />
+                    <SubmitButton
+                      variant="ghost"
+                      size="sm"
+                      pendingLabel="Aplicando…"
+                      className="underline-offset-2 hover:underline"
+                      style={{
+                        padding: 0,
+                        background: "transparent",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "var(--accent)",
+                      }}
+                    >
+                      Reativar
+                    </SubmitButton>
+                  </form>
+                )}
               </div>
             </div>
           ))}

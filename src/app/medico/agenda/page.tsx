@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
@@ -6,6 +7,8 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { corTextoSobre } from "@/lib/medico/ui";
 
 const HORA_INICIO = 7;
 const HORA_FIM = 20;
@@ -83,12 +86,14 @@ export default async function AgendaSemanalPage({
             <a
               href={`/medico/agenda?semana=${ymd(semanaAnterior)}${sp.profissionalId ? `&profissionalId=${sp.profissionalId}` : ""}${sp.especialidadeId ? `&especialidadeId=${sp.especialidadeId}` : ""}`}
               className="btn btn-secondary btn-sm"
+              aria-label="Semana anterior"
             >
               ←
             </a>
             <a
               href={`/medico/agenda?semana=${ymd(semanaProxima)}${sp.profissionalId ? `&profissionalId=${sp.profissionalId}` : ""}${sp.especialidadeId ? `&especialidadeId=${sp.especialidadeId}` : ""}`}
               className="btn btn-secondary btn-sm"
+              aria-label="Semana seguinte"
             >
               →
             </a>
@@ -99,7 +104,12 @@ export default async function AgendaSemanalPage({
       {/* Filtros */}
       <form method="get" className="mb-5 flex flex-wrap items-center gap-2">
         <input type="hidden" name="semana" value={ymd(inicio)} />
-        <select name="profissionalId" defaultValue={sp.profissionalId ?? ""} className={selectCls}>
+        <select
+          name="profissionalId"
+          defaultValue={sp.profissionalId ?? ""}
+          className={selectCls}
+          aria-label="Filtrar por profissional"
+        >
           <option value="">Todos os profissionais</option>
           {profs.map((p) => (
             <option key={p.id} value={p.id}>
@@ -111,6 +121,7 @@ export default async function AgendaSemanalPage({
           name="especialidadeId"
           defaultValue={sp.especialidadeId ?? ""}
           className={selectCls}
+          aria-label="Filtrar por especialidade"
         >
           <option value="">Todas as especialidades</option>
           {especialidades.map((e) => (
@@ -137,7 +148,22 @@ export default async function AgendaSemanalPage({
         </div>
       </form>
 
-      <Card className="overflow-x-auto !p-0">
+      {/* No tablet (≤880px) a grade semanal de 820px fica ilegível: a área de
+          toque é a Agenda do dia. Split por breakpoint canônico do kit (880px)
+          via utilitário responsivo — desktop ≥881px segue idêntico ao baseline. */}
+      <div className="min-[881px]:hidden">
+        <EmptyState
+          titulo="Grade otimizada para tela grande"
+          descricao="A agenda semanal é melhor lida no computador. No tablet, use a Agenda do dia."
+          cta={
+            <Link href={"/medico/agenda-dia" as Route} className="btn btn-lg btn-primary">
+              Abrir Agenda do dia
+            </Link>
+          }
+        />
+      </div>
+
+      <Card className="overflow-x-auto !p-0 max-[880px]:hidden">
         <div className="min-w-[820px]">
           {/* Cabeçalho dos dias */}
           <div
@@ -274,7 +300,7 @@ export default async function AgendaSemanalPage({
                             : isReserved
                               ? cor
                               : cor + "26",
-                          color: isReserved ? "#fff" : "var(--text)",
+                          color: isReserved ? corTextoSobre(cor) : "var(--text)",
                           borderLeft: `2px solid ${cor}`,
                         }}
                       >

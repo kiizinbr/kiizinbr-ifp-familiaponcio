@@ -258,6 +258,7 @@ export default async function ConsultaDetalhePage({
                         variant="ghost"
                         size="sm"
                         pendingLabel="Desfazendo…"
+                        className="tap-area"
                         style={{
                           background: "none",
                           border: 0,
@@ -288,6 +289,26 @@ export default async function ConsultaDetalhePage({
                   p,
                   consulta.profissional.userId,
                 );
+                // "Marcar falta" é destrutivo (mexe no histórico do paciente):
+                // pede confirmação real via ConfirmDialog do kit. A action é a
+                // MESMA (transitionAction) e os campos viajam por hiddenFields —
+                // o diálogo só ENVOLVE. Quando `!ok`, cai no SubmitButton
+                // desabilitado (sem confirmar nada, comportamento idêntico).
+                if (p === "faltou" && ok) {
+                  return (
+                    <ConfirmDialog
+                      key={p}
+                      action={transitionAction}
+                      danger
+                      triggerVariant="secondary"
+                      triggerLabel={ACAO_LABEL.faltou ?? "Marcar falta"}
+                      title="Marcar falta?"
+                      message="Isso afeta o histórico do paciente."
+                      confirmLabel="Marcar falta"
+                      hiddenFields={{ id: consulta.id, para: "faltou" }}
+                    />
+                  );
+                }
                 return (
                   <form key={p} action={transitionAction}>
                     <input type="hidden" name="id" value={consulta.id} />

@@ -9,6 +9,7 @@ import { getConsultasHoje } from "@/lib/medico/agenda-dia";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { formatCpf } from "@/lib/cpf";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
@@ -75,6 +76,7 @@ export default async function RecepcaoPage({
           <input
             name="q"
             defaultValue={q ?? ""}
+            aria-label="Buscar paciente"
             placeholder="Buscar paciente por nome, CPF ou telefone"
             className="input"
             style={{ flex: 1 }}
@@ -84,12 +86,15 @@ export default async function RecepcaoPage({
           </SubmitButton>
         </form>
         {q && matches.length === 0 ? (
-          <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-3)" }}>
-            Ninguém encontrado.{" "}
-            <Link href={"/app/cidadaos/novo" as Route} style={{ color: "var(--accent)" }}>
-              Cadastrar
-            </Link>
-          </p>
+          <EmptyState
+            titulo="Ninguém encontrado"
+            descricao="Nenhum paciente bate com essa busca. Confira o nome, o CPF ou o telefone — ou cadastre um novo."
+            cta={
+              <Link href={"/app/cidadaos/novo" as Route} className="btn btn-secondary">
+                Cadastrar paciente
+              </Link>
+            }
+          />
         ) : null}
         {matches.length > 0 ? (
           <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
@@ -121,9 +126,10 @@ export default async function RecepcaoPage({
         Agenda de hoje ({consultas.length})
       </h2>
       {consultas.length === 0 ? (
-        <Card>
-          <p style={{ color: "var(--text-3)" }}>Sem consultas hoje.</p>
-        </Card>
+        <EmptyState
+          titulo="Sem consultas hoje"
+          descricao="Nenhuma consulta na agenda de hoje. Marque a primeira pelo botão acima."
+        />
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
           {consultas.map((c) => {

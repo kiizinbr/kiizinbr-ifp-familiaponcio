@@ -10,7 +10,7 @@ import {
   type ConsultaDoDia,
   type SlotDoDia,
 } from "@/lib/medico/agenda-dia";
-import { CONSULTA_VISUAL } from "@/lib/medico/ui";
+import { CONSULTA_VISUAL, corTextoSobre } from "@/lib/medico/ui";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { KpiCard } from "@/components/kpi-card";
 import { Card } from "@/components/ui/card";
@@ -210,7 +210,7 @@ export default async function AgendaDiaPage() {
               />
             </div>
           ) : (
-            <div style={{ minWidth: 120 + colunas.length * 160 }}>
+            <div className="agenda-dia-grade" style={{ minWidth: 120 + colunas.length * 160 }}>
               {/* Cabeçalho de colunas */}
               <div
                 className="grid border-b"
@@ -268,7 +268,7 @@ export default async function AgendaDiaPage() {
                   {horas.map((h) => (
                     <div
                       key={h}
-                      className="absolute right-1.5 -translate-y-1/2 text-[10px] tabular-nums"
+                      className="ad-hour absolute right-1.5 -translate-y-1/2 text-[10px] tabular-nums"
                       style={{ top: (h - HORA_INICIO) * 60 * PX_POR_MIN, color: "var(--text-3)" }}
                     >
                       {String(h).padStart(2, "0")}h
@@ -304,7 +304,7 @@ export default async function AgendaDiaPage() {
                       return (
                         <div
                           key={s.id}
-                          className="absolute right-0.5 left-0.5 overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight"
+                          className="ad-chip absolute right-0.5 left-0.5 overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight"
                           title={`Livre · ${horaCurta(s.dataHoraInicio)} · ${s.especialidade.nome}`}
                           style={{
                             top: minDia * PX_POR_MIN,
@@ -335,12 +335,12 @@ export default async function AgendaDiaPage() {
                           key={c.id}
                           href={`/medico/consultas/${c.id}` as Route}
                           title={`${nomeExibido} · ${horaCurta(c.slot.dataHoraInicio)} · ${c.especialidade.nome}`}
-                          className="absolute right-0.5 left-0.5 block overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight no-underline"
+                          className="ad-chip absolute right-0.5 left-0.5 block overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight no-underline"
                           style={{
                             top: minDia * PX_POR_MIN,
                             height: Math.max(c.slot.duracaoMin * PX_POR_MIN - 2, 14),
                             background: cor,
-                            color: "#fff",
+                            color: corTextoSobre(cor),
                             borderLeft: `2px solid ${cor}`,
                           }}
                         >
