@@ -282,7 +282,7 @@ export default async function MedicoHomePage() {
       </section>
 
       <p className="micro" style={{ marginTop: 32, color: "var(--text-3)" }}>
-        Centro Médico · Duque de Caxias / RJ · Atualizado em tempo real
+        Centro Médico · Duque de Caxias / RJ · Atualizado em tempo real · IFP
       </p>
     </MedicoShell>
   );
