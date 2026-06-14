@@ -5,7 +5,13 @@ import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { listCidadaos, calcularIdade, type CidadaoStatus } from "@/lib/cidadao";
+import {
+  listCidadaos,
+  calcularIdade,
+  podeVerCidadaosDeletados,
+  buildCarregarMaisHref,
+  type CidadaoStatus,
+} from "@/lib/cidadao";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { formatCpf } from "@/lib/cpf";
 import { UNIT_SCOPES, type UnitScope } from "@/lib/rbac-types";
@@ -60,6 +66,11 @@ export default async function CidadaosPage({
   const ciclo = CICLO_VALUES.includes(params.ciclo as CicloFilter)
     ? (params.ciclo as CicloFilter)
     : undefined;
+
+  // Gate de compliance: só super_admin/gestor veem excluídos/anonimizados (eixo
+  // ortogonal ao escopo de unidade). Defesa em profundidade na UI; o gate real
+  // é no servidor (listCidadaos via resolveStatusCidadao).
+  const podeVerDeletados = podeVerCidadaosDeletados(session);
 
   const { items, nextCursor } = await listCidadaos(
     {
@@ -139,8 +150,12 @@ export default async function CidadaosPage({
           <label className="label">Status</label>
           <select name="status" defaultValue={params.status ?? "ativo"} className="select">
             <option value="ativo">Ativos</option>
-            <option value="deletado">Excluídos</option>
-            <option value="anonimizado">Anonimizados (LGPD)</option>
+            {podeVerDeletados && (
+              <>
+                <option value="deletado">Excluídos</option>
+                <option value="anonimizado">Anonimizados (LGPD)</option>
+              </>
+            )}
           </select>
         </div>
         <div className="field-group" style={{ marginBottom: 0 }}>
@@ -231,7 +246,10 @@ export default async function CidadaosPage({
 
       {nextCursor && (
         <div style={{ marginTop: "var(--sp-4)", textAlign: "center" }}>
-          <Link href={`/app/cidadaos?cursor=${nextCursor}` as Route} className="btn btn-secondary">
+          <Link
+            href={buildCarregarMaisHref(params, nextCursor) as Route}
+            className="btn btn-secondary"
+          >
             Carregar mais
           </Link>
         </div>
