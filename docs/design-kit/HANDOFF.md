@@ -41,6 +41,8 @@ Quatro camadas, todas em `ifp-tokens.css`:
 
 > **Regra de ouro:** uma marca só. O que muda entre unidades é o **acento** (a "cor do crachá") — nunca a tipografia, o layout, a densidade ou o fundo.
 
+> **Onde os contratos já são emitidos no app (2026-06-14):** `data-theme="light|dark"` sai do layout raiz (`src/app/layout.tsx`). `data-unit` + `data-unit-accent` **não** vêm de um `layout.tsx` de segmento — vêm do **shell de componente**: `AppShell` (`src/components/app-shell.tsx`) recebe a prop `unit` e emite ambos no `.shell.ifp-kit`; o subtree inteiro herda. O Centro Médico usa `MedicoShell` (`src/components/medico/medico-shell.tsx`), que chama `<AppShell unit="medico">` — por isso todas as telas `/medico/*` já carregam o acento teal (`--accent` → `--unit` = `#007571`) sem nenhum CSS de acento por tela. **Dentro do subtree do `AppShell` (rotas `/medico/*` e demais servidas por shell), não recriar** o acento via um `layout.tsx` de segmento nem via `<TemaUnidade>`: aí seria um segundo mecanismo concorrente para o mesmo contrato. Para uma unidade nova com shell, basta um shell análogo passando `unit="<slug>"`. (`<TemaUnidade>` continua sendo o mecanismo legítimo de acento por subtree **fora** do shell — é o provider oficial do tema CASA / slice 1, em uso real em `/inicio`, `/acesso`, `/login` e `/verificar`.)
+
 ### 4º contrato — tema CASA por subtree (camada aditiva, 2026-06-12)
 
 | Atributo | Onde | Efeito |
@@ -146,7 +148,7 @@ Cada um é HTML autossuficiente em `scaffolds/` e `preview/`. Para cada um, ver 
    @import "./styles/ifp-tokens.css";
    @import "./styles/ifp-components.css";
    ```
-2. Coloque `data-theme` no `<html>` (layout raiz) e leia a preferência do usuário (cookie/localStorage). Coloque `data-unit` (e `data-unit-accent` quando quiser diferenciação forte) no `<body>` ou no layout de cada segmento de unidade — ex.: `app/(app)/medico/layout.tsx` renderiza `<body data-unit="medico" data-unit-accent>`.
+2. Coloque `data-theme` no `<html>` (layout raiz) e leia a preferência do usuário (cookie/localStorage). Para `data-unit` (+ `data-unit-accent` na diferenciação forte): **no codebase isto já é resolvido pelo `AppShell` via prop `unit`** — não criar `layout.tsx` de segmento para emitir o atributo (ver §4, "Onde os contratos já são emitidos no app"). Uma unidade nova ganha o acento criando um shell que chama `<AppShell unit="<slug>">`, como `MedicoShell` faz com `unit="medico"`.
 3. Transforme as classes em componentes React reutilizáveis (`<Button variant="primary">`, `<Card>`, `<KpiCard>`, `<DataTable>`, `<Stepper>`, `<Toast>`…) mapeando 1:1 para as classes do kit — ou use `@apply` no Tailwind para encapsular cada classe.
 4. Não invente cores novas: tudo sai dos tokens. Para um tom intermediário use `color-mix(in srgb, var(--unit) X%, …)` como o kit já faz.
 5. Fontes: garanta Hanken Grotesk + IBM Plex Mono (Google Fonts ou `next/font`).
