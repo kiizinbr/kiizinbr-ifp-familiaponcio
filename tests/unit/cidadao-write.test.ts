@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Session } from "next-auth";
 import { omitCamposSensiveisSemPermissao } from "@/lib/cidadao";
 import { podeEditarSaudeCidadao, podeEditarSocioCidadao } from "@/lib/rbac";
+import { cidadaoCreateSchema } from "@/lib/cidadao-schema";
 
 /**
  * B2 — escrita de campos sensíveis gated por capability na CAMADA DE DADOS.
@@ -103,6 +104,39 @@ describe("podeEditarSaudeCidadao", () => {
       false,
     );
     expect(podeEditarSaudeCidadao(null)).toBe(false);
+  });
+});
+
+describe("cidadaoCreateSchema · tipoSanguineo (B6 — regressão do save travado)", () => {
+  // 12345678909 é CPF válido (dígito verificador OK, ver cpf.test.ts).
+  // rendaFamiliar/pessoasNaCasa vão como "" (o que o form envia) — o union do
+  // schema espera a chave presente; o foco do teste é só tipoSanguineo (B6).
+  const base = {
+    nomeCompleto: "Maria Almeida",
+    cpf: "12345678909",
+    dataNascimento: "1990-05-10",
+    telefonePrincipal: "11999990000",
+    rendaFamiliar: "",
+    pessoasNaCasa: "",
+    unitIdOrigem: "medico" as const,
+  };
+
+  it("texto-livre migrado ('O Positivo') NÃO trava — normaliza pro enum 'O+'", () => {
+    const parsed = cidadaoCreateSchema.safeParse({ ...base, tipoSanguineo: "O Positivo" });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.tipoSanguineo).toBe("O+");
+  });
+
+  it("lixo irreconhecível ('xyz') NÃO trava — vira undefined (campo some)", () => {
+    const parsed = cidadaoCreateSchema.safeParse({ ...base, tipoSanguineo: "xyz" });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.tipoSanguineo).toBeUndefined();
+  });
+
+  it("canônico 'A-' continua passando intacto", () => {
+    const parsed = cidadaoCreateSchema.safeParse({ ...base, tipoSanguineo: "A-" });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.tipoSanguineo).toBe("A-");
   });
 });
 

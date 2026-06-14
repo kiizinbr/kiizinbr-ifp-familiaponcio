@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calcularImc, podeTransicionarNota, validarSinaisVitais } from "@/lib/medico/prontuario";
+import {
+  calcularImc,
+  formatVitalSeguro,
+  podeTransicionarNota,
+  validarSinaisVitais,
+} from "@/lib/medico/prontuario";
 
 // T2 — núcleo PURO do prontuário (sem DB). Espelha o padrão de medico-rbac.test.ts:
 // import direto, asserção pura. O ralph-loop implementa prontuario.ts até estes passarem.
@@ -43,6 +48,31 @@ describe("calcularImc", () => {
     expect(calcularImc(null, null)).toBeNull();
     expect(calcularImc(undefined, 170)).toBeNull();
     expect(calcularImc(80, undefined)).toBeNull();
+  });
+});
+
+describe("formatVitalSeguro", () => {
+  it("altura migrada em metros (2cm) → —", () => {
+    expect(formatVitalSeguro("alturaCm", 2)).toBe("—");
+  });
+  it("altura plausível formata com unidade", () => {
+    expect(formatVitalSeguro("alturaCm", 168, " cm")).toBe("168 cm");
+  });
+  it("peso em gramas (7000) fora de faixa → —", () => {
+    expect(formatVitalSeguro("pesoKg", 7000, " kg")).toBe("—");
+  });
+  it("null/undefined → —", () => {
+    expect(formatVitalSeguro("fcBpm", null)).toBe("—");
+    expect(formatVitalSeguro("spo2", undefined)).toBe("—");
+  });
+  it("bordas inclusivas (alturaCm 30 e 250 válidas; 29/251 → —)", () => {
+    expect(formatVitalSeguro("alturaCm", 30)).toBe("30");
+    expect(formatVitalSeguro("alturaCm", 250)).toBe("250");
+    expect(formatVitalSeguro("alturaCm", 29)).toBe("—");
+    expect(formatVitalSeguro("alturaCm", 251)).toBe("—");
+  });
+  it("sem unidade não concatena sufixo", () => {
+    expect(formatVitalSeguro("paSistolica", 120)).toBe("120");
   });
 });
 

@@ -16,6 +16,7 @@ import { db } from "@/lib/db";
 import type { UnitScope } from "@/lib/rbac-types";
 import { statusDisplay, type StatusTone } from "@/lib/cidadao-status";
 import { limparTextoClinico } from "@/lib/texto-clinico";
+import { normalizeTipoSanguineo } from "@/lib/tipo-sanguineo";
 import { AnexoUploader } from "./anexo-uploader";
 import { AnonimizarButton } from "./anonimizar-button";
 import { ConsentimentoSection } from "./consentimento-section";
@@ -249,7 +250,10 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
               title="Saúde"
               hint="Visível para profissionais do Centro Médico e Coordenação geral (CFM 1.821)"
             >
-              <Field label="Tipo sanguíneo" value={cidadao.tipoSanguineo} />
+              <Field
+                label="Tipo sanguíneo"
+                value={normalizeTipoSanguineo(cidadao.tipoSanguineo) ?? cidadao.tipoSanguineo}
+              />
               {/* limparTextoClinico: dado migrado da Amplimed traz HTML cru
                   (`<br>` literal) — limpeza só na exibição, fonte intacta. */}
               <Field label="Alergias" value={limparTextoClinico(cidadao.alergias)} multiline />

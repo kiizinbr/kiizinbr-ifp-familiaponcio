@@ -8,6 +8,7 @@
 import { z } from "zod";
 import { normalizeCpf, validateCpf } from "@/lib/cpf";
 import { normalizeCep } from "@/lib/cep";
+import { normalizeTipoSanguineo } from "@/lib/tipo-sanguineo";
 
 const trimmedString = (label?: string) =>
   z
@@ -114,7 +115,13 @@ export const cidadaoCreateSchema = z.object({
   trabalhoDescricao: optionalString,
 
   // Saúde (visível só pra médico — RBAC server-side)
-  tipoSanguineo: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]).optional(),
+  // B6: texto-livre migrado da Amplimed ("O Positivo", "o+"…) é normalizado pro
+  // enum no boundary — sinônimo vira enum, lixo vira undefined (campo some, NÃO
+  // trava o save). Schema do banco (String? livre) intocado; sem migration.
+  tipoSanguineo: z.preprocess(
+    (v) => (typeof v === "string" ? normalizeTipoSanguineo(v) : v),
+    z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]).optional(),
+  ),
   alergias: optionalString,
   medicamentosEmUso: optionalString,
   condicoesCronicas: optionalString,
