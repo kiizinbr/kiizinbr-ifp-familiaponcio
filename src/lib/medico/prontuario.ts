@@ -76,6 +76,24 @@ export function calcularImc(
   return Math.round(imc * 10) / 10;
 }
 
+/**
+ * Formata um sinal vital migrado para EXIBIÇÃO. Reusa FAIXAS_PLAUSIVEIS (mesma
+ * fonte do guard do IMC). Valor ausente OU fora de faixa → "—" (não reescreve a
+ * nota; o dado sujo segue no banco, só paramos de MOSTRAR lixo). Caso real:
+ * altura migrada da Amplimed em metros → alturaCm=2 (intSeguro(1.68)) → "—".
+ * `unidade` opcional concatena (ex.: " cm"); só aparece quando o valor é válido.
+ */
+export function formatVitalSeguro(
+  campo: keyof SinaisVitaisInput,
+  valor: number | null | undefined,
+  unidade?: string,
+): string {
+  if (valor == null) return "—";
+  const [min, max] = FAIXAS_PLAUSIVEIS[campo];
+  if (valor < min || valor > max) return "—";
+  return unidade ? `${valor}${unidade}` : String(valor);
+}
+
 export interface VitalWarning {
   campo: keyof SinaisVitaisInput;
   valor: number;

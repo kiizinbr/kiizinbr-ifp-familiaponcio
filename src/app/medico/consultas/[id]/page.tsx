@@ -19,7 +19,10 @@ import {
 } from "@/lib/medico/rbac";
 import { CONSULTA_VISUAL, PROXIMOS_STATUS_CONSULTA } from "@/lib/medico/ui";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
-import { calcularImc } from "@/lib/medico/prontuario";
+import { calcularImc, formatVitalSeguro } from "@/lib/medico/prontuario";
+import type { SinaisVitaisInput } from "@/lib/medico/prontuario";
+import { chipsClinicos } from "@/lib/texto-clinico";
+import { normalizeTipoSanguineo } from "@/lib/tipo-sanguineo";
 import { transitionAction, cancelAction } from "./actions";
 import {
   adicionarAddendoAction,
@@ -63,14 +66,6 @@ function idade(d: Date | null): number | null {
 function iniciais(nome: string): string {
   const p = nome.trim().split(/\s+/);
   return ((p[0]?.[0] ?? "") + (p[p.length - 1]?.[0] ?? "")).toUpperCase();
-}
-
-function chipsDe(texto: string | null): string[] {
-  if (!texto) return [];
-  return texto
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
 }
 
 export default async function ConsultaDetalhePage({
@@ -186,11 +181,17 @@ export default async function ConsultaDetalhePage({
 
   const vitalVal = (key: string): string => {
     const v = nota ? (nota as unknown as Record<string, unknown>)[key] : null;
-    return v == null ? "—" : String(v);
+    const n = v == null ? null : Number(v);
+    return formatVitalSeguro(key as keyof SinaisVitaisInput, n);
   };
+  // Input de edição: vital implausível (ex.: altura migrada "2") vem VAZIO pra
+  // forçar recoleta — sem pré-carregar lixo que o médico re-assinaria. Reusa o
+  // mesmo guard do display (única fonte de verdade: FAIXAS_PLAUSIVEIS).
   const vitalDefault = (key: string): string | undefined => {
     const v = nota ? (nota as unknown as Record<string, unknown>)[key] : null;
-    return v == null ? undefined : String(v);
+    if (v == null) return undefined;
+    const n = Number(v);
+    return formatVitalSeguro(key as keyof SinaisVitaisInput, n) === "—" ? undefined : String(n);
   };
 
   return (
@@ -423,7 +424,7 @@ export default async function ConsultaDetalhePage({
                     <span className={`${styles.micro} ${styles.fieldLabel}`}>Tipo sanguíneo</span>
                     {cidadao.tipoSanguineo ? (
                       <span className={`${styles.chip} ${styles.chipAccent}`}>
-                        {cidadao.tipoSanguineo}
+                        {normalizeTipoSanguineo(cidadao.tipoSanguineo) ?? cidadao.tipoSanguineo}
                       </span>
                     ) : (
                       <span className={styles.muted}>não informado</span>
@@ -432,8 +433,8 @@ export default async function ConsultaDetalhePage({
                   <div className={styles.field}>
                     <span className={`${styles.micro} ${styles.fieldLabel}`}>Alergias</span>
                     <div className={styles.chips}>
-                      {chipsDe(cidadao.alergias).length ? (
-                        chipsDe(cidadao.alergias).map((a) => (
+                      {chipsClinicos(cidadao.alergias).length ? (
+                        chipsClinicos(cidadao.alergias).map((a) => (
                           <span key={a} className={`${styles.chip} ${styles.chipDanger}`}>
                             {a}
                           </span>
@@ -448,8 +449,8 @@ export default async function ConsultaDetalhePage({
                       Condições crônicas
                     </span>
                     <div className={styles.chips}>
-                      {chipsDe(cidadao.condicoesCronicas).length ? (
-                        chipsDe(cidadao.condicoesCronicas).map((c) => (
+                      {chipsClinicos(cidadao.condicoesCronicas).length ? (
+                        chipsClinicos(cidadao.condicoesCronicas).map((c) => (
                           <span key={c} className={styles.chip}>
                             {c}
                           </span>
@@ -463,8 +464,8 @@ export default async function ConsultaDetalhePage({
                     <span className={`${styles.micro} ${styles.fieldLabel}`}>
                       Medicamentos em uso
                     </span>
-                    {chipsDe(cidadao.medicamentosEmUso).length ? (
-                      chipsDe(cidadao.medicamentosEmUso).map((m) => (
+                    {chipsClinicos(cidadao.medicamentosEmUso).length ? (
+                      chipsClinicos(cidadao.medicamentosEmUso).map((m) => (
                         <div key={m} className={styles.med}>
                           <span>{m}</span>
                         </div>

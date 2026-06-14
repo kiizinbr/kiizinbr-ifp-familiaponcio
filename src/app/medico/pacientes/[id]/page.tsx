@@ -9,8 +9,9 @@ import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
-import { calcularImc, SELECT_CONTEXTO_PACIENTE } from "@/lib/medico/prontuario";
+import { calcularImc, formatVitalSeguro, SELECT_CONTEXTO_PACIENTE } from "@/lib/medico/prontuario";
 import { chipsClinicos } from "@/lib/texto-clinico";
+import { normalizeTipoSanguineo } from "@/lib/tipo-sanguineo";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 
@@ -121,10 +122,16 @@ export default async function PacienteTimelinePage({
     .filter((n) => n.pesoKg != null || n.paSistolica != null)
     .map((n) => {
       const peso = n.pesoKg != null ? Number(n.pesoKg) : null;
+      // Guard display-only (FAIXAS_PLAUSIVEIS): vital migrado absurdo ("7000 kg",
+      // "PA 999/999") vira null e a tabela mostra "—" — a nota não é tocada.
+      const pesoSeg = formatVitalSeguro("pesoKg", peso) === "—" ? null : peso;
+      const sist = formatVitalSeguro("paSistolica", n.paSistolica) === "—" ? null : n.paSistolica;
+      const diast =
+        formatVitalSeguro("paDiastolica", n.paDiastolica) === "—" ? null : n.paDiastolica;
       return {
         data: n.consulta.slot.dataHoraInicio,
-        pa: pa(n.paSistolica, n.paDiastolica),
-        peso,
+        pa: pa(sist, diast),
+        peso: pesoSeg,
         imc: calcularImc(peso, n.alturaCm),
       };
     });
@@ -150,7 +157,10 @@ export default async function PacienteTimelinePage({
 
       <Card>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap", fontSize: 13 }}>
-          <Ctx label="Tipo sanguíneo" valor={cidadao.tipoSanguineo} />
+          <Ctx
+            label="Tipo sanguíneo"
+            valor={normalizeTipoSanguineo(cidadao.tipoSanguineo) ?? cidadao.tipoSanguineo}
+          />
           <Ctx label="Alergias" valor={alergias.length ? alergias.join(", ") : null} alerta />
           <Ctx label="Condições crônicas" valor={cronicas.length ? cronicas.join(", ") : null} />
           <Ctx label="Medicamentos" valor={medicamentos.length ? medicamentos.join(", ") : null} />
@@ -200,12 +210,22 @@ export default async function PacienteTimelinePage({
           {notas.map((n) => {
             const peso = n.pesoKg != null ? Number(n.pesoKg) : null;
             const imc = calcularImc(peso, n.alturaCm);
+            // Guard display-only nos cards: vital implausível é OMITIDO (lista
+            // compacta — diferente da tabela read-only, que mostra "—" no slot
+            // fixo). FAIXAS_PLAUSIVEIS é a única fonte; a nota não é tocada.
+            const sist =
+              formatVitalSeguro("paSistolica", n.paSistolica) === "—" ? null : n.paSistolica;
+            const diast =
+              formatVitalSeguro("paDiastolica", n.paDiastolica) === "—" ? null : n.paDiastolica;
+            const fcSeg = formatVitalSeguro("fcBpm", n.fcBpm);
+            const pesoSeg = formatVitalSeguro("pesoKg", peso, " kg");
+            const spo2Seg = formatVitalSeguro("spo2", n.spo2, "%");
             const vitais = [
-              pa(n.paSistolica, n.paDiastolica) ? `PA ${pa(n.paSistolica, n.paDiastolica)}` : null,
-              n.fcBpm != null ? `FC ${n.fcBpm}` : null,
-              peso != null ? `${peso} kg` : null,
+              pa(sist, diast) ? `PA ${pa(sist, diast)}` : null,
+              fcSeg !== "—" ? `FC ${fcSeg}` : null,
+              pesoSeg !== "—" ? pesoSeg : null,
               imc != null ? `IMC ${imc}` : null,
-              n.spo2 != null ? `SpO₂ ${n.spo2}%` : null,
+              spo2Seg !== "—" ? `SpO₂ ${spo2Seg}` : null,
             ].filter(Boolean);
             return (
               <Card key={n.id}>

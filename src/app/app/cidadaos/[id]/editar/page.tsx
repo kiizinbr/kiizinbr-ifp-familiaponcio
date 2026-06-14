@@ -7,6 +7,7 @@ import { getCidadaoView } from "@/lib/cidadao";
 import { can } from "@/lib/rbac";
 import type { UnitScope } from "@/lib/rbac-types";
 import { limparTextoClinico } from "@/lib/texto-clinico";
+import { normalizeTipoSanguineo } from "@/lib/tipo-sanguineo";
 import { NovoCidadaoForm } from "../../novo/form";
 
 export default async function EditarCidadaoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,7 +49,10 @@ export default async function EditarCidadaoPage({ params }: { params: Promise<{ 
     escolaridade: cidadao.escolaridade ?? "",
     trabalha: cidadao.trabalha === null ? "" : String(cidadao.trabalha),
     trabalhoDescricao: cidadao.trabalhoDescricao ?? "",
-    tipoSanguineo: cidadao.tipoSanguineo ?? "",
+    // B6: pré-seleciona o enum normalizado ("o+" → "O+") pra ficha migrada não
+    // abrir com o select vazio. Irreconhecível → "" (placeholder); o save não
+    // trava de qualquer jeito (o preprocess do schema também trata).
+    tipoSanguineo: normalizeTipoSanguineo(cidadao.tipoSanguineo) ?? "",
     // limparTextoClinico no defaultValue: o legado Amplimed traz HTML cru
     // (`<br>` literal) — o próximo save persiste o texto limpo (higiene
     // gradual da fonte; Cidadao é editável, não fere imutabilidade de nota).
