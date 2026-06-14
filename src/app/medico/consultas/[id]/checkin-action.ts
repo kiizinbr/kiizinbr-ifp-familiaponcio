@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 
@@ -14,6 +15,11 @@ async function gate(formData: FormData) {
   if (!canAccessUnidade(session, "medico")) throw new Error("Sem permissão");
   if (!podeMarcarConsulta(session)) throw new Error("Sem permissão");
   const id = String(formData.get("id"));
+  // A1 IDOR guard: `id` (consultaId) vem do cliente e o gate de rota/papel NÃO
+  // confere a unidade do OBJETO. Carrega o cidadão da consulta e exige acesso à
+  // unidade dele ANTES de qualquer escrita (espelha nova/actions + encaminhamento).
+  const c = await db.consulta.findUniqueOrThrow({ where: { id }, select: { cidadaoId: true } });
+  await assertAcessoCidadao(session, c.cidadaoId, "edit");
   // `voltar` permite a recepção continuar no painel em vez de ir pra consulta.
   const voltar = String(formData.get("voltar") || `/medico/consultas/${id}`);
   return { session, id, voltar };

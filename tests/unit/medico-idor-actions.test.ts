@@ -24,6 +24,7 @@ const { dbMock, authMock, agendaMock, encMock, redirectMock, logEventMock } = vi
     cidadao: { findUnique: f() },
     encaminhamento: { findUnique: f() },
     slot: { findFirst: f() },
+    consulta: { findUnique: f(), findUniqueOrThrow: f() },
   };
   // redirect() do Next lança internamente; replicamos para distinguir o destino.
   const redirect = vi.fn((url: string) => {
@@ -35,8 +36,13 @@ const { dbMock, authMock, agendaMock, encMock, redirectMock, logEventMock } = vi
     agendaMock: {
       reservarSlot: vi.fn().mockResolvedValue({ id: "cons1", slotId: "s1" }),
       reservarSlotAdHoc: vi.fn().mockResolvedValue({ id: "cons1", slotId: "s1" }),
+      reagendarConsulta: vi.fn().mockResolvedValue(undefined),
+      transicionarConsulta: vi.fn().mockResolvedValue(undefined),
+      liberarSlot: vi.fn().mockResolvedValue(undefined),
+      STATUS_REAGENDAVEL: new Set(["agendada", "confirmada"]),
       SlotIndisponivelError: class SlotIndisponivelError extends Error {},
       SlotJaExisteError: class SlotJaExisteError extends Error {},
+      ConsultaNaoReagendavelError: class ConsultaNaoReagendavelError extends Error {},
     },
     encMock: {
       criarEncaminhamento: vi.fn().mockResolvedValue({ id: "enc1" }),
@@ -61,6 +67,12 @@ import {
   cancelarEncaminhamentoAction,
   encaixarEncaminhamentoAction,
 } from "@/app/medico/encaminhamentos/actions";
+import {
+  marcarCheckinAction,
+  desfazerCheckinAction,
+} from "@/app/medico/consultas/[id]/checkin-action";
+import { reagendarConsultaAction } from "@/app/medico/consultas/[id]/reagendar-action";
+import { transitionAction, cancelAction } from "@/app/medico/consultas/[id]/actions";
 import { SemAcessoCidadaoError } from "@/lib/cidadao-authz";
 
 function sess(roles: RoleAssignment[], id = "u1"): Session {
@@ -87,14 +99,21 @@ function resetAll() {
   dbMock.cidadao.findUnique.mockReset();
   dbMock.encaminhamento.findUnique.mockReset();
   dbMock.slot.findFirst.mockReset();
+  dbMock.consulta.findUnique.mockReset();
+  dbMock.consulta.findUniqueOrThrow.mockReset();
   agendaMock.reservarSlot.mockClear();
   agendaMock.reservarSlotAdHoc.mockClear();
+  agendaMock.reagendarConsulta.mockClear();
+  agendaMock.transicionarConsulta.mockClear();
+  agendaMock.liberarSlot.mockClear();
   encMock.criarEncaminhamento.mockClear();
   encMock.cancelarEncaminhamento.mockClear();
   redirectMock.mockClear();
   logEventMock.mockClear();
   authMock.mockReset();
 }
+
+const PROFISSIONAL_MEDICO = sess([{ name: "profissional", unitScope: "medico" }], "prof1");
 
 beforeEach(resetAll);
 
@@ -254,5 +273,156 @@ describe("encaixarEncaminhamentoAction — IDOR", () => {
       "__redirect__:/medico/consultas/cons1?encaixe=ok",
     );
     expect(agendaMock.reservarSlot).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── marcarCheckinAction / desfazerCheckinAction (consultaId do cliente) ──
+describe("marcarCheckinAction — IDOR", () => {
+  it("BLOQUEIA: recepcao:medico no check-in de consulta de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem update", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "cap1" });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    const update = vi.fn();
+    (dbMock.consulta as Record<string, unknown>).update = update;
+    await expect(marcarCheckinAction(fd({ id: "cons1" }))).rejects.toBeInstanceOf(
+      SemAcessoCidadaoError,
+    );
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: recepcao:medico no check-in de cidadão da PRÓPRIA unidade → update e redirect", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "med1" });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    const update = vi.fn().mockResolvedValue(undefined);
+    (dbMock.consulta as Record<string, unknown>).update = update;
+    await expect(marcarCheckinAction(fd({ id: "cons1" }))).rejects.toThrow(
+      "__redirect__:/medico/consultas/cons1",
+    );
+    expect(update).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("desfazerCheckinAction — IDOR", () => {
+  it("BLOQUEIA: cidadão de OUTRA unidade → SemAcessoCidadaoError, sem update", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "cap1" });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    const update = vi.fn();
+    (dbMock.consulta as Record<string, unknown>).update = update;
+    await expect(desfazerCheckinAction(fd({ id: "cons1" }))).rejects.toBeInstanceOf(
+      SemAcessoCidadaoError,
+    );
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: cidadão da própria unidade → update e redirect", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "med1" });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    const update = vi.fn().mockResolvedValue(undefined);
+    (dbMock.consulta as Record<string, unknown>).update = update;
+    await expect(desfazerCheckinAction(fd({ id: "cons1" }))).rejects.toThrow(
+      "__redirect__:/medico/consultas/cons1",
+    );
+    expect(update).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── reagendarConsultaAction (consultaId do cliente → move de slot) ──────
+describe("reagendarConsultaAction — IDOR", () => {
+  it("BLOQUEIA: recepcao:medico reagendando consulta de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem reagendarConsulta", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "cap1" });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    await expect(
+      reagendarConsultaAction(fd({ consultaId: "cons1", slotId: "s2" })),
+    ).rejects.toBeInstanceOf(SemAcessoCidadaoError);
+    expect(agendaMock.reagendarConsulta).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: recepcao:medico reagendando cidadão da PRÓPRIA unidade → reagendarConsulta é chamado", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "med1" });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await expect(reagendarConsultaAction(fd({ consultaId: "cons1", slotId: "s2" }))).rejects.toThrow(
+      "__redirect__:/medico/consultas/cons1?reagendada=ok",
+    );
+    expect(agendaMock.reagendarConsulta).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── transitionAction (consultaId do cliente → muda status) ─────────────
+describe("transitionAction — IDOR", () => {
+  it("BLOQUEIA: recepcao:medico transicionando consulta de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem transicionarConsulta", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "cap1",
+      status: "agendada",
+      slotId: "s1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    await expect(
+      transitionAction(fd({ id: "cons1", para: "em_atendimento" })),
+    ).rejects.toBeInstanceOf(SemAcessoCidadaoError);
+    expect(agendaMock.transicionarConsulta).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: recepcao:medico transicionando cidadão da PRÓPRIA unidade → transicionarConsulta é chamado", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "med1",
+      status: "agendada",
+      slotId: "s1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await transitionAction(fd({ id: "cons1", para: "em_atendimento" }));
+    expect(agendaMock.transicionarConsulta).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── cancelAction (consultaId do cliente → libera slot alheio) ──────────
+describe("cancelAction — IDOR", () => {
+  it("BLOQUEIA: recepcao:medico cancelando consulta de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem liberarSlot", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "cap1",
+      status: "agendada",
+      slotId: "s1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    await expect(cancelAction(fd({ id: "cons1", motivo: "x" }))).rejects.toBeInstanceOf(
+      SemAcessoCidadaoError,
+    );
+    expect(agendaMock.liberarSlot).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: recepcao:medico cancelando cidadão da PRÓPRIA unidade → liberarSlot é chamado", async () => {
+    authMock.mockResolvedValue(RECEPCAO_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "med1",
+      status: "agendada",
+      slotId: "s1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await cancelAction(fd({ id: "cons1", motivo: "x" }));
+    expect(agendaMock.liberarSlot).toHaveBeenCalledTimes(1);
+  });
+
+  it("LEGÍTIMO: profissional:medico DONO cancelando cidadão da própria unidade → liberarSlot é chamado", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "med1",
+      status: "agendada",
+      slotId: "s1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await cancelAction(fd({ id: "cons1", motivo: "x" }));
+    expect(agendaMock.liberarSlot).toHaveBeenCalledTimes(1);
   });
 });

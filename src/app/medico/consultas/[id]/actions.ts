@@ -5,6 +5,7 @@ import type { StatusConsulta } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessUnidade } from "@/lib/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { transicionarConsulta, liberarSlot } from "@/lib/medico/agenda";
 import { podeTransicionarConsulta } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
@@ -28,6 +29,10 @@ export async function transitionAction(formData: FormData) {
     where: { id },
     include: { profissional: true },
   });
+  // A1 IDOR guard: o gate de papel (podeTransicionarConsulta) não confere a
+  // unidade do OBJETO — recepcao/gestor passariam por papel para consulta de
+  // cidadão de outra unidade. Exige acesso à unidade do cidadão antes da escrita.
+  await assertAcessoCidadao(session, c.cidadaoId, "edit");
   if (!podeTransicionarConsulta(session, c.status, para, c.profissional.userId)) {
     throw new Error("Sem permissão");
   }
@@ -53,6 +58,9 @@ export async function cancelAction(formData: FormData) {
     where: { id },
     include: { profissional: true },
   });
+  // A1 IDOR guard: idem transitionAction. cancelAction ainda libera o slot
+  // (mutação de agenda) — exige acesso à unidade do cidadão antes de qualquer escrita.
+  await assertAcessoCidadao(session, c.cidadaoId, "edit");
   if (!podeTransicionarConsulta(session, c.status, "cancelada", c.profissional.userId)) {
     throw new Error("Sem permissão");
   }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { MedicoShell } from "@/components/medico/medico-shell";
@@ -98,6 +99,18 @@ export default async function ConsultaDetalhePage({
     },
   });
   if (!consulta) notFound();
+
+  // A1 IDOR guard (read-side): o gate de rota (canAccessUnidade) NÃO confere a
+  // unidade do OBJETO. Esta tela expõe PHI (saúde do cidadão, nota assinada,
+  // histórico clínico cross-consulta, receitas/atestados) e dispara
+  // medical_data_accessed. Exige acesso à unidade do cidadão antes de qualquer
+  // leitura clínica/log — espelha pacientes/[id]/page.tsx (catch → notFound,
+  // não vaza existência de consulta de outra unidade).
+  try {
+    await assertAcessoCidadao(session, consulta.cidadaoId, "view");
+  } catch {
+    notFound();
+  }
 
   const historico = await db.notaEvolucao.findMany({
     where: { cidadaoId: consulta.cidadaoId, NOT: { consultaId: consulta.id } },

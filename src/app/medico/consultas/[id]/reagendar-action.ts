@@ -5,6 +5,8 @@ import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
+import { db } from "@/lib/db";
 import {
   reagendarConsulta,
   SlotIndisponivelError,
@@ -20,6 +22,15 @@ export async function reagendarConsultaAction(formData: FormData) {
 
   const consultaId = String(formData.get("consultaId"));
   const novoSlotId = String(formData.get("slotId"));
+
+  // A1 IDOR guard: consultaId vem do cliente; o gate de rota/papel NÃO confere a
+  // unidade do OBJETO. Carrega o cidadão da consulta e exige acesso à unidade dele
+  // antes da escrita (move de slot/reatribuição) — espelha as demais superfícies.
+  const c = await db.consulta.findUniqueOrThrow({
+    where: { id: consultaId },
+    select: { cidadaoId: true },
+  });
+  await assertAcessoCidadao(session, c.cidadaoId, "edit");
 
   try {
     await reagendarConsulta(consultaId, novoSlotId);

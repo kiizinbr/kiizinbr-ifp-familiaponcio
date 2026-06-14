@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeVerProntuario } from "@/lib/medico/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { renderAtestadoPdf } from "@/lib/medico/atestado-pdf";
 import { logEvent } from "@/lib/audit";
 
@@ -27,18 +28,29 @@ export async function GET(
     return new NextResponse("Atestado não encontrado", { status: 404 });
   }
 
-  // Acesso a documento clínico (PHI) — registra na auditoria (LGPD Art. 11).
+  // A1 IDOR guard (read-side): o gate de papel (podeVerProntuario) NÃO confere a
+  // unidade do OBJETO — gestor/profissional baixariam o PDF (nome, CRM, CID) de
+  // cidadão de outra unidade. Exige acesso à unidade do cidadão da consulta antes
+  // de renderizar/logar (404 não vaza existência).
   const consulta = await db.consulta.findUnique({
     where: { id },
     select: { cidadaoId: true },
   });
+  if (!consulta) return new NextResponse("Atestado não encontrado", { status: 404 });
+  try {
+    await assertAcessoCidadao(session, consulta.cidadaoId, "view");
+  } catch {
+    return new NextResponse("Atestado não encontrado", { status: 404 });
+  }
+
+  // Acesso a documento clínico (PHI) — registra na auditoria (LGPD Art. 11).
   await logEvent({
     userId: session.user.id,
     action: "medical_data_accessed",
     entityType: "atestado",
     entityId: atestado.id,
     rootEntityType: "cidadao",
-    rootEntityId: consulta?.cidadaoId,
+    rootEntityId: consulta.cidadaoId,
     meta: { documento: "atestado_pdf" },
   });
 
