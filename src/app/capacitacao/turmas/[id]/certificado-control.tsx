@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 import type { StatusMatricula } from "@prisma/client";
 import { avaliarElegibilidade } from "@/lib/capacitacao/certificado";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Badge } from "@/components/ui/badge";
 import { emitirCertificadoAction } from "../../actions";
 import styles from "../../capacitacao.module.css";
 
@@ -32,9 +34,13 @@ export function CertificadoControl({
     return (
       <Link
         href={`/verificar/${certificadoCodigo}` as Route}
-        className={`${styles.btn} ${styles.btnSm} ${styles.btnGhost}`}
+        style={{ textDecoration: "none" }}
+        aria-label={`Ver verificação do certificado ${certificadoCodigo}`}
       >
-        🎓 Certificado emitido
+        <Badge variant="success">
+          <Image src="/logo/ifp-symbol.png" alt="" width={16} height={16} aria-hidden="true" />
+          Certificado emitido
+        </Badge>
       </Link>
     );
   }
@@ -55,7 +61,8 @@ export function CertificadoControl({
       <input type="hidden" name="matriculaId" value={matriculaId} />
       <input type="hidden" name="turmaId" value={turmaId} />
       <SubmitButton variant="ghost" size="sm" pendingLabel="Emitindo certificado…">
-        🎓 Emitir certificado
+        <Image src="/logo/ifp-symbol.png" alt="" width={16} height={16} aria-hidden="true" />
+        Emitir certificado
       </SubmitButton>
     </form>
   );

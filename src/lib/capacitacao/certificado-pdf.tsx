@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { DocumentProps } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
@@ -12,6 +14,20 @@ const fmtData = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
+/**
+ * Leão coroado (símbolo IFP) como data URL — lido uma vez do asset público. O
+ * `<Image>` do @react-pdf renderiza só server-side; um data URL é o jeito robusto
+ * de embutir o PNG sem depender de resolução de URL no runtime do PDF.
+ */
+let leaoDataUrlCache: string | null = null;
+function leaoDataUrl(): string {
+  if (leaoDataUrlCache === null) {
+    const buf = readFileSync(join(process.cwd(), "public", "logo", "ifp-symbol.png"));
+    leaoDataUrlCache = `data:image/png;base64,${buf.toString("base64")}`;
+  }
+  return leaoDataUrlCache;
+}
+
 const s = StyleSheet.create({
   page: {
     paddingTop: 40,
@@ -19,6 +35,37 @@ const s = StyleSheet.create({
     paddingHorizontal: 48,
     fontFamily: "Helvetica",
     color: PDF_TINTA,
+  },
+  // moldura dupla cerimonial (espelha .cert::before / .cert::after do scaffold):
+  // duas linhas concêntricas laranja, absolutas, com inset grande p/ não colidir
+  // com o header/footer fixos do IfpPdfHeader/Footer.
+  molduraExterna: {
+    position: "absolute",
+    top: 18,
+    left: 18,
+    right: 18,
+    bottom: 18,
+    borderWidth: 1.5,
+    borderColor: PDF_LARANJA,
+    borderRadius: 6,
+    opacity: 0.45,
+  },
+  molduraInterna: {
+    position: "absolute",
+    top: 24,
+    left: 24,
+    right: 24,
+    bottom: 24,
+    borderWidth: 0.75,
+    borderColor: PDF_LARANJA,
+    borderRadius: 4,
+    opacity: 0.3,
+  },
+  leao: {
+    width: 76,
+    height: 76,
+    objectFit: "contain",
+    marginBottom: 8,
   },
   corpo: {
     flexGrow: 1,
@@ -105,9 +152,14 @@ export function CertificadoPdf({
       subject={`Certificado de conclusão — ${cert.nomeCurso}`}
     >
       <Page size="A4" orientation="landscape" style={s.page}>
+        {/* moldura dupla cerimonial (fixa, atrás do conteúdo) */}
+        <View style={s.molduraExterna} fixed />
+        <View style={s.molduraInterna} fixed />
+
         <IfpPdfHeader unidade="Capacitação" />
 
         <View style={s.corpo}>
+          <Image src={leaoDataUrl()} style={s.leao} />
           <Text style={s.titulo}>CERTIFICADO</Text>
           <Text style={s.subtitulo}>DE CONCLUSÃO</Text>
 
