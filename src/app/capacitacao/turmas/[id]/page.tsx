@@ -12,6 +12,7 @@ import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
 import { proximosStatusTurma } from "@/lib/capacitacao/turma";
 import { avaliarRiscoEvasao } from "@/lib/capacitacao/evasao";
+import { deriveTrilha } from "@/lib/capacitacao/trilha";
 import {
   podeCriarTurma,
   podeEmitirCertificado,
@@ -28,6 +29,7 @@ import styles from "../../capacitacao.module.css";
 import { MatricularCombobox } from "./matricular-combobox";
 import { PresencaCard } from "./presenca-card";
 import { CertificadoControl } from "./certificado-control";
+import { TrilhaFormatura } from "./trilha-formatura";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
@@ -68,7 +70,7 @@ export default async function TurmaDetalhePage({
       matriculas: {
         include: {
           cidadao: { select: { id: true, nomeCompleto: true, nomeSocial: true } },
-          presencas: { select: { presente: true }, orderBy: { data: "asc" } },
+          presencas: { select: { presente: true, data: true }, orderBy: { data: "asc" } },
           certificado: { select: { codigo: true } },
         },
         orderBy: { createdAt: "asc" },
@@ -97,6 +99,17 @@ export default async function TurmaDetalhePage({
     nome: nome(m.cidadao),
     presencas: m.presencas,
   }));
+
+  // Trilha derivada (F2, read-only): aulas = datas distintas de chamada;
+  // formatura = dataFim. Frequência agregada = presenças / chamadas da turma.
+  const presencasTurma = matriculados.flatMap((m) => m.presencas);
+  const trilha = deriveTrilha({
+    datasPresenca: presencasTurma.map((p) => p.data),
+    dataFim: turma.dataFim,
+  });
+  const chamadasTurma = presencasTurma.length;
+  const presentesTurma = presencasTurma.filter((p) => p.presente).length;
+  const frequenciaTurma = chamadasTurma > 0 ? (presentesTurma / chamadasTurma) * 100 : 0;
 
   return (
     <CapacitacaoShell session={session}>
@@ -186,8 +199,16 @@ export default async function TurmaDetalhePage({
             ) : null}
           </div>
 
-          {/* coluna direita: matriculados + lista de espera */}
+          {/* coluna direita: trilha + matriculados + lista de espera */}
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            {matriculados.length > 0 ? (
+              <TrilhaFormatura
+                aulasRegistradas={trilha.aulasRegistradas}
+                formatura={trilha.formatura}
+                percentualTurma={frequenciaTurma}
+              />
+            ) : null}
+
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <span className={styles.tick} />
