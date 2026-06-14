@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import type { Session } from "next-auth";
 import { omitCamposSensiveisSemPermissao } from "@/lib/cidadao";
 import { podeEditarSaudeCidadao, podeEditarSocioCidadao } from "@/lib/rbac";
@@ -9,6 +9,38 @@ import { cidadaoCreateSchema } from "@/lib/cidadao-schema";
  * `omitCamposSensiveisSemPermissao` remove (não nula) os campos que o caller
  * não pode escrever, ANTES do update — preservando o valor existente no banco.
  */
+
+// ── Mocks p/ o round-trip de persistência das actions (B6) ─────────────────
+// `@/lib/rbac` e `@/lib/cidadao` rodam REAIS (são os gates que queremos exercer);
+// só `db`, `auth`, `audit` e `next/navigation` são mockados. Molde: medico-idor-actions.
+const { dbMock, authMock, logEventMock } = vi.hoisted(() => ({
+  dbMock: {
+    cidadao: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+  },
+  authMock: vi.fn(),
+  logEventMock: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@/lib/db", () => ({ db: dbMock }));
+vi.mock("@/lib/auth", () => ({ auth: authMock }));
+vi.mock("@/lib/audit", () => ({ logEvent: logEventMock }));
+vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+
+// Extrai o 1º arg (`{ where?, data }`) da 1ª chamada de um mock de db.cidadao.*,
+// de forma type-safe (os mocks são `vi.fn()` sem tipo, então `.mock.calls[0][0]`
+// é `possibly undefined` no strict). Falha o teste se o mock não foi chamado.
+function primeiraChamada(mock: ReturnType<typeof vi.fn>): {
+  where?: { id: string };
+  data: { tipoSanguineo?: string };
+} {
+  const call = mock.mock.calls[0];
+  if (!call) throw new Error("mock não foi chamado");
+  return call[0] as { where?: { id: string }; data: { tipoSanguineo?: string } };
+}
 
 function fixtureUpdate() {
   return {
@@ -153,5 +185,99 @@ describe("podeEditarSocioCidadao", () => {
       podeEditarSocioCidadao(sessionComRoles({ name: "profissional", unitScope: "medico" })),
     ).toBe(false);
     expect(podeEditarSocioCidadao(null)).toBe(false);
+  });
+});
+
+/**
+ * B6 — round-trip de PERSISTÊNCIA das actions. Os testes acima cobrem o normalizador
+ * puro e o output do safeParse; faltava provar o WIRING: que o valor que chega ao
+ * `db.cidadao.{create,update}` é o NORMALIZADO (não o raw recebido do form). Como a
+ * normalização no z.preprocess reescreve o valor no próximo save (não é só exibição),
+ * este é o teste que documenta/cobre esse efeito de borda.
+ *
+ * Endurecimento de teste só — comportamento e schema do banco intocados (sem migration).
+ */
+describe("create/updateCidadaoAction · round-trip de persistência (B6)", () => {
+  const PROFISSIONAL_MEDICO = sessionComRoles({ name: "profissional", unitScope: "medico" });
+
+  // payload mínimo válido pro schema (4 obrigatórios + sistema). CPF 12345678909 é
+  // válido (ver cpf.test.ts). enderecos default [] cobre o resto.
+  const baseInput = {
+    nomeCompleto: "Maria Almeida",
+    cpf: "12345678909",
+    dataNascimento: "1990-05-10",
+    telefonePrincipal: "11999990000",
+    rendaFamiliar: "",
+    pessoasNaCasa: "",
+    unitIdOrigem: "medico" as const,
+  };
+
+  beforeEach(() => {
+    dbMock.cidadao.findUnique.mockReset();
+    dbMock.cidadao.create.mockReset();
+    dbMock.cidadao.update.mockReset();
+    authMock.mockReset();
+    logEventMock.mockClear();
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.cidadao.create.mockResolvedValue({
+      id: "c1",
+      nomeCompleto: "Maria Almeida",
+      unitIdOrigem: "medico",
+    });
+    dbMock.cidadao.update.mockResolvedValue({ id: "c1" });
+  });
+
+  it("create GRAVA o valor NORMALIZADO: 'O Positivo' → 'O+' chega ao db.cidadao.create", async () => {
+    const { createCidadaoAction } = await import("@/app/app/cidadaos/novo/actions");
+    dbMock.cidadao.findUnique.mockResolvedValue(null); // CPF não duplicado
+
+    const res = await createCidadaoAction({ ...baseInput, tipoSanguineo: "O Positivo" });
+
+    expect(res.ok).toBe(true);
+    expect(dbMock.cidadao.create).toHaveBeenCalledTimes(1);
+    expect(primeiraChamada(dbMock.cidadao.create).data.tipoSanguineo).toBe("O+");
+  });
+
+  it("create com lixo 'xyz' GRAVA undefined (campo omitido, não trava nem persiste lixo)", async () => {
+    const { createCidadaoAction } = await import("@/app/app/cidadaos/novo/actions");
+    dbMock.cidadao.findUnique.mockResolvedValue(null);
+
+    const res = await createCidadaoAction({ ...baseInput, tipoSanguineo: "xyz" });
+
+    expect(res.ok).toBe(true);
+    expect(primeiraChamada(dbMock.cidadao.create).data.tipoSanguineo).toBeUndefined();
+  });
+
+  it("update GRAVA o valor NORMALIZADO: 'O Positivo' → 'O+' chega ao db.cidadao.update", async () => {
+    const { updateCidadaoAction } = await import("@/app/app/cidadaos/novo/actions");
+    // findUnique é chamado p/ carregar a ficha atual antes do update (RBAC por unidade).
+    dbMock.cidadao.findUnique.mockResolvedValue({
+      id: "c1",
+      unitIdOrigem: "medico",
+      tipoSanguineo: "A-",
+    });
+
+    const res = await updateCidadaoAction("c1", { ...baseInput, tipoSanguineo: "O Positivo" });
+
+    expect(res.ok).toBe(true);
+    expect(dbMock.cidadao.update).toHaveBeenCalledTimes(1);
+    const updateArg = primeiraChamada(dbMock.cidadao.update);
+    expect(updateArg.where).toEqual({ id: "c1" });
+    expect(updateArg.data.tipoSanguineo).toBe("O+");
+  });
+
+  it("update com lixo 'xyz' passa tipoSanguineo undefined (Prisma trata como no-op; raw preservado no banco)", async () => {
+    const { updateCidadaoAction } = await import("@/app/app/cidadaos/novo/actions");
+    dbMock.cidadao.findUnique.mockResolvedValue({
+      id: "c1",
+      unitIdOrigem: "medico",
+      tipoSanguineo: "tipo legado estranho",
+    });
+
+    const res = await updateCidadaoAction("c1", { ...baseInput, tipoSanguineo: "xyz" });
+
+    expect(res.ok).toBe(true);
+    // chave presente porém undefined → Prisma NÃO toca a coluna (não zera o raw migrado).
+    expect(primeiraChamada(dbMock.cidadao.update).data.tipoSanguineo).toBeUndefined();
   });
 });
