@@ -7,6 +7,7 @@ import {
   podeAtualizarSaudeCidadao,
   podeConfigurarAgendaProfissional,
   podeEditarNota,
+  podeEmitirDocumento,
   podeEncaminhar,
   podeGerenciarEspecialidade,
   podeGerenciarProfissional,
@@ -162,6 +163,38 @@ describe("podeAssinarNota", () => {
   it("super_admin não-dono → false (assinatura é ato pessoal, sem bypass §0.4)", () => {
     const s = sessionWith([{ name: "super_admin", unitScope: null }], "admin-1");
     expect(podeAssinarNota(s, "user-X")).toBe(false);
+  });
+});
+
+// ── F1.B.3 Documentos (Receita / Atestado) ───────────────────────────
+
+describe("podeEmitirDocumento", () => {
+  it("profissional dono da consulta → true", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeEmitirDocumento(s, "user-X")).toBe(true);
+  });
+  it("profissional de OUTRA consulta → false (ownership)", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "medico" }], "user-X");
+    expect(podeEmitirDocumento(s, "user-Y")).toBe(false);
+  });
+  it("super_admin → true (emite em nome da unidade)", () => {
+    const s = sessionWith([{ name: "super_admin", unitScope: null }], "admin-1");
+    expect(podeEmitirDocumento(s, "user-X")).toBe(true);
+  });
+  it("gestor_unidade → true (emite em nome da unidade)", () => {
+    const s = sessionWith([{ name: "gestor_unidade", unitScope: "medico" }], "gestor-1");
+    expect(podeEmitirDocumento(s, "user-X")).toBe(true);
+  });
+  it("recepcao → false", () => {
+    const s = sessionWith([{ name: "recepcao", unitScope: "medico" }], "rec-1");
+    expect(podeEmitirDocumento(s, "rec-1")).toBe(false);
+  });
+  it("social → false", () => {
+    const s = sessionWith([{ name: "social", unitScope: null }], "soc-1");
+    expect(podeEmitirDocumento(s, "soc-1")).toBe(false);
+  });
+  it("sem sessão → false", () => {
+    expect(podeEmitirDocumento(null, "user-X")).toBe(false);
   });
 });
 

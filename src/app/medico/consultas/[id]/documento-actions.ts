@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeEmitirDocumento } from "@/lib/medico/rbac";
+import { ReceitaItensSchema, normalizarReceitaItens } from "@/lib/medico/receita";
 
 /** Lê um campo de texto do FormData, normaliza para `string | null`. */
 function text(formData: FormData, key: string): string | null {
@@ -50,23 +51,61 @@ async function carregarConsultaParaDocumento(consultaId: string) {
 }
 
 /**
- * Emite uma receita (receituário) para a consulta. MVP: 1 item via campos
- * medicamento/posologia/quantidade/via. Snapshots de paciente e profissional
- * congelados no momento da emissão (documento legal). logEvent + volta pra
- * consulta com ?doc=ok.
+ * Emite uma receita (receituário) multi-item para a consulta. 1..N medicamentos
+ * via hidden `itensJson` (validado por ReceitaItensSchema); fallback legado de 1
+ * item via campos planos medicamento/posologia/quantidade/via. Snapshots de
+ * paciente e profissional congelados no momento da emissão (documento legal) e os
+ * N itens nascem juntos numa transação única. logEvent + volta pra consulta com
+ * ?doc=ok.
  */
 export async function emitirReceitaAction(formData: FormData) {
   const consultaId = String(formData.get("consultaId"));
   const { session, consulta } = await carregarConsultaParaDocumento(consultaId);
 
-  const medicamento = text(formData, "medicamento");
-  const posologia = text(formData, "posologia");
-  // Sem medicamento/posologia não há receita válida — volta com erro.
-  if (!medicamento || !posologia) {
-    redirect(`/medico/consultas/${consultaId}?doc=erro_receita` as Route);
+  // Itens da receita: o client receita-itens.tsx envia o hidden `itensJson`.
+  // Form antigo sem o hidden (aba aberta durante o deploy) cai no caminho legado
+  // com os campos planos medicamento/posologia/quantidade/via (1 item).
+  const raw = formData.get("itensJson");
+  let itens: {
+    medicamento: string;
+    posologia: string;
+    quantidade: string | null;
+    via: string | null;
+  }[];
+
+  if (raw != null) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(String(raw));
+    } catch {
+      parsed = undefined; // JSON malformado → reprovado pelo safeParse (nunca 500)
+    }
+    const valido = ReceitaItensSchema.safeParse(parsed);
+    if (!valido.success) {
+      redirect(`/medico/consultas/${consultaId}?doc=erro_receita` as Route);
+    }
+    itens = normalizarReceitaItens(valido.data);
+  } else {
+    const medicamento = text(formData, "medicamento");
+    const posologia = text(formData, "posologia");
+    // Sem medicamento/posologia não há receita válida — volta com erro.
+    if (!medicamento || !posologia) {
+      redirect(`/medico/consultas/${consultaId}?doc=erro_receita` as Route);
+    }
+    itens = [
+      {
+        medicamento,
+        posologia,
+        quantidade: text(formData, "quantidade"),
+        via: text(formData, "via"),
+      },
+    ];
   }
 
   const nomePaciente = consulta.cidadao.nomeSocial || consulta.cidadao.nomeCompleto;
+  // Atomicidade: receita.create com itens: { create: [...] } é UMA transação
+  // Prisma única — receita + N itens nascem juntos ou nada nasce (snapshot
+  // congelado integral). NÃO dividir em create + createMany.
   const receita = await db.receita.create({
     data: {
       consultaId,
@@ -76,16 +115,7 @@ export async function emitirReceitaAction(formData: FormData) {
       conselho: consulta.profissional.conselho,
       nroConselho: consulta.profissional.nroConselho,
       observacoes: text(formData, "observacoes"),
-      itens: {
-        create: [
-          {
-            medicamento,
-            posologia,
-            quantidade: text(formData, "quantidade"),
-            via: text(formData, "via"),
-          },
-        ],
-      },
+      itens: { create: itens },
     },
   });
 
@@ -96,7 +126,7 @@ export async function emitirReceitaAction(formData: FormData) {
     entityId: receita.id,
     rootEntityType: "cidadao",
     rootEntityId: consulta.cidadaoId,
-    meta: { consultaId },
+    meta: { consultaId, qtdItens: itens.length },
   });
 
   revalidatePath(`/medico/consultas/${consultaId}` as Route);

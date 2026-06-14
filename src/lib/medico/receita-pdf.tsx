@@ -127,7 +127,7 @@ export function ReceitaPdf({ data }: { data: ReceitaPdfData }) {
 
         <Text style={s.secao}>Prescrição</Text>
         {data.itens.map((item, i) => (
-          <View key={i} style={s.item}>
+          <View key={i} style={s.item} wrap={false}>
             <View style={s.itemLinha}>
               <Text style={s.itemNum}>{i + 1}.</Text>
               <Text style={s.itemMed}>{item.medicamento}</Text>
@@ -143,7 +143,7 @@ export function ReceitaPdf({ data }: { data: ReceitaPdfData }) {
           </View>
         ) : null}
 
-        <View style={s.assinaturaBloco}>
+        <View style={s.assinaturaBloco} wrap={false} minPresenceAhead={80}>
           <View style={s.assinaturaLinha}>
             <Text style={s.assinaturaNome}>{data.nomeProfissional}</Text>
             <Text style={s.assinaturaConselho}>

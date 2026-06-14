@@ -30,6 +30,7 @@ import { marcarCheckinAction, desfazerCheckinAction } from "./checkin-action";
 import styles from "./prontuario.module.css";
 import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 import { Cid10Combobox } from "./cid10-combobox";
+import { ReceitaItens } from "./receita-itens";
 import { AssinarButton } from "./assinar-button";
 
 const ACAO_LABEL: Record<string, string> = {
@@ -703,26 +704,7 @@ export default async function ConsultaDetalhePage({
                   {podeEmitir ? (
                     <form action={emitirReceitaAction} className={styles.docForm}>
                       <input type="hidden" name="consultaId" value={consulta.id} />
-                      <input
-                        className={styles.docInput}
-                        name="medicamento"
-                        placeholder="Medicamento"
-                        required
-                      />
-                      <input
-                        className={styles.docInput}
-                        name="posologia"
-                        placeholder="Posologia (ex.: 1 comp. de 8/8h por 7 dias)"
-                        required
-                      />
-                      <div className={styles.docRow}>
-                        <input
-                          className={styles.docInput}
-                          name="quantidade"
-                          placeholder="Quantidade"
-                        />
-                        <input className={styles.docInput} name="via" placeholder="Via" />
-                      </div>
+                      <ReceitaItens />
                       <input
                         className={styles.docInput}
                         name="observacoes"
