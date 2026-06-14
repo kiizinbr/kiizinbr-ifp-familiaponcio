@@ -2,3 +2,9 @@
 # Não gatekeepar formatação dele. A FONTE DA VERDADE (src/styles/ifp-*.css) NÃO está
 # aqui — é formatada e checada normalmente.
 docs/design-kit/
+
+# Artefatos do fila-runner noturno (locais, gerados) — não gatekeepar formatação
+.playwright-mcp/
+BACKLOG-NOITE.md
+NIGHTLY-LOG-*.md
+overnight-*/
