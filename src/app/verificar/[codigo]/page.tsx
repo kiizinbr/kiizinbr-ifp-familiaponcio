@@ -1,16 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import type { Route } from "next";
 import { db } from "@/lib/db";
 import { normalizarCodigo } from "@/lib/capacitacao/certificado";
+import { qrDataUrl } from "@/lib/pdf/qr";
 import { Badge } from "@/components/ui/badge";
+import { TemaUnidade } from "@/components/tema-unidade";
+import { CertificadoCartao } from "@/app/capacitacao/turmas/[id]/certificado-cartao";
+import styles from "@/app/capacitacao/turmas/[id]/certificado.module.css";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
 /**
  * Verificação pública de certificado (alvo do QR). Sem login — fora do matcher do
- * proxy. Mostra os dados snapshot do certificado se o código existir, ou aviso de
- * não encontrado. Expõe só nome/curso/carga/frequência (o que o próprio diploma mostra).
+ * proxy. Mostra o cartão cerimonial (mesmo `.cert` da celebração) com os dados snapshot
+ * se o código existir, ou aviso de não encontrado. Expõe só nome/curso/carga/frequência
+ * (o que o próprio diploma mostra). `TemaUnidade tema="capacitacao"` resolve `--unit`
+ * (laranja) nesta rota que vive fora do AppShell.
  */
 export default async function VerificarCertificadoPage({
   params,
@@ -19,64 +26,69 @@ export default async function VerificarCertificadoPage({
 }) {
   const { codigo } = await params;
   const cert = await db.certificado.findUnique({ where: { codigo: normalizarCodigo(codigo) } });
+  // QR precisa de URL ABSOLUTA — uma câmera de celular lê o texto verbatim; só o
+  // path (/verificar/CODIGO) não abre nada. Mesmo alvo da rota do PDF, aqui o
+  // origin vem dos headers do request (Server Component fora do AppShell).
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const qr = cert && host ? await qrDataUrl(`${proto}://${host}/verificar/${cert.codigo}`) : null;
 
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-50">
-      <div className="card" style={{ width: "100%", maxWidth: 460 }}>
-        <div className="body" style={{ padding: "var(--sp-8)" }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              marginBottom: "var(--sp-5)",
-              textAlign: "center",
-            }}
-          >
-            <Image src="/logo/ifp-symbol.png" alt="IFP" width={48} height={48} priority />
-            <p className="micro" style={{ marginTop: "var(--sp-2)", color: "var(--text-3)" }}>
-              Instituto Família Pôncio · Verificação de certificado
-            </p>
-          </div>
-
-          {cert ? (
-            <>
+    <TemaUnidade tema="capacitacao">
+      <main className={styles.verifyStage}>
+        {cert ? (
+          <div className={styles.verifyCol} style={{ maxWidth: 760 }}>
+            <div className={styles.verifyBadgeRow}>
               <Badge variant="success">
                 <span className="dot" /> Certificado válido
               </Badge>
-              <h1 className="t-h2" style={{ color: "var(--text)", margin: "var(--sp-3) 0" }}>
-                {cert.nomeAluno}
-              </h1>
-              <p style={{ color: "var(--text)", lineHeight: 1.6 }}>
-                concluiu o curso <b>{cert.nomeCurso}</b> ({cert.cargaHoraria}h) com frequência de{" "}
-                <b>{cert.percentualFrequencia}%</b>.
-              </p>
-              <div style={{ marginTop: "var(--sp-4)", color: "var(--text-3)", fontSize: 13 }}>
-                <div>Emitido em {fmt.format(cert.emitidoEm)}</div>
-                <div className="mono">Código {cert.codigo}</div>
-              </div>
-              <div style={{ marginTop: "var(--sp-5)" }}>
-                <a href={`/verificar/${cert.codigo}/pdf`} className="btn btn-primary">
-                  Baixar certificado (PDF)
-                </a>
-              </div>
-            </>
-          ) : (
-            <>
-              <Badge variant="danger">Certificado não encontrado</Badge>
-              <p style={{ color: "var(--text-3)", marginTop: "var(--sp-3)" }}>
-                O código informado não corresponde a nenhum certificado emitido pelo Instituto.
-              </p>
-            </>
-          )}
+            </div>
 
-          <div style={{ marginTop: "var(--sp-6)", textAlign: "center" }}>
+            <CertificadoCartao cert={cert} qr={qr ?? undefined} />
+
+            <div className={styles.verifyMeta}>
+              <div>Emitido em {fmt.format(cert.emitidoEm)}</div>
+              <div className="mono">Código {cert.codigo}</div>
+            </div>
+
+            <div className={styles.verifyActions}>
+              <a href={`/verificar/${cert.codigo}/pdf`} className="btn btn-secondary btn-lg">
+                Baixar certificado (PDF)
+              </a>
+            </div>
+
             <Link href={"/" as Route} className="micro" style={{ color: "var(--text-3)" }}>
               ← Início
             </Link>
           </div>
-        </div>
-      </div>
-    </main>
+        ) : (
+          <div className={styles.notFound}>
+            <Image
+              src="/logo/ifp-symbol.png"
+              alt="IFP"
+              width={48}
+              height={48}
+              priority
+              style={{ margin: "0 auto" }}
+            />
+            <p className="micro" style={{ marginTop: "var(--sp-2)", color: "var(--text-3)" }}>
+              Instituto Família Pôncio · Verificação de certificado
+            </p>
+            <div style={{ marginTop: "var(--sp-4)" }}>
+              <Badge variant="danger">Certificado não encontrado</Badge>
+            </div>
+            <p style={{ color: "var(--text-3)", marginTop: "var(--sp-3)" }}>
+              O código informado não corresponde a nenhum certificado emitido pelo Instituto.
+            </p>
+            <div style={{ marginTop: "var(--sp-5)" }}>
+              <Link href={"/" as Route} className="micro" style={{ color: "var(--text-3)" }}>
+                ← Início
+              </Link>
+            </div>
+          </div>
+        )}
+      </main>
+    </TemaUnidade>
   );
 }

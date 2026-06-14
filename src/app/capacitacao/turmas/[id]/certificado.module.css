@@ -1,0 +1,304 @@
+/*
+  Certificado cerimonial — porta de docs/design-kit/scaffolds/cert-capacitacao.html.
+  Componente reusável: o mesmo .cert serve a celebração pós-emissão (instrutora) e a
+  verificação pública (alvo do QR). Tokens do kit — uma marca, muda só o acento
+  (--unit = laranja em [data-unit="capacitacao"]). Cores hardcoded só onde o scaffold
+  já as aceita: #25d366 (WhatsApp) e preto/branco do QR (aqui o QR real é <img>).
+*/
+
+/* ===== palco da celebração (contém o confetti) ===== */
+.stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 24px 90px;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sunken);
+}
+.congrats {
+  text-align: center;
+  margin-bottom: 22px;
+}
+.congratsKicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--unit);
+}
+.congrats h1 {
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 6px 0 0;
+  line-height: 1.15;
+}
+
+/* ===== cartão certificado ===== */
+.cert {
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 1.414 / 1;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(20, 22, 22, 0.18);
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6% 9%;
+}
+.cert::before {
+  /* moldura dupla externa */
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 2px solid var(--unit);
+  border-radius: 8px;
+  opacity: 0.35;
+}
+.cert::after {
+  /* moldura dupla interna */
+  content: "";
+  position: absolute;
+  inset: 22px;
+  border: 1px solid var(--unit);
+  border-radius: 5px;
+  opacity: 0.2;
+}
+.lion {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--unit);
+}
+.title {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: rgb(var(--ifp-brown-900));
+  margin: 4px 0 14px;
+}
+.bodyText {
+  font-size: clamp(12px, 1.8vw, 14px);
+  color: var(--text-2);
+  line-height: 1.6;
+  max-width: 80%;
+}
+.bodyText b {
+  color: var(--text);
+}
+.name {
+  font-size: clamp(22px, 4.5vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 12px 0;
+  color: var(--text);
+}
+.name::after {
+  content: "";
+  display: block;
+  width: 180px;
+  max-width: 60%;
+  height: 2px;
+  background: var(--unit);
+  margin: 8px auto 0;
+  opacity: 0.5;
+}
+
+/* ===== rodapé do cartão (assinatura · QR · data) ===== */
+.foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 0 9% 7%;
+  gap: 8px;
+}
+.sig {
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+.sigLine {
+  width: 70%;
+  height: 1px;
+  background: var(--line-strong);
+  margin: 0 auto 5px;
+}
+.sigName {
+  font-size: 12px;
+  font-weight: 700;
+}
+.sigRole {
+  font-size: 10px;
+  color: var(--text-3);
+}
+.qrWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+.qr {
+  width: 58px;
+  height: 58px;
+  border-radius: 8px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px var(--line);
+  flex: none;
+}
+.qrLabel {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-3);
+  letter-spacing: 0.05em;
+}
+
+/* ===== ações da celebração ===== */
+.actionsRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.wpp {
+  background: #25d366;
+  color: #fff;
+  border-color: transparent;
+}
+.wpp:hover {
+  filter: brightness(1.05);
+  background: #25d366;
+}
+
+/* ===== confetti (momento WOW) ===== */
+.confetti {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 14px;
+  opacity: 0;
+  border-radius: 2px;
+  animation: fall 2.8s linear forwards;
+}
+@keyframes fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(105vh) rotate(540deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti {
+    display: none;
+  }
+}
+
+/* ===== verificação pública (cartão sério, sem confetti) ===== */
+.verifyStage {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 40px 24px;
+  background: var(--surface-sunken);
+}
+.verifyCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+}
+.verifyBadgeRow {
+  display: flex;
+  justify-content: center;
+}
+.verifyMeta {
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.verifyMeta .mono {
+  font-family: var(--font-mono);
+}
+.verifyActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.notFound {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  padding: 32px 28px;
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .cert {
+    padding: 8% 7%;
+  }
+  .lion {
+    width: 64px;
+    height: 64px;
+  }
+  .foot {
+    padding: 0 7% 6%;
+  }
+  .qr {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* ===== impressão (Ctrl+P na página) =====================================
+   O caminho oficial de impressão é a rota /verificar/{codigo}/pdf (diploma A4
+   dedicado). Mas quem der Ctrl+P na celebração/verificação não deve sair com
+   confetti, parabéns e botões na folha — esconde o cromo e isola só o .cert. */
+@media print {
+  .stage,
+  .verifyStage {
+    min-height: auto;
+    padding: 0;
+    background: #fff;
+    display: block;
+  }
+  .congrats,
+  .actionsRow,
+  .confetti,
+  .verifyBadgeRow,
+  .verifyActions {
+    display: none !important;
+  }
+  .cert {
+    box-shadow: none;
+    margin: 0 auto;
+  }
+}
