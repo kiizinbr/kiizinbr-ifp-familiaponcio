@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import type { StatusMatricula } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { qrDataUrl } from "@/lib/pdf/qr";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
@@ -30,6 +32,7 @@ import { MatricularCombobox } from "./matricular-combobox";
 import { PresencaCard } from "./presenca-card";
 import { CertificadoControl } from "./certificado-control";
 import { TrilhaFormatura } from "./trilha-formatura";
+import { CertificadoCelebracao } from "./certificado-celebracao";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
@@ -111,6 +114,46 @@ export default async function TurmaDetalhePage({
   const presentesTurma = presencasTurma.filter((p) => p.presente).length;
   const frequenciaTurma = chamadasTurma > 0 ? (presentesTurma / chamadasTurma) * 100 : 0;
 
+  // Momento WOW pós-emissão: ?cert=CODIGO (do redirect da emissão) abre a tela de
+  // celebração (confetti + parabéns + compartilhar/baixar). Lê só o snapshot já
+  // gravado — não toca a emissão nem a regra de elegibilidade. URLs absolutas
+  // (QR/WhatsApp) derivam do origin do request.
+  const certEmitido = cert
+    ? await db.certificado.findUnique({
+        where: { codigo: cert },
+        select: {
+          codigo: true,
+          nomeAluno: true,
+          nomeCurso: true,
+          cargaHoraria: true,
+          percentualFrequencia: true,
+          emitidoEm: true,
+        },
+      })
+    : null;
+
+  if (certEmitido) {
+    const h = await headers();
+    const proto = h.get("x-forwarded-proto") ?? "https";
+    const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
+    const base = host ? `${proto}://${host}` : "";
+    const verificacaoUrl = `${base}/verificar/${certEmitido.codigo}`;
+    const qr = await qrDataUrl(verificacaoUrl);
+    const primeiroNome = certEmitido.nomeAluno.trim().split(/\s+/)[0] ?? certEmitido.nomeAluno;
+
+    return (
+      <CapacitacaoShell session={session}>
+        <CertificadoCelebracao
+          cert={certEmitido}
+          qr={qr}
+          verificacaoUrl={verificacaoUrl}
+          pdfUrl={`${base}/verificar/${certEmitido.codigo}/pdf`}
+          primeiroNome={primeiroNome}
+        />
+      </CapacitacaoShell>
+    );
+  }
+
   return (
     <CapacitacaoShell session={session}>
       <div className={styles.root}>
@@ -131,15 +174,13 @@ export default async function TurmaDetalhePage({
         />
 
         {erro && ERROS[erro] ? (
-          <div className={`${styles.alert} ${styles.alertError}`}>{ERROS[erro]}</div>
+          <div role="alert" className={`${styles.alert} ${styles.alertError}`}>
+            {ERROS[erro]}
+          </div>
         ) : null}
-        {presenca === "ok" ? <div className={styles.alert}>Presença do dia registrada.</div> : null}
-        {cert ? (
-          <div className={styles.alert}>
-            Certificado emitido —{" "}
-            <Link href={`/verificar/${cert}` as Route} style={{ textDecoration: "underline" }}>
-              ver verificação ({cert})
-            </Link>
+        {presenca === "ok" ? (
+          <div role="status" className={styles.alert}>
+            Presença do dia registrada.
           </div>
         ) : null}
 

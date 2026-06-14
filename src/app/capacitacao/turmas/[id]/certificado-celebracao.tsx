@@ -83,7 +83,9 @@ export function CertificadoCelebracao({
   );
 
   return (
-    <div ref={stageRef} className={styles.stage}>
+    // data-unit garante o acento laranja (--unit) da moldura/régua mesmo se a
+    // celebração for montada fora de um ancestral capacitacao (ex.: rota própria).
+    <div ref={stageRef} className={styles.stage} data-unit="capacitacao">
       <div className={styles.congrats}>
         <span className={styles.congratsKicker}>Parabéns, {primeiroNome}!</span>
         <h1>Seu certificado está pronto 🎉</h1>

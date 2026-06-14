@@ -277,3 +277,28 @@
     height: 48px;
   }
 }
+
+/* ===== impressão (Ctrl+P na página) =====================================
+   O caminho oficial de impressão é a rota /verificar/{codigo}/pdf (diploma A4
+   dedicado). Mas quem der Ctrl+P na celebração/verificação não deve sair com
+   confetti, parabéns e botões na folha — esconde o cromo e isola só o .cert. */
+@media print {
+  .stage,
+  .verifyStage {
+    min-height: auto;
+    padding: 0;
+    background: #fff;
+    display: block;
+  }
+  .congrats,
+  .actionsRow,
+  .confetti,
+  .verifyBadgeRow,
+  .verifyActions {
+    display: none !important;
+  }
+  .cert {
+    box-shadow: none;
+    margin: 0 auto;
+  }
+}

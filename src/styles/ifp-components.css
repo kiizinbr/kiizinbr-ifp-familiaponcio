@@ -1233,7 +1233,10 @@ table.tbl .cell-mono {
   /* botões garantem 44px nos DOIS eixos — setas de semana (←/→) e demais
      botões só-glifo ficavam com largura < 44px só com o piso de altura. */
   .btn,
-  .btn-sm {
+  .btn-sm,
+  /* WCAG 2.5.5 também no toggle de presença: rótulos curtos ("Falta") ficavam
+     < 44px de largura só com o piso de altura. */
+  .segmented button {
     min-width: var(--tap-min);
   }
   .btn + .btn {

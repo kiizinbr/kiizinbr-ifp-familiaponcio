@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import type { Route } from "next";
 import { db } from "@/lib/db";
 import { normalizarCodigo } from "@/lib/capacitacao/certificado";
@@ -25,7 +26,13 @@ export default async function VerificarCertificadoPage({
 }) {
   const { codigo } = await params;
   const cert = await db.certificado.findUnique({ where: { codigo: normalizarCodigo(codigo) } });
-  const qr = cert ? await qrDataUrl(`/verificar/${cert.codigo}`) : null;
+  // QR precisa de URL ABSOLUTA — uma câmera de celular lê o texto verbatim; só o
+  // path (/verificar/CODIGO) não abre nada. Mesmo alvo da rota do PDF, aqui o
+  // origin vem dos headers do request (Server Component fora do AppShell).
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const qr = cert && host ? await qrDataUrl(`${proto}://${host}/verificar/${cert.codigo}`) : null;
 
   return (
     <TemaUnidade tema="capacitacao">

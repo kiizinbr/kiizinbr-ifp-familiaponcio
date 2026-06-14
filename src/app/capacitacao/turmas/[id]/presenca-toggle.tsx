@@ -36,11 +36,16 @@ export function PresencaToggle({ id, nomeAcessivel }: { id: string; nomeAcessive
     <>
       {/* Único campo enviado ao FormData — contrato byte-a-byte com a action. */}
       <input type="checkbox" name={`p_${id}`} checked={presente} hidden readOnly />
-      <div className="segmented" role="group" aria-label={`Presença de ${nomeAcessivel}`}>
+      {/* Escolha mutuamente exclusiva (Presente XOR Falta) → radiogroup, não dois
+          toggles independentes: aria-pressed em ambos faria o leitor de tela
+          anunciar dois alternadores soltos. role=radio + aria-checked diz "uma
+          de duas opções", e o leitor anuncia só a ativa. */}
+      <div className="segmented" role="radiogroup" aria-label={`Presença de ${nomeAcessivel}`}>
         <button
           type="button"
+          role="radio"
           className={clsx(presente && "on")}
-          aria-pressed={presente}
+          aria-checked={presente}
           aria-label={`${nomeAcessivel}: presente`}
           onClick={() => setPresente(true)}
         >
@@ -48,8 +53,9 @@ export function PresencaToggle({ id, nomeAcessivel }: { id: string; nomeAcessive
         </button>
         <button
           type="button"
+          role="radio"
           className={clsx(!presente && "on")}
-          aria-pressed={!presente}
+          aria-checked={!presente}
           aria-label={`${nomeAcessivel}: falta`}
           onClick={() => setPresente(false)}
         >
