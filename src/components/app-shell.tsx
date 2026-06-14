@@ -122,19 +122,7 @@ export function AppShell({
                   {displayName}
                 </p>
                 <form action={signOutAction}>
-                  <button
-                    type="submit"
-                    className="tap-area"
-                    style={{
-                      background: "none",
-                      border: 0,
-                      padding: 0,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      color: "var(--text-3)",
-                      fontFamily: "inherit",
-                    }}
-                  >
+                  <button type="submit" className="btn-link-muted tap-area">
                     Sair
                   </button>
                 </form>

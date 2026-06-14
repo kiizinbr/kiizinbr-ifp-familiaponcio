@@ -172,7 +172,7 @@ export function MobileNav({ items, sectionLabel, isSuper, roles }: MobileNavProp
         <div className="drawer-foot">
           <ThemeToggle />
           <form action={signOutAction}>
-            <button type="submit" className="drawer-signout tap-area">
+            <button type="submit" className="btn-link-muted tap-area">
               Sair
             </button>
           </form>
