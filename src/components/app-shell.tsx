@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Session } from "next-auth";
 import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
+import { MobileNav } from "@/components/mobile-nav";
 import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StagingBanner } from "@/components/staging-banner";
@@ -69,6 +70,12 @@ export function AppShell({
       </a>
       <StagingBanner />
       <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
+        <MobileNav
+          items={items}
+          sectionLabel={sectionLabel}
+          isSuper={isSuper}
+          roles={session.user.roles}
+        />
         <aside className="sidebar">
           <div className="sb-brand">
             <span className="symbol">
@@ -117,6 +124,7 @@ export function AppShell({
                 <form action={signOutAction}>
                   <button
                     type="submit"
+                    className="tap-area"
                     style={{
                       background: "none",
                       border: 0,
