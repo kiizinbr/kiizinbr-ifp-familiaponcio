@@ -345,9 +345,9 @@ describe("reagendarConsultaAction — IDOR", () => {
     authMock.mockResolvedValue(RECEPCAO_MEDICO);
     dbMock.consulta.findUniqueOrThrow.mockResolvedValue({ cidadaoId: "med1" });
     dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
-    await expect(reagendarConsultaAction(fd({ consultaId: "cons1", slotId: "s2" }))).rejects.toThrow(
-      "__redirect__:/medico/consultas/cons1?reagendada=ok",
-    );
+    await expect(
+      reagendarConsultaAction(fd({ consultaId: "cons1", slotId: "s2" })),
+    ).rejects.toThrow("__redirect__:/medico/consultas/cons1?reagendada=ok");
     expect(agendaMock.reagendarConsulta).toHaveBeenCalledTimes(1);
   });
 });
