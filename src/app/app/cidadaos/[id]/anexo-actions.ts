@@ -14,6 +14,7 @@ import {
   statCidadaoAnexo,
 } from "@/lib/minio";
 import type { UnitScope } from "@/lib/rbac-types";
+import { isValidSha256Hex } from "@/lib/hash";
 
 export type AnexoActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -102,12 +103,19 @@ export async function confirmAnexoUpload(args: {
   storageKey: string;
   fileName: string;
   mimeType: string;
+  hashSha256: string;
   descricao?: string;
   categoria?: string;
 }): Promise<AnexoActionResult<{ anexoId: string }>> {
   const check = await checkCidadaoEditPermission(args.cidadaoId);
   if (check.error || !check.cidadao || !check.session) {
     return { ok: false, error: check.error ?? "Erro desconhecido" };
+  }
+
+  // F13: o hash SHA-256 vem do cliente (Web Crypto) — boundary validation:
+  // não confiar no formato cegamente. Resolve dedup/integridade de transporte.
+  if (!isValidSha256Hex(args.hashSha256)) {
+    return { ok: false, error: "Hash de integridade inválido." };
   }
 
   // IDOR guard: o storageKey tem que pertencer a ESTE cidadão (requestAnexoUploadUrl
@@ -134,7 +142,7 @@ export async function confirmAnexoUpload(args: {
       fileName: args.fileName,
       mimeType: args.mimeType,
       sizeBytes: stat.size,
-      hashSha256: "", // MVP — sem hash de conteúdo. Evolução futura.
+      hashSha256: args.hashSha256, // F13: SHA-256 calculado no cliente (Web Crypto)
       storageKey: args.storageKey,
       descricao: args.descricao ?? null,
       categoria: normalizarCategoria(args.categoria),

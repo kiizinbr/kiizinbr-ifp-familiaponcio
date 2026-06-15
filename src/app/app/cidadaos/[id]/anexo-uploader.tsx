@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { confirmAnexoUpload, removeAnexo, requestAnexoUploadUrl } from "./anexo-actions";
+import { sha256Hex } from "@/lib/hash";
 
 interface AnexoExistente {
   id: string;
@@ -78,6 +79,10 @@ export function AnexoUploader({
       return;
     }
 
+    // F13: SHA-256 do conteúdo (Web Crypto, client-side) — integridade/dedup.
+    // O File já está em memória (limite 10MB); o digest acompanha o confirm.
+    const hashSha256 = await sha256Hex(await file.arrayBuffer());
+
     // 1) Pede URL presigned
     const urlResult = await requestAnexoUploadUrl({
       cidadaoId,
@@ -116,6 +121,7 @@ export function AnexoUploader({
       storageKey: urlResult.data.storageKey,
       fileName: file.name,
       mimeType: file.type,
+      hashSha256,
       categoria,
     });
     if (!confirmResult.ok) {
