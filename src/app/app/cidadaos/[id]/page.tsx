@@ -35,6 +35,15 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   recreativo: "Centro Recreativo",
 };
 
+// Cor de texto sobre o badge de unidade — mesmo critério da lista (page.tsx):
+// branco onde passa AA (medico, esportivo); --ifp-ink nos tons claros (capacitacao, recreativo).
+const UNIT_FG: Record<UnitScope, string> = {
+  medico: "#fff",
+  esportivo: "#fff",
+  capacitacao: "rgb(var(--ifp-ink))",
+  recreativo: "rgb(var(--ifp-ink))",
+};
+
 const GENERO_LABELS: Record<string, string> = {
   feminino: "Feminino",
   masculino: "Masculino",
@@ -126,8 +135,8 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
               <span className="mono">{formatCpf(cidadao.cpf)}</span>
               <span>•</span>
               <span
-                className="rounded-[var(--r-sm)] px-2 py-0.5 text-xs font-medium text-white"
-                style={{ background: `rgb(var(--ifp-filter-${unit}))` }}
+                className="rounded-[var(--r-sm)] px-2 py-0.5 text-xs font-medium"
+                style={{ color: UNIT_FG[unit], background: `rgb(var(--ifp-filter-${unit}))` }}
               >
                 {UNIT_LABELS[unit]}
               </span>
