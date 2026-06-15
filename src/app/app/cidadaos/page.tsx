@@ -23,12 +23,17 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   recreativo: "Recreativo",
 };
 
-// Cor de dado: identidade da unidade (preservada do kit, token --u-*).
-const UNIT_COLOR: Record<UnitScope, string> = {
-  medico: "var(--u-medico)",
-  capacitacao: "var(--u-capacitacao)",
-  esportivo: "var(--u-esportivo)",
-  recreativo: "var(--u-recreativo)",
+// Cor de texto sobre o badge de unidade, escolhida por unidade para maximizar
+// o contraste sem branco cego (recreativo/capacitacao são claros demais p/ #fff).
+// Branco onde passa AA p/ texto pequeno (medico 5.55:1, esportivo 4.81:1);
+// --ifp-ink nos tons claros (capacitacao 3.35:1, recreativo 4.00:1) — melhor que
+// o branco anterior (2.65/2.22) e acima do limiar 3:1 de componente de UI, porém
+// ainda abaixo de AA-small (4.5:1). Texto reforçado pelo nome da unidade ao lado.
+const UNIT_FG: Record<UnitScope, string> = {
+  medico: "#fff",
+  esportivo: "#fff",
+  capacitacao: "rgb(var(--ifp-ink))",
+  recreativo: "rgb(var(--ifp-ink))",
 };
 
 const TONE_VARIANT: Record<StatusTone, "danger" | "warning" | "success" | "default"> = {
@@ -59,9 +64,12 @@ export default async function CidadaosPage({
   if (!session) redirect("/login");
 
   const params = await searchParams;
-  const selectedUnits = params.unidade
-    ? (params.unidade.split(",").filter((u) => UNIT_SCOPES.includes(u as UnitScope)) as UnitScope[])
-    : undefined;
+  // O <select> de unidade é single-valor; ler 1 valor (não CSV) e validar contra
+  // os escopos conhecidos. listCidadaos recebe UnitScope[] — embrulha em array.
+  const selectedUnits =
+    params.unidade && UNIT_SCOPES.includes(params.unidade as UnitScope)
+      ? ([params.unidade] as UnitScope[])
+      : undefined;
 
   const ciclo = CICLO_VALUES.includes(params.ciclo as CicloFilter)
     ? (params.ciclo as CicloFilter)
@@ -224,8 +232,8 @@ export default async function CidadaosPage({
                       <span
                         className="badge"
                         style={{
-                          color: "#fff",
-                          background: UNIT_COLOR[unit],
+                          color: UNIT_FG[unit],
+                          background: `rgb(var(--ifp-filter-${unit}))`,
                           borderColor: "transparent",
                         }}
                       >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
+import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { TABS, type TabId } from "@/lib/cidadao-schema";
 import type { UnitScope } from "@/lib/rbac-types";
@@ -119,6 +120,7 @@ export function NovoCidadaoForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [cepLoading, setCepLoading] = useState(false);
+  const [cepAviso, setCepAviso] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -134,6 +136,7 @@ export function NovoCidadaoForm({
   async function onCepBlur() {
     const cleaned = state.cep.replace(/\D/g, "");
     if (cleaned.length !== 8) return;
+    setCepAviso(null);
     setCepLoading(true);
     try {
       const data = await fetchAddressFromCep(cleaned);
@@ -145,6 +148,8 @@ export function NovoCidadaoForm({
           cidade: data.cidade || s.cidade,
           uf: data.uf || s.uf,
         }));
+      } else {
+        setCepAviso("CEP não encontrado — preencha o endereço manualmente.");
       }
     } finally {
       setCepLoading(false);
@@ -350,6 +355,7 @@ export function NovoCidadaoForm({
               label="Unidade de origem *"
               value={state.unitIdOrigem}
               onChange={(v) => update("unitIdOrigem", v as UnitScope)}
+              error={errors.unitIdOrigem}
               options={[
                 { value: "medico", label: "Centro Médico" },
                 { value: "capacitacao", label: "Centro de Capacitação" },
@@ -405,12 +411,20 @@ export function NovoCidadaoForm({
           <Input
             label="CEP"
             value={state.cep}
-            onChange={(v) => update("cep", v)}
+            onChange={(v) => {
+              if (cepAviso) setCepAviso(null);
+              update("cep", v);
+            }}
             onBlur={onCepBlur}
             placeholder="00000-000"
           />
-          <div className="text-xs text-[var(--text-3)] sm:col-span-1 sm:flex sm:items-end">
-            {cepLoading && <span>Buscando endereço…</span>}
+          <div className="text-xs sm:col-span-1 sm:flex sm:items-end">
+            {cepLoading && <span className="text-[var(--text-3)]">Buscando endereço…</span>}
+            {!cepLoading && cepAviso && (
+              <span role="status" className="text-[var(--text-3)]">
+                {cepAviso}
+              </span>
+            )}
           </div>
           <Input
             label="Logradouro"
@@ -662,6 +676,7 @@ function Input({
   disabled?: boolean;
 }) {
   const id = useId();
+  const errId = `${id}-err`;
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
       <label htmlFor={id} className="label mb-1 block">
@@ -675,9 +690,15 @@ function Input({
         onBlur={onBlur}
         placeholder={placeholder}
         disabled={disabled}
-        className={`input ${error ? "is-error" : ""}`}
+        className={clsx("input", error && "is-error")}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errId : undefined}
       />
-      {error && <p className="field-error mt-1">{error[0]}</p>}
+      {error && (
+        <p id={errId} role="alert" className="field-error mt-1">
+          {error[0]}
+        </p>
+      )}
     </div>
   );
 }
@@ -686,14 +707,17 @@ function Textarea({
   label,
   value,
   onChange,
+  error,
   colSpan = 1,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  error?: string[];
   colSpan?: 1 | 2;
 }) {
   const id = useId();
+  const errId = `${id}-err`;
   return (
     <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
       <label htmlFor={id} className="label mb-1 block">
@@ -704,8 +728,15 @@ function Textarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="textarea"
+        className={clsx("textarea", error && "is-error")}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errId : undefined}
       />
+      {error && (
+        <p id={errId} role="alert" className="field-error mt-1">
+          {error[0]}
+        </p>
+      )}
     </div>
   );
 }
@@ -715,19 +746,29 @@ function Select({
   value,
   onChange,
   options,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  error?: string[];
 }) {
   const id = useId();
+  const errId = `${id}-err`;
   return (
     <div>
       <label htmlFor={id} className="label mb-1 block">
         {label}
       </label>
-      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="select">
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={clsx("select", error && "is-error")}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errId : undefined}
+      >
         <option value="">— Selecione —</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -735,6 +776,11 @@ function Select({
           </option>
         ))}
       </select>
+      {error && (
+        <p id={errId} role="alert" className="field-error mt-1">
+          {error[0]}
+        </p>
+      )}
     </div>
   );
 }

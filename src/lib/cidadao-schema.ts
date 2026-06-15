@@ -73,7 +73,26 @@ export const cidadaoCreateSchema = z.object({
   dataNascimento: z
     .string()
     .min(1, { message: "Data de nascimento obrigatória" })
-    .pipe(z.string().date({ message: "Data inválida (use AAAA-MM-DD)" })),
+    .pipe(z.string().date({ message: "Data inválida (use AAAA-MM-DD)" }))
+    // F11: faixa plausível (Zod, NÃO schema do banco). O .pipe(.date()) já
+    // garantiu o formato AAAA-MM-DD; aqui só rejeitamos data futura ou idade
+    // implausível (> 130 anos). Cobre create E update (schema único).
+    .refine(
+      (s) => {
+        const d = new Date(`${s}T00:00:00`); // local, evita off-by-one de fuso
+        if (Number.isNaN(d.getTime())) return false;
+        // Compara em granularidade de DIA (d é meia-noite): zera a hora dos
+        // limites pra borda de 130 anos ser inclusiva, sem depender do horário.
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        if (d > hoje) return false; // não futura (nascido hoje é válido)
+        const min = new Date();
+        min.setHours(0, 0, 0, 0);
+        min.setFullYear(min.getFullYear() - 130); // <= 130 anos
+        return d >= min;
+      },
+      { message: "Data de nascimento implausível (0-130 anos, não futura)" },
+    ),
   telefonePrincipal: trimmedString("Telefone principal"),
 
   // Identificação opcional
