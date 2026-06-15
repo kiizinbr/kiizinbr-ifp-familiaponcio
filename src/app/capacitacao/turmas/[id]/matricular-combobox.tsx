@@ -41,7 +41,7 @@ export function MatricularCombobox({ turmaId }: { turmaId: string }) {
             <strong>{escolhido.nome}</strong>
             <button
               type="button"
-              className={`${styles.btn} ${styles.btnSm} ${styles.btnGhost}`}
+              className="btn btn-sm btn-secondary"
               onClick={() => {
                 setEscolhido(null);
                 setQuery("");

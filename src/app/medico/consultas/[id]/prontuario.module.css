@@ -43,7 +43,7 @@
   height: 46px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), #0a3f3d);
-  color: #fff;
+  color: var(--on-accent);
   display: grid;
   place-items: center;
   font-weight: 800;
@@ -551,7 +551,7 @@
   transform: translateY(1px);
 }
 .btnPrimary {
-  color: #fff;
+  color: var(--on-accent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #fff), var(--accent));
   box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 32%, transparent);
 }

@@ -175,10 +175,7 @@ export default async function TurmaDetalhePage({
             turma.local ? ` · ${turma.local}` : ""
           }${turma.instrutor ? ` · ${turma.instrutor.nomeExibicao}` : ""}`}
           action={
-            <Link
-              href={"/capacitacao/turmas" as Route}
-              className={`${styles.btn} ${styles.btnGhost}`}
-            >
+            <Link href={"/capacitacao/turmas" as Route} className="btn btn-secondary">
               ← Turmas
             </Link>
           }
@@ -211,15 +208,15 @@ export default async function TurmaDetalhePage({
         <div className={styles.grid2}>
           {/* coluna esquerda: vagas + matricular */}
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <span className={styles.tick} />
-                <h2 className={styles.cardTitle}>OCUPAÇÃO</h2>
-                <span className={styles.headNote}>
+            <div className="card">
+              <header>
+                <span className="tick" />
+                <h3>OCUPAÇÃO</h3>
+                <span className="act" style={{ cursor: "default" }}>
                   <KitBadge variant={vt.variant}>{vt.label}</KitBadge>
                 </span>
-              </div>
-              <div className={styles.body}>
+              </header>
+              <div className="body">
                 <VagasMeter ocupadas={ocupadas} capacidade={turma.capacidade} />
                 {espera.length > 0 ? (
                   <p className={styles.meterText} style={{ marginTop: 12 }}>
@@ -247,12 +244,12 @@ export default async function TurmaDetalhePage({
             </div>
 
             {podeMat ? (
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.tick} />
-                  <h2 className={styles.cardTitle}>MATRICULAR CIDADÃO</h2>
-                </div>
-                <div className={styles.body}>
+              <div className="card">
+                <header>
+                  <span className="tick" />
+                  <h3>MATRICULAR CIDADÃO</h3>
+                </header>
+                <div className="body">
                   {ocupadas >= turma.capacidade ? (
                     <p className={styles.desc} style={{ margin: "0 0 12px" }}>
                       Turma lotada — novas matrículas entram automaticamente na lista de espera.
@@ -274,21 +271,25 @@ export default async function TurmaDetalhePage({
               />
             ) : null}
 
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <span className={styles.tick} />
-                <h2 className={styles.cardTitle}>MATRICULADOS</h2>
-                <span className={styles.headNote}>{matriculados.length}</span>
+            <div className="card">
+              <header>
+                <span className="tick" />
+                <h3>MATRICULADOS</h3>
+                <span className="act mono text-3" style={{ cursor: "default" }}>
+                  {matriculados.length}
+                </span>
                 {emRiscoCount > 0 ? (
-                  <span className={styles.headNote}>
+                  <span style={{ display: "flex", alignItems: "center" }}>
                     <KitBadge variant="danger">⚠ {emRiscoCount} em risco</KitBadge>
                   </span>
                 ) : null}
-              </div>
+              </header>
               {matriculados.length === 0 ? (
-                <div className={styles.empty}>Ninguém matriculado ainda.</div>
+                <div className="empty">
+                  <p className="e-msg">Ninguém matriculado ainda.</p>
+                </div>
               ) : (
-                <div className={styles.list}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
                   {matriculados.map((m) => {
                     const vm = MATRICULA_VISUAL[m.status];
                     // M6 — gate por permissão (instrutor só as próprias turmas; recepção
@@ -365,16 +366,18 @@ export default async function TurmaDetalhePage({
             </div>
 
             {espera.length > 0 ? (
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.tick} />
-                  <h2 className={styles.cardTitle}>LISTA DE ESPERA</h2>
-                  <span className={styles.headNote}>{espera.length}</span>
-                </div>
-                <div className={styles.list}>
+              <div className="card">
+                <header>
+                  <span className="tick" />
+                  <h3>LISTA DE ESPERA</h3>
+                  <span className="act mono text-3" style={{ cursor: "default" }}>
+                    {espera.length}
+                  </span>
+                </header>
+                <div style={{ display: "flex", flexDirection: "column" }}>
                   {espera.map((m, i) => (
                     <div key={m.id} className={styles.row}>
-                      <span className={`${styles.mono} ${styles.micro}`} style={{ width: 22 }}>
+                      <span className="micro" style={{ width: 22 }}>
                         {i + 1}º
                       </span>
                       <div className={styles.rowMain}>
@@ -407,7 +410,7 @@ export default async function TurmaDetalhePage({
                   ))}
                 </div>
                 {podeGerir ? (
-                  <div className={styles.body} style={{ borderTop: "1px solid var(--line)" }}>
+                  <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
                     <form action={promoverListaEsperaAction}>
                       <input type="hidden" name="turmaId" value={turma.id} />
                       <SubmitButton

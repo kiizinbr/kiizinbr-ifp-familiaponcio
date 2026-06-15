@@ -5,10 +5,13 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
+import { KpiCard } from "@/components/kpi-card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { podeCriarTurma } from "@/lib/capacitacao/rbac";
 import { avaliarRiscoEvasao } from "@/lib/capacitacao/evasao";
-import { PageHead, KitBadge } from "./_components/ui";
+import { PageHead } from "./_components/ui";
 import styles from "./capacitacao.module.css";
 
 const ATIVAS = ["inscrito", "confirmado", "cursando"] as const;
@@ -85,137 +88,134 @@ export default async function CapacitacaoHome() {
 
   return (
     <CapacitacaoShell session={session}>
-      <div className={styles.root}>
-        <PageHead
-          eyebrow="Capacitação"
-          title="Painel da unidade"
-          desc="Cursos, turmas e matrículas da capacitação profissional. Acompanhe a ocupação das próximas turmas e abra novas inscrições."
-          action={
-            podeCriarTurma(session) ? (
-              <Link
-                href={"/capacitacao/turmas/nova" as Route}
-                className={`${styles.btn} ${styles.btnPrimary}`}
-              >
-                Nova turma
-              </Link>
-            ) : null
-          }
-        />
-
-        <div className={styles.statRow}>
-          <div className={styles.stat}>
-            <div className={styles.statNum}>{cursosAtivos}</div>
-            <div className={styles.statLabel}>cursos no catálogo</div>
-          </div>
-          <div className={styles.stat}>
-            <div className={styles.statNum}>{turmasAbertas}</div>
-            <div className={styles.statLabel}>turmas ativas</div>
-          </div>
-          <div className={styles.stat}>
-            <div className={`${styles.statNum} ${styles.statAccent}`}>{matriculasAtivas}</div>
-            <div className={styles.statLabel}>matrículas ativas</div>
-          </div>
-        </div>
-
-        {podeGerir ? (
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <span className={styles.tick} />
-              <h2 className={styles.cardTitle}>ALUNOS EM RISCO DE EVASÃO</h2>
-              {emRisco.length > 0 ? (
-                <span className={styles.headNote}>
-                  <KitBadge variant="danger">{emRisco.length}</KitBadge>
-                </span>
-              ) : null}
-            </div>
-            {emRisco.length === 0 ? (
-              <div className={styles.empty}>Nenhum aluno em risco no momento. 👏</div>
-            ) : (
-              <div className={styles.list}>
-                {emRisco.slice(0, 10).map((a) => (
-                  <Link
-                    key={a.id}
-                    href={`/capacitacao/turmas/${a.turmaId}` as Route}
-                    className={styles.row}
-                  >
-                    <span className={styles.dot} />
-                    <div className={styles.rowMain}>
-                      <div className={styles.rowTitle}>{a.nome}</div>
-                      <div className={styles.rowMeta}>
-                        <span>{a.curso}</span>
-                        <span className={styles.mono}>· {a.codigo}</span>
-                      </div>
-                    </div>
-                    <div className={styles.rowRight}>
-                      <KitBadge variant="danger">⚠ {a.motivos.join(" · ")}</KitBadge>
-                    </div>
-                  </Link>
-                ))}
-                {emRisco.length > 10 ? (
-                  <div className={styles.empty}>e mais {emRisco.length - 10}…</div>
-                ) : null}
-              </div>
-            )}
-          </div>
-        ) : null}
-
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.tick} />
-            <h2 className={styles.cardTitle}>PRÓXIMAS TURMAS</h2>
-            <Link href={"/capacitacao/turmas" as Route} className={styles.headNote}>
-              ver todas →
+      <PageHead
+        eyebrow="Capacitação"
+        title="Painel da unidade"
+        desc="Cursos, turmas e matrículas da capacitação profissional. Acompanhe a ocupação das próximas turmas e abra novas inscrições."
+        action={
+          podeCriarTurma(session) ? (
+            <Link href={"/capacitacao/turmas/nova" as Route} className="btn btn-primary">
+              Nova turma
             </Link>
-          </div>
-          {proximas.length === 0 ? (
-            <div className={styles.empty}>
-              Nenhuma turma ativa.{" "}
-              {podeCriarTurma(session) ? (
-                <Link href={"/capacitacao/turmas/nova" as Route} className={styles.link}>
-                  Abrir a primeira turma
-                </Link>
-              ) : null}
+          ) : null
+        }
+      />
+
+      <div className={styles.statRow}>
+        <KpiCard label="cursos no catálogo" value={cursosAtivos} />
+        <KpiCard label="turmas ativas" value={turmasAbertas} />
+        <KpiCard label="matrículas ativas" value={matriculasAtivas} />
+      </div>
+
+      {podeGerir ? (
+        <div className="card" style={{ marginBottom: 22 }}>
+          <header>
+            <span className="tick" />
+            <h3>ALUNOS EM RISCO DE EVASÃO</h3>
+            {emRisco.length > 0 ? (
+              <span className="act" style={{ pointerEvents: "none" }}>
+                <Badge variant="danger">{emRisco.length}</Badge>
+              </span>
+            ) : null}
+          </header>
+          {emRisco.length === 0 ? (
+            <div className="body">
+              <p className="t-body text-3" style={{ margin: 0 }}>
+                Nenhum aluno em risco no momento. 👏
+              </p>
             </div>
           ) : (
             <div className={styles.list}>
-              {proximas.map((t) => {
-                const v = STATUS_TURMA_VISUAL[t.status];
-                const ocupadas = ativasMap.get(t.id) ?? 0;
-                return (
-                  <Link
-                    key={t.id}
-                    href={`/capacitacao/turmas/${t.id}` as Route}
-                    className={styles.row}
-                  >
-                    <span className={styles.dot} />
-                    <div className={styles.rowMain}>
-                      <div className={styles.rowTitle}>{t.curso.nome}</div>
-                      <div className={styles.rowMeta}>
-                        <span className={styles.mono}>{t.codigo}</span>
-                        <span>·</span>
-                        <span>
-                          {fmt.format(t.dataInicio)} – {fmt.format(t.dataFim)}
-                        </span>
-                        {t.local ? (
-                          <>
-                            <span>·</span>
-                            <span>{t.local}</span>
-                          </>
-                        ) : null}
-                      </div>
+              {emRisco.slice(0, 10).map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/capacitacao/turmas/${a.turmaId}` as Route}
+                  className={styles.row}
+                >
+                  <span className={styles.dot} />
+                  <div className={styles.rowMain}>
+                    <div className={styles.rowTitle}>{a.nome}</div>
+                    <div className={styles.rowMeta}>
+                      <span>{a.curso}</span>
+                      <span className="mono">· {a.codigo}</span>
                     </div>
-                    <div className={styles.rowRight}>
-                      <span className={`${styles.mono} ${styles.meterText}`} style={{ margin: 0 }}>
-                        {ocupadas}/{t.capacidade}
-                      </span>
-                      <KitBadge variant={v.variant}>{v.label}</KitBadge>
-                    </div>
-                  </Link>
-                );
-              })}
+                  </div>
+                  <div className={styles.rowRight}>
+                    <Badge variant="danger">⚠ {a.motivos.join(" · ")}</Badge>
+                  </div>
+                </Link>
+              ))}
+              {emRisco.length > 10 ? (
+                <div className="body">
+                  <p className="t-small text-3" style={{ margin: 0 }}>
+                    e mais {emRisco.length - 10}…
+                  </p>
+                </div>
+              ) : null}
             </div>
           )}
         </div>
+      ) : null}
+
+      <div className="card">
+        <header>
+          <span className="tick" />
+          <h3>PRÓXIMAS TURMAS</h3>
+          <Link href={"/capacitacao/turmas" as Route} className="act">
+            ver todas →
+          </Link>
+        </header>
+        {proximas.length === 0 ? (
+          <EmptyState
+            titulo="Nenhuma turma ativa"
+            descricao="Ainda não há turmas em planejamento ou andamento. Abra a primeira para começar a receber inscrições."
+            cta={
+              podeCriarTurma(session) ? (
+                <Link href={"/capacitacao/turmas/nova" as Route} className="btn btn-primary">
+                  Abrir a primeira turma
+                </Link>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div className={styles.list}>
+            {proximas.map((t) => {
+              const v = STATUS_TURMA_VISUAL[t.status];
+              const ocupadas = ativasMap.get(t.id) ?? 0;
+              return (
+                <Link
+                  key={t.id}
+                  href={`/capacitacao/turmas/${t.id}` as Route}
+                  className={styles.row}
+                >
+                  <span className={styles.dot} />
+                  <div className={styles.rowMain}>
+                    <div className={styles.rowTitle}>{t.curso.nome}</div>
+                    <div className={styles.rowMeta}>
+                      <span className="mono">{t.codigo}</span>
+                      <span>·</span>
+                      <span>
+                        {fmt.format(t.dataInicio)} – {fmt.format(t.dataFim)}
+                      </span>
+                      {t.local ? (
+                        <>
+                          <span>·</span>
+                          <span>{t.local}</span>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className={styles.rowRight}>
+                    <span className="mono text-3" style={{ fontSize: 12 }}>
+                      {ocupadas}/{t.capacidade}
+                    </span>
+                    <Badge variant={v.variant}>{v.label}</Badge>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </CapacitacaoShell>
   );

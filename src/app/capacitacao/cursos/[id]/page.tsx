@@ -6,9 +6,12 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Badge } from "@/components/ui/badge";
+import { KpiCard } from "@/components/kpi-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { podeCriarTurma, podeGerenciarCurso } from "@/lib/capacitacao/rbac";
-import { PageHead, KitBadge } from "../../_components/ui";
+import { PageHead } from "../../_components/ui";
 import { toggleCursoAtivoAction } from "../../actions";
 import styles from "../../capacitacao.module.css";
 
@@ -41,103 +44,94 @@ export default async function CursoDetalhePage({ params }: { params: Promise<{ i
 
   return (
     <CapacitacaoShell session={session}>
-      <div className={styles.root}>
-        <PageHead
-          eyebrow={`Capacitação · ${curso.area}`}
-          title={curso.nome}
-          desc={curso.descricao ?? undefined}
-          action={
-            <>
-              {podeGerenciarCurso(session) ? (
-                <form action={toggleCursoAtivoAction}>
-                  <input type="hidden" name="cursoId" value={curso.id} />
-                  <SubmitButton
-                    variant={curso.ativo ? "ghost" : "primary"}
-                    pendingLabel="Alterando status do curso…"
-                  >
-                    {curso.ativo ? "Desativar curso" : "Reativar curso"}
-                  </SubmitButton>
-                </form>
-              ) : null}
-              <Link
-                href={"/capacitacao/cursos" as Route}
-                className={`${styles.btn} ${styles.btnGhost}`}
-              >
-                ← Catálogo
-              </Link>
-            </>
-          }
-        />
-
-        <div className={styles.statRow}>
-          <div className={styles.stat}>
-            <div className={styles.statNum}>{curso.cargaHorariaTotal}h</div>
-            <div className={styles.statLabel}>carga horária</div>
-          </div>
-          <div className={styles.stat}>
-            <div className={styles.statNum} style={{ fontSize: 20, textTransform: "capitalize" }}>
-              {curso.modalidade}
-            </div>
-            <div className={styles.statLabel}>modalidade</div>
-          </div>
-          <div className={styles.stat}>
-            <div className={`${styles.statNum} ${styles.statAccent}`}>{curso.turmas.length}</div>
-            <div className={styles.statLabel}>turmas</div>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.tick} />
-            <h2 className={styles.cardTitle}>TURMAS DESTE CURSO</h2>
-            {podeCriarTurma(session) ? (
-              <Link href={"/capacitacao/turmas/nova" as Route} className={styles.headNote}>
-                + nova turma
-              </Link>
+      <PageHead
+        eyebrow={`Capacitação · ${curso.area}`}
+        title={curso.nome}
+        desc={curso.descricao ?? undefined}
+        action={
+          <>
+            {podeGerenciarCurso(session) ? (
+              <form action={toggleCursoAtivoAction}>
+                <input type="hidden" name="cursoId" value={curso.id} />
+                <SubmitButton
+                  variant={curso.ativo ? "ghost" : "primary"}
+                  pendingLabel="Alterando status do curso…"
+                >
+                  {curso.ativo ? "Desativar curso" : "Reativar curso"}
+                </SubmitButton>
+              </form>
             ) : null}
+            <Link href={"/capacitacao/cursos" as Route} className="btn btn-secondary">
+              ← Catálogo
+            </Link>
+          </>
+        }
+      />
+
+      <div className={styles.statRow}>
+        <KpiCard label="carga horária" value={`${curso.cargaHorariaTotal}h`} />
+        <div className="kpi">
+          <div className="kpi-top">
+            <span className="micro">modalidade</span>
           </div>
-          {curso.turmas.length === 0 ? (
-            <div className={styles.empty}>Nenhuma turma aberta para este curso ainda.</div>
-          ) : (
-            <div className={styles.list}>
-              {curso.turmas.map((t) => {
-                const v = STATUS_TURMA_VISUAL[t.status];
-                const ocupadas = ativasMap.get(t.id) ?? 0;
-                return (
-                  <Link
-                    key={t.id}
-                    href={`/capacitacao/turmas/${t.id}` as Route}
-                    className={styles.row}
-                  >
-                    <div className={styles.rowMain}>
-                      <div className={styles.rowTitle}>{t.codigo}</div>
-                      <div className={styles.rowMeta}>
-                        <span>
-                          {fmt.format(t.dataInicio)} – {fmt.format(t.dataFim)}
-                        </span>
-                        {t.instrutor ? (
-                          <>
-                            <span>·</span>
-                            <span>{t.instrutor.nomeExibicao}</span>
-                          </>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className={styles.rowRight}>
-                      <span
-                        className={styles.mono}
-                        style={{ fontSize: 12, color: "var(--text-3)" }}
-                      >
-                        {ocupadas}/{t.capacidade}
-                      </span>
-                      <KitBadge variant={v.variant}>{v.label}</KitBadge>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <div className="t-h3" style={{ textTransform: "capitalize" }}>
+            {curso.modalidade}
+          </div>
         </div>
+        <KpiCard label="turmas" value={curso.turmas.length} />
+      </div>
+
+      <div className="card">
+        <header>
+          <span className="tick" />
+          <h3>TURMAS DESTE CURSO</h3>
+          {podeCriarTurma(session) ? (
+            <Link href={"/capacitacao/turmas/nova" as Route} className="act">
+              + nova turma
+            </Link>
+          ) : null}
+        </header>
+        {curso.turmas.length === 0 ? (
+          <EmptyState
+            titulo="Nenhuma turma aberta"
+            descricao="Este curso ainda não tem turmas. Abra uma turma para começar as matrículas."
+          />
+        ) : (
+          <div className={styles.list}>
+            {curso.turmas.map((t) => {
+              const v = STATUS_TURMA_VISUAL[t.status];
+              const ocupadas = ativasMap.get(t.id) ?? 0;
+              return (
+                <Link
+                  key={t.id}
+                  href={`/capacitacao/turmas/${t.id}` as Route}
+                  className={styles.row}
+                >
+                  <div className={styles.rowMain}>
+                    <div className={styles.rowTitle}>{t.codigo}</div>
+                    <div className={styles.rowMeta}>
+                      <span>
+                        {fmt.format(t.dataInicio)} – {fmt.format(t.dataFim)}
+                      </span>
+                      {t.instrutor ? (
+                        <>
+                          <span>·</span>
+                          <span>{t.instrutor.nomeExibicao}</span>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className={styles.rowRight}>
+                    <span className="mono text-3" style={{ fontSize: 12 }}>
+                      {ocupadas}/{t.capacidade}
+                    </span>
+                    <Badge variant={v.variant}>{v.label}</Badge>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </CapacitacaoShell>
   );

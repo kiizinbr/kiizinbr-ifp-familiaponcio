@@ -6,6 +6,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { podeGerenciarCurso } from "@/lib/capacitacao/rbac";
 import { PageHead } from "../_components/ui";
 import { criarCursoAction } from "../actions";
@@ -26,119 +27,116 @@ export default async function CatalogoPage() {
 
   return (
     <CapacitacaoShell session={session}>
-      <div className={styles.root}>
-        <PageHead
-          eyebrow="Capacitação · Catálogo"
-          title="Cursos"
-          desc="O catálogo de cursos da capacitação. Cada curso gera turmas datadas com vagas, instrutor e matrículas."
-        />
+      <PageHead
+        eyebrow="Capacitação · Catálogo"
+        title="Cursos"
+        desc="O catálogo de cursos da capacitação. Cada curso gera turmas datadas com vagas, instrutor e matrículas."
+      />
 
-        <div className={podeCriar ? styles.grid2 : undefined}>
-          {podeCriar ? (
-            <div className={`${styles.card}`} style={{ alignSelf: "start" }}>
-              <div className={styles.cardHeader}>
-                <span className={styles.tick} />
-                <h2 className={styles.cardTitle}>NOVO CURSO</h2>
-                <span className={styles.headNote}>
-                  {ativos} ativo{ativos === 1 ? "" : "s"} · {cursos.length} no total
-                </span>
-              </div>
-              <div className={styles.body}>
-                <form action={criarCursoAction} className={styles.form}>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Nome do curso</span>
-                    <input
-                      name="nome"
-                      required
-                      placeholder="Ex: Informática Básica"
-                      className={styles.input}
-                    />
+      <div className={podeCriar ? styles.grid2 : undefined}>
+        {podeCriar ? (
+          <div className="card" style={{ alignSelf: "start" }}>
+            <header>
+              <span className="tick" />
+              <h3>NOVO CURSO</h3>
+              <span className="act text-3">
+                {ativos} ativo{ativos === 1 ? "" : "s"} · {cursos.length} no total
+              </span>
+            </header>
+            <div className="body">
+              <form action={criarCursoAction}>
+                <label className="field-group">
+                  <span className="label">Nome do curso</span>
+                  <input
+                    name="nome"
+                    required
+                    placeholder="Ex: Informática Básica"
+                    className="input"
+                  />
+                </label>
+                <label className="field-group">
+                  <span className="label">Área</span>
+                  <input name="area" required placeholder="Ex: Tecnologia" className="input" />
+                </label>
+                <label className="field-group">
+                  <span className="label">Descrição</span>
+                  <textarea
+                    name="descricao"
+                    placeholder="Breve descrição do conteúdo e objetivos."
+                    className="textarea"
+                  />
+                </label>
+                <div className={styles.fieldGrid}>
+                  <label className="field-group">
+                    <span className="label">Modalidade</span>
+                    <select name="modalidade" className="select" defaultValue="presencial">
+                      <option value="presencial">Presencial</option>
+                      <option value="online">Online</option>
+                      <option value="hibrido">Híbrido</option>
+                    </select>
                   </label>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Área</span>
+                  <label className="field-group">
+                    <span className="label">Carga horária (h)</span>
                     <input
-                      name="area"
-                      required
-                      placeholder="Ex: Tecnologia"
-                      className={styles.input}
-                    />
-                  </label>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Descrição</span>
-                    <textarea
-                      name="descricao"
-                      placeholder="Breve descrição do conteúdo e objetivos."
-                      className={styles.textarea}
-                    />
-                  </label>
-                  <div className={styles.fieldGrid}>
-                    <label className={styles.label}>
-                      <span className={styles.labelText}>Modalidade</span>
-                      <select name="modalidade" className={styles.select} defaultValue="presencial">
-                        <option value="presencial">Presencial</option>
-                        <option value="online">Online</option>
-                        <option value="hibrido">Híbrido</option>
-                      </select>
-                    </label>
-                    <label className={styles.label}>
-                      <span className={styles.labelText}>Carga horária (h)</span>
-                      <input
-                        name="cargaHorariaTotal"
-                        type="number"
-                        min={1}
-                        defaultValue={20}
-                        className={styles.input}
-                      />
-                    </label>
-                  </div>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Capacidade padrão por turma</span>
-                    <input
-                      name="capacidadePadrao"
+                      name="cargaHorariaTotal"
                       type="number"
                       min={1}
                       defaultValue={20}
-                      className={styles.input}
+                      className="input"
                     />
                   </label>
-                  <SubmitButton pendingLabel="Adicionando curso…">Adicionar curso</SubmitButton>
-                </form>
-              </div>
+                </div>
+                <label className="field-group">
+                  <span className="label">Capacidade padrão por turma</span>
+                  <input
+                    name="capacidadePadrao"
+                    type="number"
+                    min={1}
+                    defaultValue={20}
+                    className="input"
+                  />
+                </label>
+                <SubmitButton className="btn-block" pendingLabel="Adicionando curso…">
+                  Adicionar curso
+                </SubmitButton>
+              </form>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {cursos.length === 0 ? (
-            <div className={styles.card}>
-              <div className={styles.empty}>
-                Nenhum curso cadastrado ainda.
-                {podeCriar ? " Use o formulário ao lado para criar o primeiro." : ""}
-              </div>
-            </div>
-          ) : (
-            <div className={styles.cards}>
-              {cursos.map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/capacitacao/cursos/${c.id}` as Route}
-                  className={styles.course}
-                  style={c.ativo ? undefined : { opacity: 0.55 }}
-                >
-                  <span className={styles.courseArea}>{c.area}</span>
-                  <span className={styles.courseName}>{c.nome}</span>
-                  {c.descricao ? <span className={styles.courseDesc}>{c.descricao}</span> : null}
-                  <span className={styles.courseFoot}>
-                    <span>
-                      <b>{c.cargaHorariaTotal}h</b> · {c.modalidade}
-                    </span>
-                    <span>
-                      <b>{c._count.turmas}</b> turma{c._count.turmas === 1 ? "" : "s"}
-                    </span>
+        {cursos.length === 0 ? (
+          <EmptyState
+            titulo="Nenhum curso cadastrado ainda"
+            descricao={
+              podeCriar
+                ? "Use o formulário ao lado para criar o primeiro."
+                : "Os cursos aparecem aqui assim que forem cadastrados."
+            }
+          />
+        ) : (
+          <div className={styles.cards}>
+            {cursos.map((c) => (
+              <Link
+                key={c.id}
+                href={`/capacitacao/cursos/${c.id}` as Route}
+                className={styles.course}
+                style={c.ativo ? undefined : { opacity: 0.55 }}
+              >
+                <span className={styles.courseArea}>{c.area}</span>
+                <span className={styles.courseName}>{c.nome}</span>
+                {c.descricao ? <span className={styles.courseDesc}>{c.descricao}</span> : null}
+                <span className={styles.courseFoot}>
+                  <span>
+                    <b>{c.cargaHorariaTotal}h</b> · {c.modalidade}
                   </span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+                  <span>
+                    <b>{c._count.turmas}</b> turma{c._count.turmas === 1 ? "" : "s"}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </CapacitacaoShell>
   );

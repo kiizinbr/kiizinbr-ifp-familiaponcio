@@ -225,7 +225,7 @@ export default async function AgendaSemanalPage({
                     className="mx-auto mt-0.5 grid h-7 w-7 place-items-center rounded-full text-sm font-bold"
                     style={
                       isHoje
-                        ? { background: "var(--accent)", color: "#fff" }
+                        ? { background: "var(--accent)", color: "var(--on-accent)" }
                         : { color: "var(--text)" }
                     }
                   >

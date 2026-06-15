@@ -121,6 +121,9 @@ html[data-theme="light"] {
   --accent: rgb(var(--ifp-teal-700)); /* acento de SISTEMA (saúde/ativo)     */
   --accent-soft: rgba(0, 117, 113, 0.09);
   --accent-line: rgba(0, 117, 113, 0.28);
+  --on-accent: #fff; /* foreground canônico SOBRE superfície --accent (botão primário,
+                        pílula do dia, avatar de acento). Branco serve light + dark;
+                        declarado no :root global p/ valer nos dois temas.            */
   --live: rgb(var(--ifp-orange-500)); /* sinal vivo: agora / urgência         */
   --live-soft: rgba(255, 119, 46, 0.12);
   --warn: #b45309;

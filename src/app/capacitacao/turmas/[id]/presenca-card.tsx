@@ -49,45 +49,19 @@ export function PresencaCard({
           >
             <label className={styles.label} style={{ maxWidth: 240, marginBottom: 0 }}>
               <span className={styles.labelText}>Data da aula</span>
-              <input
-                type="date"
-                name="data"
-                defaultValue={hoje}
-                required
-                className={styles.select}
-              />
+              <input type="date" name="data" defaultValue={hoje} required className="input" />
             </label>
             <PresencaAtalho />
           </div>
 
-          <ul style={{ listStyle: "none", margin: "14px 0", padding: 0, display: "grid", gap: 8 }}>
+          <ul className={styles.rosterList}>
             {matriculados.map((m) => {
               const r = resumoFrequencia(m.presencas);
               return (
                 <li key={m.id}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      minHeight: 56,
-                      padding: "8px 14px",
-                      border: "1px solid var(--line)",
-                      borderRadius: 10,
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          color: "var(--text)",
-                          fontWeight: 600,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {m.nome}
-                      </div>
+                  <div className={styles.rosterRow}>
+                    <div className={styles.rosterMain}>
+                      <div className={styles.rosterName}>{m.nome}</div>
                       <span className={styles.micro}>
                         {r.total > 0 ? `${r.percentual}% · ${r.presentes}/${r.total}` : "Sem aulas"}
                       </span>

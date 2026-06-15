@@ -6,6 +6,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { podeCriarTurma } from "@/lib/capacitacao/rbac";
 import { PageHead } from "../../_components/ui";
 import { criarTurmaAction } from "../../actions";
@@ -32,108 +33,99 @@ export default async function NovaTurmaPage() {
 
   return (
     <CapacitacaoShell session={session}>
-      <div className={styles.root}>
-        <PageHead
-          eyebrow="Capacitação · Turmas"
-          title="Nova turma"
-          desc="Uma turma é uma instância datada de um curso, com vagas próprias. As matrículas entram depois, pela tela da turma."
-          action={
-            <Link
-              href={"/capacitacao/turmas" as Route}
-              className={`${styles.btn} ${styles.btnGhost}`}
-            >
-              Cancelar
+      <PageHead
+        eyebrow="Capacitação · Turmas"
+        title="Nova turma"
+        desc="Uma turma é uma instância datada de um curso, com vagas próprias. As matrículas entram depois, pela tela da turma."
+        action={
+          <Link href={"/capacitacao/turmas" as Route} className="btn btn-secondary">
+            Cancelar
+          </Link>
+        }
+      />
+
+      {cursos.length === 0 ? (
+        <EmptyState
+          titulo="Nenhum curso ativo"
+          descricao="É preciso ter ao menos um curso ativo no catálogo antes de abrir uma turma."
+          cta={
+            <Link href={"/capacitacao/cursos" as Route} className="btn btn-secondary">
+              Ir ao catálogo
             </Link>
           }
         />
-
-        {cursos.length === 0 ? (
-          <div className={styles.card}>
-            <div className={styles.empty}>
-              É preciso ter ao menos um curso ativo no catálogo antes de abrir uma turma.{" "}
-              <Link href={"/capacitacao/cursos" as Route} className={styles.link}>
-                Ir ao catálogo
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.card} style={{ maxWidth: 620 }}>
-            <div className={styles.cardHeader}>
-              <span className={styles.tick} />
-              <h2 className={styles.cardTitle}>DADOS DA TURMA</h2>
-            </div>
-            <div className={styles.body}>
-              <form action={criarTurmaAction} className={styles.form}>
-                <label className={styles.label}>
-                  <span className={styles.labelText}>Curso</span>
-                  <select name="cursoId" required className={styles.select} defaultValue="">
-                    <option value="" disabled>
-                      Selecione um curso…
+      ) : (
+        <div className="card">
+          <header>
+            <span className="tick" />
+            <h3>DADOS DA TURMA</h3>
+          </header>
+          <div className="body">
+            <form action={criarTurmaAction}>
+              <label className="field-group">
+                <span className="label">Curso</span>
+                <select name="cursoId" required defaultValue="" className="select">
+                  <option value="" disabled>
+                    Selecione um curso…
+                  </option>
+                  {cursos.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
                     </option>
-                    {cursos.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nome}
-                      </option>
-                    ))}
-                  </select>
+                  ))}
+                </select>
+              </label>
+
+              <div className={styles.fieldGrid}>
+                <label className="field-group">
+                  <span className="label">Código da turma</span>
+                  <input name="codigo" required placeholder="Ex: INFO-2026-01" className="input" />
                 </label>
-
-                <div className={styles.fieldGrid}>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Código da turma</span>
-                    <input
-                      name="codigo"
-                      required
-                      placeholder="Ex: INFO-2026-01"
-                      className={styles.input}
-                    />
-                  </label>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Capacidade</span>
-                    <input
-                      name="capacidade"
-                      type="number"
-                      min={1}
-                      placeholder="20"
-                      className={styles.input}
-                    />
-                  </label>
-                </div>
-
-                <div className={styles.fieldGrid}>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Início</span>
-                    <input name="dataInicio" type="date" required className={styles.input} />
-                  </label>
-                  <label className={styles.label}>
-                    <span className={styles.labelText}>Término</span>
-                    <input name="dataFim" type="date" required className={styles.input} />
-                  </label>
-                </div>
-
-                <label className={styles.label}>
-                  <span className={styles.labelText}>Local</span>
-                  <input name="local" placeholder="Ex: Sala 2 — Sede" className={styles.input} />
+                <label className="field-group">
+                  <span className="label">Capacidade</span>
+                  <input
+                    name="capacidade"
+                    type="number"
+                    min={1}
+                    placeholder="20"
+                    className="input"
+                  />
                 </label>
+              </div>
 
-                <label className={styles.label}>
-                  <span className={styles.labelText}>Instrutor (opcional)</span>
-                  <select name="instrutorId" className={styles.select} defaultValue="">
-                    <option value="">— a definir —</option>
-                    {instrutores.map((i) => (
-                      <option key={i.id} value={i.id}>
-                        {i.nomeExibicao}
-                      </option>
-                    ))}
-                  </select>
+              <div className={styles.fieldGrid}>
+                <label className="field-group">
+                  <span className="label">Início</span>
+                  <input name="dataInicio" type="date" required className="input" />
                 </label>
+                <label className="field-group">
+                  <span className="label">Término</span>
+                  <input name="dataFim" type="date" required className="input" />
+                </label>
+              </div>
 
-                <SubmitButton pendingLabel="Criando turma…">Criar turma</SubmitButton>
-              </form>
-            </div>
+              <label className="field-group">
+                <span className="label">Local</span>
+                <input name="local" placeholder="Ex: Sala 2 — Sede" className="input" />
+              </label>
+
+              <label className="field-group">
+                <span className="label">Instrutor (opcional)</span>
+                <select name="instrutorId" defaultValue="" className="select">
+                  <option value="">— a definir —</option>
+                  {instrutores.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.nomeExibicao}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <SubmitButton pendingLabel="Criando turma…">Criar turma</SubmitButton>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </CapacitacaoShell>
   );
 }

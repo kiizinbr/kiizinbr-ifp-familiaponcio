@@ -1,19 +1,18 @@
 import type { ReactNode } from "react";
+import clsx from "clsx";
+import { Badge } from "@/components/ui/badge";
 import styles from "../capacitacao.module.css";
 
 /** Variantes do Badge canônico (espelha BadgeVariant de lib/capacitacao/ui.ts). */
 export type KitVariant = "default" | "info" | "success" | "warning" | "danger";
 
-const BADGE_CLASS: Record<KitVariant, string | undefined> = {
-  default: styles.badgeDefault,
-  info: styles.badgeInfo,
-  success: styles.badgeSuccess,
-  warning: styles.badgeWarning,
-  danger: styles.badgeDanger,
-};
-
+/**
+ * Pílula da Capacitação — agora um wrapper fino sobre o <Badge> do kit
+ * (src/components/ui/badge.tsx). Assinatura (variant/children) inalterada,
+ * então as ~9 telas que importam KitBadge migram sem tocar nos call-sites.
+ */
 export function KitBadge({ variant, children }: { variant: KitVariant; children: ReactNode }) {
-  return <span className={`${styles.badge} ${BADGE_CLASS[variant]}`}>{children}</span>;
+  return <Badge variant={variant}>{children}</Badge>;
 }
 
 export function PageHead({
@@ -28,13 +27,13 @@ export function PageHead({
   action?: ReactNode;
 }) {
   return (
-    <div className={styles.head}>
+    <div className="page-head">
       <div>
-        <p className={styles.eyebrow}>{eyebrow}</p>
-        <h1 className={styles.title}>{title}</h1>
-        {desc ? <p className={styles.desc}>{desc}</p> : null}
+        <p className="micro text-accent">{eyebrow}</p>
+        <h1 className="t-h1">{title}</h1>
+        {desc ? <p className="ph-sub">{desc}</p> : null}
       </div>
-      {action ? <div className={styles.btnRow}>{action}</div> : null}
+      {action ? <div className="actions">{action}</div> : null}
     </div>
   );
 }
@@ -47,7 +46,7 @@ export function VagasMeter({ ocupadas, capacidade }: { ocupadas: number; capacid
     <div>
       <div className={styles.meter}>
         <div
-          className={`${styles.meterFill} ${lotada ? styles.meterFull : ""}`}
+          className={clsx(styles.meterFill, lotada && styles.meterFull)}
           style={{ width: `${pct}%` }}
         />
       </div>

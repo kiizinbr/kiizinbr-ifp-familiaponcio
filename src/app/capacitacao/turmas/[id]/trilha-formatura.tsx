@@ -30,12 +30,12 @@ export function TrilhaFormatura({
     aulasRegistradas === 1 ? "Aula 1 registrada" : `${aulasRegistradas} aulas registradas`;
 
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHeader}>
-        <span className={styles.tick} />
-        <h2 className={styles.cardTitle}>TRILHA DA TURMA</h2>
-      </div>
-      <div className={styles.body}>
+    <div className="card">
+      <header>
+        <span className="tick" />
+        <h3>TRILHA DA TURMA</h3>
+      </header>
+      <div className="body">
         <div className={styles.meter}>
           <div className={clsx(styles.meterFill)} style={{ width: `${pct}%` }} />
         </div>

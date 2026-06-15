@@ -12,16 +12,8 @@
      kit, então o visual claro não muda — e agora capacitação responde ao dark.
      Mantidos só os tokens que o kit não fornece. */
   --accent-strong: #d9531a; /* fim do gradiente do .meterFill (laranja escuro) */
-  --info: #2563eb;
-  --info-soft: rgba(37, 99, 235, 0.1);
-  --success: #15803d;
-  --success-soft: rgba(21, 128, 61, 0.1);
 }
 
-.mono {
-  font-family: var(--font-mono);
-  font-feature-settings: "tnum" 1;
-}
 .micro {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -32,29 +24,6 @@
 }
 
 /* ===== page header ===== */
-.head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 7px;
-}
-.title {
-  font-size: 27px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
 .desc {
   margin-top: 7px;
   font-size: 13.5px;
@@ -109,37 +78,8 @@
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.headNote {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-3);
-}
 .body {
   padding: 16px;
-}
-
-/* ===== stat tiles ===== */
-.stat {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow);
-  padding: 16px 17px;
-}
-.statNum {
-  font-family: var(--font-mono);
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-.statAccent {
-  color: var(--accent);
-}
-.statLabel {
-  margin-top: 7px;
-  font-size: 12px;
-  color: var(--text-3);
 }
 
 /* ===== list rows ===== */
@@ -194,6 +134,38 @@ a.row:hover {
   border-radius: 50%;
   background: var(--accent);
   flex: none;
+}
+
+/* ===== roster de presença (mobile-first, F1) =====
+   Layout neutro só-posição (sem pele de marca): linha de aluna outline +
+   raio + piso de 56px p/ o alvo de toque ≥44px no celular. De-inlina os
+   styles inline antigos; cor/raio saem de tokens, nada inventado. */
+.rosterList {
+  list-style: none;
+  margin: 14px 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.rosterRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.rosterMain {
+  flex: 1;
+  min-width: 0;
+}
+.rosterName {
+  color: var(--text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ===== course card ===== */
@@ -257,44 +229,6 @@ a.row:hover {
   font-family: var(--font-mono);
 }
 
-/* ===== badge ===== */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 700;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-.badgeDefault {
-  color: var(--text-2);
-  background: var(--surface-sunken);
-  border-color: var(--line-strong);
-}
-.badgeInfo {
-  color: var(--info);
-  background: var(--info-soft);
-  border-color: color-mix(in srgb, var(--info) 28%, transparent);
-}
-.badgeSuccess {
-  color: var(--success);
-  background: var(--success-soft);
-  border-color: color-mix(in srgb, var(--success) 28%, transparent);
-}
-.badgeWarning {
-  color: var(--warn);
-  background: var(--warn-soft);
-  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
-}
-.badgeDanger {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
-}
-
 /* ===== forms ===== */
 .form {
   display: flex;
@@ -316,9 +250,7 @@ a.row:hover {
   font-weight: 600;
   color: var(--text-2);
 }
-.input,
-.select,
-.textarea {
+.select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -333,13 +265,7 @@ a.row:hover {
     box-shadow 0.12s,
     background 0.12s;
 }
-.textarea {
-  min-height: 78px;
-  resize: vertical;
-}
-.input:focus,
-.select:focus,
-.textarea:focus {
+.select:focus {
   border-color: var(--accent-line);
   box-shadow: 0 0 0 3px var(--accent-soft);
   background: var(--surface);
@@ -367,14 +293,6 @@ a.row:hover {
 .btn:active {
   transform: translateY(1px);
 }
-.btnPrimary {
-  color: #fff;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #fff), var(--accent));
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-.btnPrimary:hover {
-  opacity: 0.94;
-}
 .btnGhost {
   color: var(--text);
   background: var(--surface);
@@ -382,11 +300,6 @@ a.row:hover {
 }
 .btnGhost:hover {
   background: var(--surface-2);
-}
-.btnDanger {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 26%, transparent);
 }
 .btnSm {
   font-size: 12px;
@@ -427,20 +340,6 @@ a.row:hover {
 }
 
 /* ===== misc ===== */
-.empty {
-  padding: 34px 18px;
-  text-align: center;
-  color: var(--text-3);
-  font-size: 13px;
-}
-.link {
-  color: var(--accent);
-  font-weight: 600;
-  text-decoration: none;
-}
-.link:hover {
-  text-decoration: underline;
-}
 .alert {
   display: flex;
   align-items: center;
@@ -455,20 +354,6 @@ a.row:hover {
   color: var(--danger);
   background: var(--danger-soft);
   border: 1px solid color-mix(in srgb, var(--danger) 26%, transparent);
-}
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.chip {
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 7px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--line);
-  color: var(--text-2);
 }
 
 @media (max-width: 980px) {

@@ -29,6 +29,9 @@ export default function MedicoError({
 
   return (
     <div
+      className="ifp-kit"
+      data-unit="medico"
+      data-unit-accent
       style={{
         minHeight: "100dvh",
         display: "grid",
