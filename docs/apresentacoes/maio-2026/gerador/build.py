@@ -236,10 +236,10 @@ def slide_capa():
     # marca
     txt(s, Inches(1.0), Inches(1.15), Inches(8), Inches(0.5),
         [{"runs": [
-            {"text": "EL PÔNCIO", "size": 16, "bold": True, "color": T.WHITE,
+            {"text": "CLEAN", "size": 16, "bold": True, "color": T.WHITE,
              "font": T.F_HEAD, "spacing": 4.0},
-            {"text": "   ·   FAMÍLIA PÔNCIO", "size": 13, "color": C("9FC9CD"),
-             "font": T.F_BODY, "spacing": 2.0},
+            {"text": "TABACO", "size": 16, "bold": True, "color": C("9FC9CD"),
+             "font": T.F_HEAD, "spacing": 4.0},
         ]}])
     rect(s, Inches(1.0), Inches(1.7), Inches(0.85), Pt(2.4), T.BRAND)
     # título principal
@@ -620,7 +620,7 @@ slide_mensal("Produção — 2026 (Jan a Mai)", "Histórico · Produção",
 
 cp = prs.core_properties
 cp.title = "Relatório de Vendas & Produção — Maio 2026"
-cp.author = "El Pôncio · Família Pôncio"
+cp.author = "CleanTabaco"
 cp.subject = "Vendas IN/OUT, Produção e Estoque — Maio 2026"
 
 import os

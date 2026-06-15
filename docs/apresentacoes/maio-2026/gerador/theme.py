@@ -205,10 +205,8 @@ def footer(slide, page_no, total=11):
     rect(slide, LM, y, Inches(12.09), Pt(0.9), HAIR)
     txt(slide, LM, y + Inches(0.06), Inches(6), Inches(0.3),
         [{"runs": [
-            {"text": "EL PÔNCIO", "size": 9, "bold": True, "color": BRAND,
+            {"text": "CLEANTABACO", "size": 9, "bold": True, "color": BRAND,
              "font": F_HEAD, "spacing": 1.5},
-            {"text": "   ·   Família Pôncio", "size": 9, "color": MUTED,
-             "font": F_BODY, "spacing": 0.5},
         ]}])
     txt(slide, Inches(5.5), y + Inches(0.06), Inches(3.3), Inches(0.3),
         [{"text": "RELATÓRIO MENSAL · MAIO 2026", "size": 9, "color": MUTED,
