@@ -88,11 +88,31 @@ describe("normalizarAluno", () => {
     expect(n.problemas.some((p) => p.includes("status não reconhecido"))).toBe(true);
   });
 
-  it("sem problemas quando tudo ok (normaliza telefone e status)", () => {
+  it("telefone sem DDD (9 dígitos) → marca DDD inferido, mas normaliza o valor (B9)", () => {
     const n = normalizarAluno({
       nome: "Maria",
       email: "",
       telefone: "989605951",
+      endereco: "Rua X",
+      curso: "Manicure",
+      bairro: "Centro",
+      turno: "Manhã",
+      status: "Cursando",
+    });
+    // valor gravado segue idêntico (não muda o dry-run), só ganha visibilidade
+    expect(n.telefone).toBe("21989605951");
+    expect(n.status).toBe("cursando");
+    expect(n.problemas.some((p) => p.includes("DDD inferido"))).toBe(true);
+    // não acusa telefone inválido nem curso ausente
+    expect(n.problemas).not.toContain("telefone inválido ou ausente");
+    expect(n.problemas).not.toContain("curso ausente");
+  });
+
+  it("telefone com DDD (11 dígitos) → sem problema de DDD inferido (B9)", () => {
+    const n = normalizarAluno({
+      nome: "Maria",
+      email: "",
+      telefone: "21989605951",
       endereco: "Rua X",
       curso: "Manicure",
       bairro: "Centro",

@@ -86,6 +86,12 @@ export function normalizarAluno(row: AlunoCsvRow): AlunoNormalizado {
   const problemas: string[] = [];
   const telefone = normalizeTelefone(row.telefone);
   if (!telefone) problemas.push("telefone inválido ou ausente");
+  // B9 — o normalizeTelefone prefixa DDD 21 (RJ) quando vem sem DDD (8-9 dígitos).
+  // Em vez de assumir em silêncio, sinaliza pra revisão humana (o importador é dry-run).
+  const digitos = row.telefone.replace(/\D/g, "");
+  if (telefone && (digitos.length === 8 || digitos.length === 9)) {
+    problemas.push("DDD inferido (21) — confira a origem");
+  }
   const status = mapStatusMatricula(row.status);
   if (!status) problemas.push(`status não reconhecido: "${row.status}"`);
   if (!row.curso) problemas.push("curso ausente");

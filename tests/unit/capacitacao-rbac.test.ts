@@ -3,6 +3,7 @@ import type { Session } from "next-auth";
 import type { RoleName, UnitScope } from "@/lib/rbac-types";
 import {
   podeCriarTurma,
+  podeEmitirCertificado,
   podeGerenciarCurso,
   podeGerenciarInstrutor,
   podeMatricular,
@@ -39,11 +40,28 @@ describe("podeGerenciarCurso", () => {
       false,
     );
   });
+  // M7 — endurecimento: gestor de OUTRA unidade não passa (self-protecting, sem
+  // depender do gate de rota canAccessUnidade num call-site externo).
+  it("gestor_unidade:medico → false (cross-unit)", () => {
+    expect(podeGerenciarCurso(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]))).toBe(
+      false,
+    );
+  });
 });
 
 describe("podeCriarTurma", () => {
   it("recepcao → false (recepção não cria turma)", () => {
     expect(podeCriarTurma(sessionWith([{ name: "recepcao", unitScope: "capacitacao" }]))).toBe(
+      false,
+    );
+  });
+  it("gestor_unidade:capacitacao → true", () => {
+    expect(
+      podeCriarTurma(sessionWith([{ name: "gestor_unidade", unitScope: "capacitacao" }])),
+    ).toBe(true);
+  });
+  it("gestor_unidade:medico → false (cross-unit, M7)", () => {
+    expect(podeCriarTurma(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]))).toBe(
       false,
     );
   });
@@ -62,6 +80,27 @@ describe("podeMatricular", () => {
     expect(podeMatricular(sessionWith([{ name: "profissional", unitScope: "capacitacao" }]))).toBe(
       false,
     );
+  });
+  it("gestor_unidade:medico → false (cross-unit, M7)", () => {
+    expect(podeMatricular(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]))).toBe(
+      false,
+    );
+  });
+  it("recepcao:medico → false (cross-unit, M7)", () => {
+    expect(podeMatricular(sessionWith([{ name: "recepcao", unitScope: "medico" }]))).toBe(false);
+  });
+});
+
+describe("podeEmitirCertificado (M7 cross-unit)", () => {
+  it("gestor_unidade:capacitacao → true", () => {
+    expect(
+      podeEmitirCertificado(sessionWith([{ name: "gestor_unidade", unitScope: "capacitacao" }])),
+    ).toBe(true);
+  });
+  it("gestor_unidade:medico → false (cross-unit)", () => {
+    expect(
+      podeEmitirCertificado(sessionWith([{ name: "gestor_unidade", unitScope: "medico" }])),
+    ).toBe(false);
   });
 });
 
@@ -88,6 +127,24 @@ describe("podeTransicionarMatricula (RBAC)", () => {
   it("gestor_unidade: cursando → concluido → true", () => {
     const s = sessionWith([{ name: "gestor_unidade", unitScope: "capacitacao" }]);
     expect(podeTransicionarMatricula(s, "cursando", "concluido")).toBe(true);
+  });
+  it("gestor_unidade:medico → false (cross-unit, M7)", () => {
+    const s = sessionWith([{ name: "gestor_unidade", unitScope: "medico" }]);
+    expect(podeTransicionarMatricula(s, "cursando", "concluido")).toBe(false);
+  });
+  // M6 — ramo do instrutor (profissional) só funciona quando o 4º arg (userId do
+  // dono da turma) chega. Antes a action chamava com 3 args → capability MORTA.
+  it("profissional dono (4º arg = userId): cursando → concluido → true", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "capacitacao" }], "u1");
+    expect(podeTransicionarMatricula(s, "cursando", "concluido", "u1")).toBe(true);
+  });
+  it("profissional não-dono (4º arg ≠ userId) → false", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "capacitacao" }], "u1");
+    expect(podeTransicionarMatricula(s, "cursando", "concluido", "outro")).toBe(false);
+  });
+  it("profissional SEM 4º arg → false (regressão-guard: bug que matava a action)", () => {
+    const s = sessionWith([{ name: "profissional", unitScope: "capacitacao" }], "u1");
+    expect(podeTransicionarMatricula(s, "cursando", "concluido")).toBe(false);
   });
   it("sem sessão → false", () => {
     expect(podeTransicionarMatricula(null, "inscrito", "confirmado")).toBe(false);
