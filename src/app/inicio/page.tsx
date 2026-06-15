@@ -116,7 +116,9 @@ export default async function InicioDashboard() {
     month: "long",
     year: "numeric",
   });
-  const firstName = session.user.name?.split(" ")[0] ?? "Erick";
+  // Sem primeiro nome (contas de sistema/diretoria com name=null) a manchete
+  // cai na saudação neutra ("Bom dia.") em vez de expor um nome placeholder.
+  const firstName = session.user.name?.split(" ")[0] ?? null;
 
   const veTriagem = podeFazerTriagem(session); // false p/ presidência (gate de triagem.ts)
   const isSuper = hasAnyRole(session, "super_admin");
@@ -145,7 +147,7 @@ export default async function InicioDashboard() {
           {isPresidencia && <span className="badge badge-default">Leitura institucional</span>}
         </div>
         <h1 className="t-display" style={{ color: "var(--text)" }}>
-          {cumprimento}, {firstName}.
+          {firstName ? `${cumprimento}, ${firstName}.` : `${cumprimento}.`}
         </h1>
         <p className={styles.lede}>
           {segmentos.map((s, i) =>
