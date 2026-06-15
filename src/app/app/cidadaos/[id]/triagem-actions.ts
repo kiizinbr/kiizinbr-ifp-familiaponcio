@@ -5,6 +5,11 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { deveAtivarCidadao, podeFazerTriagem } from "@/lib/triagem";
+import {
+  assertAcessoCidadao,
+  SemAcessoCidadaoError,
+  CidadaoNaoEncontradoError,
+} from "@/lib/cidadao-authz";
 
 export type TriagemActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -21,8 +26,19 @@ export async function abrirTriagem(
     return { ok: false, error: "Sem permissão para abrir triagem" };
   }
 
-  const cidadao = await db.cidadao.findUnique({ where: { id: cidadaoId }, select: { id: true } });
-  if (!cidadao) return { ok: false, error: "Cidadão não encontrado" };
+  // IDOR guard: o cidadaoId vem do cliente; exige acesso à unidade do cidadão.
+  // assertAcessoCidadao já faz o findUnique (existência + unidade), substituindo a
+  // query anterior. social/super_admin (podeFazerTriagem) passam cross-unidade —
+  // can("edit","ficha_cidada") os autoriza globalmente (rbac.ts:63,70-72).
+  try {
+    await assertAcessoCidadao(session, cidadaoId, "edit");
+  } catch (e) {
+    if (e instanceof CidadaoNaoEncontradoError)
+      return { ok: false, error: "Cidadão não encontrado" };
+    if (e instanceof SemAcessoCidadaoError)
+      return { ok: false, error: "Sem permissão para esta unidade" };
+    throw e;
+  }
 
   const existente = await db.triagem.findFirst({
     where: { cidadaoId, status: "aberta" },
@@ -60,6 +76,14 @@ export async function salvarEntrevista(
     select: { cidadaoId: true, status: true },
   });
   if (!triagem) return { ok: false, error: "Triagem não encontrada" };
+  // IDOR guard: cidadaoId vem da triagem; exige acesso à unidade do cidadão.
+  try {
+    await assertAcessoCidadao(session, triagem.cidadaoId, "edit");
+  } catch (e) {
+    if (e instanceof SemAcessoCidadaoError || e instanceof CidadaoNaoEncontradoError)
+      return { ok: false, error: "Sem permissão para esta unidade" };
+    throw e;
+  }
   if (triagem.status === "concluida") return { ok: false, error: "Triagem já concluída" };
 
   await db.triagem.update({
@@ -85,6 +109,14 @@ export async function concluirTriagem(triagemId: string): Promise<TriagemActionR
     select: { cidadaoId: true, status: true },
   });
   if (!triagem) return { ok: false, error: "Triagem não encontrada" };
+  // IDOR guard: cidadaoId vem da triagem; exige acesso à unidade do cidadão.
+  try {
+    await assertAcessoCidadao(session, triagem.cidadaoId, "edit");
+  } catch (e) {
+    if (e instanceof SemAcessoCidadaoError || e instanceof CidadaoNaoEncontradoError)
+      return { ok: false, error: "Sem permissão para esta unidade" };
+    throw e;
+  }
   if (triagem.status === "concluida") return { ok: true, data: undefined };
 
   await db.triagem.update({
@@ -130,6 +162,14 @@ export async function decidirElegibilidade(
     select: { cidadaoId: true },
   });
   if (!triagem) return { ok: false, error: "Triagem não encontrada" };
+  // IDOR guard: cidadaoId vem da triagem; exige acesso à unidade do cidadão.
+  try {
+    await assertAcessoCidadao(session, triagem.cidadaoId, "edit");
+  } catch (e) {
+    if (e instanceof SemAcessoCidadaoError || e instanceof CidadaoNaoEncontradoError)
+      return { ok: false, error: "Sem permissão para esta unidade" };
+    throw e;
+  }
 
   await db.elegibilidadeUnidade.upsert({
     where: { triagemId_unidade: { triagemId, unidade } },

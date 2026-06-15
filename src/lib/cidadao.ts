@@ -178,7 +178,10 @@ export async function listCidadaos(filters: CidadaoListFilters, session: Session
     include: {
       familia: { select: { id: true, nomeReferencia: true } },
     },
-    orderBy: [{ nomeCompleto: "asc" }],
+    // Tiebreaker { id: "asc" } alinha a ordenação à chave do cursor ({ id }): sem
+    // ele, homônimos (mesmo nomeCompleto) têm ordem indefinida e são pulados ou
+    // duplicados na fronteira de página. Não muda o resultado dentro de uma página.
+    orderBy: [{ nomeCompleto: "asc" }, { id: "asc" }],
     take: limit + 1,
     ...(filters.cursor && { cursor: { id: filters.cursor }, skip: 1 }),
   });
