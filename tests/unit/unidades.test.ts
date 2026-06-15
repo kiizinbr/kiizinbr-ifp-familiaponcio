@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   UNIDADES,
   UNIDADE_SLUGS,
+  isUnidadePainel,
   unidadeFromSlug,
   unidadesAcessiveis,
   type UnidadeSlug,
@@ -101,5 +102,24 @@ describe("unidadesAcessiveis", () => {
 
   it("array de roles vazio retorna []", () => {
     expect(unidadesAcessiveis([])).toEqual([]);
+  });
+});
+
+describe("isUnidadePainel", () => {
+  it("as 4 operacionais (cidadaoScope self) tem painel de fila", () => {
+    expect(isUnidadePainel("medico")).toBe(true);
+    expect(isUnidadePainel("capacitacao")).toBe(true);
+    expect(isUnidadePainel("esportivo")).toBe(true);
+    expect(isUnidadePainel("recreativo")).toBe(true);
+  });
+
+  it("poncio e social (cidadaoScope all) NAO tem painel", () => {
+    expect(isUnidadePainel("poncio")).toBe(false);
+    expect(isUnidadePainel("social")).toBe(false);
+  });
+
+  it("slug inexistente -> false", () => {
+    expect(isUnidadePainel("xyz")).toBe(false);
+    expect(isUnidadePainel("")).toBe(false);
   });
 });

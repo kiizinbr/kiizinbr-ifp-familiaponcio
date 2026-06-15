@@ -1,9 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade, podeGerirPainel } from "@/lib/rbac";
 import { db } from "@/lib/db";
+import { extrairYoutubeId } from "@/lib/painel/core";
 
 async function gate(unidade: string) {
   const session = await auth();
@@ -17,6 +20,11 @@ export async function salvarVideoAction(formData: FormData): Promise<void> {
   const unidade = String(formData.get("unidade"));
   await gate(unidade);
   const videoUrl = String(formData.get("videoUrl") || "").trim() || null;
+  // Vazio/null = limpar o video (permitido). Se preenchido, exige URL de YouTube valida
+  // (mesma regex do player) — senao o player cairia no fallback "IFP" sem aviso ao gestor.
+  if (videoUrl && !extrairYoutubeId(videoUrl)) {
+    redirect(`/painel/${unidade}/config?video=erro` as Route);
+  }
   await db.painelConfig.upsert({
     where: { unidade },
     create: { unidade, videoUrl },

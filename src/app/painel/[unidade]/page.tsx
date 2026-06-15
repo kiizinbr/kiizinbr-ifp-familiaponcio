@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
-import { unidadeFromSlug } from "@/lib/unidades";
+import { isUnidadePainel } from "@/lib/unidades";
 import { db } from "@/lib/db";
 import { anuncioVigente } from "@/lib/painel/core";
 import { PainelTV } from "./painel-tv";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PainelPage({ params }: { params: Promise<{ unidade: string }> }) {
   const { unidade } = await params;
-  if (!unidadeFromSlug(unidade)) redirect("/" as Route);
+  if (!isUnidadePainel(unidade)) redirect("/" as Route);
 
   const session = await auth();
   if (!session) redirect(`/${unidade}/login` as Route);

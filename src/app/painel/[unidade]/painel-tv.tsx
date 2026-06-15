@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { fraseChamada } from "@/lib/painel/core";
+import { extrairYoutubeId, fraseChamada } from "@/lib/painel/core";
 
 interface ChamadaResumo {
   id: string;
@@ -12,13 +12,6 @@ interface ChamadaResumo {
 
 const POLL_MS = 2000;
 const OVERLAY_MS = 8000;
-
-// extrai o videoId de varias formas de URL do YouTube
-function youtubeId(url: string | null): string | null {
-  if (!url) return null;
-  const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
-  return m ? m[1]! : null;
-}
 
 // FIX 3: modulo-level repeat timer rastreado; limpa antes de falar (sem empilhamento)
 let repeatTimer: number | undefined;
@@ -56,7 +49,7 @@ export function PainelTV({
   const timerRef = useRef<number | undefined>(undefined);
   // FIX 2: timer do overlay em ref para limpar antes de agendar novo
   const overlayTimerRef = useRef<number | undefined>(undefined);
-  const videoId = youtubeId(videoUrl);
+  const videoId = extrairYoutubeId(videoUrl);
 
   // tema escuro estavel pra TV
   useEffect(() => {

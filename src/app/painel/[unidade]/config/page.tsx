@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade, podeGerirPainel } from "@/lib/rbac";
-import { unidadeFromSlug } from "@/lib/unidades";
+import { isUnidadePainel } from "@/lib/unidades";
 import { db } from "@/lib/db";
+import { SubmitButton } from "@/components/ui/submit-button";
 import {
   adicionarAnuncioAction,
   removerAnuncioAction,
@@ -14,11 +15,14 @@ export const dynamic = "force-dynamic";
 
 export default async function PainelConfigPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ unidade: string }>;
+  searchParams: Promise<{ video?: string }>;
 }) {
   const { unidade } = await params;
-  if (!unidadeFromSlug(unidade)) redirect("/" as Route);
+  if (!isUnidadePainel(unidade)) redirect("/" as Route);
+  const { video } = await searchParams;
   const session = await auth();
   if (!session) redirect(`/${unidade}/login` as Route);
   if (!canAccessUnidade(session, unidade) || !podeGerirPainel(session)) redirect("/" as Route);
@@ -40,6 +44,11 @@ export default async function PainelConfigPage({
 
       <section className="card" style={{ marginBottom: 24 }}>
         <h2 style={{ color: "var(--text)", fontSize: 16 }}>Video do mes (YouTube)</h2>
+        {video === "erro" ? (
+          <p style={{ color: "var(--danger)", fontSize: 13, marginTop: 8 }}>
+            Link invalido — use uma URL do YouTube (ex.: https://youtu.be/...). Nada foi salvo.
+          </p>
+        ) : null}
         <form action={salvarVideoAction} style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <input type="hidden" name="unidade" value={unidade} />
           <input
@@ -49,9 +58,7 @@ export default async function PainelConfigPage({
             className="input"
             style={{ flex: 1 }}
           />
-          <button type="submit" className="btn btn-primary">
-            Salvar
-          </button>
+          <SubmitButton pendingLabel="Salvando…">Salvar</SubmitButton>
         </form>
       </section>
 

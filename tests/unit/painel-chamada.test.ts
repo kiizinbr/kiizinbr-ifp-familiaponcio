@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { criarChamada, listarChamadas } from "@/lib/painel/chamada";
+import { criarChamada, JANELA_CHAMADA_MS, listarChamadas } from "@/lib/painel/chamada";
 
 describe("criarChamada + listarChamadas (integration)", () => {
   it("cria uma chamada e a retorna como atual", async () => {
@@ -55,6 +55,41 @@ describe("criarChamada + listarChamadas (integration)", () => {
       expect(atual?.nomeChamado).not.toBe("So Capacitacao");
     } finally {
       await db.chamada.delete({ where: { id: c.id } });
+    }
+  });
+
+  it("janela de retencao: esconde chamada > 24h e mostra a recente (defesa LGPD de exibicao)", async () => {
+    // Cria duas chamadas e força o criadoEm: uma 1h ATRAS (dentro da janela) e
+    // outra 25h ATRAS (fora). A janela em listarChamadas (criadoEm gte agora-24h)
+    // deve EXCLUIR a antiga e INCLUIR a recente — fronteira da regra de retencao.
+    const agora = Date.now();
+    const recente = await criarChamada({
+      unidade: "esportivo",
+      nomeChamado: "Recente Visivel",
+      destino: "Triagem",
+      chamadoPor: "test-user",
+    });
+    const antiga = await criarChamada({
+      unidade: "esportivo",
+      nomeChamado: "Antiga Oculta",
+      destino: "Triagem",
+      chamadoPor: "test-user",
+    });
+    await db.chamada.update({
+      where: { id: recente.id },
+      data: { criadoEm: new Date(agora - 60 * 60 * 1000) }, // -1h: dentro
+    });
+    await db.chamada.update({
+      where: { id: antiga.id },
+      data: { criadoEm: new Date(agora - JANELA_CHAMADA_MS - 60 * 60 * 1000) }, // -25h: fora
+    });
+    try {
+      const { atual, recentes } = await listarChamadas("esportivo", 5);
+      const nomes = [atual, ...recentes].map((c) => c?.nomeChamado);
+      expect(nomes).toContain("Recente Visivel");
+      expect(nomes).not.toContain("Antiga Oculta");
+    } finally {
+      await db.chamada.deleteMany({ where: { id: { in: [recente.id, antiga.id] } } });
     }
   });
 });

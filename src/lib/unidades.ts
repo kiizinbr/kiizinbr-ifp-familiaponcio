@@ -118,6 +118,16 @@ export function unidadeFromSlug(slug: string): UnidadeConfig | null {
 }
 
 /**
+ * Unidade tem painel de fila? So as operacionais (cidadaoScope "self":
+ * medico/capacitacao/esportivo/recreativo). poncio/social ("all") nao geram fila
+ * propria -> painel abriria vazio. Fonte unica derivada da config, sem lista paralela.
+ */
+export function isUnidadePainel(slug: string): boolean {
+  const u = unidadeFromSlug(slug);
+  return u !== null && u.cidadaoScope === "self";
+}
+
+/**
  * Slugs de unidades em que essas roles conseguem entrar.
  * super_admin → todas.
  */

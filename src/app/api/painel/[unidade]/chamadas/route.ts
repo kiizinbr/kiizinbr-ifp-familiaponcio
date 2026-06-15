@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
-import { unidadeFromSlug } from "@/lib/unidades";
+import { isUnidadePainel } from "@/lib/unidades";
 import { listarChamadas } from "@/lib/painel/chamada";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ unidade: string }> }) {
   const { unidade } = await params;
-  if (!unidadeFromSlug(unidade)) {
+  if (!isUnidadePainel(unidade)) {
     return new NextResponse("Unidade invalida", { status: 404 });
   }
   const session = await auth();
