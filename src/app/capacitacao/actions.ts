@@ -24,6 +24,7 @@ import {
   matricular,
   MatriculaDuplicadaError,
   promoverDaListaEspera,
+  STATUS_OCUPA_VAGA,
   TransicaoMatriculaInvalidaError,
   transicionarMatricula,
   TurmaLotadaError,
@@ -152,8 +153,19 @@ export async function transicionarMatriculaAction(formData: FormData) {
   }
   const para = paraParsed.data;
   const motivoSaida = sOpt(formData, "motivoSaida") ?? undefined;
-  const m = await db.matricula.findUniqueOrThrow({ where: { id: matriculaId } });
-  if (!rbacPodeTransicionarMatricula(session, m.status, para)) throw new Error("Sem permissão");
+  // Inclui o instrutor da turma: o ramo `profissional` do RBAC exige o userId do
+  // dono da turma (sem ele a capability do instrutor fica morta). instrutor é
+  // opcional no schema → `?.userId ?? undefined`.
+  const m = await db.matricula.findUniqueOrThrow({
+    where: { id: matriculaId },
+    include: { turma: { select: { instrutor: { select: { userId: true } } } } },
+  });
+  if (
+    !rbacPodeTransicionarMatricula(session, m.status, para, m.turma.instrutor?.userId ?? undefined)
+  )
+    throw new Error("Sem permissão");
+  // Detecta liberação de vaga ANTES da transição (F2/F3): saiu de ocupa-vaga.
+  const vagaLiberada = STATUS_OCUPA_VAGA.has(m.status) && !STATUS_OCUPA_VAGA.has(para);
   try {
     await transicionarMatricula(matriculaId, para, motivoSaida);
     await logEvent({
@@ -170,7 +182,14 @@ export async function transicionarMatriculaAction(formData: FormData) {
     }
     throw e;
   }
-  redirect(`/capacitacao/turmas/${turmaId}` as Route);
+  // NUDGE (não auto-promoção): se a vaga foi liberada e há fila, sinaliza pra UI
+  // destacar "Promover próximo da fila" (caminho transacional manual, FIFO+lock).
+  let flag = "";
+  if (vagaLiberada) {
+    const naEspera = await db.matricula.count({ where: { turmaId, status: "lista_espera" } });
+    if (naEspera > 0) flag = `?vaga_liberada=${naEspera}`;
+  }
+  redirect(`/capacitacao/turmas/${turmaId}${flag}` as Route);
 }
 
 export async function promoverListaEsperaAction(formData: FormData) {
@@ -252,6 +271,11 @@ export async function transicionarTurmaAction(formData: FormData) {
     redirect(`/capacitacao/turmas/${turmaId}?erro=status` as Route);
   }
 
+  // B4 — concluir a turma NÃO bloqueia, mas avisa se há matrículas penduradas
+  // em 'cursando' (sem certificado). Conta antes do update; a transição segue livre.
+  const cursandoPendentes =
+    para === "concluida" ? await db.matricula.count({ where: { turmaId, status: "cursando" } }) : 0;
+
   await db.turma.update({ where: { id: turmaId }, data: { status: para } });
   await logEvent({
     userId: session!.user.id,
@@ -260,7 +284,9 @@ export async function transicionarTurmaAction(formData: FormData) {
     entityId: turmaId,
     meta: { de: turma.status, para },
   });
-  redirect(`/capacitacao/turmas/${turmaId}` as Route);
+  const flag =
+    para === "concluida" && cursandoPendentes > 0 ? `?turma_concluida=${cursandoPendentes}` : "";
+  redirect(`/capacitacao/turmas/${turmaId}${flag}` as Route);
 }
 
 /**
