@@ -1130,7 +1130,7 @@ h3 {
 }
 
 /* ============================================================================
-   BANNER AÉREO (drone) — full-bleed, com image-slot
+   BANNER AÉREO (drone) — full-bleed
    ============================================================================ */
 .aerial {
   position: relative;
@@ -1140,11 +1140,12 @@ h3 {
   overflow: hidden;
   background: linear-gradient(135deg, #752c05, #c24d0f 70%, #ff8a44);
 }
-.aerial image-slot {
+.aerial .aerial-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
   z-index: 0;
 }
 .aerial .scrim {

@@ -1,6 +1,6 @@
 // Markup do site institucional publico - handoff do Designer (ProjetoVisualIFP).
 // Renderizado por src/app/page.tsx via dangerouslySetInnerHTML.
-// Comportamentos: /public/site/site.js + image-slot.js. Estilos: src/styles/site.css.
+// Comportamentos: /public/site/site.js. Estilos: src/styles/site.css.
 // data-go ja aponta pras rotas reais (/<unidade>/login); paths de asset ja absolutos.
 export const siteHtml = `
     <!-- ============ SPLASH LOADER ============ -->
@@ -31,7 +31,6 @@ export const siteHtml = `
         <nav class="links">
           <a href="#unidades">Unidades</a>
           <a href="#quem-somos">Quem somos</a>
-          <a href="#impacto">Impacto</a>
           <a href="#participe">Participe</a>
           <a href="#contato">Contato</a>
         </nav>
@@ -208,7 +207,7 @@ export const siteHtml = `
 
     <!-- ============ BANNER AÉREO (drone) ============ -->
     <section class="aerial" id="nossa-casa">
-      <image-slot id="aerial-drone" fit="cover" src="/fotos/aerea-centro-medico.jpg" placeholder="Arraste aqui a foto aérea (drone)"></image-slot>
+      <img class="aerial-bg" src="/fotos/aerea-centro-medico.jpg" alt="Vista aérea do centro médico" loading="lazy" />
       <div class="scrim"></div>
       <div class="wrap">
         <span class="eyebrow reveal">Duque de Caxias · RJ</span>
@@ -271,37 +270,9 @@ export const siteHtml = `
     </section>
 
     <!-- ============ IMPACTO ============ -->
-    <section class="section impact" id="impacto">
-      <div class="wrap">
-        <span class="eyebrow reveal">Nosso alcance</span>
-        <h2 class="sec-title reveal d1" style="margin-top: 14px">O cuidado em números</h2>
-        <div class="impact-grid">
-          <div class="stat reveal" style="--s1: #ff8a44; --s2: #c24d0f">
-            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg></span>
-            <div class="num" data-count="4">0</div>
-            <div class="lbl">unidades de atendimento</div>
-          </div>
-          <div class="stat reveal d1" style="--s1: #10c2bb; --s2: #007571">
-            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
-            <div class="num" data-count="500" data-prefix="+">0</div>
-            <div class="lbl">famílias acolhidas</div>
-            <span class="tbc">a confirmar</span>
-          </div>
-          <div class="stat reveal d2" style="--s1: #f0a23b; --s2: #c24d0f">
-            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></span>
-            <div class="num" data-count="8" data-prefix="+">0</div>
-            <div class="lbl">anos de história</div>
-            <span class="tbc">a confirmar</span>
-          </div>
-          <div class="stat reveal d3" style="--s1: #ff8a44; --s2: #e0590f">
-            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11z" /></svg></span>
-            <div class="num">centenas</div>
-            <div class="lbl">de crianças atendidas</div>
-            <span class="tbc">a confirmar</span>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- Seção "O cuidado em números" oculta até termos números reais e confirmados.
+         Não exibir estatísticas placeholder (+500 / +8 / "centenas" / "a confirmar").
+         Os links de nav e rodapé que apontavam para #impacto foram removidos junto. -->
 
     <!-- ============ FAÇA PARTE ============ -->
     <section class="section join" id="participe">
@@ -381,7 +352,6 @@ export const siteHtml = `
             <ul>
               <li><a href="#unidades">Nossas unidades</a></li>
               <li><a href="#quem-somos">Quem somos</a></li>
-              <li><a href="#impacto">Impacto</a></li>
               <li><a href="#participe">Faça parte</a></li>
               <li><a href="#" data-open-access>Acesso ao Sistema</a></li>
             </ul>

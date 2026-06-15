@@ -90,16 +90,26 @@ export default async function InicioDashboard() {
   const home = getLandingPath(session);
   if (home !== "/inicio") redirect(home as Route);
 
+  // O livro-razão de auditoria expõe nome/e-mail + ações de TODA a organização
+  // (sem filtro de unidade). É leitura institucional: só super_admin/presidência
+  // — o mesmo conjunto que getLandingPath manda pra /inicio e o proxy.ts libera
+  // em /admin. Qualquer outra sessão que aterrisse aqui (ex.: conta logada AINDA
+  // sem papel atribuído, que getLandingPath neutraliza em /inicio) recebe o feed
+  // vazio, nunca os dados cross-org. Gate alinhado a can(audit_log) (rbac.ts).
+  const veAuditoria = hasAnyRole(session, "super_admin", "presidencia");
+
   const [stats, triagensAbertas, pendentes, atividade, matriculasAtivas, turmasEmAndamento] =
     await Promise.all([
       getCidadaoStats(session),
       countTriagensAbertas(session),
       listTriagensPendentes(session),
-      db.auditLog.findMany({
-        take: 6,
-        orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true, email: true } } },
-      }),
+      veAuditoria
+        ? db.auditLog.findMany({
+            take: 6,
+            orderBy: { createdAt: "desc" },
+            include: { user: { select: { name: true, email: true } } },
+          })
+        : Promise.resolve([]),
       // Métrica honesta da Capacitação (quadroDasCasas): atividade real em vez
       // do proxy Cidadao.unitIdOrigem. "Ativas" = STATUS_OCUPA_VAGA, o mesmo
       // conjunto canônico que conta capacidade na matrícula.
@@ -116,7 +126,9 @@ export default async function InicioDashboard() {
     month: "long",
     year: "numeric",
   });
-  const firstName = session.user.name?.split(" ")[0] ?? "Erick";
+  // Sem primeiro nome (contas de sistema/diretoria com name=null) a manchete
+  // cai na saudação neutra ("Bom dia.") em vez de expor um nome placeholder.
+  const firstName = session.user.name?.split(" ")[0] ?? null;
 
   const veTriagem = podeFazerTriagem(session); // false p/ presidência (gate de triagem.ts)
   const isSuper = hasAnyRole(session, "super_admin");
@@ -145,7 +157,7 @@ export default async function InicioDashboard() {
           {isPresidencia && <span className="badge badge-default">Leitura institucional</span>}
         </div>
         <h1 className="t-display" style={{ color: "var(--text)" }}>
-          {cumprimento}, {firstName}.
+          {firstName ? `${cumprimento}, ${firstName}.` : `${cumprimento}.`}
         </h1>
         <p className={styles.lede}>
           {segmentos.map((s, i) =>
