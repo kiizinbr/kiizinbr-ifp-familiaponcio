@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Route } from "next";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessUnidade } from "@/lib/rbac";
@@ -14,6 +15,26 @@ function parseEspecialidades(formData: FormData): string[] {
     .getAll("especialidadeIds")
     .map((v) => String(v))
     .filter(Boolean);
+}
+
+/** Lista de ids de especialidade enviada pelo form (≥1 id não-vazio). */
+const EspIdsSchema = z.array(z.string().min(1)).min(1, "Selecione ao menos 1 especialidade");
+
+/**
+ * F6 — valida ids de especialidade contra existência + `ativa:true` antes do
+ * connect (evita FK 500 e vínculo a especialidade inativa). Só deve ser chamada
+ * quando há ids a validar (lista vazia no update = "limpar tudo", tratada à parte).
+ */
+async function assertEspecialidadesValidas(espIds: string[]): Promise<void> {
+  const parsed = EspIdsSchema.safeParse(espIds);
+  if (!parsed.success) throw new Error("Especialidade inválida");
+  const ativas = await db.especialidade.findMany({
+    where: { id: { in: parsed.data }, ativa: true },
+    select: { id: true },
+  });
+  const idsValidos = new Set(ativas.map((e) => e.id));
+  const invalidos = parsed.data.filter((id) => !idsValidos.has(id));
+  if (invalidos.length > 0) throw new Error("Especialidade inexistente ou inativa");
 }
 
 export async function criarProfissionalAction(formData: FormData) {
@@ -32,6 +53,25 @@ export async function criarProfissionalAction(formData: FormData) {
     throw new Error("Campos obrigatórios ausentes");
   }
   if (espIds.length === 0) throw new Error("Selecione ao menos 1 especialidade");
+
+  // M4 — valida o USUÁRIO-ALVO antes do create (espelha vincularLoginInstrutorAction):
+  // (1) existe, (2) tem papel profissional@medico, (3) não está já vinculado a um
+  // Profissional. Backing de DB: Profissional.userId @unique (schema:496); a checagem
+  // em código dá erro amigável em vez de P2002/P2003 cru.
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: { userRoles: { include: { role: true } } },
+  });
+  if (!user) throw new Error("Usuário-alvo não encontrado");
+  const temPapel = user.userRoles.some(
+    (ur) => ur.role.name === "profissional" && ur.unitScope === "medico",
+  );
+  if (!temPapel) throw new Error("O usuário não tem papel de profissional no Centro Médico");
+  const jaProfissional = await db.profissional.findUnique({ where: { userId } });
+  if (jaProfissional) throw new Error("Este usuário já está vinculado a um profissional");
+
+  // F6 — especialidades existem e estão ativas (≥1 já garantido acima).
+  await assertEspecialidadesValidas(espIds);
 
   const prof = await db.profissional.create({
     data: {
@@ -80,6 +120,9 @@ export async function atualizarProfissionalAction(formData: FormData) {
       data: podeCrm ? { nomeExibicao, conselho, nroConselho, bio } : { nomeExibicao, bio },
     });
     if (podeEspecialidades) {
+      // F6 — valida o que ENTRA antes do connect; lista vazia = limpar tudo
+      // (deleteMany sem createMany), sem aplicar a validação min(1).
+      if (espIds.length > 0) await assertEspecialidadesValidas(espIds);
       await tx.profissionalEspecialidade.deleteMany({ where: { profissionalId: id } });
       if (espIds.length > 0) {
         await tx.profissionalEspecialidade.createMany({

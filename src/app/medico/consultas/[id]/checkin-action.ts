@@ -21,7 +21,10 @@ async function gate(formData: FormData) {
   const c = await db.consulta.findUniqueOrThrow({ where: { id }, select: { cidadaoId: true } });
   await assertAcessoCidadao(session, c.cidadaoId, "edit");
   // `voltar` permite a recepção continuar no painel em vez de ir pra consulta.
-  const voltar = String(formData.get("voltar") || `/medico/consultas/${id}`);
+  // B11 anti open-redirect: aceita só path interno — começa com `/` e NÃO com
+  // `//` nem `/\` (protocol-relative / backslash). Externo cai no default interno.
+  const raw = String(formData.get("voltar") || "");
+  const voltar = /^\/(?![/\\])/.test(raw) ? raw : `/medico/consultas/${id}`;
   return { session, id, voltar };
 }
 

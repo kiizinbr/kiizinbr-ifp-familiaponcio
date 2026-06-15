@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { canAccessUnidade, hasAnyRole } from "@/lib/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { podeAssinarNota, podeEditarNota } from "@/lib/medico/rbac";
 import {
   adicionarAddendo,
@@ -42,6 +43,12 @@ export async function salvarRascunhoAction(formData: FormData) {
     where: { id: consultaId },
     include: { profissional: true, notaEvolucao: true },
   });
+  // A1 IDOR guard (espelha os irmãos em consultas/[id]): consultaId vem do
+  // cliente e o gate de papel (podeEditarNota) não confere a unidade do OBJETO.
+  // Exige acesso à unidade do cidadão antes de qualquer escrita no prontuário —
+  // não trava o fluxo legítimo (profissional/gestor na própria unidade, social,
+  // super_admin passam por can(edit, ficha_cidada)).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
 
   const statusNota = consulta.notaEvolucao?.status ?? "rascunho";
   if (!podeEditarNota(session, consulta.profissional.userId, statusNota)) {
@@ -79,13 +86,17 @@ export async function salvarRascunhoAction(formData: FormData) {
     const normalizados = normalizarDiagnosticos(valido.data);
     // Anti-tampering híbrido + anti-forja: descrição canônica quando o código
     // existe na tabela Cid10; código regex-válido inexistente numa tabela
-    // CONSULTADA com sucesso é rebaixado a texto livre (não finge CID oficial);
-    // tabela indisponível mantém o enviado — nunca bloqueia o atendimento.
+    // CONSULTADA com sucesso é rebaixado a texto livre (não finge CID oficial).
     const codigos = normalizados.flatMap((d) => (d.codigoCid ? [d.codigoCid] : []));
     let oficiais = new Map<string, string>();
-    // `true` quando não há código a checar (nada a forjar) ou quando o SELECT
-    // rodou; só vira `false` se a consulta lançar (tabela/DB indisponível).
-    let tabelaConsultada = true;
+    // B12 — `tabelaConsultada` permanece SEMPRE true neste fluxo: "0 linhas com
+    // sucesso" (tabela vazia de verdade) já rebaixa o forjado a texto livre via
+    // canonicalizarDescricoes (anti-forja correta, não bloqueia). O ERRO DE QUERY
+    // (catch) ≠ tabela vazia: não dá pra refutar o código → NÃO aceitar possível
+    // forja; aborta com feedback em vez de afrouxar para `false` (que mantinha o
+    // código enviado intocado). Mantemos a variável p/ não tocar a assinatura
+    // read-only de canonicalizarDescricoes.
+    const tabelaConsultada = true;
     if (codigos.length > 0) {
       try {
         const linhas = await db.cid10.findMany({
@@ -94,8 +105,7 @@ export async function salvarRascunhoAction(formData: FormData) {
         });
         oficiais = new Map(linhas.map((c) => [c.codigo, c.descricao]));
       } catch {
-        oficiais = new Map();
-        tabelaConsultada = false;
+        redirect(`/medico/consultas/${consultaId}?erro=cid_indisponivel` as Route);
       }
     }
     diagnosticos = canonicalizarDescricoes(normalizados, oficiais, tabelaConsultada);
@@ -146,6 +156,8 @@ export async function assinarNotaAction(formData: FormData) {
     where: { id: consultaId },
     include: { profissional: true },
   });
+  // A1 IDOR guard: acesso à unidade do cidadão antes de assinar (ato imutável).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
   if (!podeAssinarNota(session, consulta.profissional.userId)) {
     throw new Error("Sem permissão para assinar esta nota");
   }
@@ -190,6 +202,8 @@ export async function adicionarAddendoAction(formData: FormData) {
     where: { id: consultaId },
     include: { profissional: true },
   });
+  // A1 IDOR guard: acesso à unidade do cidadão antes do addendo (append-only).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
   // Ownership: addendo é ato do profissional DONO da consulta — não de qualquer profissional@medico.
   if (!podeAssinarNota(session, consulta.profissional.userId)) {
     throw new Error("Sem permissão para addendar esta nota");

@@ -18,45 +18,56 @@ import type { RoleAssignment } from "@/lib/rbac-types";
  * navegação são mockados. Molde: receita-action-mock + cidadao-authz.test.
  */
 
-const { dbMock, authMock, agendaMock, encMock, redirectMock, logEventMock } = vi.hoisted(() => {
-  const f = () => vi.fn();
-  const db = {
-    cidadao: { findUnique: f() },
-    encaminhamento: { findUnique: f() },
-    slot: { findFirst: f() },
-    consulta: { findUnique: f(), findUniqueOrThrow: f() },
-  };
-  // redirect() do Next lança internamente; replicamos para distinguir o destino.
-  const redirect = vi.fn((url: string) => {
-    throw new Error(`__redirect__:${url}`);
+const { dbMock, authMock, agendaMock, encMock, prontuarioMock, redirectMock, logEventMock } =
+  vi.hoisted(() => {
+    const f = () => vi.fn();
+    const db = {
+      cidadao: { findUnique: f() },
+      encaminhamento: { findUnique: f() },
+      slot: { findFirst: f() },
+      consulta: { findUnique: f(), findUniqueOrThrow: f() },
+      cid10: { findMany: f() },
+    };
+    // redirect() do Next lança internamente; replicamos para distinguir o destino.
+    const redirect = vi.fn((url: string) => {
+      throw new Error(`__redirect__:${url}`);
+    });
+    return {
+      dbMock: db,
+      authMock: vi.fn(),
+      prontuarioMock: {
+        salvarRascunho: vi.fn().mockResolvedValue({ id: "nota1" }),
+        assinarNota: vi.fn().mockResolvedValue(undefined),
+        adicionarAddendo: vi.fn().mockResolvedValue(undefined),
+        NotaAssinadaError: class NotaAssinadaError extends Error {},
+        NotaNaoAssinadaError: class NotaNaoAssinadaError extends Error {},
+        TransicaoNotaInvalidaError: class TransicaoNotaInvalidaError extends Error {},
+      },
+      agendaMock: {
+        reservarSlot: vi.fn().mockResolvedValue({ id: "cons1", slotId: "s1" }),
+        reservarSlotAdHoc: vi.fn().mockResolvedValue({ id: "cons1", slotId: "s1" }),
+        reagendarConsulta: vi.fn().mockResolvedValue(undefined),
+        transicionarConsulta: vi.fn().mockResolvedValue(undefined),
+        liberarSlot: vi.fn().mockResolvedValue(undefined),
+        STATUS_REAGENDAVEL: new Set(["agendada", "confirmada"]),
+        SlotIndisponivelError: class SlotIndisponivelError extends Error {},
+        SlotJaExisteError: class SlotJaExisteError extends Error {},
+        ConsultaNaoReagendavelError: class ConsultaNaoReagendavelError extends Error {},
+      },
+      encMock: {
+        criarEncaminhamento: vi.fn().mockResolvedValue({ id: "enc1" }),
+        cancelarEncaminhamento: vi.fn().mockResolvedValue(undefined),
+      },
+      redirectMock: redirect,
+      logEventMock: vi.fn().mockResolvedValue(undefined),
+    };
   });
-  return {
-    dbMock: db,
-    authMock: vi.fn(),
-    agendaMock: {
-      reservarSlot: vi.fn().mockResolvedValue({ id: "cons1", slotId: "s1" }),
-      reservarSlotAdHoc: vi.fn().mockResolvedValue({ id: "cons1", slotId: "s1" }),
-      reagendarConsulta: vi.fn().mockResolvedValue(undefined),
-      transicionarConsulta: vi.fn().mockResolvedValue(undefined),
-      liberarSlot: vi.fn().mockResolvedValue(undefined),
-      STATUS_REAGENDAVEL: new Set(["agendada", "confirmada"]),
-      SlotIndisponivelError: class SlotIndisponivelError extends Error {},
-      SlotJaExisteError: class SlotJaExisteError extends Error {},
-      ConsultaNaoReagendavelError: class ConsultaNaoReagendavelError extends Error {},
-    },
-    encMock: {
-      criarEncaminhamento: vi.fn().mockResolvedValue({ id: "enc1" }),
-      cancelarEncaminhamento: vi.fn().mockResolvedValue(undefined),
-    },
-    redirectMock: redirect,
-    logEventMock: vi.fn().mockResolvedValue(undefined),
-  };
-});
 
 vi.mock("@/lib/db", () => ({ db: dbMock }));
 vi.mock("@/lib/auth", () => ({ auth: authMock }));
 vi.mock("@/lib/medico/agenda", () => agendaMock);
 vi.mock("@/lib/medico/encaminhamento", () => encMock);
+vi.mock("@/lib/medico/prontuario", () => prontuarioMock);
 vi.mock("@/lib/audit", () => ({ logEvent: logEventMock }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
@@ -73,6 +84,11 @@ import {
 } from "@/app/medico/consultas/[id]/checkin-action";
 import { reagendarConsultaAction } from "@/app/medico/consultas/[id]/reagendar-action";
 import { transitionAction, cancelAction } from "@/app/medico/consultas/[id]/actions";
+import {
+  salvarRascunhoAction,
+  assinarNotaAction,
+  adicionarAddendoAction,
+} from "@/app/medico/consultas/[id]/prontuario-actions";
 import { SemAcessoCidadaoError } from "@/lib/cidadao-authz";
 
 function sess(roles: RoleAssignment[], id = "u1"): Session {
@@ -101,6 +117,10 @@ function resetAll() {
   dbMock.slot.findFirst.mockReset();
   dbMock.consulta.findUnique.mockReset();
   dbMock.consulta.findUniqueOrThrow.mockReset();
+  dbMock.cid10.findMany.mockReset();
+  prontuarioMock.salvarRascunho.mockClear();
+  prontuarioMock.assinarNota.mockClear();
+  prontuarioMock.adicionarAddendo.mockClear();
   agendaMock.reservarSlot.mockClear();
   agendaMock.reservarSlotAdHoc.mockClear();
   agendaMock.reagendarConsulta.mockClear();
@@ -424,5 +444,94 @@ describe("cancelAction — IDOR", () => {
     dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
     await cancelAction(fd({ id: "cons1", motivo: "x" }));
     expect(agendaMock.liberarSlot).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── salvarRascunhoAction (escreve no PRONTUÁRIO; consultaId do cliente) ──
+// Usa o profissional DONO (prof1) em AMBOS os casos: prova que o guard de
+// OBJETO barra o cross-tenant ANTES do gate de papel (podeEditarNota), que aqui
+// passaria (dono + rascunho). Sem o guard, o dono editaria nota de cidadão de
+// outra unidade. Não trava o fluxo legítimo (mesmo dono, própria unidade salva).
+describe("salvarRascunhoAction — IDOR", () => {
+  it("BLOQUEIA: profissional DONO salvando rascunho de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem salvarRascunho", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "cap1",
+      profissionalId: "p1",
+      profissional: { userId: "prof1" },
+      notaEvolucao: null,
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    await expect(
+      salvarRascunhoAction(fd({ consultaId: "cons1", texto: "evolução" })),
+    ).rejects.toBeInstanceOf(SemAcessoCidadaoError);
+    expect(prontuarioMock.salvarRascunho).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: profissional DONO salvando rascunho de cidadão da PRÓPRIA unidade → salvarRascunho é chamado", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "med1",
+      profissionalId: "p1",
+      profissional: { userId: "prof1" },
+      notaEvolucao: null,
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await salvarRascunhoAction(fd({ consultaId: "cons1", texto: "evolução" }));
+    expect(prontuarioMock.salvarRascunho).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── assinarNotaAction (ato imutável; consultaId do cliente) ──────────────
+describe("assinarNotaAction — IDOR", () => {
+  it("BLOQUEIA: profissional DONO assinando nota de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem assinarNota", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "cap1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    await expect(
+      assinarNotaAction(fd({ consultaId: "cons1", notaId: "nota1" })),
+    ).rejects.toBeInstanceOf(SemAcessoCidadaoError);
+    expect(prontuarioMock.assinarNota).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: profissional DONO assinando nota de cidadão da PRÓPRIA unidade → assinarNota é chamado", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "med1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await assinarNotaAction(fd({ consultaId: "cons1", notaId: "nota1" }));
+    expect(prontuarioMock.assinarNota).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── adicionarAddendoAction (append-only em nota assinada) ────────────────
+describe("adicionarAddendoAction — IDOR", () => {
+  it("BLOQUEIA: profissional DONO addendando nota de cidadão de OUTRA unidade → SemAcessoCidadaoError, sem adicionarAddendo", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "cap1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_OUTRA);
+    await expect(
+      adicionarAddendoAction(fd({ consultaId: "cons1", notaId: "nota1", texto: "correção" })),
+    ).rejects.toBeInstanceOf(SemAcessoCidadaoError);
+    expect(prontuarioMock.adicionarAddendo).not.toHaveBeenCalled();
+  });
+
+  it("LEGÍTIMO: profissional DONO addendando nota de cidadão da PRÓPRIA unidade → adicionarAddendo é chamado", async () => {
+    authMock.mockResolvedValue(PROFISSIONAL_MEDICO);
+    dbMock.consulta.findUniqueOrThrow.mockResolvedValue({
+      cidadaoId: "med1",
+      profissional: { userId: "prof1" },
+    });
+    dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
+    await adicionarAddendoAction(fd({ consultaId: "cons1", notaId: "nota1", texto: "correção" }));
+    expect(prontuarioMock.adicionarAddendo).toHaveBeenCalledTimes(1);
   });
 });

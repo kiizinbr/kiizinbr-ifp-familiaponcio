@@ -9,8 +9,9 @@ import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { transicionarConsulta, liberarSlot } from "@/lib/medico/agenda";
 import { podeTransicionarConsulta } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
+import type { AuditAction } from "@/lib/audit";
 
-const ACTION_MAP: Record<Exclude<StatusConsulta, "agendada" | "cancelada">, string> = {
+const ACTION_MAP: Record<Exclude<StatusConsulta, "agendada" | "cancelada">, AuditAction> = {
   confirmada: "consulta_confirmada",
   em_atendimento: "consulta_iniciada",
   realizada: "consulta_realizada",
@@ -39,9 +40,11 @@ export async function transitionAction(formData: FormData) {
 
   await transicionarConsulta(id, para);
 
+  // `para` pode chegar como agendada/cancelada (fora do Exclude) → action undefined;
+  // o guard evita logar undefined. As 4 entradas do map são AuditAction válidas.
   const action = ACTION_MAP[para as keyof typeof ACTION_MAP];
   if (action) {
-    await logEvent({ userId: session.user.id, action: action as never, meta: { consultaId: id } });
+    await logEvent({ userId: session.user.id, action, meta: { consultaId: id } });
   }
   revalidatePath(`/medico/consultas/${id}`);
 }
