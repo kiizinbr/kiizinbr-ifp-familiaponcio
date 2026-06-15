@@ -1,26 +1,35 @@
 import type { Session } from "next-auth";
 import type { StatusMatricula } from "@prisma/client";
-import { hasAnyRole } from "@/lib/rbac";
+import { canAccessUnit, hasAnyRole } from "@/lib/rbac";
 
 /**
  * Capabilities da Capacitação (F1.A.1). Espelha `lib/medico/rbac.ts`.
- * O escopo `capacitacao` é garantido pelo gate de rota (canAccessUnidade),
- * então aqui basta checar o NOME do papel via hasAnyRole.
+ *
+ * Self-protecting (M7): além de checar o NOME do papel, os ramos de GESTÃO
+ * combinam `canAccessUnit(session, "capacitacao")` para que um gestor de OUTRA
+ * unidade não passe nestes predicados mesmo se algum call-site futuro esquecer
+ * o gate de rota (canAccessUnidade). super_admin/presidencia/social têm escopo
+ * "all" em getUserUnits → canAccessUnit passa (sem regressão). É endurecimento,
+ * não afrouxamento. Os ramos `profissional` seguem por ownership de userId.
  */
+const UNIDADE = "capacitacao" as const;
 
 export function podeGerenciarCurso(session: Session | null): boolean {
   if (!session) return false;
-  return hasAnyRole(session, "super_admin", "gestor_unidade");
+  if (hasAnyRole(session, "super_admin")) return true;
+  return hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE);
 }
 
 export function podeCriarTurma(session: Session | null): boolean {
   if (!session) return false;
-  return hasAnyRole(session, "super_admin", "gestor_unidade");
+  if (hasAnyRole(session, "super_admin")) return true;
+  return hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE);
 }
 
 export function podeGerenciarInstrutor(session: Session | null, instrutorUserId?: string): boolean {
   if (!session) return false;
-  if (hasAnyRole(session, "super_admin", "gestor_unidade")) return true;
+  if (hasAnyRole(session, "super_admin")) return true;
+  if (hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE)) return true;
   // profissional (instrutor logado, F1.A.2) só gerencia o próprio
   if (
     hasAnyRole(session, "profissional") &&
@@ -34,7 +43,8 @@ export function podeGerenciarInstrutor(session: Session | null, instrutorUserId?
 
 export function podeMatricular(session: Session | null): boolean {
   if (!session) return false;
-  return hasAnyRole(session, "super_admin", "gestor_unidade", "recepcao", "social");
+  if (hasAnyRole(session, "super_admin", "social")) return true;
+  return hasAnyRole(session, "gestor_unidade", "recepcao") && canAccessUnit(session, UNIDADE);
 }
 
 export function podeTransicionarMatricula(
@@ -44,9 +54,10 @@ export function podeTransicionarMatricula(
   matriculaInstrutorUserId?: string,
 ): boolean {
   if (!session) return false;
-  if (hasAnyRole(session, "super_admin", "gestor_unidade")) return true;
-  // recepção só confirma ou cancela
-  if (hasAnyRole(session, "recepcao")) {
+  if (hasAnyRole(session, "super_admin")) return true;
+  if (hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE)) return true;
+  // recepção só confirma ou cancela (na própria unidade)
+  if (hasAnyRole(session, "recepcao") && canAccessUnit(session, UNIDADE)) {
     return para === "confirmado" || para === "cancelado";
   }
   // instrutor logado (F1.A.2) transiciona matrículas das próprias turmas
@@ -63,13 +74,15 @@ export function podeTransicionarMatricula(
 /** Registrar presença na aula (F1.A.2): gestão e instrutor (profissional). NÃO recepção. */
 export function podeRegistrarPresenca(session: Session | null): boolean {
   if (!session) return false;
-  return hasAnyRole(session, "super_admin", "gestor_unidade", "profissional");
+  if (hasAnyRole(session, "super_admin", "profissional")) return true;
+  return hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE);
 }
 
 /** Emitir certificado de conclusão (F1.A.3): só gestão/secretaria. */
 export function podeEmitirCertificado(session: Session | null): boolean {
   if (!session) return false;
-  return hasAnyRole(session, "super_admin", "gestor_unidade");
+  if (hasAnyRole(session, "super_admin")) return true;
+  return hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE);
 }
 
 /**
@@ -82,7 +95,8 @@ export function podeRegistrarPresencaNaTurma(
   turmaInstrutorUserId: string | null,
 ): boolean {
   if (!session) return false;
-  if (hasAnyRole(session, "super_admin", "gestor_unidade")) return true;
+  if (hasAnyRole(session, "super_admin")) return true;
+  if (hasAnyRole(session, "gestor_unidade") && canAccessUnit(session, UNIDADE)) return true;
   if (hasAnyRole(session, "profissional")) {
     return turmaInstrutorUserId !== null && session.user.id === turmaInstrutorUserId;
   }
