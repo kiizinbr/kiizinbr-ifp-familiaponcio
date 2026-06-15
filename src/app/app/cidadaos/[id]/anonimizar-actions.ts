@@ -45,6 +45,13 @@ export async function anonimizarCidadaoAction(formData: FormData) {
       where: { cidadaoId: id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+    // LGPD: o snapshot de nome (nomeChamado) das chamadas desse cidadao tambem e PII.
+    // where por cidadaoId toca SO as chamadas dele — nao mexe em chamadas de terceiros
+    // nem nas manuais sem cidadaoId.
+    await tx.chamada.updateMany({
+      where: { cidadaoId: id },
+      data: { nomeChamado: "[anonimizado]" },
+    });
   });
 
   await logEvent({
