@@ -47,6 +47,9 @@ jobs:
       - name: Apply migrations (if any)
         run: pnpm prisma migrate deploy
 
+      - name: Seed DB (testes de integração DB-real dependem de dados semeados)
+        run: pnpm exec tsx prisma/seed.ts
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -65,8 +68,8 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm dlx playwright install --with-deps chromium
 
-      - name: Seed e2e DB
-        run: pnpm db:seed
+      - name: Reset + reseed DB para e2e (estado limpo, sem mutações do test:cov)
+        run: pnpm prisma migrate reset --force --skip-seed && pnpm exec tsx prisma/seed.ts
 
       - name: E2E tests
         run: pnpm test:e2e
