@@ -5,7 +5,9 @@ const DR_JOAO = "dr.joao@familiaponcio.org.br";
 const MARIA_CC = "maria.callcenter@familiaponcio.org.br";
 // Consulta em_atendimento semeada (prisma/seed.ts → seedEncaminhamentoDemo).
 const CONSULTA_GP = "/medico/consultas/seed-enc-consulta-gp";
-const MOTIVO = "smoke e2e — avaliação ginecológica";
+// Psicologia: especialidade do pedido demo do seed e que tem slots futuros gerados
+// (Psic. Ana Lima — template terças/quintas). Mantém o pedido criado aqui agendável.
+const MOTIVO = "smoke e2e — avaliação psicológica";
 
 test.describe("Encaminhamento — busca ativa (GP encaminha → fila → callcenter agenda)", () => {
   test("fluxo completo: pedido vira consulta e some da fila", async ({ page }) => {
@@ -15,7 +17,7 @@ test.describe("Encaminhamento — busca ativa (GP encaminha → fila → callcen
     await login(page, "medico", DR_JOAO, SENHA_DEMO);
     await page.goto(CONSULTA_GP);
     await expect(page.getByRole("heading", { name: "Encaminhar a especialista" })).toBeVisible();
-    await page.locator('select[name="especialidadeId"]').selectOption({ label: "Ginecologia" });
+    await page.locator('select[name="especialidadeId"]').selectOption({ label: "Psicologia" });
     await page.locator('textarea[name="motivo"]').fill(MOTIVO);
     await page.getByRole("button", { name: "Encaminhar" }).click();
     // O pedido recém-criado aparece listado (motivo é âncora única).
@@ -25,7 +27,13 @@ test.describe("Encaminhamento — busca ativa (GP encaminha → fila → callcen
     await login(page, "medico", MARIA_CC, SENHA_DEMO);
     await page.goto("/medico/encaminhamentos");
     await expect(page.getByRole("heading", { name: "A agendar" })).toBeVisible();
-    const linha = page.getByRole("row", { name: /Ginecologia/ }).first();
+    // Âncora na linha de Psicologia da fila. NOTA: o pedido criado pelo GP no passo 1
+    // AUTO-AGENDA quando a especialidade tem slots disponíveis (Psicologia tem), então
+    // ele não cai na fila "A agendar" — a entrada confiável aqui é o pedido SEEDADO
+    // (seedEncaminhamentoDemo, status aguardando_agendamento). Por isso o teste exige
+    // um seed fresco (CI semeia a cada run). O passo 1 prova o ato de encaminhar; este
+    // passo prova o fluxo fila→agendamento sobre um pedido aguardando real.
+    const linha = page.getByRole("row", { name: /Psicologia/ }).first();
     await expect(linha).toBeVisible();
     await linha.getByRole("link", { name: "Agendar" }).click();
 

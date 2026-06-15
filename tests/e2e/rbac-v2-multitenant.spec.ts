@@ -38,8 +38,14 @@ function loginError(page: Page) {
 test.describe("Multi-tenant RBAC v2", () => {
   test("landing pública / renderiza sem auth", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /quatro unidades/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /centro médico/i })).toBeVisible();
+    // A landing institucional (src/components/site/site-content.ts) abre com o hero
+    // "Mudar realidades…" e a seção #unidades titulada "Nossas unidades". Não há
+    // heading "quatro unidades" (a copy é o eyebrow "Quatro frentes de cuidado",
+    // um <span>, não um heading). Asseguramos o título de seção visível + o card
+    // "Centro Médico" (h3, sempre visível) — o link homônimo vive no dropdown
+    // "Acesso ao Sistema", que é visibility:hidden até abrir, então não serve aqui.
+    await expect(page.getByRole("heading", { name: "Nossas unidades" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Centro Médico" })).toBeVisible();
   });
 
   test("não autenticado em /medico redireciona pra /medico/login", async ({ page }) => {
@@ -50,23 +56,36 @@ test.describe("Multi-tenant RBAC v2", () => {
   test("Raquel (gestor:medico) loga em /medico e entra", async ({ page }) => {
     await login(page, "medico", "raquel.barros@familiaponcio.org.br", SENHA_DEMO);
     await expect(page).toHaveURL(/\/medico$/);
-    await expect(page.getByText("Centro Médico")).toBeVisible();
+    // "Centro Médico" aparece em 3+ lugares na home do médico (eyebrow do
+    // MedicoHeader, sectionLabel da sidebar, rodapé) → getByText casa múltiplos
+    // (strict-mode). O título da página é o h1 "Fila do dia" (MedicoHeader),
+    // único e estável — prova que Raquel entrou na home da unidade médica.
+    await expect(page.getByRole("heading", { name: "Fila do dia" })).toBeVisible();
   });
 
   test("Raquel em /capacitacao/login mostra erro genérico", async ({ page }) => {
     await login(page, "capacitacao", "raquel.barros@familiaponcio.org.br", SENHA_DEMO);
-    await expect(loginError(page)).toContainText(/não foi possível acessar/i);
+    // Acesso negado: gestora do médico não tem papel na capacitação. A mensagem é
+    // a MESMA do pré-flight de senha ("E-mail ou senha incorretos.") — escolha
+    // anti-enumeração deliberada do unidadeLoginAction (não vazar que a conta
+    // existe nem que a senha confere). A prova de negação é continuar no /login.
+    await expect(loginError(page)).toContainText("E-mail ou senha incorretos.");
+    await expect(page).toHaveURL(/\/capacitacao\/login$/);
   });
 
   test("Saulo (presidencia) loga em /poncio", async ({ page }) => {
     await login(page, "poncio", "saulo@familiaponcio.org.br", SENHA_DEMO);
     await expect(page).toHaveURL(/\/poncio$/);
-    await expect(page.getByText(/visão geral/i)).toBeVisible();
+    // h1 da home executiva (src/app/poncio/page.tsx): "Visão geral das unidades".
+    await expect(page.getByRole("heading", { name: /visão geral das unidades/i })).toBeVisible();
   });
 
   test("Saulo em /medico/login mostra erro", async ({ page }) => {
     await login(page, "medico", "saulo@familiaponcio.org.br", SENHA_DEMO);
-    await expect(loginError(page)).toContainText(/não foi possível acessar/i);
+    // Presidência loga só pelo /poncio; no /medico o acesso é negado com a mesma
+    // mensagem genérica anti-enumeração. Negação provada por seguir no /login.
+    await expect(loginError(page)).toContainText("E-mail ou senha incorretos.");
+    await expect(page).toHaveURL(/\/medico\/login$/);
   });
 
   test("Regina (social) loga em /social", async ({ page }) => {
@@ -76,7 +95,10 @@ test.describe("Multi-tenant RBAC v2", () => {
 
   test("Maria (recepcao:medico) em /social/login mostra erro", async ({ page }) => {
     await login(page, "social", "maria.callcenter@familiaponcio.org.br", SENHA_DEMO);
-    await expect(loginError(page)).toContainText(/não foi possível acessar/i);
+    // Recepção do médico não tem papel social → acesso negado, mesma mensagem
+    // genérica anti-enumeração. Negação provada por seguir no /login.
+    await expect(loginError(page)).toContainText("E-mail ou senha incorretos.");
+    await expect(page).toHaveURL(/\/social\/login$/);
   });
 
   test("Erick (super_admin) loga em /medico e acessa todas as 6 unidades", async ({ page }) => {
@@ -93,13 +115,16 @@ test.describe("Multi-tenant RBAC v2", () => {
     }
   });
 
-  test("alias /app redireciona para /poncio (super_admin) ou nega (gestor de unidade)", async ({
+  test("alias legado /app resolve pro destino do papel (gestor de unidade → sua unidade)", async ({
     page,
   }) => {
-    // Raquel tenta /app — sem acesso a /poncio → vai pra /
+    // /app é rota legada: src/app/app/page.tsx faz redirect("/inicio"), e /inicio
+    // (src/app/inicio/page.tsx) reencaminha quem não é global pro getLandingPath
+    // do papel. Raquel (gestor:medico) → /medico. O destino /poncio/"nega pra /"
+    // do nome antigo deixou de existir quando o /app virou alias de /inicio.
     await login(page, "medico", "raquel.barros@familiaponcio.org.br", SENHA_DEMO);
     await expect(page).toHaveURL(/\/medico$/);
     await page.goto("/app");
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/medico$/);
   });
 });

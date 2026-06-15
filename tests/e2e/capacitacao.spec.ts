@@ -25,7 +25,10 @@ test.describe("Capacitação — smoke (login temático + painel + turma INFO)",
 
     await page.goto("/capacitacao/turmas");
     await expect(page.getByRole("heading", { name: "Turmas", exact: true })).toBeVisible();
-    await page.getByRole("link", { name: /INFO-2026-01/ }).click();
+    // S8: a lista de turmas virou table.tbl e o link da linha agora carrega o NOME DO CURSO
+    // como nome acessível ("Informática Básica"); o código INFO-2026-01 desceu pra um
+    // subtítulo mono fora do link. Só há uma turma desse curso (INFO-2026-01), então é único.
+    await page.getByRole("link", { name: "Informática Básica", exact: true }).click();
 
     await expect(page).toHaveURL(/\/capacitacao\/turmas\/[a-z0-9]+$/);
     await expect(

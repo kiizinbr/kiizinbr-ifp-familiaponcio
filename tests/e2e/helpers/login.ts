@@ -31,8 +31,9 @@ export async function login(page: Page, slug: string, email: string, senha: stri
 }
 
 /**
- * Localiza estritamente o `<p role="alert">` do form de login
- * (evita colidir com o `__next-route-announcer__`, que também é role="alert").
+ * Localiza estritamente o `<p role="alert">` do form de login.
+ * No Next 16 o route announcer virou um `<div role="alert">` dentro de shadow DOM,
+ * então não concorre com este seletor — `p[role="alert"]` casa só o field-error do form.
  */
 export function loginError(page: Page) {
   return page.locator('p[role="alert"]');
