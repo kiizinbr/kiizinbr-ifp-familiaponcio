@@ -71,4 +71,4 @@ jobs:
         run: pnpm db:seed
 
       - name: E2E tests
-        run: pnpm test:e2e || echo "e2e not configured yet"
+        run: pnpm test:e2e
