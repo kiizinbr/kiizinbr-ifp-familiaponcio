@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logEvent } from "@/lib/audit";
 import { canAccessUnidade, hasAnyRole } from "@/lib/rbac";
+import { assertAcessoCidadao } from "@/lib/cidadao-authz";
 import { podeAssinarNota, podeEditarNota } from "@/lib/medico/rbac";
 import {
   adicionarAddendo,
@@ -42,6 +43,12 @@ export async function salvarRascunhoAction(formData: FormData) {
     where: { id: consultaId },
     include: { profissional: true, notaEvolucao: true },
   });
+  // A1 IDOR guard (espelha os irmãos em consultas/[id]): consultaId vem do
+  // cliente e o gate de papel (podeEditarNota) não confere a unidade do OBJETO.
+  // Exige acesso à unidade do cidadão antes de qualquer escrita no prontuário —
+  // não trava o fluxo legítimo (profissional/gestor na própria unidade, social,
+  // super_admin passam por can(edit, ficha_cidada)).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
 
   const statusNota = consulta.notaEvolucao?.status ?? "rascunho";
   if (!podeEditarNota(session, consulta.profissional.userId, statusNota)) {
@@ -149,6 +156,8 @@ export async function assinarNotaAction(formData: FormData) {
     where: { id: consultaId },
     include: { profissional: true },
   });
+  // A1 IDOR guard: acesso à unidade do cidadão antes de assinar (ato imutável).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
   if (!podeAssinarNota(session, consulta.profissional.userId)) {
     throw new Error("Sem permissão para assinar esta nota");
   }
@@ -193,6 +202,8 @@ export async function adicionarAddendoAction(formData: FormData) {
     where: { id: consultaId },
     include: { profissional: true },
   });
+  // A1 IDOR guard: acesso à unidade do cidadão antes do addendo (append-only).
+  await assertAcessoCidadao(session, consulta.cidadaoId, "edit");
   // Ownership: addendo é ato do profissional DONO da consulta — não de qualquer profissional@medico.
   if (!podeAssinarNota(session, consulta.profissional.userId)) {
     throw new Error("Sem permissão para addendar esta nota");
