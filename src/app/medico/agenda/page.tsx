@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { corTextoSobre } from "@/lib/medico/ui";
+import { agruparSlotsPorDiaLocal, chaveDiaLocal, MAX_SLOTS_SEMANA } from "@/lib/medico/agenda-grid";
 
 const HORA_INICIO = 7;
 const HORA_FIM = 20;
@@ -61,8 +62,18 @@ export default async function AgendaSemanalPage({
         consulta: { include: { cidadao: true } },
       },
       orderBy: { dataHoraInicio: "asc" },
+      // Teto defensivo: a janela da semana já vem do Prisma (gte/lt acima); em
+      // operação normal o volume fica muito abaixo disso. Blinda só payload
+      // anômalo. Como o orderBy é asc, um eventual truncamento descarta os
+      // horários mais tardios. (F8)
+      take: MAX_SLOTS_SEMANA,
     }),
   ]);
+
+  // Bucketização O(N) dos slots por dia local — substitui o Array.filter O(7×N)
+  // que rodava por coluna. Chave em horário local (espelha o filtro anterior),
+  // nunca UTC. (F8)
+  const slotsPorDia = agruparSlotsPorDiaLocal(slots);
 
   const altura = (HORA_FIM - HORA_INICIO) * 60 * PX_POR_MIN;
   const hojeYmd = ymd(new Date());
@@ -229,14 +240,7 @@ export default async function AgendaSemanalPage({
             {DIAS.map((_, dia) => {
               const dtStart = new Date(inicio);
               dtStart.setDate(dtStart.getDate() + dia);
-              const slotsDia = slots.filter((s) => {
-                const sd = s.dataHoraInicio;
-                return (
-                  sd.getFullYear() === dtStart.getFullYear() &&
-                  sd.getMonth() === dtStart.getMonth() &&
-                  sd.getDate() === dtStart.getDate()
-                );
-              });
+              const slotsDia = slotsPorDia.get(chaveDiaLocal(dtStart)) ?? [];
               return (
                 <div
                   key={dia}
