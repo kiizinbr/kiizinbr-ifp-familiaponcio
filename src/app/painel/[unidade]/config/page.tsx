@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade, podeGerirPainel } from "@/lib/rbac";
 import { isUnidadePainel } from "@/lib/unidades";
 import { db } from "@/lib/db";
+import { SubmitButton } from "@/components/ui/submit-button";
 import {
   adicionarAnuncioAction,
   removerAnuncioAction,
@@ -57,9 +58,7 @@ export default async function PainelConfigPage({
             className="input"
             style={{ flex: 1 }}
           />
-          <button type="submit" className="btn btn-primary">
-            Salvar
-          </button>
+          <SubmitButton pendingLabel="Salvando…">Salvar</SubmitButton>
         </form>
       </section>
 

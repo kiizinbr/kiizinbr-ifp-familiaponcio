@@ -26,37 +26,47 @@ export async function chamarAction(formData: FormData): Promise<void> {
   if (!acessoUnidade) throw new Error("Sem permissao");
   if (!podeChamar(session)) throw new Error("Sem permissao");
 
-  const destino = String(formData.get("destino") ?? "").trim();
+  let destino = String(formData.get("destino") ?? "").trim();
   if (!destino) throw new Error("Dados invalidos");
 
+  // cidadaoId e obrigatorio: o nome anunciado na TV publica e SEMPRE derivado dele no
+  // servidor (nomeSocial || nomeCompleto), nunca do hidden — fecha o spoof de nome.
+  // Todas as telas de fila (recepcao, minha-fila, agenda-dia, social) ja enviam cidadaoId.
   const cidadaoId = formData.get("cidadaoId") ? String(formData.get("cidadaoId")) : null;
+  if (!cidadaoId) throw new Error("Dados invalidos");
   const consultaId = formData.get("consultaId") ? String(formData.get("consultaId")) : null;
 
-  // Nome anunciado: se ha cidadaoId, deriva no servidor (nomeSocial || nomeCompleto) e
-  // IGNORA o hidden — fecha spoof de nome na TV publica. Sem cidadaoId, usa o hidden
-  // (fallback p/ eventual chamada manual; destino segue blindado pela allowlist abaixo).
-  let nome = String(formData.get("nomeChamado") ?? "").trim();
-  if (cidadaoId) {
-    const cidadao = await db.cidadao.findUnique({
-      where: { id: cidadaoId },
-      select: { nomeSocial: true, nomeCompleto: true },
-    });
-    if (!cidadao) throw new Error("Cidadao invalido");
-    nome = derivarNomeChamado(cidadao);
-  }
+  const cidadao = await db.cidadao.findUnique({
+    where: { id: cidadaoId },
+    select: { nomeSocial: true, nomeCompleto: true },
+  });
+  if (!cidadao) throw new Error("Cidadao invalido");
+  const nome = derivarNomeChamado(cidadao);
   if (!nome) throw new Error("Dados invalidos");
 
-  // Allowlist server-side do destino: fixos (Recepcao/Triagem) ou profissional ativo
-  // (nomeExibicao nao e @unique -> findFirst basta p/ checar existencia).
-  let destinoOk = destinoFixoValido(destino);
-  if (!destinoOk) {
-    const prof = await db.profissional.findFirst({
-      where: { ativo: true, nomeExibicao: destino },
-      select: { id: true },
-    });
-    destinoOk = Boolean(prof);
+  // Se ha consultaId (link de auditoria), valida que existe E pertence a este cidadao
+  // — assim o link gravado na Chamada nao e forjavel, e o nome do profissional fica
+  // disponivel pra derivar o destino abaixo.
+  const consulta = consultaId
+    ? await db.consulta.findUnique({
+        where: { id: consultaId },
+        select: { cidadaoId: true, profissional: { select: { nomeExibicao: true } } },
+      })
+    : null;
+  if (consultaId && (!consulta || consulta.cidadaoId !== cidadaoId)) {
+    throw new Error("Dados invalidos");
   }
-  if (!destinoOk) throw new Error("Destino invalido");
+
+  // Allowlist server-side do destino. Fixos (Recepcao/Triagem) passam direto.
+  if (!destinoFixoValido(destino)) {
+    // Destino profissional: deriva do servidor a partir da consulta validada acima.
+    // Usa o profissional REAL da consulta (nao um nome casado por texto) — imune a
+    // spoof e a homonimo — e NAO exige ativo:true, entao chamar paciente de
+    // profissional desativado/em reativacao com consulta ainda na fila continua
+    // funcionando (regressao evitada).
+    if (!consulta) throw new Error("Destino invalido");
+    destino = consulta.profissional.nomeExibicao;
+  }
 
   const chamada = await criarChamada({
     unidade,
@@ -72,8 +82,8 @@ export async function chamarAction(formData: FormData): Promise<void> {
     action: "paciente_chamado",
     entityType: "chamada",
     entityId: chamada.id,
-    rootEntityType: cidadaoId ? "cidadao" : undefined,
-    rootEntityId: cidadaoId ?? undefined,
+    rootEntityType: "cidadao",
+    rootEntityId: cidadaoId,
     meta: { unidade, destino },
   });
 

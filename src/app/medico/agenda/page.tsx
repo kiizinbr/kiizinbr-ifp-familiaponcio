@@ -75,6 +75,11 @@ export default async function AgendaSemanalPage({
   // nunca UTC. (F8)
   const slotsPorDia = agruparSlotsPorDiaLocal(slots);
 
+  // Se o teto defensivo foi atingido, o orderBy asc fez o corte cair nos horários
+  // mais tardios da semana (dias finais podem sumir). Numa agenda clínica isso não
+  // pode ser silencioso: avisa e orienta a filtrar. (F8)
+  const agendaTruncada = slots.length >= MAX_SLOTS_SEMANA;
+
   const altura = (HORA_FIM - HORA_INICIO) * 60 * PX_POR_MIN;
   const hojeYmd = ymd(new Date());
   const selectCls = "select w-auto";
@@ -173,6 +178,21 @@ export default async function AgendaSemanalPage({
           }
         />
       </div>
+
+      {agendaTruncada ? (
+        <div
+          role="alert"
+          className="mb-4 rounded-md px-4 py-3 text-sm max-[880px]:hidden"
+          style={{
+            border: "1px solid var(--danger)",
+            background: "color-mix(in srgb, var(--danger) 10%, transparent)",
+            color: "var(--text)",
+          }}
+        >
+          Esta semana tem mais horários do que a grade carrega ({MAX_SLOTS_SEMANA}); os mais tardios
+          podem não aparecer. Filtre por profissional ou especialidade para ver a semana completa.
+        </div>
+      ) : null}
 
       <Card className="overflow-x-auto !p-0 max-[880px]:hidden">
         <div className="min-w-[820px]">

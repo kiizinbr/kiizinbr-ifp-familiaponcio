@@ -57,15 +57,3 @@ export async function listarChamadas(
   const [atual, ...recentes] = linhas;
   return { atual: atual ?? null, recentes };
 }
-
-/**
- * Purga (hard delete) das chamadas anteriores a `antesDe` — event log sem valor
- * historico de PII (a auditoria vive no AuditLog). Preparada para retencao real no
- * banco; o wiring de cron fica para janela supervisionada. Retorna a contagem removida.
- */
-export async function purgarChamadasAntigas(antesDe: Date): Promise<number> {
-  const { count } = await db.chamada.deleteMany({
-    where: { criadoEm: { lt: antesDe } },
-  });
-  return count;
-}
