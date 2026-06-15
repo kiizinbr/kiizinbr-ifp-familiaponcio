@@ -43,7 +43,6 @@ export default async function LandingPage() {
           dangerouslySetInnerHTML={{ __html: `window.__IFP_HOME__=${JSON.stringify(homePath)}` }}
         />
       ) : null}
-      <Script src="/site/image-slot.js" strategy="afterInteractive" />
       <Script src="/site/site.js" strategy="afterInteractive" />
     </>
   );
