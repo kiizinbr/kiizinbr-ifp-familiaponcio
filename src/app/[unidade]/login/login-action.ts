@@ -74,14 +74,17 @@ export async function unidadeLoginAction(
     );
 
   if (!canAccess) {
+    // Auditoria server-side mantida (sabemos que a conta existe e tentou um salão
+    // sem papel). Mas a mensagem ao usuário é a MESMA do pré-flight de senha:
+    // diferenciá-la vazaria (a) que a conta existe e (b) que a senha confere
+    // (enumeração + confirmação de credencial, OWASP). O usuário legítimo no
+    // salão errado é orientado pelo /acesso + dropdown da landing.
     await logEvent({
       userId: user.id,
       action: "signin_denied_unit",
       meta: { email, unidade: slug },
     });
-    return {
-      error: "Não foi possível acessar essa unidade. Verifique se você está no link correto.",
-    };
+    return { error: "E-mail ou senha incorretos." };
   }
 
   // Tudo OK: delega o setup de cookie/sessão + redirect ao signIn.

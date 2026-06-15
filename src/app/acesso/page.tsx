@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import type { Route } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { TemaUnidade } from "@/components/tema-unidade";
+import { auth } from "@/lib/auth";
+import { getLandingPath } from "@/lib/rbac";
 import { UNIDADE_SLUGS, UNIDADES, type UnidadeConfig } from "@/lib/unidades";
 
 export const metadata: Metadata = {
@@ -43,7 +47,11 @@ function CardUnidade({ unidade }: { unidade: UnidadeConfig }) {
   return (
     <TemaUnidade tema={unidade.slug}>
       <Link
-        href={`/login?unidade=${unidade.slug}`}
+        // Funil aponta direto pra rota POR UNIDADE (/<slug>/login), que faz o
+        // pré-flight de acesso e o redirect pra /<slug>. Aposenta o /login?unidade=
+        // genérico (cujo hidden o signInAction ignorava — F22) e mata o vetor de
+        // "loga no salão errado" de graça (a verificação vem do unidadeLoginAction).
+        href={`/${unidade.slug}/login` as Route}
         className="group border-border bg-surface shadow-ifp-sm hover:border-primary/60 hover:shadow-casa-sm block rounded-lg border p-5 transition"
       >
         <div className="bg-unidade mb-3 h-2 w-12 rounded-full" aria-hidden />
@@ -61,7 +69,8 @@ function CardTransversal({ unidade }: { unidade: UnidadeConfig }) {
   return (
     <TemaUnidade tema={unidade.slug}>
       <Link
-        href={`/login?unidade=${unidade.slug}`}
+        // Idem CardUnidade: rota por unidade com pré-flight (F22).
+        href={`/${unidade.slug}/login` as Route}
         className="group border-border bg-surface shadow-ifp-sm hover:border-primary/60 flex items-center justify-between gap-4 rounded-lg border px-5 py-4 transition"
       >
         <span>
@@ -78,7 +87,16 @@ function CardTransversal({ unidade }: { unidade: UnidadeConfig }) {
   );
 }
 
-export default function AcessoPage() {
+export default async function AcessoPage() {
+  // Funil público de acesso: quem já está logado não escolhe salão de novo —
+  // vai direto pro seu destino. Mesmo guard do /login (F21); `home !== "/login"`
+  // só por segurança (getLandingPath não devolve /login pra sessão válida — B3).
+  const session = await auth();
+  if (session) {
+    const home = getLandingPath(session);
+    if (home !== "/login") redirect(home as Route);
+  }
+
   return (
     <main className="bg-background min-h-screen">
       <div className="mx-auto w-full max-w-3xl px-6 py-12 md:py-16">

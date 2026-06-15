@@ -159,11 +159,41 @@ export function podeGerirPainel(session: Session | null): boolean {
   return hasAnyRole(session, "super_admin", "gestor_unidade");
 }
 
-/** Default landing path baseado no primaryRole do user. Resolve em /login se sem sessão. */
+/**
+ * Default landing path baseado no primaryRole do user.
+ *
+ * Separa explicitamente "sem sessão" de "sessão válida sem papel":
+ *   - sem sessão           → /login (visitante precisa autenticar).
+ *   - sessão + primaryRole  → destino do primaryRole (super_admin/presidência →
+ *                            /inicio, unit-role → /<scope>, painel → /painel/<scope>).
+ *   - sessão SEM primaryRole → deriva do primeiro roles[] (conta logada cujo
+ *                            primaryRoleName ainda não foi setado no DB); se nem
+ *                            roles existir, cai em /inicio (NUNCA /login — um
+ *                            usuário já autenticado mandado de volta pro /login
+ *                            cria o ciclo "logado mas preso no login"). O guard de
+ *                            auth() em /inicio cuida de quem não devia estar lá.
+ */
 export function getLandingPath(session: Session | null): string {
-  if (!session?.user.primaryRole) return "/login";
-  const { name, unitScope } = session.user.primaryRole;
-  return getLandingPathFor(name, unitScope);
+  // Sem sessão: visitante vai pro login (comportamento de sempre).
+  if (!session) return "/login";
+
+  // Sessão válida COM primaryRole: destino canônico do papel principal.
+  if (session.user.primaryRole) {
+    const { name, unitScope } = session.user.primaryRole;
+    return getLandingPathFor(name, unitScope);
+  }
+
+  // Sessão válida SEM primaryRole: deriva do primeiro papel atribuído, se houver.
+  const first = session.user.roles?.[0];
+  if (first) {
+    const destino = getLandingPathFor(first.name, first.unitScope);
+    // getLandingPathFor ainda pode devolver /login (ex.: painel sem scope);
+    // para uma sessão já válida isso recriaria o ciclo — neutraliza em /inicio.
+    return destino === "/login" ? "/inicio" : destino;
+  }
+
+  // Logado mas totalmente sem papel: destino neutro, nunca /login.
+  return "/inicio";
 }
 
 /**

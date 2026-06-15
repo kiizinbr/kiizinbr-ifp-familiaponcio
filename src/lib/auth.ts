@@ -28,6 +28,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
+    // Sem isto, o GET /api/auth/signout cai na confirmação default do NextAuth
+    // (em inglês). Aponta pra nossa página pt-BR no estilo do kit. O signout do
+    // app segue programático (signOutAction) e não passa por aqui — esta página
+    // cobre só o acesso direto/edge a /api/auth/signout.
+    signOut: "/logout",
   },
   callbacks: {
     async jwt({ token, user, trigger }) {
