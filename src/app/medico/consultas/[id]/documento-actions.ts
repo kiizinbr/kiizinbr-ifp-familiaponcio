@@ -147,6 +147,15 @@ export async function emitirAtestadoAction(formData: FormData) {
   const consultaId = String(formData.get("consultaId"));
   const { session, consulta } = await carregarConsultaParaDocumento(consultaId);
 
+  // Sem nenhum dos 3 campos não há atestado válido — volta com erro (espelha o
+  // guard de receita). Evita atestado totalmente vazio nascendo com ?doc=ok.
+  const dias = intPos(formData, "diasAfastamento");
+  const cid = text(formData, "cid");
+  const obs = text(formData, "observacao");
+  if (!(dias && dias > 0) && !cid && !obs) {
+    redirect(`/medico/consultas/${consultaId}?doc=erro_atestado` as Route);
+  }
+
   const nomePaciente = consulta.cidadao.nomeSocial || consulta.cidadao.nomeCompleto;
   const atestado = await db.atestado.create({
     data: {
@@ -156,9 +165,9 @@ export async function emitirAtestadoAction(formData: FormData) {
       nomeProfissional: consulta.profissional.nomeExibicao,
       conselho: consulta.profissional.conselho,
       nroConselho: consulta.profissional.nroConselho,
-      diasAfastamento: intPos(formData, "diasAfastamento"),
-      cid: text(formData, "cid"),
-      observacao: text(formData, "observacao"),
+      diasAfastamento: dias,
+      cid,
+      observacao: obs,
     },
   });
 

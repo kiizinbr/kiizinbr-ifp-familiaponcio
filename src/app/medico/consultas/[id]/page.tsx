@@ -81,16 +81,31 @@ export default async function ConsultaDetalhePage({
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
 
+  // F9 (LGPD/minimização) — `podeVerProntuario` só depende da sessão, então sobe
+  // ANTES do findUnique para condicionar o que é LIDO do banco. Quem NÃO pode ver
+  // o prontuário (recepção/social) não carrega PHI (tipoSanguineo/alergias/
+  // condições/medicamentos do cidadão, nem nota/vitais/diagnósticos/addendos):
+  // o cidadão vem só com os campos não-clínicos usados fora do bloco clínico e a
+  // nota nem é incluída. Quem PODE ver continua carregando tudo (ramo `true`).
+  const podeVer = podeVerProntuario(session);
+
   const consulta = await db.consulta.findUnique({
     where: { id },
     include: {
       slot: true,
-      cidadao: true,
+      cidadao: podeVer
+        ? true
+        : {
+            select: {
+              id: true,
+              nomeCompleto: true,
+              nomeSocial: true,
+              dataNascimento: true,
+              genero: true,
+            },
+          },
       profissional: { include: { user: true } },
       especialidade: true,
-      notaEvolucao: {
-        include: { diagnosticos: true, addendos: { orderBy: { createdAt: "asc" } } },
-      },
     },
   });
   if (!consulta) notFound();
@@ -107,19 +122,38 @@ export default async function ConsultaDetalhePage({
     notFound();
   }
 
-  const historico = await db.notaEvolucao.findMany({
-    where: { cidadaoId: consulta.cidadaoId, NOT: { consultaId: consulta.id } },
-    include: {
-      profissional: true,
-      consulta: {
-        include: { especialidade: true, slot: { select: { dataHoraInicio: true } } },
+  // F9 — histórico clínico cross-consulta é PHI: só busca quando `podeVer`. Quem
+  // não pode ver renderiza só "Conteúdo clínico restrito…" e nunca lê `historico`,
+  // então `[]` (mesmo tipo do findMany) é seguro e nada é lido do banco.
+  const carregarHistorico = () =>
+    db.notaEvolucao.findMany({
+      where: { cidadaoId: consulta.cidadaoId, NOT: { consultaId: consulta.id } },
+      include: {
+        profissional: true,
+        consulta: {
+          include: { especialidade: true, slot: { select: { dataHoraInicio: true } } },
+        },
       },
-    },
-    // Data CLÍNICA (slot da consulta), nunca NotaEvolucao.createdAt: nas notas
-    // migradas da Amplimed o createdAt é a data em que a migração RODOU.
-    orderBy: { consulta: { slot: { dataHoraInicio: "desc" } } },
-    take: 5,
-  });
+      // Data CLÍNICA (slot da consulta), nunca NotaEvolucao.createdAt: nas notas
+      // migradas da Amplimed o createdAt é a data em que a migração RODOU.
+      orderBy: { consulta: { slot: { dataHoraInicio: "desc" } } },
+      take: 5,
+    });
+  const historico: Awaited<ReturnType<typeof carregarHistorico>> = podeVer
+    ? await carregarHistorico()
+    : [];
+
+  // F9 — a nota de evolução (texto/vitais/diagnósticos/addendos) é PHI: só é lida
+  // quando `podeVer`. Buscada à parte (em vez de include condicional) para o tipo
+  // resolver limpo com as relações — quem não pode ver fica com `null` e nunca lê
+  // a nota do banco. Quem pode ver tem a nota COMPLETA, idêntica ao comportamento
+  // anterior (mesmo include de diagnosticos + addendos ordenados).
+  const carregarNota = () =>
+    db.notaEvolucao.findUnique({
+      where: { consultaId: consulta.id },
+      include: { diagnosticos: true, addendos: { orderBy: { createdAt: "asc" } } },
+    });
+  const nota: Awaited<ReturnType<typeof carregarNota>> = podeVer ? await carregarNota() : null;
 
   const [especialidadesAtivas, encaminhamentos, receitas, atestados] = await Promise.all([
     db.especialidade.findMany({
@@ -147,7 +181,7 @@ export default async function ConsultaDetalhePage({
   const podeEmitir = podeEmitirDocumento(session, consulta.profissional.userId);
 
   // Registra acesso a dado de saúde (LGPD §0.8) — só quem pode ver conteúdo clínico.
-  const podeVer = podeVerProntuario(session);
+  // `podeVer` já calculado no topo (F9) para condicionar o que é lido do banco.
   if (podeVer) {
     await logEvent({
       userId: session.user.id,
@@ -160,7 +194,6 @@ export default async function ConsultaDetalhePage({
     });
   }
 
-  const nota = consulta.notaEvolucao;
   const assinada = nota?.status === "assinada";
   const emAtendimento = consulta.status === "em_atendimento";
   const podeEditar =
@@ -400,6 +433,8 @@ export default async function ConsultaDetalhePage({
               {erro === "nao_reagendavel" && "Esta consulta não pode mais ser reagendada."}
               {erro === "slot_indisponivel" &&
                 "O horário escolhido acabou de ser reservado. Tente outro."}
+              {erro === "cid_indisponivel" &&
+                "Não foi possível validar o CID agora (indisponibilidade temporária). Tente salvar novamente em instantes."}
             </div>
           </div>
         )}
@@ -743,6 +778,12 @@ export default async function ConsultaDetalhePage({
                   <h3 className={styles.docTtl}>Atestado</h3>
                 </div>
                 <div className={styles.body}>
+                  {doc === "erro_atestado" && (
+                    <div className={styles.docErr}>
+                      Informe ao menos dias de afastamento, CID ou observação para emitir o
+                      atestado.
+                    </div>
+                  )}
                   {atestados.length > 0 && (
                     <div className={styles.docList}>
                       {atestados.map((at) => (

@@ -79,13 +79,17 @@ export async function salvarRascunhoAction(formData: FormData) {
     const normalizados = normalizarDiagnosticos(valido.data);
     // Anti-tampering híbrido + anti-forja: descrição canônica quando o código
     // existe na tabela Cid10; código regex-válido inexistente numa tabela
-    // CONSULTADA com sucesso é rebaixado a texto livre (não finge CID oficial);
-    // tabela indisponível mantém o enviado — nunca bloqueia o atendimento.
+    // CONSULTADA com sucesso é rebaixado a texto livre (não finge CID oficial).
     const codigos = normalizados.flatMap((d) => (d.codigoCid ? [d.codigoCid] : []));
     let oficiais = new Map<string, string>();
-    // `true` quando não há código a checar (nada a forjar) ou quando o SELECT
-    // rodou; só vira `false` se a consulta lançar (tabela/DB indisponível).
-    let tabelaConsultada = true;
+    // B12 — `tabelaConsultada` permanece SEMPRE true neste fluxo: "0 linhas com
+    // sucesso" (tabela vazia de verdade) já rebaixa o forjado a texto livre via
+    // canonicalizarDescricoes (anti-forja correta, não bloqueia). O ERRO DE QUERY
+    // (catch) ≠ tabela vazia: não dá pra refutar o código → NÃO aceitar possível
+    // forja; aborta com feedback em vez de afrouxar para `false` (que mantinha o
+    // código enviado intocado). Mantemos a variável p/ não tocar a assinatura
+    // read-only de canonicalizarDescricoes.
+    const tabelaConsultada = true;
     if (codigos.length > 0) {
       try {
         const linhas = await db.cid10.findMany({
@@ -94,8 +98,7 @@ export async function salvarRascunhoAction(formData: FormData) {
         });
         oficiais = new Map(linhas.map((c) => [c.codigo, c.descricao]));
       } catch {
-        oficiais = new Map();
-        tabelaConsultada = false;
+        redirect(`/medico/consultas/${consultaId}?erro=cid_indisponivel` as Route);
       }
     }
     diagnosticos = canonicalizarDescricoes(normalizados, oficiais, tabelaConsultada);
