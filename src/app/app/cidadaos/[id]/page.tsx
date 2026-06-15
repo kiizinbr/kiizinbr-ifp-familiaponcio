@@ -36,7 +36,9 @@ const UNIT_LABELS: Record<UnitScope, string> = {
 };
 
 // Cor de texto sobre o badge de unidade — mesmo critério da lista (page.tsx):
-// branco onde passa AA (medico, esportivo); --ifp-ink nos tons claros (capacitacao, recreativo).
+// branco onde passa AA p/ texto pequeno (medico 5.55:1, esportivo 4.81:1);
+// --ifp-ink nos tons claros (capacitacao 3.35:1, recreativo 4.00:1) — acima do
+// limiar 3:1 de UI, abaixo de AA-small (4.5:1), mas bem melhor que o branco anterior.
 const UNIT_FG: Record<UnitScope, string> = {
   medico: "#fff",
   esportivo: "#fff",

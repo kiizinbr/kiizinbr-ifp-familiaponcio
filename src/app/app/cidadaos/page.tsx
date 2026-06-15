@@ -23,9 +23,12 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   recreativo: "Recreativo",
 };
 
-// Cor de texto sobre o badge de unidade, escolhida por unidade para garantir
-// contraste AA sem branco cego (recreativo/capacitacao são claros demais p/ #fff).
-// Branco onde passa AA (medico, esportivo); --ifp-ink onde o claro exige texto escuro.
+// Cor de texto sobre o badge de unidade, escolhida por unidade para maximizar
+// o contraste sem branco cego (recreativo/capacitacao são claros demais p/ #fff).
+// Branco onde passa AA p/ texto pequeno (medico 5.55:1, esportivo 4.81:1);
+// --ifp-ink nos tons claros (capacitacao 3.35:1, recreativo 4.00:1) — melhor que
+// o branco anterior (2.65/2.22) e acima do limiar 3:1 de componente de UI, porém
+// ainda abaixo de AA-small (4.5:1). Texto reforçado pelo nome da unidade ao lado.
 const UNIT_FG: Record<UnitScope, string> = {
   medico: "#fff",
   esportivo: "#fff",
