@@ -8,3 +8,6 @@ docs/design-kit/
 BACKLOG-NOITE.md
 NIGHTLY-LOG-*.md
 overnight-*/
+
+# Relatórios gerados nos sprints (saída markdown do Claude) — não gatekeepar formatação
+docs/superpowers/reports/
