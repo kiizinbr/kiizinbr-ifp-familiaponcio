@@ -14,11 +14,10 @@ import { configuracoesNavItem } from "@/lib/nav";
  * "Especialidades" só pra quem gerencia. "Cidadãos" leva de volta ao app global.
  */
 export function medicoNavItems(session: Session): NavItem[] {
-  const items: NavItem[] = [
-    { label: "Fila do dia", href: "/medico" },
-    { label: "Agenda semanal", href: "/medico/agenda" },
-    { label: "Agenda do dia", href: "/medico/agenda-dia" },
-  ];
+  // #17 — as três visões de agenda viraram abas dentro das telas; o menu expõe um
+  // único item "Agenda" (→ board do dia). As rotas /medico, /medico/agenda e
+  // /medico/agenda-dia seguem todas vivas e alcançáveis pela barra de abas.
+  const items: NavItem[] = [{ label: "Agenda", href: "/medico/agenda-dia" }];
   if (podeMarcarConsulta(session)) {
     items.push({ label: "Recepção", href: "/medico/recepcao" });
   }
@@ -50,10 +49,11 @@ export function medicoNavItems(session: Session): NavItem[] {
  */
 export function medicoNavGroups(session: Session): NavGroup[] {
   // OPERAÇÃO — o dia a dia do balcão e da fila geral.
-  const operacao: NavItem[] = [
-    { label: "Fila do dia", href: "/medico" },
-    { label: "Agenda do dia", href: "/medico/agenda-dia" },
-  ];
+  // #17 — as três visões de agenda (Fila do dia / Agenda do dia / Agenda semanal)
+  // foram consolidadas numa barra de ABAS dentro das próprias telas, então o menu
+  // expõe um único ponto de entrada "Agenda" (→ board do dia) em vez de três itens
+  // que confundiam. As rotas seguem todas vivas e navegáveis pelas abas.
+  const operacao: NavItem[] = [{ label: "Agenda", href: "/medico/agenda-dia" }];
   if (podeMarcarConsulta(session)) {
     operacao.push({ label: "Recepção", href: "/medico/recepcao" });
   }
@@ -65,8 +65,9 @@ export function medicoNavGroups(session: Session): NavGroup[] {
     meuTrabalho.push({ label: "Minha agenda", href: "/medico/minha-agenda" });
   }
 
-  // AGENDA — visão de planejamento (semana + encaminhamentos a agendar).
-  const agenda: NavItem[] = [{ label: "Agenda semanal", href: "/medico/agenda" }];
+  // AGENDA — planejamento. #17 — a "Agenda semanal" virou aba dentro das telas de
+  // agenda (não some, só sai do menu); aqui resta o trabalho a agendar.
+  const agenda: NavItem[] = [];
   if (podeAgendarEncaminhamento(session) || hasAnyRole(session, "profissional")) {
     agenda.push({ label: "A agendar", href: "/medico/encaminhamentos" });
   }

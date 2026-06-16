@@ -65,7 +65,14 @@ export function RascunhoAutosave() {
 
   /** #formEvolucao tem alterações não salvas? (clonado do AssinarButton.) */
   function temAlteracoesNaoSalvas(evo: HTMLFormElement): boolean {
-    const textarea = evo.querySelector<HTMLTextAreaElement>("textarea");
+    // #18 — a verdade do texto é o textarea oculto name="texto"
+    // (data-soap-fonte). As caixas SOAP/texto-livre auxiliares (data-soap-aux)
+    // são controladas (sem defaultValue) e NÃO entram na varredura — senão
+    // gerariam falso "sujo". Sem SoapEditor (notas antigas no DOM), o seletor cai
+    // no primeiro textarea, comportamento idêntico ao anterior.
+    const fonte = evo.querySelector<HTMLTextAreaElement>("textarea[data-soap-fonte]");
+    const textarea =
+      fonte ?? evo.querySelector<HTMLTextAreaElement>("textarea:not([data-soap-aux])");
     if (textarea && textarea.value !== textarea.defaultValue) return true;
     const inputs = evo.querySelectorAll<HTMLInputElement>('input[type="text"], input:not([type])');
     for (const input of inputs) {
@@ -121,7 +128,10 @@ export function RascunhoAutosave() {
       // Re-baseia textarea/inputs para o valor enviado, espelhando o que o save
       // persistiu — assim a próxima checagem de sujeira parte do estado salvo
       // (o RSC não recarregou). Equivalente ao defaultValue após um save manual.
-      const textarea = evo.querySelector<HTMLTextAreaElement>("textarea");
+      // #18 — re-baseia a FONTE (oculto name="texto"), não as caixas auxiliares.
+      const textarea =
+        evo.querySelector<HTMLTextAreaElement>("textarea[data-soap-fonte]") ??
+        evo.querySelector<HTMLTextAreaElement>("textarea:not([data-soap-aux])");
       if (textarea) textarea.defaultValue = textarea.value;
       const inputs = evo.querySelectorAll<HTMLInputElement>(
         'input[type="text"], input:not([type])',

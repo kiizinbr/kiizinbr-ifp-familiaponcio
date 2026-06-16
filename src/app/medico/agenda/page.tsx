@@ -6,6 +6,7 @@ import { canAccessUnidade } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { AgendaTabs } from "../_components/agenda-tabs";
 import { Card } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -126,6 +127,10 @@ export default async function AgendaSemanalPage({
           </form>
         }
       />
+
+      {/* #17 — abas das três visões de agenda. H1 "Agenda semanal" preservado;
+          os filtros ?profissionalId=/?semana= seguem na própria tela. */}
+      <AgendaTabs active="semana" />
 
       {/* Filtros */}
       <form method="get" className="mb-5 flex flex-wrap items-center gap-2">

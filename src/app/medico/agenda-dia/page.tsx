@@ -15,6 +15,7 @@ import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { CONSULTA_VISUAL, corTextoSobre } from "@/lib/medico/ui";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { AgendaTabs } from "../_components/agenda-tabs";
 import { KpiCard } from "@/components/kpi-card";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +106,19 @@ export default async function AgendaDiaPage({
   // de slot vazio (?slotId=): o submit falharia "Sem permissão". Reusa a MESMA
   // capability do check-in (recepção/gestão/social). Sem permissão → chip estático.
   const canMarcar = podeMarcarConsulta(session);
+
+  // #17 — atalho "Só os meus" da barra de abas: reusa o ?profissionalId= JÁ
+  // existente desta página (filtro de apresentação, #11). Lookup read-only por
+  // userId, só pra profissional — não relaxa nenhum gate.
+  const profissionalLogado = hasAnyRole(session, "profissional")
+    ? await db.profissional.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+    : null;
+  const meusHref = profissionalLogado
+    ? (`/medico/agenda-dia?profissionalId=${profissionalLogado.id}` as Route)
+    : undefined;
 
   // ── Derivações em memória (na página, não na lib) ─────────────────────
   // Colunas = profissionais que têm consulta OU slot hoje.
@@ -208,6 +222,10 @@ export default async function AgendaDiaPage({
         titulo="Agenda do dia"
         descricao={`${dataWeekday} · ${dataFull} — mapa de operação por profissional, atualizado sozinho.`}
       />
+
+      {/* #17 — abas das três visões de agenda. H1 "Agenda do dia" e o gate
+          podeOperarAgenda preservados; "Só os meus" reusa o ?profissionalId=. */}
+      <AgendaTabs active="hoje" meusHref={meusHref} />
 
       {ackChamado || ackCheckin ? (
         <div className="toast ok" role="status" style={{ marginBottom: 16 }}>

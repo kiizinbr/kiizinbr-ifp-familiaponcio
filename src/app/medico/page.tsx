@@ -4,9 +4,10 @@ import type { Route } from "next";
 import type { StatusConsulta } from "@prisma/client";
 import { clsx } from "clsx";
 import { auth } from "@/lib/auth";
-import { canAccessUnidade, podeChamar } from "@/lib/rbac";
+import { canAccessUnidade, podeChamar, hasAnyRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { AgendaTabs } from "./_components/agenda-tabs";
 import { KpiCard } from "@/components/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,20 @@ export default async function MedicoHomePage({
   const canCheckin = podeMarcarConsulta(session);
   const canChamar = podeChamar(session);
 
+  // #17 — atalho "Só os meus" da barra de abas: aponta a Agenda do dia já filtrada
+  // pelo profissional logado (?profissionalId=, filtro JÁ existente do board). Só
+  // pra quem é profissional; lookup read-only por userId (igual minha-agenda),
+  // sem efeito em RBAC/anti-overbooking.
+  const profissionalLogado = hasAnyRole(session, "profissional")
+    ? await db.profissional.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+    : null;
+  const meusHref = profissionalLogado
+    ? (`/medico/agenda-dia?profissionalId=${profissionalLogado.id}` as Route)
+    : undefined;
+
   const emAndamento = consultasHoje.filter((c) =>
     STATUS_EM_FILA.includes(c.status as (typeof STATUS_EM_FILA)[number]),
   ).length;
@@ -135,6 +150,11 @@ export default async function MedicoHomePage({
           ) : undefined
         }
       />
+
+      {/* #17 — abas das três visões de agenda (Fila do dia / Agenda do dia /
+          Agenda semanal). Entram ENTRE o header e os KPIs; o H1 "Fila do dia"
+          e o KPI "Na fila" permanecem intactos. */}
+      <AgendaTabs active="fila" meusHref={meusHref} />
 
       {/* QW1 — ack curto da última ação (chamar / check-in), reusando a classe
           .toast.ok do kit (tokens var(--ok), sem cor inventada). Inline (não

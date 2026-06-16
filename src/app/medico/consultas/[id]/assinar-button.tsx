@@ -88,7 +88,14 @@ export function AssinarButton({ action, consultaId, notaId }: Props) {
   function temAlteracoesNaoSalvas(): boolean {
     const evo = document.getElementById("formEvolucao") as HTMLFormElement | null;
     if (!evo) return false;
-    const textarea = evo.querySelector<HTMLTextAreaElement>("textarea");
+    // #18 — mede o textarea oculto name="texto" (data-soap-fonte) como verdade do
+    // texto; as caixas SOAP/texto-livre auxiliares (data-soap-aux) são controladas
+    // (sem defaultValue) e são IGNORADAS — senão dariam falso "alterações não
+    // salvas" antes de assinar a nota imutável. Fallback no primeiro textarea
+    // não-aux preserva o comportamento sem SoapEditor.
+    const fonte = evo.querySelector<HTMLTextAreaElement>("textarea[data-soap-fonte]");
+    const textarea =
+      fonte ?? evo.querySelector<HTMLTextAreaElement>("textarea:not([data-soap-aux])");
     if (textarea && textarea.value !== textarea.defaultValue) return true;
     const inputs = evo.querySelectorAll<HTMLInputElement>('input[type="text"], input:not([type])');
     for (const input of inputs) {

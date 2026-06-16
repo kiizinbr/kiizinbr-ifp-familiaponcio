@@ -17,9 +17,11 @@ export type ModeloEvolucao = { titulo: string; texto: string };
 /** Modelos sempre disponíveis, independentes da especialidade. */
 const GERAL: ModeloEvolucao[] = [
   {
+    // #18 — marcadores canônicos (## Subjetivo / ## Objetivo / ## Avaliação /
+    // ## Plano) p/ que "Copiar modelo SOAP" caia direto nas 4 caixas do
+    // SoapEditor. parseSoap reconhece esses cabeçalhos; livre permanece livre.
     titulo: "SOAP",
-    texto:
-      "S (Subjetivo): \n\n" + "O (Objetivo): \n\n" + "A (Avaliação): \n\n" + "P (Plano/Conduta): ",
+    texto: "## Subjetivo\n\n## Objetivo\n\n## Avaliação\n\n## Plano\n",
   },
   {
     titulo: "Queixa / HDA / Conduta",

@@ -844,7 +844,10 @@ table.tbl .cell-mono {
   padding: 3px;
   gap: 2px;
 }
-.segmented button {
+/* Segmento aceita <button> (toggle/radiogroup) E <a> (abas de navegação, #17):
+   mesmas declarações, tokens idênticos — só amplia o seletor, sem cor nova. */
+.segmented button,
+.segmented a {
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
@@ -855,8 +858,10 @@ table.tbl .cell-mono {
   border-radius: 7px;
   cursor: pointer;
   transition: all var(--t-fast);
+  text-decoration: none;
 }
-.segmented button.on {
+.segmented button.on,
+.segmented a.on {
   color: var(--text);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -1234,7 +1239,8 @@ table.tbl .cell-mono {
   .textarea,
   .nav-item,
   .toggle-pill,
-  .segmented button {
+  .segmented button,
+  .segmented a {
     min-height: var(--tap-min);
   }
   /* botões garantem 44px nos DOIS eixos — setas de semana (←/→) e demais
