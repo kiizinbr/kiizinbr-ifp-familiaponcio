@@ -28,10 +28,30 @@ const STATUS_BADGE = {
   cancelada: { variant: "default", label: "Cancelada" },
 } as const satisfies Record<StatusConsulta, { variant: BadgeVariant; label: string }>;
 
-export default async function MedicoHomePage() {
+export default async function MedicoHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ chamado?: string; chamadoHora?: string; checkin?: string }>;
+}) {
+  const { chamado, chamadoHora, checkin } = await searchParams;
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
+
+  // QW1 — banner de sucesso reusando o MESMO mecanismo já em produção (server
+  // action faz redirect com query param; a página lê de searchParams). Aqui a
+  // home é read-only (cards são Links), então só ECOA o ack da ação que acabou
+  // de rodar em outra tela/redirect. Mesma família ?chamado / ?checkin das
+  // telas de fila. Sem PII completa: ?chamado já chega só com o primeiro nome.
+  const horaValida = chamadoHora && /^\d{1,2}:\d{2}$/.test(chamadoHora) ? chamadoHora : null;
+  const sucessoMsg =
+    chamado && /^[\p{L}\p{M}'-]{1,40}$/u.test(chamado)
+      ? `${chamado} chamado${horaValida ? ` às ${horaValida}` : ""}`
+      : checkin === "ok"
+        ? "Check-in registrado"
+        : checkin === "desfeito"
+          ? "Chegada desfeita"
+          : null;
 
   const agora = new Date();
   const { inicioDia, fimDia } = buildJanelaDia(agora);
@@ -91,6 +111,17 @@ export default async function MedicoHomePage() {
           ) : undefined
         }
       />
+
+      {/* QW1 — ack curto da última ação (chamar / check-in), reusando a classe
+          .toast.ok do kit (tokens var(--ok), sem cor inventada). Inline (não
+          flutuante) logo abaixo do cabeçalho. */}
+      {sucessoMsg ? (
+        <div className="toast ok" role="status" style={{ marginBottom: 24, animation: "none" }}>
+          <div>
+            <div className="t-title">{sucessoMsg}</div>
+          </div>
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -180,7 +211,7 @@ export default async function MedicoHomePage() {
               return (
                 <Link
                   key={c.id}
-                  href={`/medico/consultas/${c.id}` as Route}
+                  href={`/medico/consultas/${c.id}?voltar=/medico` as Route}
                   className={clsx("tl-item", isNow && "live")}
                   style={{ display: "block", textDecoration: "none", color: "inherit" }}
                 >

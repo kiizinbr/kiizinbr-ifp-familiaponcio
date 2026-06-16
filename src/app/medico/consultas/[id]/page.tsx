@@ -73,10 +73,18 @@ export default async function ConsultaDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string; doc?: string; reagendada?: string }>;
+  searchParams: Promise<{
+    erro?: string;
+    doc?: string;
+    reagendada?: string;
+    salvo?: string;
+    checkin?: string;
+    marcada?: string;
+    voltar?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { erro, doc, reagendada } = await searchParams;
+  const { erro, doc, reagendada, salvo, checkin, marcada, voltar } = await searchParams;
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
@@ -227,9 +235,41 @@ export default async function ConsultaDetalhePage({
     return formatVitalSeguro(key as keyof SinaisVitaisInput, n) === "—" ? undefined : String(n);
   };
 
+  // QW2 — "← Voltar" no topo: a origem viaja em ?voltar (mesma convenção dos
+  // forms de check-in). Anti open-redirect: aceita só path interno (começa com
+  // `/` e NÃO com `//`/`\`) — espelha o guard da checkin-action. Sem origem
+  // válida, não renderiza nada (a tela é alcançada por fila/agenda/recepção).
+  const voltarHref = voltar && /^\/(?![/\\])/.test(voltar) ? voltar : null;
+
+  // QW1 — "Rascunho salvo às HH:MM": ?salvo=HHMM (4 dígitos) vira HH:MM.
+  const salvoHora =
+    salvo && /^\d{4}$/.test(salvo) ? `${salvo.slice(0, 2)}:${salvo.slice(2)}` : null;
+
+  // QW1 — ack de "Consulta marcada": ?marcada=ok (flag sem PII; o nome/data/hora
+  // são derivados dos dados JÁ carregados, não viajam na URL). Reusa o MESMO
+  // banner-em-card do reagendamento. Data/hora formatadas como na faixa do slot.
+  const marcadaMsg =
+    marcada === "ok"
+      ? `Consulta marcada p/ ${cidadao.nomeSocial || cidadao.nomeCompleto} · ${consulta.slot.dataHoraInicio.toLocaleString(
+          "pt-BR",
+          { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" },
+        )}`
+      : null;
+
   return (
     <MedicoShell session={session}>
       <div className={styles.root}>
+        {/* QW2 — "← Voltar" para a origem (fila/agenda/recepção) quando ?voltar
+            chega validado. Markup reusado das telas-irmãs (ficha do cidadão). */}
+        {voltarHref ? (
+          <Link
+            href={voltarHref as Route}
+            className="text-xs text-[var(--text-3)] hover:text-[var(--accent)]"
+            style={{ display: "inline-block", marginBottom: 12 }}
+          >
+            ← Voltar
+          </Link>
+        ) : null}
         {/* faixa do paciente */}
         <div className={styles.patient}>
           <div className={styles.avatar}>{iniciais(cidadao.nomeCompleto)}</div>
@@ -409,10 +449,44 @@ export default async function ConsultaDetalhePage({
           </div>
         )}
 
+        {/* QW1 — ack de "Consulta marcada": mesmo banner-em-card do reagendamento;
+            nome/data/hora derivados dos dados já carregados (sem PII na URL). */}
+        {marcadaMsg ? (
+          <div className={styles.card} style={{ marginBottom: 16 }}>
+            <div className={styles.body} style={{ fontSize: 13 }}>
+              {marcadaMsg}
+            </div>
+          </div>
+        ) : null}
+
         {reagendada === "ok" ? (
           <div className={styles.card} style={{ marginBottom: 16 }}>
             <div className={styles.body} style={{ fontSize: 13 }}>
               Consulta reagendada.
+            </div>
+          </div>
+        ) : null}
+
+        {/* QW1 — ack de "Salvar rascunho": mesmo banner-em-card do reagendamento. */}
+        {salvoHora ? (
+          <div className={styles.card} style={{ marginBottom: 16 }}>
+            <div className={styles.body} style={{ fontSize: 13 }}>
+              Rascunho salvo às {salvoHora}.
+            </div>
+          </div>
+        ) : null}
+
+        {/* Ack de check-in (reforça o "✓ Chegou às…" da faixa de transições). */}
+        {checkin === "ok" ? (
+          <div className={styles.card} style={{ marginBottom: 16 }}>
+            <div className={styles.body} style={{ fontSize: 13 }}>
+              Check-in registrado.
+            </div>
+          </div>
+        ) : checkin === "desfeito" ? (
+          <div className={styles.card} style={{ marginBottom: 16 }}>
+            <div className={styles.body} style={{ fontSize: 13 }}>
+              Check-in desfeito.
             </div>
           </div>
         ) : null}
@@ -557,6 +631,11 @@ export default async function ConsultaDetalhePage({
                     <>
                       <form action={salvarRascunhoAction} id="formEvolucao">
                         <input type="hidden" name="consultaId" value={consulta.id} />
+                        {/* QW2: propaga a origem ao salvar, pra o "← Voltar"
+                            sobreviver ao redirect de sucesso do rascunho. */}
+                        {voltarHref ? (
+                          <input type="hidden" name="voltar" value={voltarHref} />
+                        ) : null}
                         <textarea
                           className={styles.note}
                           name="texto"

@@ -42,7 +42,10 @@ export async function marcarCheckinAction(formData: FormData) {
   revalidatePath(`/medico/consultas/${id}`);
   revalidatePath("/medico");
   revalidatePath("/medico/recepcao");
-  redirect(voltar as Route);
+  revalidatePath("/medico/agenda-dia");
+  // Ack: anexa ?checkin=ok ao destino ja validado pra alimentar o banner de
+  // sucesso ("Check-in registrado") nas telas. Aditivo — `voltar` ja e seguro.
+  redirect(`${voltar}${voltar.includes("?") ? "&" : "?"}checkin=ok` as Route);
 }
 
 /** Desfaz o check-in (marcado por engano). */
@@ -59,5 +62,6 @@ export async function desfazerCheckinAction(formData: FormData) {
   revalidatePath(`/medico/consultas/${id}`);
   revalidatePath("/medico");
   revalidatePath("/medico/recepcao");
-  redirect(voltar as Route);
+  revalidatePath("/medico/agenda-dia");
+  redirect(`${voltar}${voltar.includes("?") ? "&" : "?"}checkin=desfeito` as Route);
 }

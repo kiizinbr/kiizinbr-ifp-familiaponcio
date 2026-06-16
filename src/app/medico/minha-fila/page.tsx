@@ -76,7 +76,7 @@ export default async function MinhaFilaPage() {
                       {hora}
                     </span>{" "}
                     <Link
-                      href={`/medico/consultas/${c.id}` as Route}
+                      href={`/medico/consultas/${c.id}?voltar=/medico/minha-fila` as Route}
                       style={{ color: "var(--text)", fontWeight: 600 }}
                     >
                       {c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
@@ -102,7 +102,7 @@ export default async function MinhaFilaPage() {
                       </form>
                     ) : (
                       <Link
-                        href={`/medico/consultas/${c.id}` as Route}
+                        href={`/medico/consultas/${c.id}?voltar=/medico/minha-fila` as Route}
                         className="btn btn-secondary"
                       >
                         Abrir

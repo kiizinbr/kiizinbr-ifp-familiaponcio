@@ -5,12 +5,14 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade, podeChamar, hasAnyRole } from "@/lib/rbac";
 import { podeMarcarConsulta, podeTransicionarConsulta } from "@/lib/medico/rbac";
 import {
+  buildJanelaDia,
   getConsultasHoje,
   getSlotsHoje,
   type ConsultaDoDia,
   type SlotDoDia,
 } from "@/lib/medico/agenda-dia";
 import { CONSULTA_VISUAL, corTextoSobre } from "@/lib/medico/ui";
+import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { KpiCard } from "@/components/kpi-card";
 import { Card } from "@/components/ui/card";
@@ -18,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AgendaDiaRefresh } from "./agenda-dia-refresh";
+import { AgendaDiaNowMarker } from "./agenda-dia-now";
 import { transitionAction } from "../consultas/[id]/actions";
 import { marcarCheckinAction } from "../consultas/[id]/checkin-action";
 import { chamarAction } from "@/app/painel/chamar-actions";
@@ -48,7 +51,14 @@ function iniciais(nome: string): string {
     .join("");
 }
 
-export default async function AgendaDiaPage() {
+export default async function AgendaDiaPage({
+  searchParams,
+}: {
+  // Ack lido do redirect das actions (QW1): ?chamado=<1onome>&chamadoHora=HH:MM,
+  // ?checkin=ok|desfeito. searchParams e Promise no App Router atual.
+  searchParams?: Promise<{ chamado?: string; chamadoHora?: string; checkin?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
@@ -60,10 +70,24 @@ export default async function AgendaDiaPage() {
   if (!podeOperarAgenda) redirect("/medico" as Route);
 
   const agora = new Date();
-  const [consultas, slots] = await Promise.all([
+  const { inicioDia } = buildJanelaDia(agora);
+  const [consultas, slots, chamadasHoje] = await Promise.all([
     getConsultasHoje({ agora }),
     getSlotsHoje({ agora }),
+    // Chamadas de hoje no painel medico (query leve, filtro unidade+dia usa o
+    // indice @@index([unidade, criadoEm])): alimenta Chamar -> Rechamar.
+    db.chamada.findMany({
+      where: { unidade: "medico", criadoEm: { gte: inicioDia }, consultaId: { not: null } },
+      select: { consultaId: true, criadoEm: true },
+      orderBy: { criadoEm: "asc" },
+    }),
   ]);
+
+  // Mapa consultaId -> hora da ULTIMA chamada (orderBy asc => o ultimo set vence).
+  const ultimaChamadaPorConsulta = new Map<string, Date>();
+  for (const ch of chamadasHoje) {
+    if (ch.consultaId) ultimaChamadaPorConsulta.set(ch.consultaId, ch.criadoEm);
+  }
 
   // Gating de AÇÕES (não de acesso): esconde o botão que o papel não pode disparar.
   const canCheckin = podeMarcarConsulta(session);
@@ -129,6 +153,11 @@ export default async function AgendaDiaPage() {
     });
 
   const altura = (HORA_FIM - HORA_INICIO) * 60 * PX_POR_MIN;
+  // QW3 — linha do "agora": mesma formula minuto->px dos chips. So renderiza
+  // dentro da janela 07:00–20:00 (madrugada/plantao => sem linha, sem auto-scroll).
+  const minAgora = (agora.getHours() - HORA_INICIO) * 60 + agora.getMinutes();
+  const dentroDaJanela = minAgora >= 0 && minAgora <= (HORA_FIM - HORA_INICIO) * 60;
+  const topAgora = minAgora * PX_POR_MIN;
   const dataWeekday = agora.toLocaleDateString("pt-BR", { weekday: "long" });
   const dataFull = agora.toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -136,6 +165,17 @@ export default async function AgendaDiaPage() {
     year: "numeric",
   });
   const horas = Array.from({ length: HORA_FIM - HORA_INICIO + 1 }, (_, i) => HORA_INICIO + i);
+
+  // QW1 — ack curto lido do redirect das actions (reusa o .toast do kit).
+  const chamadoNome = typeof sp.chamado === "string" ? sp.chamado : null;
+  const ackChamado =
+    chamadoNome && sp.chamadoHora ? `${chamadoNome} chamada às ${sp.chamadoHora}` : null;
+  const ackCheckin =
+    sp.checkin === "ok"
+      ? "Check-in registrado."
+      : sp.checkin === "desfeito"
+        ? "Chegada desfeita."
+        : null;
 
   return (
     <MedicoShell session={session}>
@@ -145,6 +185,17 @@ export default async function AgendaDiaPage() {
         titulo="Agenda do dia"
         descricao={`${dataWeekday} · ${dataFull} — mapa de operação por profissional, atualizado sozinho.`}
       />
+
+      {ackChamado || ackCheckin ? (
+        <div className="toast ok" role="status" style={{ marginBottom: 16 }}>
+          <span className="t-ico" aria-hidden>
+            ✓
+          </span>
+          <span>
+            <span className="t-title">{ackChamado ?? ackCheckin}</span>
+          </span>
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -260,7 +311,7 @@ export default async function AgendaDiaPage() {
 
               {/* Corpo da grade */}
               <div
-                className="grid"
+                className="relative grid"
                 style={{ gridTemplateColumns: `56px repeat(${colunas.length}, 1fr)` }}
               >
                 {/* coluna de horas */}
@@ -333,7 +384,7 @@ export default async function AgendaDiaPage() {
                       return (
                         <Link
                           key={c.id}
-                          href={`/medico/consultas/${c.id}` as Route}
+                          href={`/medico/consultas/${c.id}?voltar=/medico/agenda-dia` as Route}
                           title={`${nomeExibido} · ${horaCurta(c.slot.dataHoraInicio)} · ${c.especialidade.nome}`}
                           className="ad-chip absolute right-0.5 left-0.5 block overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight no-underline"
                           style={{
@@ -362,6 +413,11 @@ export default async function AgendaDiaPage() {
                     })}
                   </div>
                 ))}
+
+                {/* QW3 — linha do "agora" + auto-scroll (overlay; pointer-events:none) */}
+                {dentroDaJanela ? (
+                  <AgendaDiaNowMarker top={topAgora} label={horaCurta(agora)} />
+                ) : null}
               </div>
             </div>
           )}
@@ -399,6 +455,9 @@ export default async function AgendaDiaPage() {
                   "em_atendimento",
                   c.profissional.userId,
                 );
+              // QW1 — Chamar -> Rechamar quando ja houve chamada desta consulta hoje
+              // (derivado do model Chamada por consultaId; so troca de TEXTO).
+              const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
               return (
                 <Card key={c.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -407,7 +466,7 @@ export default async function AgendaDiaPage() {
                         {horaCurta(c.slot.dataHoraInicio)}
                       </span>{" "}
                       <Link
-                        href={`/medico/consultas/${c.id}` as Route}
+                        href={`/medico/consultas/${c.id}?voltar=/medico/agenda-dia` as Route}
                         style={{ color: "var(--text)", fontWeight: 600 }}
                       >
                         {nomeExibido}
@@ -474,13 +533,24 @@ export default async function AgendaDiaPage() {
                       </form>
                     ) : null}
                     {canChamar ? (
-                      <form action={chamarAction}>
+                      <form
+                        action={chamarAction}
+                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                      >
                         <input type="hidden" name="unidade" value="medico" />
                         <input type="hidden" name="nomeChamado" value={nomeExibido} />
                         <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
                         <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
                         <input type="hidden" name="consultaId" value={c.id} />
-                        <SubmitButton variant="secondary">Chamar</SubmitButton>
+                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
+                        <SubmitButton variant="secondary">
+                          {chamadaEm ? "Rechamar" : "Chamar"}
+                        </SubmitButton>
+                        {chamadaEm ? (
+                          <span className="t-small" style={{ color: "var(--text-3)" }}>
+                            chamada às {horaCurta(chamadaEm)}
+                          </span>
+                        ) : null}
                       </form>
                     ) : null}
                   </div>

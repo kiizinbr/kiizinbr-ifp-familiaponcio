@@ -1,10 +1,12 @@
 import type { Session } from "next-auth";
 import { AppShell } from "@/components/app-shell";
-import { medicoNavItems } from "@/lib/medico/nav";
+import { medicoNavItems, medicoNavGroups } from "@/lib/medico/nav";
 
 /**
- * Shell do Centro Médico: AppShell com nav contextual + accent teal da unidade.
- * Fonte única pra todas as telas /medico/* não repetirem a fiação de navegação.
+ * Shell do Centro Médico: AppShell com nav contextual AGRUPADA (wayfinding —
+ * .sb-group por intenção) + accent teal da unidade. Fonte única pra todas as
+ * telas /medico/* não repetirem a fiação de navegação. `items` segue como
+ * fallback (nav mobile/desktop usa `groups` quando presente).
  */
 export function MedicoShell({
   session,
@@ -17,6 +19,7 @@ export function MedicoShell({
     <AppShell
       session={session}
       items={medicoNavItems(session)}
+      groups={medicoNavGroups(session)}
       sectionLabel="Centro Médico"
       unit="medico"
     >

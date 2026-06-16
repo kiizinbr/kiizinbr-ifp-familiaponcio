@@ -43,7 +43,7 @@ test.describe("Encaminhamento — busca ativa (GP encaminha → fila → callcen
 
     // 4. Reserva o 1º horário → consulta nasce ligada ao encaminhamento.
     await page.locator('button[title^="Reservar"]').first().click();
-    await expect(page).toHaveURL(/\/medico\/consultas\/[a-z0-9]+$/);
+    await expect(page).toHaveURL(/\/medico\/consultas\/[a-z0-9]+(\?.*)?$/);
     await expect(page.getByText("Agendada").first()).toBeVisible();
   });
 });

@@ -63,7 +63,11 @@ export async function reservarConsultaAction(formData: FormData) {
         meta: { consultaId: consulta.id },
       });
     }
-    redirect(`/medico/consultas/${consulta.id}` as Route);
+    // QW1 — ack de sucesso reusando o mecanismo já vigente (?reagendada=ok,
+    // ?doc=ok): a página de destino lê ?marcada=ok e mostra o banner "Consulta
+    // marcada…", derivando paciente/data/hora dos dados já carregados (sem PII
+    // na URL). Mesmo destino de antes; só acrescenta o flag de sucesso.
+    redirect(`/medico/consultas/${consulta.id}?marcada=ok` as Route);
   } catch (e) {
     if (e instanceof SlotIndisponivelError) {
       const enc = encaminhamentoId ? `&encaminhamentoId=${encaminhamentoId}` : "";
@@ -103,7 +107,8 @@ async function executarAdHoc(
         adhoc: true,
       },
     });
-    redirect(`/medico/consultas/${consulta.id}` as Route);
+    // QW1 — mesmo ack de sucesso do fluxo de reserva normal (encaixe/walk-in).
+    redirect(`/medico/consultas/${consulta.id}?marcada=ok` as Route);
   } catch (e) {
     if (e instanceof SlotJaExisteError) {
       redirect(

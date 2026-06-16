@@ -87,7 +87,7 @@ test.describe("F1.B.1 Centro Médico — Agenda + Fila", () => {
     // Passo 4: cai no detalhe da consulta — a faixa do paciente mostra o nome do
     // cidadão escolhido (a tela não tem um label literal "Paciente"; o nome no
     // banner é o sinal estável de que chegamos ao detalhe certo).
-    await expect(page).toHaveURL(/\/medico\/consultas\/[a-z0-9]+$/);
+    await expect(page).toHaveURL(/\/medico\/consultas\/[a-z0-9]+(\?.*)?$/);
     await expect(page.getByText(/Almeida/i).first()).toBeVisible();
   });
 
