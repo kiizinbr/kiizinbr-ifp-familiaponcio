@@ -15,6 +15,7 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   capacitacao: "Capacitação",
   esportivo: "Esportivo",
   recreativo: "Recreativo",
+  educacional: "Educacional",
 };
 
 // Cor de dado: identidade da unidade (preservada do kit, token --u-*).
@@ -23,6 +24,7 @@ const UNIT_COLOR: Record<UnitScope, string> = {
   capacitacao: "var(--u-capacitacao)",
   esportivo: "var(--u-esportivo)",
   recreativo: "var(--u-recreativo)",
+  educacional: "var(--u-educacional)",
 };
 
 const TONE_VARIANT: Record<StatusTone, "danger" | "warning" | "success" | "default"> = {

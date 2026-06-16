@@ -8,21 +8,21 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  emailVerified  DateTime?
-  hashedPassword String?
-  mustChangePassword Boolean @default(false)
-  name           String?
-  image          String?
-  accounts       Account[]
-  sessions       Session[]
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  emailVerified      DateTime?
+  hashedPassword     String?
+  mustChangePassword Boolean   @default(false)
+  name               String?
+  image              String?
+  accounts           Account[]
+  sessions           Session[]
 
   // RBAC (Plano 2)
-  userRoles        UserRole[]
-  primaryRoleName  String?    // 'super_admin' | 'presidencia' | 'gestor_unidade' | ...
-  primaryUnitScope String?    // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo' | null
-  auditLogs        AuditLog[]
+  userRoles           UserRole[]
+  primaryRoleName     String? // 'super_admin' | 'presidencia' | 'gestor_unidade' | ...
+  primaryUnitScope    String? // 'medico' | 'capacitacao' | 'esportivo' | 'recreativo' | 'educacional' | null
+  auditLogs           AuditLog[]
   passwordResetTokens PasswordResetToken[]
 
   // Cidadao (Plano 3) — reverse relations
@@ -43,6 +43,9 @@ model User {
   // Capacitação (F1.A.1) — reverse relations
   cursosCriados Curso[]    @relation("CursoCriadoPor")
   instrutor     Instrutor?
+
+  // Educacional / Creche (F-A.1) — reverse relations
+  comunicadosEnviados Comunicado[] @relation("ComunicadoEnviadoPor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -121,7 +124,7 @@ model UserRole {
   id        String   @id @default(cuid())
   userId    String
   roleId    String
-  unitScope String?  // null se role.scope = 'global'
+  unitScope String? // null se role.scope = 'global'
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -134,22 +137,22 @@ model UserRole {
 
 /// Audit log append-only. Detalhes de scope/retenção: Plano 2 §0.3 e §0.4 (ainda abertas).
 model AuditLog {
-  id         String   @id @default(cuid())
+  id             String   @id @default(cuid())
   /// null para eventos pre-auth (signin_attempt sem user known)
-  userId     String?
+  userId         String?
   /// signin_success, signin_failed, ficha_created, role_changed, etc.
-  action     String
-  entityType String?  // 'cidadao', 'anexo_cidadao', 'user', 'role', etc.
-  entityId   String?
+  action         String
+  entityType     String? // 'cidadao', 'anexo_cidadao', 'user', 'role', etc.
+  entityId       String?
   /// Entidade-raiz do evento (aggregate root). Correlaciona sub-entidades:
   /// um anexo (entityType='anexo_cidadao') aponta seu cidadão aqui, permitindo
   /// "histórico do cidadão X" como query indexada. Plano 4 (triagem) reusa.
   rootEntityType String?
   rootEntityId   String?
-  meta       Json?
-  ipAddress  String?
-  userAgent  String?  @db.Text
-  createdAt  DateTime @default(now())
+  meta           Json?
+  ipAddress      String?
+  userAgent      String?  @db.Text
+  createdAt      DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -166,7 +169,7 @@ model AuditLog {
 /// Ex: "Família Almeida" com membros mãe (Cidadao), pai (Cidadao) e dois filhos (Familiar).
 model Familia {
   id             String     @id @default(cuid())
-  nomeReferencia String     // ex: "Família Almeida"
+  nomeReferencia String // ex: "Família Almeida"
   observacoes    String?    @db.Text
   cidadaos       Cidadao[]
   familiares     Familiar[]
@@ -181,11 +184,18 @@ model Familiar {
   familiaId      String
   familia        Familia   @relation(fields: [familiaId], references: [id], onDelete: Cascade)
   nome           String
-  parentesco     String    // ex: "filho", "esposa", "mãe", "neto"
+  parentesco     String // ex: "filho", "esposa", "mãe", "neto"
   dataNascimento DateTime? @db.Date
-  idadeAprox     Int?      // se data desconhecida
+  idadeAprox     Int? // se data desconhecida
   observacoes    String?
   createdAt      DateTime  @default(now())
+
+  // Educacional / Creche (F-A.1) — a criança matriculada é um Familiar
+  matriculasInfantis      MatriculaInfantil[]
+  responsaveisAutorizados ResponsavelAutorizado[]
+  checkInOuts             CheckInOut[]
+  diarios                 DiarioDia[]
+  autorizacoesImagem      AutorizacaoImagem[]
 
   @@index([familiaId])
 }
@@ -198,7 +208,7 @@ model Cidadao {
   // Obrigatórios no cadastro novo; nullable p/ acomodar a migração Amplimed
   // (registros históricos sem CPF/telefone/data — §0.A, decisão 2026-06-07).
   nomeCompleto      String
-  cpf               String?  @unique // 11 dígitos normalizado (sem ponto/traço)
+  cpf               String?   @unique // 11 dígitos normalizado (sem ponto/traço)
   dataNascimento    DateTime? @db.Date
   telefonePrincipal String?
 
@@ -235,13 +245,13 @@ model Cidadao {
   condicoesCronicas String? @db.Text
 
   // Sistema — foto separada de anexos (§0.5)
-  fotoUrl       String?
-  createdById   String
-  createdBy     User    @relation("CidadaoCreatedBy", fields: [createdById], references: [id])
+  fotoUrl      String?
+  createdById  String
+  createdBy    User     @relation("CidadaoCreatedBy", fields: [createdById], references: [id])
   /// Qual unidade fez o primeiro cadastro: 'medico' | 'capacitacao' | 'esportivo' | 'recreativo'
-  unitIdOrigem  String
-  familiaId     String?
-  familia       Familia? @relation(fields: [familiaId], references: [id], onDelete: SetNull)
+  unitIdOrigem String
+  familiaId    String?
+  familia      Familia? @relation(fields: [familiaId], references: [id], onDelete: SetNull)
 
   // Soft delete + LGPD anonimização (§0.9)
   deletedAt     DateTime?
@@ -254,15 +264,19 @@ model Cidadao {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  enderecos    Endereco[]
-  anexos       AnexoCidadao[]
-  triagens     Triagem[]
-  agendamentos Agendamento[]
-  consultas    Consulta[]
-  notasEvolucao NotaEvolucao[]
-  matriculas   Matricula[]
+  enderecos       Endereco[]
+  anexos          AnexoCidadao[]
+  triagens        Triagem[]
+  agendamentos    Agendamento[]
+  consultas       Consulta[]
+  notasEvolucao   NotaEvolucao[]
+  matriculas      Matricula[]
   encaminhamentos Encaminhamento[]
-  consentimentos Consentimento[]
+  consentimentos  Consentimento[]
+
+  // Educacional / Creche (F-A.1) — o responsável legal é um Cidadao
+  matriculasInfantis MatriculaInfantil[]
+  comunicadosLidos   ComunicadoLeitura[]
 
   @@index([cpf])
   @@index([nomeCompleto])
@@ -302,14 +316,14 @@ model Endereco {
   id              String   @id @default(cuid())
   cidadaoId       String
   cidadao         Cidadao  @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
-  tipo            String   // 'residencial' | 'trabalho' | 'contato'
-  cep             String   // 8 dígitos normalizado
+  tipo            String // 'residencial' | 'trabalho' | 'contato'
+  cep             String // 8 dígitos normalizado
   logradouro      String
   numero          String?
   complemento     String?
   bairro          String?
   cidade          String
-  uf              String   // 2 letras (ex: 'RJ')
+  uf              String // 2 letras (ex: 'RJ')
   pontoReferencia String?
   isPrincipal     Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -330,21 +344,21 @@ enum AnexoCategoria {
 /// Anexos do Cidadão — §0.5. PDF/JPG/PNG only, max 10MB/file, 100MB/total.
 /// Armazenamento MinIO bucket 'ifp-cidadao-anexos', naming por hash SHA-256.
 model AnexoCidadao {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   cidadaoId     String
-  cidadao       Cidadao   @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
-  fileName      String    // nome original do upload
-  mimeType      String    // 'application/pdf' | 'image/jpeg' | 'image/png'
+  cidadao       Cidadao        @relation(fields: [cidadaoId], references: [id], onDelete: Cascade)
+  fileName      String // nome original do upload
+  mimeType      String // 'application/pdf' | 'image/jpeg' | 'image/png'
   sizeBytes     Int
-  hashSha256    String    // pra deduplicação + naming
-  storageBucket String    @default("ifp-cidadao-anexos")
-  storageKey    String    // path no MinIO (ex: "{cidadaoId}/{hash}.pdf")
+  hashSha256    String // pra deduplicação + naming
+  storageBucket String         @default("ifp-cidadao-anexos")
+  storageKey    String // path no MinIO (ex: "{cidadaoId}/{hash}.pdf")
   descricao     String?
   categoria     AnexoCategoria @default(geral)
   uploadedById  String
-  uploadedBy    User      @relation("AnexoUploadedBy", fields: [uploadedById], references: [id])
+  uploadedBy    User           @relation("AnexoUploadedBy", fields: [uploadedById], references: [id])
   deletedAt     DateTime?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime       @default(now())
 
   @@index([cidadaoId])
   @@index([hashSha256])
@@ -477,37 +491,44 @@ model Agendamento {
 // ============================================================================
 
 model Especialidade {
-  id               String                       @id @default(cuid())
-  nome             String                       @unique
+  id               String                      @id @default(cuid())
+  nome             String                      @unique
   duracaoPadraoMin Int
   corDestaque      String // hex do brandbook, ex: "#007571"
-  ativa            Boolean                      @default(true)
+  ativa            Boolean                     @default(true)
   profissionais    ProfissionalEspecialidade[]
   templates        AgendaTemplate[]
   slots            Slot[]
   consultas        Consulta[]
   encaminhamentos  Encaminhamento[]
-  createdAt        DateTime                     @default(now())
-  updatedAt        DateTime                     @updatedAt
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
 }
 
 model Profissional {
-  id             String                       @id @default(cuid())
-  userId         String                       @unique
-  user           User                         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id             String                      @id @default(cuid())
+  userId         String                      @unique
+  user           User                        @relation(fields: [userId], references: [id], onDelete: Restrict)
   nomeExibicao   String
   conselho       String
   nroConselho    String
   bio            String?
   fotoUrl        String?
-  ativo          Boolean                      @default(true)
+  ativo          Boolean                     @default(true)
   especialidades ProfissionalEspecialidade[]
   templates      AgendaTemplate[]
   slots          Slot[]
   consultas      Consulta[]
   notasEvolucao  NotaEvolucao[]
-  createdAt      DateTime                     @default(now())
-  updatedAt      DateTime                     @updatedAt
+
+  // Educacional / Creche (F-A.1) — o educador é um Profissional
+  turmasInfantis  TurmaInfantil[]
+  checkInOuts     CheckInOut[]
+  diarios         DiarioDia[]
+  registrosRotina RegistroRotina[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProfissionalEspecialidade {
@@ -535,10 +556,10 @@ model AgendaTemplate {
   validoDe        DateTime
   validoAte       DateTime?
   observacoes     String?
-  ativo           Boolean      @default(true)
+  ativo           Boolean       @default(true)
   slots           Slot[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([profissionalId, ativo])
   @@index([especialidadeId])
@@ -590,27 +611,27 @@ enum StatusEncaminhamento {
 }
 
 model Consulta {
-  id                     String         @id @default(cuid())
-  slotId                 String         @unique
+  id                     String           @id @default(cuid())
+  slotId                 String           @unique
   cidadaoId              String
   profissionalId         String
   especialidadeId        String
-  status                 StatusConsulta @default(agendada)
+  status                 StatusConsulta   @default(agendada)
   observacoesAgendamento String?
   origemTriagemId        String?
   origemEncaminhamentoId String?
   cancelMotivo           String?
   checkinEm              DateTime? // recepção marcou a chegada do paciente (check-in)
   createdBy              String // userId
-  slot                   Slot           @relation(fields: [slotId], references: [id], onDelete: Restrict)
-  cidadao                Cidadao        @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
-  profissional           Profissional   @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
-  especialidade          Especialidade  @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
+  slot                   Slot             @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  cidadao                Cidadao          @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
+  profissional           Profissional     @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  especialidade          Especialidade    @relation(fields: [especialidadeId], references: [id], onDelete: Restrict)
   notaEvolucao           NotaEvolucao?
   origemEncaminhamento   Encaminhamento?  @relation("ConsultaOrigemEncaminhamento", fields: [origemEncaminhamentoId], references: [id], onDelete: SetNull)
   encaminhamentosOrigem  Encaminhamento[] @relation("EncaminhamentoConsultaOrigem")
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   @@index([profissionalId, status])
   @@index([cidadaoId])
@@ -658,28 +679,28 @@ enum StatusNota {
 /// Nota clínica de evolução. 1:1 com Consulta (§0.2). Unidade do prontuário.
 /// Imutável após assinatura (§0.3/§0.4); correções via AddendoNota (append-only).
 model NotaEvolucao {
-  id             String     @id @default(cuid())
-  consultaId     String     @unique
+  id             String @id @default(cuid())
+  consultaId     String @unique
   cidadaoId      String
   profissionalId String
 
   // §0.1 — formato híbrido: evolução em texto livre + blocos estruturados opcionais
-  texto          String?    @db.Text
+  texto String? @db.Text
 
   // §0.5 — sinais vitais (todos opcionais; IMC derivado, NÃO persistido)
-  paSistolica    Int?
-  paDiastolica   Int?
-  fcBpm          Int?
-  frIrpm         Int?
-  tempC          Decimal?   @db.Decimal(4, 1)
-  pesoKg         Decimal?   @db.Decimal(5, 2)
-  alturaCm       Int?
-  spo2           Int?
+  paSistolica  Int?
+  paDiastolica Int?
+  fcBpm        Int?
+  frIrpm       Int?
+  tempC        Decimal? @db.Decimal(4, 1)
+  pesoKg       Decimal? @db.Decimal(5, 2)
+  alturaCm     Int?
+  spo2         Int?
 
   // §0.3/§0.4 — ciclo de vida da assinatura
-  status         StatusNota @default(rascunho)
-  assinadaEm     DateTime?
-  assinadaPor    String? // userId (= profissional dono)
+  status      StatusNota @default(rascunho)
+  assinadaEm  DateTime?
+  assinadaPor String? // userId (= profissional dono)
 
   consulta     Consulta          @relation(fields: [consultaId], references: [id], onDelete: Restrict)
   cidadao      Cidadao           @relation(fields: [cidadaoId], references: [id], onDelete: Restrict)
@@ -958,4 +979,209 @@ model MigracaoAmplimedMap {
 
   @@unique([entidade, idOrigem])
   @@index([idDestino])
+}
+
+// ============================================================
+// F-A.1 — Educacional / Creche (Turmas infantis + segurança + LGPD)
+// Plano: docs/PLANO-FASE-A-EDUCACIONAL.md (port da vertical do `main`).
+// Multi-tenant: scope da unidade é a String "educacional" (UNIT_SCOPES),
+// mesmo padrão de ElegibilidadeUnidade.unidade/Vaga.unidade — NÃO há model Unidade.
+// Adaptação de nomes do `main`: criança = Familiar, responsável legal = Cidadao,
+// educador = Profissional.
+// ============================================================
+
+enum StatusDiario {
+  ABERTO
+  FECHADO
+}
+
+enum TipoRegistroRotina {
+  ALIMENTACAO
+  SONO
+  HIGIENE
+  ATIVIDADE
+  OCORRENCIA
+}
+
+enum SentidoCheck {
+  ENTRADA
+  SAIDA
+}
+
+enum EscopoImagem {
+  USO_INTERNO
+  REDES_IFP
+  IMPRENSA
+}
+
+/// Turma da creche. `faixaEtariaMin/Max` em MESES (min ≤ max, validado na lib).
+/// `capacidade` nunca estoura (lock no matricular). Educador = Profissional.
+model TurmaInfantil {
+  id             String              @id @default(cuid())
+  nome           String
+  faixaEtariaMin Int // idade mínima em meses
+  faixaEtariaMax Int // idade máxima em meses
+  capacidade     Int
+  educadorId     String
+  educador       Profissional        @relation(fields: [educadorId], references: [id], onDelete: Restrict)
+  ativa          Boolean             @default(true)
+  matriculas     MatriculaInfantil[]
+  comunicados    Comunicado[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([educadorId])
+  @@index([ativa])
+}
+
+/// Matrícula da criança (Familiar) numa turma, sob um responsável legal (Cidadao).
+/// `consentimentoLgpdEm` é obrigatório para a matrícula estar ativa (validado na lib).
+/// Uma criança só pode estar uma vez em cada turma.
+model MatriculaInfantil {
+  id                  String        @id @default(cuid())
+  turmaId             String
+  turma               TurmaInfantil @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+  responsavelId       String
+  responsavel         Cidadao       @relation(fields: [responsavelId], references: [id], onDelete: Restrict)
+  criancaId           String
+  crianca             Familiar      @relation(fields: [criancaId], references: [id], onDelete: Restrict)
+  consentimentoLgpdEm DateTime? // obrigatório para ativa (regra na lib)
+  ativa               Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@unique([turmaId, criancaId])
+  @@index([turmaId, ativa])
+  @@index([responsavelId])
+  @@index([criancaId])
+}
+
+/// Pessoa autorizada a retirar a criança (Familiar). Trilha de guarda:
+/// NUNCA deletar — revogação é via `revogadoEm`/`revogadoPor`.
+/// `restricaoJudicial` e `vigenteAte` participam dos 4 bloqueios de segurança (Slice 2).
+model ResponsavelAutorizado {
+  id                String       @id @default(cuid())
+  criancaId         String
+  crianca           Familiar     @relation(fields: [criancaId], references: [id], onDelete: Restrict)
+  nome              String
+  documento         String
+  parentesco        String
+  fotoUrl           String?
+  restricaoJudicial Boolean      @default(false)
+  vigenteAte        DateTime? // null = sem prazo
+  revogadoEm        DateTime? // null = vigente
+  revogadoPor       String? // userId de quem revogou
+  checkInOuts       CheckInOut[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([criancaId])
+}
+
+/// Evento de entrada/saída da criança (Familiar). Na SAIDA, exige um
+/// ResponsavelAutorizado validado pelos 4 bloqueios (Slice 2). Registrado por Profissional.
+model CheckInOut {
+  id             String                 @id @default(cuid())
+  criancaId      String
+  crianca        Familiar               @relation(fields: [criancaId], references: [id], onDelete: Restrict)
+  sentido        SentidoCheck
+  ocorridoEm     DateTime               @default(now())
+  autorizadoId   String?
+  autorizado     ResponsavelAutorizado? @relation(fields: [autorizadoId], references: [id], onDelete: Restrict)
+  profissionalId String
+  profissional   Profissional           @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  createdAt      DateTime               @default(now())
+
+  @@index([criancaId, ocorridoEm])
+  @@index([profissionalId])
+  @@index([autorizadoId])
+}
+
+/// Diário do dia de uma criança (Familiar). Um por criança por dia.
+/// FECHADO = imutável (nenhum registro novo) e visível à família.
+model DiarioDia {
+  id             String           @id @default(cuid())
+  criancaId      String
+  crianca        Familiar         @relation(fields: [criancaId], references: [id], onDelete: Restrict)
+  data           DateTime         @db.Date
+  status         StatusDiario     @default(ABERTO)
+  fechadoEm      DateTime?
+  profissionalId String
+  profissional   Profissional     @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  registros      RegistroRotina[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([criancaId, data])
+  @@index([criancaId, data])
+  @@index([status])
+}
+
+/// Registro de rotina dentro de um diário (alimentação, sono, etc.).
+/// Bloqueado quando o diário está FECHADO (regra na lib). Registrado por Profissional.
+model RegistroRotina {
+  id             String             @id @default(cuid())
+  diarioId       String
+  diario         DiarioDia          @relation(fields: [diarioId], references: [id], onDelete: Cascade)
+  tipo           TipoRegistroRotina
+  descricao      String             @db.Text
+  ocorridoEm     DateTime           @default(now())
+  profissionalId String
+  profissional   Profissional       @relation(fields: [profissionalId], references: [id], onDelete: Restrict)
+  createdAt      DateTime           @default(now())
+
+  @@index([diarioId])
+  @@index([profissionalId])
+}
+
+/// Autorização de uso de imagem por criança (Familiar) e escopo.
+/// Default = NEGADO (`concedido` default false). Versionada por termo aceito;
+/// revogação via `revogadoEm`/`revogadoPor`. Um registro por (criança, escopo, versão).
+model AutorizacaoImagem {
+  id          String       @id @default(cuid())
+  criancaId   String
+  crianca     Familiar     @relation(fields: [criancaId], references: [id], onDelete: Restrict)
+  escopo      EscopoImagem
+  concedido   Boolean      @default(false)
+  versaoTermo String
+  revogadoEm  DateTime?
+  revogadoPor String? // userId de quem revogou
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([criancaId, escopo, versaoTermo])
+  @@index([criancaId])
+}
+
+/// Comunicado da creche. `turmaId` null = comunicado geral (todas as turmas).
+/// `critico` exige acompanhamento de leitura. Enviado por um User.
+model Comunicado {
+  id           String              @id @default(cuid())
+  turmaId      String?
+  turma        TurmaInfantil?      @relation(fields: [turmaId], references: [id], onDelete: SetNull)
+  titulo       String
+  mensagem     String              @db.Text
+  critico      Boolean             @default(false)
+  enviadoPorId String
+  enviadoPor   User                @relation("ComunicadoEnviadoPor", fields: [enviadoPorId], references: [id])
+  leituras     ComunicadoLeitura[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([turmaId, createdAt])
+  @@index([critico, createdAt])
+}
+
+/// Confirmação de leitura de um comunicado por um responsável (Cidadao).
+/// Uma leitura por (comunicado, responsável) — upsert idempotente.
+model ComunicadoLeitura {
+  id            String     @id @default(cuid())
+  comunicadoId  String
+  comunicado    Comunicado @relation(fields: [comunicadoId], references: [id], onDelete: Cascade)
+  responsavelId String
+  responsavel   Cidadao    @relation(fields: [responsavelId], references: [id], onDelete: Cascade)
+  lidoEm        DateTime   @default(now())
+
+  @@unique([comunicadoId, responsavelId])
+  @@index([responsavelId])
 }

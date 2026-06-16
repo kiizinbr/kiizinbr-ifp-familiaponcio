@@ -15,7 +15,13 @@ export const ROLE_NAMES = [
 
 export type RoleName = (typeof ROLE_NAMES)[number];
 
-export const UNIT_SCOPES = ["medico", "capacitacao", "esportivo", "recreativo"] as const;
+export const UNIT_SCOPES = [
+  "medico",
+  "capacitacao",
+  "esportivo",
+  "recreativo",
+  "educacional",
+] as const;
 
 export type UnitScope = (typeof UNIT_SCOPES)[number];
 

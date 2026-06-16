@@ -13,6 +13,7 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   capacitacao: "Centro de Capacitação",
   esportivo: "Centro Esportivo",
   recreativo: "Centro Recreativo",
+  educacional: "Educacional",
 };
 
 export default async function NovaVagaPage() {

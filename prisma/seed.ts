@@ -583,6 +583,294 @@ async function seedEncaminhamentoDemo() {
   console.log("[seed] encaminhamento demo ok (consulta em_atendimento + 1 pedido a Psicologia)");
 }
 
+// ── Educacional / Creche (F-A.1) — creche-exemplo do plano ──
+// Idempotente: ids sintéticos fixos + upserts. Re-rodar não duplica.
+// Cenário: educadora Tia Beatriz; família Sandra (Cidadao responsável) +
+// criança Ana (Familiar) com alergia GRAVE; turma Berçário II; 3 responsáveis
+// autorizados (1 REVOGADO — teste de ouro do Slice 2); matrícula com consentimento
+// LGPD + autorizações de imagem (USO_INTERNO concedido, resto negado); 1 dia FECHADO
+// com check-in/out + 3 registros; 1 comunicado crítico sem leitura.
+async function seedEducacional() {
+  // 1. Educadora — User + role profissional:educacional + Profissional
+  const educadoraUser = await seedUser({
+    email: "tia.beatriz@familiaponcio.org.br",
+    name: "Beatriz Nunes",
+    password: DEMO_PASSWORD,
+    primaryRoleName: "profissional",
+    primaryUnitScope: "educacional",
+    roles: [{ roleName: "profissional", unitScope: "educacional" }],
+  });
+  const educadora = await db.profissional.upsert({
+    where: { userId: educadoraUser.id },
+    update: { nomeExibicao: "Tia Beatriz", conselho: "—", nroConselho: "—", ativo: true },
+    create: {
+      userId: educadoraUser.id,
+      nomeExibicao: "Tia Beatriz",
+      conselho: "—",
+      nroConselho: "—",
+      ativo: true,
+    },
+  });
+
+  // 2. Família Sandra (Cidadao responsável) + criança Ana (Familiar) com alergia GRAVE
+  const familia = await db.familia.upsert({
+    where: { id: "seed-edu-familia" },
+    update: { nomeReferencia: "Família Sandra Oliveira" },
+    create: { id: "seed-edu-familia", nomeReferencia: "Família Sandra Oliveira" },
+  });
+  const responsavel = await db.cidadao.upsert({
+    where: { id: "seed-edu-responsavel" },
+    update: { nomeCompleto: "Sandra Oliveira" },
+    create: {
+      id: "seed-edu-responsavel",
+      nomeCompleto: "Sandra Oliveira",
+      telefonePrincipal: "21999990001",
+      createdById: educadoraUser.id,
+      unitIdOrigem: "educacional",
+      familiaId: familia.id,
+    },
+  });
+  const crianca = await db.familiar.upsert({
+    where: { id: "seed-edu-crianca" },
+    update: {
+      nome: "Ana Oliveira",
+      parentesco: "filha",
+      observacoes: "ALERGIA GRAVE a amendoim e frutos do mar — risco de anafilaxia.",
+    },
+    create: {
+      id: "seed-edu-crianca",
+      familiaId: familia.id,
+      nome: "Ana Oliveira",
+      parentesco: "filha",
+      dataNascimento: new Date("2024-09-01"),
+      observacoes: "ALERGIA GRAVE a amendoim e frutos do mar — risco de anafilaxia.",
+    },
+  });
+
+  // 3. Turma Berçário II (faixa 12–24 meses)
+  const turma = await db.turmaInfantil.upsert({
+    where: { id: "seed-edu-turma" },
+    update: {
+      nome: "Berçário II",
+      faixaEtariaMin: 12,
+      faixaEtariaMax: 24,
+      capacidade: 10,
+      educadorId: educadora.id,
+      ativa: true,
+    },
+    create: {
+      id: "seed-edu-turma",
+      nome: "Berçário II",
+      faixaEtariaMin: 12,
+      faixaEtariaMax: 24,
+      capacidade: 10,
+      educadorId: educadora.id,
+      ativa: true,
+    },
+  });
+
+  // 4. Responsáveis autorizados — 3, sendo 1 REVOGADO (teste de ouro do Slice 2)
+  const RESPONSAVEIS_SEED = [
+    {
+      id: "seed-edu-aut-mae",
+      nome: "Sandra Oliveira",
+      documento: "111.111.111-11",
+      parentesco: "mãe",
+      restricaoJudicial: false,
+      revogadoEm: null as Date | null,
+    },
+    {
+      id: "seed-edu-aut-avo",
+      nome: "Dona Lúcia Oliveira",
+      documento: "222.222.222-22",
+      parentesco: "avó",
+      restricaoJudicial: false,
+      revogadoEm: null as Date | null,
+    },
+    {
+      id: "seed-edu-aut-revogado",
+      nome: "Marcos Tavares",
+      documento: "333.333.333-33",
+      parentesco: "ex-padrasto",
+      restricaoJudicial: false,
+      // Revogado → check-out por ele deve dar 403 (teste de ouro do Slice 2)
+      revogadoEm: new Date("2026-05-01T12:00:00Z"),
+    },
+  ] as const;
+  const autorizadoByKey = new Map<string, string>();
+  for (const r of RESPONSAVEIS_SEED) {
+    const aut = await db.responsavelAutorizado.upsert({
+      where: { id: r.id },
+      update: {
+        nome: r.nome,
+        documento: r.documento,
+        parentesco: r.parentesco,
+        restricaoJudicial: r.restricaoJudicial,
+        revogadoEm: r.revogadoEm,
+        revogadoPor: r.revogadoEm ? educadoraUser.id : null,
+      },
+      create: {
+        id: r.id,
+        criancaId: crianca.id,
+        nome: r.nome,
+        documento: r.documento,
+        parentesco: r.parentesco,
+        restricaoJudicial: r.restricaoJudicial,
+        revogadoEm: r.revogadoEm,
+        revogadoPor: r.revogadoEm ? educadoraUser.id : null,
+      },
+    });
+    autorizadoByKey.set(r.id, aut.id);
+  }
+
+  // 5. Matrícula com consentimento LGPD
+  await db.matriculaInfantil.upsert({
+    where: { turmaId_criancaId: { turmaId: turma.id, criancaId: crianca.id } },
+    update: { responsavelId: responsavel.id, consentimentoLgpdEm: new Date(), ativa: true },
+    create: {
+      turmaId: turma.id,
+      responsavelId: responsavel.id,
+      criancaId: crianca.id,
+      consentimentoLgpdEm: new Date(),
+      ativa: true,
+    },
+  });
+
+  // 6. Autorizações de imagem — USO_INTERNO concedido, REDES_IFP e IMPRENSA negados
+  const VERSAO_TERMO = "2026.1";
+  const IMAGENS_SEED = [
+    { escopo: "USO_INTERNO" as const, concedido: true },
+    { escopo: "REDES_IFP" as const, concedido: false },
+    { escopo: "IMPRENSA" as const, concedido: false },
+  ];
+  for (const img of IMAGENS_SEED) {
+    await db.autorizacaoImagem.upsert({
+      where: {
+        criancaId_escopo_versaoTermo: {
+          criancaId: crianca.id,
+          escopo: img.escopo,
+          versaoTermo: VERSAO_TERMO,
+        },
+      },
+      update: { concedido: img.concedido },
+      create: {
+        criancaId: crianca.id,
+        escopo: img.escopo,
+        concedido: img.concedido,
+        versaoTermo: VERSAO_TERMO,
+      },
+    });
+  }
+
+  // 7. Dia FECHADO com check-in/out + 3 registros de rotina
+  const ontem = startOfDaySeed(addDaysSeed(new Date(), -1));
+  const diario = await db.diarioDia.upsert({
+    where: { criancaId_data: { criancaId: crianca.id, data: ontem } },
+    update: { status: "FECHADO", fechadoEm: new Date(), profissionalId: educadora.id },
+    create: {
+      criancaId: crianca.id,
+      data: ontem,
+      status: "FECHADO",
+      fechadoEm: new Date(),
+      profissionalId: educadora.id,
+    },
+  });
+
+  // Check-in (entrada pela mãe) e check-out (saída pela mãe) do dia
+  const entradaEm = new Date(ontem);
+  entradaEm.setHours(8, 0, 0, 0);
+  const saidaEm = new Date(ontem);
+  saidaEm.setHours(17, 30, 0, 0);
+  const maeAutId = autorizadoByKey.get("seed-edu-aut-mae")!;
+  await db.checkInOut.upsert({
+    where: { id: "seed-edu-checkin" },
+    update: {},
+    create: {
+      id: "seed-edu-checkin",
+      criancaId: crianca.id,
+      sentido: "ENTRADA",
+      ocorridoEm: entradaEm,
+      autorizadoId: maeAutId,
+      profissionalId: educadora.id,
+    },
+  });
+  await db.checkInOut.upsert({
+    where: { id: "seed-edu-checkout" },
+    update: {},
+    create: {
+      id: "seed-edu-checkout",
+      criancaId: crianca.id,
+      sentido: "SAIDA",
+      ocorridoEm: saidaEm,
+      autorizadoId: maeAutId,
+      profissionalId: educadora.id,
+    },
+  });
+
+  const REGISTROS_SEED = [
+    {
+      id: "seed-edu-reg-1",
+      tipo: "ALIMENTACAO" as const,
+      descricao: "Aceitou bem o almoço (sem amendoim/frutos do mar — alergia).",
+      hora: 11,
+    },
+    {
+      id: "seed-edu-reg-2",
+      tipo: "SONO" as const,
+      descricao: "Dormiu 1h30 após o almoço, tranquila.",
+      hora: 13,
+    },
+    {
+      id: "seed-edu-reg-3",
+      tipo: "ATIVIDADE" as const,
+      descricao: "Brincou de pintura com os dedos; participou bastante.",
+      hora: 15,
+    },
+  ] as const;
+  for (const reg of REGISTROS_SEED) {
+    const ocorridoEm = new Date(ontem);
+    ocorridoEm.setHours(reg.hora, 0, 0, 0);
+    await db.registroRotina.upsert({
+      where: { id: reg.id },
+      update: { tipo: reg.tipo, descricao: reg.descricao },
+      create: {
+        id: reg.id,
+        diarioId: diario.id,
+        tipo: reg.tipo,
+        descricao: reg.descricao,
+        ocorridoEm,
+        profissionalId: educadora.id,
+      },
+    });
+  }
+
+  // 8. Comunicado crítico sem leitura
+  await db.comunicado.upsert({
+    where: { id: "seed-edu-comunicado" },
+    update: {
+      titulo: "Reposição da carteira de vacinação",
+      mensagem:
+        "Pais e responsáveis: precisamos atualizar a carteira de vacinação até sexta-feira. Favor trazer o documento.",
+      critico: true,
+      turmaId: turma.id,
+      enviadoPorId: educadoraUser.id,
+    },
+    create: {
+      id: "seed-edu-comunicado",
+      turmaId: turma.id,
+      titulo: "Reposição da carteira de vacinação",
+      mensagem:
+        "Pais e responsáveis: precisamos atualizar a carteira de vacinação até sexta-feira. Favor trazer o documento.",
+      critico: true,
+      enviadoPorId: educadoraUser.id,
+    },
+  });
+
+  console.log(
+    "[seed] educacional ok: 1 educadora, turma Berçário II, criança Ana (alergia GRAVE), 3 autorizados (1 revogado), matrícula c/ LGPD, dia FECHADO + 3 registros, 1 comunicado crítico",
+  );
+}
+
 async function main() {
   await seedRoles();
 
@@ -614,6 +902,9 @@ async function main() {
 
   // Capacitação — cursos + instrutores + turmas + matrículas (F1.A.1)
   await seedCapacitacao(erick.id);
+
+  // Educacional / Creche — creche-exemplo do plano (F-A.1, Slice 1)
+  await seedEducacional();
 }
 
 main().finally(() => db.$disconnect());

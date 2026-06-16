@@ -13,6 +13,7 @@ const UNIT_LABELS: Record<UnitScope, string> = {
   capacitacao: "Capacitação",
   esportivo: "Esportivo",
   recreativo: "Recreativo",
+  educacional: "Educacional",
 };
 
 export default async function AdminUsersPage() {
