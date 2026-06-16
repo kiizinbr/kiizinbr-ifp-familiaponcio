@@ -8,7 +8,8 @@ import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { podeAgendarEncaminhamento, podeEncaminhar } from "@/lib/medico/rbac";
-import { cancelarEncaminhamentoAction, encaixarEncaminhamentoAction } from "./actions";
+import { encaixarEncaminhamentoAction } from "./actions";
+import { CancelarEncaminhamentoButton } from "./cancelar-button";
 
 const ENC_ERROS: Record<string, string> = {
   encaixe: "Não foi possível encaixar (encaminhamento já agendado ou cancelado).",
@@ -153,15 +154,9 @@ export default async function EncaminhamentosPage({
                         </Link>
                       ) : null}
                       {podeCancelar ? (
-                        <form
-                          action={cancelarEncaminhamentoAction}
-                          style={{ display: "inline", marginLeft: 8 }}
-                        >
-                          <input type="hidden" name="encaminhamentoId" value={e.id} />
-                          <SubmitButton variant="ghost" size="sm" pendingLabel="Cancelando…">
-                            Cancelar
-                          </SubmitButton>
-                        </form>
+                        <span style={{ display: "inline-block", marginLeft: 8 }}>
+                          <CancelarEncaminhamentoButton encaminhamentoId={e.id} />
+                        </span>
                       ) : null}
                     </td>
                   </tr>

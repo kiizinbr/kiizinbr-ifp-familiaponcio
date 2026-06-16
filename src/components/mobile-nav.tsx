@@ -2,16 +2,27 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { signOutAction } from "@/app/app/actions";
-import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
+import {
+  SidebarNav,
+  SidebarNavGroups,
+  type NavItem,
+  type NavGroup,
+} from "@/components/sidebar-nav";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { RoleAssignment } from "@/lib/rbac-types";
 
 interface MobileNavProps {
   items: NavItem[];
+  /** Navegação AGRUPADA (opt-in, espelha o AppShell): presente = drawer usa grupos. */
+  groups?: NavGroup[];
+  /** Destino do brand clicável (home da unidade / landing). Espelha o AppShell. */
+  homeHref?: Route;
   /** Rótulo da seção (grupo) acima da nav, espelha o AppShell. */
   sectionLabel?: string;
   /** Visível só para super_admin (espelha o AppShell). */
@@ -37,7 +48,14 @@ const DRAWER_ID = "mobile-drawer";
  * primeiro foco do drawer e devolvido ao hambúrguer ao fechar, `overflow:hidden`
  * no body enquanto aberto. Fecha sozinho ao trocar de rota.
  */
-export function MobileNav({ items, sectionLabel, isSuper, roles }: MobileNavProps) {
+export function MobileNav({
+  items,
+  groups,
+  homeHref,
+  sectionLabel,
+  isSuper,
+  roles,
+}: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname() ?? "";
   const burgerRef = useRef<HTMLButtonElement>(null);
@@ -99,12 +117,21 @@ export function MobileNav({ items, sectionLabel, isSuper, roles }: MobileNavProp
   return (
     <>
       <div className="mobile-topbar">
-        <span className="mobile-topbar-brand">
-          <span className="symbol">
-            <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
+        {homeHref ? (
+          <Link href={homeHref} className="mobile-topbar-brand" aria-label="Ir para o início">
+            <span className="symbol">
+              <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
+            </span>
+            <b>IFP Connect</b>
+          </Link>
+        ) : (
+          <span className="mobile-topbar-brand">
+            <span className="symbol">
+              <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
+            </span>
+            <b>IFP Connect</b>
           </span>
-          <b>IFP Connect</b>
-        </span>
+        )}
         <button
           ref={burgerRef}
           type="button"
@@ -136,6 +163,9 @@ export function MobileNav({ items, sectionLabel, isSuper, roles }: MobileNavProp
         aria-label="Navegação"
       >
         <div className="drawer-head">
+          {/* Brand do drawer fica como <span> de propósito: o logo clicável vive
+              na faixa do topo (.mobile-topbar). Manter este não-focável preserva
+              a ordem do focus-trap (foco inicial = botão Fechar, primeiro focável). */}
           <span className="mobile-topbar-brand">
             <span className="symbol">
               <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} />
@@ -159,8 +189,14 @@ export function MobileNav({ items, sectionLabel, isSuper, roles }: MobileNavProp
           </button>
         </div>
 
-        {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
-        <SidebarNav items={items} />
+        {groups ? (
+          <SidebarNavGroups groups={groups} />
+        ) : (
+          <>
+            {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
+            <SidebarNav items={items} />
+          </>
+        )}
 
         {isSuper ? (
           <>

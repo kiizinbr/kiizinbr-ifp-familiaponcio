@@ -917,6 +917,10 @@ table.tbl .cell-mono {
   align-items: center;
   gap: 10px;
   padding: 6px 8px 16px;
+  /* .sb-brand virou <Link> (âncora) — neutraliza estilo de link do browser
+     pra manter o visual idêntico ao antigo <div>. */
+  color: inherit;
+  text-decoration: none;
 }
 /* Símbolo da marca — fonte única compartilhada pela sidebar (desktop) e pela
    faixa/drawer mobile (.mobile-topbar-brand), em vez de duas cópias das mesmas
@@ -1109,6 +1113,9 @@ table.tbl .cell-mono {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Pode ser <Link> (âncora) na faixa/drawer — neutraliza estilo de link. */
+  color: inherit;
+  text-decoration: none;
 }
 /* .symbol e .symbol img da marca: regra compartilhada com .sb-brand (acima). */
 .mobile-topbar-brand b {

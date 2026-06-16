@@ -247,9 +247,12 @@ describe("B12 — salvarRascunhoAction: erro de query na Cid10 aborta sem afroux
     const diagnosticos = JSON.stringify([
       { codigoCid: "Z99", descricao: "Inexistente", principal: true },
     ]);
-    await salvarRascunhoAction(
-      fd({ consultaId: "c1", texto: "evolução", diagnosticosJson: diagnosticos }),
-    );
+    // salvarRascunhoAction salva e então redireciona com ?salvo=HHMM (QW1 ack).
+    await expect(
+      salvarRascunhoAction(
+        fd({ consultaId: "c1", texto: "evolução", diagnosticosJson: diagnosticos }),
+      ),
+    ).rejects.toThrow(/__redirect__:\/medico\/consultas\/c1\?salvo=/);
     expect(salvarRascunhoMock).toHaveBeenCalledTimes(1);
     // anti-forja: código inexistente em tabela consultada com sucesso vira texto livre.
     const arg = salvarRascunhoMock.mock.calls[0]?.[0] as {

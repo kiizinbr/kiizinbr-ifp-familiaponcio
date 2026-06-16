@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
-import { getConsultasHoje } from "@/lib/medico/agenda-dia";
+import { getConsultasHoje, buildJanelaDia } from "@/lib/medico/agenda-dia";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,21 +15,31 @@ import { formatCpf } from "@/lib/cpf";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { transitionAction } from "../consultas/[id]/actions";
-import { marcarCheckinAction } from "../consultas/[id]/checkin-action";
+import { marcarCheckinAction, desfazerCheckinAction } from "../consultas/[id]/checkin-action";
 import { chamarAction } from "@/app/painel/chamar-actions";
+import { AgendaDiaRefresh } from "../agenda-dia/agenda-dia-refresh";
 
 /** Balcão único da recepção: busca o paciente + agenda do dia com ações inline. */
 export default async function RecepcaoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  // Ack lido do redirect das actions (QW1), mesmo idioma do board agenda-dia:
+  // ?chamado=<1onome>&chamadoHora=HH:MM (do chamarAction) e ?checkin=ok|desfeito
+  // (do marcar/desfazerCheckinAction).
+  searchParams: Promise<{
+    q?: string;
+    chamado?: string;
+    chamadoHora?: string;
+    checkin?: string;
+  }>;
 }) {
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
   if (!podeMarcarConsulta(session)) redirect("/medico" as Route);
 
-  const { q } = await searchParams;
+  const sp = await searchParams;
+  const { q } = sp;
   const agora = new Date();
 
   const digits = q?.replace(/\D/g, "") ?? "";
@@ -58,8 +68,35 @@ export default async function RecepcaoPage({
     },
   });
 
+  // QW1 — chamadas de hoje no painel médico (mesma query leve do board, filtro
+  // unidade+dia usa o @@index([unidade, criadoEm])): alimenta Chamar -> Rechamar.
+  const { inicioDia } = buildJanelaDia(agora);
+  const chamadasHoje = await db.chamada.findMany({
+    where: { unidade: "medico", criadoEm: { gte: inicioDia }, consultaId: { not: null } },
+    select: { consultaId: true, criadoEm: true },
+    orderBy: { criadoEm: "asc" },
+  });
+  // Mapa consultaId -> hora da ÚLTIMA chamada (orderBy asc => o último set vence).
+  const ultimaChamadaPorConsulta = new Map<string, Date>();
+  for (const ch of chamadasHoje) {
+    if (ch.consultaId) ultimaChamadaPorConsulta.set(ch.consultaId, ch.criadoEm);
+  }
+
+  // QW1 — ack curto lido do redirect das actions (reusa o .toast do kit, igual ao board).
+  const chamadoNome = typeof sp.chamado === "string" ? sp.chamado : null;
+  const ackChamado =
+    chamadoNome && sp.chamadoHora ? `${chamadoNome} chamada às ${sp.chamadoHora}` : null;
+  const ackCheckin =
+    sp.checkin === "ok"
+      ? "Check-in registrado."
+      : sp.checkin === "desfeito"
+        ? "Chegada desfeita."
+        : null;
+
   return (
     <MedicoShell session={session}>
+      {/* QW4 — recepção se atualiza sozinha (mesmo island do board, default 30s). */}
+      <AgendaDiaRefresh />
       <MedicoHeader
         eyebrow="Centro Médico"
         titulo="Recepção"
@@ -70,6 +107,17 @@ export default async function RecepcaoPage({
           </Link>
         }
       />
+
+      {ackChamado || ackCheckin ? (
+        <div className="toast ok" role="status" style={{ marginBottom: 16 }}>
+          <span className="t-ico" aria-hidden>
+            ✓
+          </span>
+          <span>
+            <span className="t-title">{ackChamado ?? ackCheckin}</span>
+          </span>
+        </div>
+      ) : null}
 
       <Card>
         <form method="get" style={{ display: "flex", gap: 8 }}>
@@ -144,6 +192,12 @@ export default async function RecepcaoPage({
                 : null;
             const ativa = c.status === "agendada" || c.status === "confirmada";
             const podeConfirmar = c.status === "agendada";
+            // QW5 — só oferece desfazer enquanto o paciente está marcado como "chegou"
+            // e o atendimento ainda NÃO começou (espelha o guard de `espera`).
+            const podeDesfazerChegada = !!c.checkinEm && c.status !== "em_atendimento";
+            // QW1 — Chamar -> Rechamar quando já houve chamada desta consulta hoje
+            // (derivado do model Chamada por consultaId; só troca de TEXTO).
+            const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
             return (
               <Card key={c.id}>
                 <div
@@ -160,7 +214,7 @@ export default async function RecepcaoPage({
                       {hora}
                     </span>{" "}
                     <Link
-                      href={`/medico/consultas/${c.id}` as Route}
+                      href={`/medico/consultas/${c.id}?voltar=/medico/recepcao` as Route}
                       style={{ color: "var(--text)", fontWeight: 600 }}
                     >
                       {c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
@@ -185,6 +239,15 @@ export default async function RecepcaoPage({
                         <SubmitButton variant="secondary">Chegou</SubmitButton>
                       </form>
                     ) : null}
+                    {podeDesfazerChegada ? (
+                      <form action={desfazerCheckinAction}>
+                        <input type="hidden" name="id" value={c.id} />
+                        <input type="hidden" name="voltar" value="/medico/recepcao" />
+                        <SubmitButton variant="ghost" pendingLabel="Desfazendo…">
+                          Desfazer chegada
+                        </SubmitButton>
+                      </form>
+                    ) : null}
                     {podeConfirmar ? (
                       <form action={transitionAction}>
                         <input type="hidden" name="id" value={c.id} />
@@ -200,7 +263,10 @@ export default async function RecepcaoPage({
                         Reagendar
                       </Link>
                     ) : null}
-                    <form action={chamarAction}>
+                    <form
+                      action={chamarAction}
+                      style={{ display: "flex", alignItems: "center", gap: 6 }}
+                    >
                       <input type="hidden" name="unidade" value="medico" />
                       <input
                         type="hidden"
@@ -210,7 +276,19 @@ export default async function RecepcaoPage({
                       <input type="hidden" name="destino" value="Recepcao" />
                       <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
                       <input type="hidden" name="consultaId" value={c.id} />
-                      <SubmitButton variant="secondary">Chamar</SubmitButton>
+                      <input type="hidden" name="voltar" value="/medico/recepcao" />
+                      <SubmitButton variant="secondary">
+                        {chamadaEm ? "Rechamar" : "Chamar"}
+                      </SubmitButton>
+                      {chamadaEm ? (
+                        <span className="t-small" style={{ color: "var(--text-3)" }}>
+                          chamada às{" "}
+                          {chamadaEm.toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      ) : null}
                     </form>
                   </div>
                 </div>

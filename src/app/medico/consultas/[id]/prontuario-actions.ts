@@ -142,6 +142,19 @@ export async function salvarRascunhoAction(formData: FormData) {
     throw e;
   }
   revalidatePath(`/medico/consultas/${consultaId}` as Route);
+  // QW1 ack: redireciona para a MESMA consulta (em_atendimento) com ?salvo=HHMM
+  // pra tela renderizar "Rascunho salvo às HH:MM" — mesmo idioma de sucesso já em
+  // uso (reagendar ?reagendada=ok, documento ?doc=ok). Cai de volta no modo edição
+  // com o textarea repovoado pelo RSC (defaultValue do banco) — o médico continua
+  // digitando. Sem PII na URL (só a hora). Contrato/RBAC/IDOR/salvarRascunho intactos.
+  const agora = new Date();
+  const hhmm = `${String(agora.getHours()).padStart(2, "0")}${String(agora.getMinutes()).padStart(2, "0")}`;
+  // Preserva ?voltar= (origem do QW2) se ele estava na URL e veio no form, pra não
+  // perder o breadcrumb ao salvar — anti open-redirect espelhado da checkin-action.
+  const voltarRaw = String(formData.get("voltar") || "");
+  const voltarOk = /^\/(?![/\\])/.test(voltarRaw);
+  const voltarParam = voltarOk ? `&voltar=${encodeURIComponent(voltarRaw)}` : "";
+  redirect(`/medico/consultas/${consultaId}?salvo=${hhmm}${voltarParam}` as Route);
 }
 
 /** Assina a nota (imutável) e conclui a consulta — ato pessoal do profissional dono. */

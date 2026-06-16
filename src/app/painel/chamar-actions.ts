@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade, getUserUnits, podeChamar } from "@/lib/rbac";
 import { unidadeFromSlug } from "@/lib/unidades";
@@ -35,6 +37,13 @@ export async function chamarAction(formData: FormData): Promise<void> {
   const cidadaoId = formData.get("cidadaoId") ? String(formData.get("cidadaoId")) : null;
   if (!cidadaoId) throw new Error("Dados invalidos");
   const consultaId = formData.get("consultaId") ? String(formData.get("consultaId")) : null;
+
+  // `voltar`: retorno opcional com ack para o operador (board/recepcao/minha-fila).
+  // B11 anti open-redirect (mesmo guard do checkin-action): so path interno —
+  // comeca com `/` e NAO com `//` nem `/\`. Ausente/externo => sem redirect
+  // (preserva o comportamento atual de revalidate-only do social).
+  const voltarRaw = String(formData.get("voltar") || "");
+  const voltar = /^\/(?![/\\])/.test(voltarRaw) ? voltarRaw : null;
 
   const cidadao = await db.cidadao.findUnique({
     where: { id: cidadaoId },
@@ -90,5 +99,21 @@ export async function chamarAction(formData: FormData): Promise<void> {
   // a TV pega via polling; revalida as telas de origem pra refletir feedback
   revalidatePath("/medico/minha-fila");
   revalidatePath("/medico/recepcao");
+  revalidatePath("/medico/agenda-dia");
   revalidatePath("/social");
+
+  // Ack de retorno: so quando um `voltar` interno valido veio no form (board,
+  // recepcao, minha-fila). Passa apenas o PRIMEIRO nome + hora (LGPD: searchParams
+  // ficam no historico do navegador, entao nada de nome completo). O destino
+  // re-renderiza e ve a Chamada recem-criada -> Chamar vira Rechamar.
+  if (voltar) {
+    const primeiroNome = nome.split(/\s+/)[0] ?? nome;
+    const hora = chamada.criadoEm.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const sep = voltar.includes("?") ? "&" : "?";
+    const params = new URLSearchParams({ chamado: primeiroNome, chamadoHora: hora });
+    redirect(`${voltar}${sep}${params.toString()}` as Route);
+  }
 }

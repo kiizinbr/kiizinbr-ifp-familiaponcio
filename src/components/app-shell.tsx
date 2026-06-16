@@ -1,9 +1,16 @@
 import Image from "next/image";
+import Link from "next/link";
+import type { Route } from "next";
 import type { Session } from "next-auth";
 import { signOutAction } from "@/app/app/actions";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { MobileNav } from "@/components/mobile-nav";
-import { SidebarNav, type NavItem } from "@/components/sidebar-nav";
+import {
+  SidebarNav,
+  SidebarNavGroups,
+  type NavItem,
+  type NavGroup,
+} from "@/components/sidebar-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StagingBanner } from "@/components/staging-banner";
 import { hasAnyRole, getLandingPath } from "@/lib/rbac";
@@ -16,10 +23,26 @@ interface AppShellProps {
   children: React.ReactNode;
   /** Override opcional da navegação (ex.: contexto da unidade). */
   items?: NavItem[];
+  /**
+   * Navegação AGRUPADA (opt-in): quando presente, a sidebar/drawer renderizam
+   * grupos rotulados (`.sb-group` + `.nav-item`) via `SidebarNavGroups` no lugar
+   * do par `sectionLabel`+`SidebarNav`. Ausente = comportamento atual idêntico
+   * (importante: o shell é compartilhado por TODAS as unidades).
+   */
+  groups?: NavGroup[];
   /** Rótulo da seção (grupo) acima da nav. */
   sectionLabel?: string;
   /** Slug da unidade — seta data-unit + data-unit-accent (acento por unidade). */
   unit?: UnidadeSlug;
+}
+
+/**
+ * Destino do logo clicável: home da unidade quando há `unit` (raiz da nav da
+ * unidade, ex. `/medico`), senão o landing canônico do papel. Mantém o brand
+ * sempre apontando pra um lugar seguro e estável.
+ */
+function brandHref(session: Session, unit?: UnidadeSlug): Route {
+  return (unit ? `/${unit}` : getLandingPath(session)) as Route;
 }
 
 function initials(name: string): string {
@@ -56,12 +79,14 @@ export function AppShell({
   session,
   children,
   items: itemsOverride,
+  groups,
   sectionLabel,
   unit,
 }: AppShellProps) {
   const displayName = session.user.name ?? session.user.email ?? "Usuário";
   const items: NavItem[] = itemsOverride ?? defaultItems(session);
   const isSuper = session.user.roles.some((r) => r.name === "super_admin");
+  const homeHref = brandHref(session, unit);
 
   return (
     <>
@@ -72,20 +97,28 @@ export function AppShell({
       <div className="shell ifp-kit" data-unit={unit} {...(unit ? { "data-unit-accent": "" } : {})}>
         <MobileNav
           items={items}
+          groups={groups}
+          homeHref={homeHref}
           sectionLabel={sectionLabel}
           isSuper={isSuper}
           roles={session.user.roles}
         />
         <aside className="sidebar">
-          <div className="sb-brand">
+          <Link href={homeHref} className="sb-brand" aria-label="Ir para o início">
             <span className="symbol">
               <Image src="/logo/ifp-symbol.png" alt="IFP" width={23} height={23} priority />
             </span>
             <b>IFP Connect</b>
-          </div>
+          </Link>
 
-          {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
-          <SidebarNav items={items} />
+          {groups ? (
+            <SidebarNavGroups groups={groups} />
+          ) : (
+            <>
+              {sectionLabel ? <div className="sb-group">{sectionLabel}</div> : null}
+              <SidebarNav items={items} />
+            </>
+          )}
 
           {isSuper ? (
             <>

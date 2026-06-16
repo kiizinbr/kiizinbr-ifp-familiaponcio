@@ -71,11 +71,25 @@ function formatCurrency(value: number | string | null): string {
   return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export default async function CidadaoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CidadaoDetalhePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ voltar?: string }>;
+}) {
   const session = await auth();
   if (!session) redirect("/login");
 
   const { id } = await params;
+  const { voltar } = await searchParams;
+
+  // QW2 — "← Voltar" para a origem (a origem viaja em ?voltar, mesma convenção
+  // dos forms de check-in). Anti open-redirect: aceita só path interno — começa
+  // com `/` e NÃO com `//`/`\` (espelha o guard da checkin-action). Sem origem
+  // válida, mantém o comportamento atual: voltar para a lista de cidadãos.
+  const voltarHref = voltar && /^\/(?![/\\])/.test(voltar) ? voltar : null;
+  const voltarLabel = voltarHref ? "← Voltar" : "← Voltar para Cidadãos";
   // getCidadaoView redige PHI/socio na camada de dados conforme a capability.
   const cidadao = await getCidadaoView(id, session);
   if (!cidadao) notFound();
@@ -114,10 +128,10 @@ export default async function CidadaoDetalhePage({ params }: { params: Promise<{
     <AppShell session={session}>
       <header className="mb-6">
         <Link
-          href={"/app/cidadaos" as Route}
+          href={(voltarHref ?? "/app/cidadaos") as Route}
           className="text-xs text-[var(--text-3)] hover:text-[var(--accent)]"
         >
-          ← Voltar para Cidadãos
+          {voltarLabel}
         </Link>
 
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">

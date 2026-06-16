@@ -477,7 +477,10 @@ describe("salvarRascunhoAction — IDOR", () => {
       notaEvolucao: null,
     });
     dbMock.cidadao.findUnique.mockResolvedValue(CIDADAO_MEDICO);
-    await salvarRascunhoAction(fd({ consultaId: "cons1", texto: "evolução" }));
+    // salvarRascunhoAction agora redireciona com ?salvo=HHMM (QW1 ack), após salvar.
+    await expect(
+      salvarRascunhoAction(fd({ consultaId: "cons1", texto: "evolução" })),
+    ).rejects.toThrow(/__redirect__:\/medico\/consultas\/cons1\?salvo=/);
     expect(prontuarioMock.salvarRascunho).toHaveBeenCalledTimes(1);
   });
 });
