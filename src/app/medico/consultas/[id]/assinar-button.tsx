@@ -88,7 +88,14 @@ export function AssinarButton({ action, consultaId, notaId }: Props) {
   function temAlteracoesNaoSalvas(): boolean {
     const evo = document.getElementById("formEvolucao") as HTMLFormElement | null;
     if (!evo) return false;
-    const textarea = evo.querySelector<HTMLTextAreaElement>("textarea");
+    // #18 — mede o textarea oculto name="texto" (data-soap-fonte) como verdade do
+    // texto; as caixas SOAP/texto-livre auxiliares (data-soap-aux) são controladas
+    // (sem defaultValue) e são IGNORADAS — senão dariam falso "alterações não
+    // salvas" antes de assinar a nota imutável. Fallback no primeiro textarea
+    // não-aux preserva o comportamento sem SoapEditor.
+    const fonte = evo.querySelector<HTMLTextAreaElement>("textarea[data-soap-fonte]");
+    const textarea =
+      fonte ?? evo.querySelector<HTMLTextAreaElement>("textarea:not([data-soap-aux])");
     if (textarea && textarea.value !== textarea.defaultValue) return true;
     const inputs = evo.querySelectorAll<HTMLInputElement>('input[type="text"], input:not([type])');
     for (const input of inputs) {
@@ -97,7 +104,15 @@ export function AssinarButton({ action, consultaId, notaId }: Props) {
       if (input.value !== input.defaultValue) return true;
     }
     const hidden = evo.querySelector<HTMLInputElement>('input[name="diagnosticosJson"]');
-    if (hidden && diagInicialRef.current != null && hidden.value !== diagInicialRef.current) {
+    // Baseline do CID: o autosave publica em `evo.dataset.cidBaseline` o
+    // diagnosticosJson que FOI persistido a cada save confirmado. Preferi-lo ao
+    // snapshot de MOUNT (diagInicialRef) quando presente elimina o falso
+    // "Alterações não salvas" depois que o autosave salvou um CID — o indicador
+    // "salvo às HH:MM" já confirmou. Sem autosave (dataset ausente) cai no
+    // snapshot de mount, comportamento idêntico ao anterior. Fail-safe: assinar
+    // nunca assina sem o conteúdo; aqui só removemos o aviso redundante.
+    const cidBaseline = evo.dataset.cidBaseline ?? diagInicialRef.current;
+    if (hidden && cidBaseline != null && hidden.value !== cidBaseline) {
       return true;
     }
     return false;

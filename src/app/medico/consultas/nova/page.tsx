@@ -19,6 +19,14 @@ const INPUT_STYLE = {
   color: "var(--text)",
 } as const;
 
+// Monta a string que o <input type="datetime-local"> exige (YYYY-MM-DDTHH:mm)
+// em hora LOCAL — NUNCA toISOString() (UTC desloca a hora). Apenas hint de UI;
+// a validação server-side (criarSlotAdHocSchema) segue sendo a fonte de verdade.
+function toDatetimeLocal(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 function ProfissionalSelect({
   profissionais,
 }: {
@@ -68,6 +76,8 @@ export default async function NovaConsultaPage({
     cidadaoId?: string;
     especialidadeId?: string;
     encaminhamentoId?: string;
+    slotId?: string;
+    profissionalId?: string;
     erro?: string;
   }>;
 }) {
@@ -90,6 +100,38 @@ export default async function NovaConsultaPage({
       encaminhamentoId = undefined; // já agendado/cancelado/inexistente → fluxo normal
     }
   }
+
+  // Atalho do horário-vazio (board / agenda semanal): se vier ?slotId=, resolve o
+  // slot e injeta a especialidade dele — espelho do precedente do encaminhamento.
+  // Sem cidadão ainda → vai pro passo 1 (buscar) já carregando o horário no
+  // contexto; com cidadão → o passo 3 confirma SÓ aquele slot. O slot não pertence
+  // a um cidadão, então não há PII aqui — só horário/prof/especialidade. A reserva
+  // real continua passando por assertAcessoCidadao + reserva atômica (CAS).
+  type SlotPre = {
+    id: string;
+    profissional: { id: string; nomeExibicao: string };
+    especialidade: { id: string; nome: string };
+    dataHoraInicio: Date;
+  };
+  let slotPre: SlotPre | null = null;
+  if (sp.slotId) {
+    const slot = await db.slot.findUnique({
+      where: { id: sp.slotId },
+      include: { profissional: true, especialidade: true },
+    });
+    if (slot && slot.status === "disponivel" && slot.dataHoraInicio >= new Date()) {
+      sp.especialidadeId = slot.especialidadeId; // trava a especialidade do slot
+      slotPre = {
+        id: slot.id,
+        profissional: { id: slot.profissionalId, nomeExibicao: slot.profissional.nomeExibicao },
+        especialidade: { id: slot.especialidadeId, nome: slot.especialidade.nome },
+        dataHoraInicio: slot.dataHoraInicio,
+      };
+    } else {
+      sp.slotId = undefined; // slot inexistente/reservado/passado → fluxo normal
+    }
+  }
+  const slotId = slotPre ? sp.slotId : undefined;
 
   // A1: escopo de unidade da busca (mesmo shape de listCidadaos). super_admin/
   // presidencia/social veem "all" (todas as unidades, por design); os demais só
@@ -120,13 +162,24 @@ export default async function NovaConsultaPage({
 
     return (
       <MedicoShell session={session}>
-        <MedicoHeader eyebrow="Nova consulta" titulo="Marcar consulta" />
+        <MedicoHeader
+          eyebrow={
+            slotPre
+              ? `Horário · ${slotPre.profissional.nomeExibicao} · ${slotPre.dataHoraInicio.toLocaleString(
+                  "pt-BR",
+                  { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" },
+                )} · ${slotPre.especialidade.nome}`
+              : "Nova consulta"
+          }
+          titulo="Marcar consulta"
+        />
         <Stepper current={1} />
         <Card accent="medico" className="max-w-2xl">
           <p className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>
             Quem será atendido?
           </p>
           <form method="get" className="flex gap-2">
+            {slotId && <input type="hidden" name="slotId" value={slotId} />}
             <input
               name="q"
               defaultValue={sp.q ?? ""}
@@ -157,7 +210,9 @@ export default async function NovaConsultaPage({
               {matches.map((c) => (
                 <li key={c.id}>
                   <Link
-                    href={`/medico/consultas/nova?cidadaoId=${c.id}` as Route}
+                    href={
+                      `/medico/consultas/nova?cidadaoId=${c.id}${slotId ? `&slotId=${slotId}` : ""}` as Route
+                    }
                     className="flex items-center justify-between gap-3 py-3 transition hover:bg-[var(--surface-2)]"
                   >
                     <span className="font-medium" style={{ color: "var(--text)" }}>
@@ -239,22 +294,38 @@ export default async function NovaConsultaPage({
   });
 
   // ---- Step 3+4: escolher slot (e confirmar inline) ----
+  // Filtro por profissional (apresentação): mesmo recorte de where da Agenda
+  // semanal (agenda/page.tsx) — só apresenta, não toca a reserva. Com o filtro
+  // na query, o take:24 mostra 24 horários DO profissional escolhido.
   const slots = await db.slot.findMany({
     where: {
       especialidadeId: sp.especialidadeId,
       status: "disponivel",
       dataHoraInicio: { gte: new Date() },
+      ...(sp.profissionalId ? { profissionalId: sp.profissionalId } : {}),
     },
     include: { profissional: true },
     orderBy: { dataHoraInicio: "asc" },
     take: 24,
   });
 
-  // Profissionais que atendem esta especialidade — alimentam o encaixe/walk-in (F2).
+  // Profissionais que atendem esta especialidade — alimentam o encaixe/walk-in (F2)
+  // e o filtro por profissional do passo de horário.
   const profissionais = await db.profissional.findMany({
     where: { ativo: true, especialidades: { some: { especialidadeId: sp.especialidadeId } } },
     orderBy: { nomeExibicao: "asc" },
   });
+
+  // Pré-preenche o encaixe: próximo horário "redondo" (múltiplo de 30 min, p/
+  // cima — espelha a duração default e a granularidade do walk-in) como valor
+  // inicial, e o instante atual como mínimo do seletor (bloqueia escolher
+  // passado na UI). Guard de UX apenas; a action não muda.
+  const agora = new Date();
+  const proximoRedondo = new Date(agora);
+  proximoRedondo.setSeconds(0, 0);
+  proximoRedondo.setMinutes(Math.ceil(proximoRedondo.getMinutes() / 30) * 30);
+  const encaixeDefault = toDatetimeLocal(proximoRedondo);
+  const encaixeMin = toDatetimeLocal(agora);
 
   // agrupa por dia
   const porDia = new Map<string, typeof slots>();
@@ -274,11 +345,13 @@ export default async function NovaConsultaPage({
         eyebrow={
           encaminhamentoId
             ? `Encaminhamento · ${cidadao.nomeCompleto} · ${especialidade.nome}`
-            : `${cidadao.nomeCompleto} · ${especialidade.nome}`
+            : slotPre
+              ? `Horário · ${cidadao.nomeCompleto} · ${especialidade.nome}`
+              : `${cidadao.nomeCompleto} · ${especialidade.nome}`
         }
         titulo="Marcar consulta"
       />
-      <Stepper current={3} />
+      <Stepper current={slotPre ? 4 : 3} />
 
       {sp.erro && (
         <div
@@ -299,62 +372,145 @@ export default async function NovaConsultaPage({
         </div>
       )}
 
-      {slots.length === 0 ? (
-        <Card>
-          <p style={{ color: "var(--text-3)" }}>
-            Nenhum horário pré-gerado para {especialidade.nome}. Use o <strong>encaixe</strong>{" "}
-            abaixo para criar um horário sob demanda.
+      {slotPre ? (
+        // Entrada por horário-vazio: cidadão já escolhido + slot fixado. Confirma
+        // SÓ aquele slot reusando o mesmo form de reserva (contrato intocado). Se o
+        // slot for pego entre o clique e o submit, a reserva atômica devolve
+        // ?erro=slot_indisponivel e cai no fluxo de lista normal.
+        <Card accent="medico" className="max-w-xl">
+          <p className="mb-1 text-sm font-bold" style={{ color: "var(--accent)" }}>
+            Confirmar horário
           </p>
+          <p className="mb-4 text-[13px]" style={{ color: "var(--text-3)" }}>
+            {slotPre.dataHoraInicio.toLocaleString("pt-BR", {
+              weekday: "long",
+              day: "2-digit",
+              month: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}{" "}
+            · {slotPre.profissional.nomeExibicao} · {especialidade.nome}
+          </p>
+          <form action={reservarConsultaAction}>
+            <input type="hidden" name="slotId" value={slotPre.id} />
+            <input type="hidden" name="cidadaoId" value={cidadao.id} />
+            <input type="hidden" name="profissionalId" value={slotPre.profissional.id} />
+            <input type="hidden" name="especialidadeId" value={especialidade.id} />
+            {encaminhamentoId ? (
+              <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
+            ) : null}
+            <SubmitButton pendingLabel="Reservando…">
+              Marcar{" "}
+              {slotPre.dataHoraInicio.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              com {slotPre.profissional.nomeExibicao}
+            </SubmitButton>
+          </form>
+          <Link
+            href={
+              `/medico/consultas/nova?cidadaoId=${cidadao.id}&especialidadeId=${especialidade.id}` as Route
+            }
+            className="mt-4 inline-block text-sm font-semibold"
+            style={{ color: "var(--text-3)" }}
+          >
+            ← Ver todos os horários
+          </Link>
         </Card>
       ) : (
-        <div className="space-y-5">
-          {[...porDia.entries()].map(([dia, slotsDoDia]) => (
-            <Card key={dia}>
-              <p className="mb-3 text-sm font-bold capitalize" style={{ color: "var(--accent)" }}>
-                {dia}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {slotsDoDia.map((s) => (
-                  <form key={s.id} action={reservarConsultaAction}>
-                    <input type="hidden" name="slotId" value={s.id} />
-                    <input type="hidden" name="cidadaoId" value={cidadao.id} />
-                    <input type="hidden" name="profissionalId" value={s.profissionalId} />
-                    <input type="hidden" name="especialidadeId" value={especialidade.id} />
-                    {encaminhamentoId ? (
-                      <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
-                    ) : null}
-                    <SubmitButton
-                      variant="ghost"
-                      pendingLabel="Reservando…"
-                      className="rounded-[var(--r-md)] border text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
-                      style={{
-                        display: "block",
-                        padding: "8px 12px",
-                        fontWeight: 400,
-                        lineHeight: 1.4,
-                        borderColor: "var(--line)",
-                      }}
-                      title={`Reservar ${s.dataHoraInicio.toLocaleTimeString("pt-BR")} com ${s.profissional.nomeExibicao}`}
-                    >
-                      <span
-                        className="mono block text-sm font-bold tabular-nums"
-                        style={{ color: "var(--text)" }}
-                      >
-                        {s.dataHoraInicio.toLocaleTimeString("pt-BR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      <span className="block text-[11px]" style={{ color: "var(--text-3)" }}>
-                        {s.profissional.nomeExibicao}
-                      </span>
-                    </SubmitButton>
-                  </form>
+        <>
+          {/* Filtro por profissional — mesmo markup da Agenda semanal. Preserva o
+              contexto do wizard (cidadão, especialidade, encaminhamento) por hidden. */}
+          {profissionais.length > 0 && (
+            <form method="get" className="mb-5 flex flex-wrap items-center gap-2">
+              <input type="hidden" name="cidadaoId" value={cidadao.id} />
+              <input type="hidden" name="especialidadeId" value={especialidade.id} />
+              {encaminhamentoId ? (
+                <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
+              ) : null}
+              <select
+                name="profissionalId"
+                defaultValue={sp.profissionalId ?? ""}
+                className="select w-auto"
+                aria-label="Filtrar por profissional"
+              >
+                <option value="">Todos os profissionais</option>
+                {profissionais.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nomeExibicao}
+                  </option>
                 ))}
-              </div>
+              </select>
+              <SubmitButton size="sm" pendingLabel="Filtrando…">
+                Filtrar
+              </SubmitButton>
+            </form>
+          )}
+
+          {slots.length === 0 ? (
+            <Card>
+              <p style={{ color: "var(--text-3)" }}>
+                {sp.profissionalId
+                  ? "Nenhum horário disponível para esse profissional. Use o "
+                  : `Nenhum horário pré-gerado para ${especialidade.nome}. Use o `}
+                <strong>encaixe</strong> abaixo para criar um horário sob demanda.
+              </p>
             </Card>
-          ))}
-        </div>
+          ) : (
+            <div className="space-y-5">
+              {[...porDia.entries()].map(([dia, slotsDoDia]) => (
+                <Card key={dia}>
+                  <p
+                    className="mb-3 text-sm font-bold capitalize"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    {dia}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {slotsDoDia.map((s) => (
+                      <form key={s.id} action={reservarConsultaAction}>
+                        <input type="hidden" name="slotId" value={s.id} />
+                        <input type="hidden" name="cidadaoId" value={cidadao.id} />
+                        <input type="hidden" name="profissionalId" value={s.profissionalId} />
+                        <input type="hidden" name="especialidadeId" value={especialidade.id} />
+                        {encaminhamentoId ? (
+                          <input type="hidden" name="encaminhamentoId" value={encaminhamentoId} />
+                        ) : null}
+                        <SubmitButton
+                          variant="ghost"
+                          pendingLabel="Reservando…"
+                          className="rounded-[var(--r-md)] border text-left transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
+                          style={{
+                            display: "block",
+                            padding: "8px 12px",
+                            fontWeight: 400,
+                            lineHeight: 1.4,
+                            borderColor: "var(--line)",
+                          }}
+                          title={`Reservar ${s.dataHoraInicio.toLocaleTimeString("pt-BR")} com ${s.profissional.nomeExibicao}`}
+                        >
+                          <span
+                            className="mono block text-sm font-bold tabular-nums"
+                            style={{ color: "var(--text)" }}
+                          >
+                            {s.dataHoraInicio.toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          <span className="block text-[11px]" style={{ color: "var(--text-3)" }}>
+                            {s.profissional.nomeExibicao}
+                          </span>
+                        </SubmitButton>
+                      </form>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <div className="mt-6">
@@ -385,6 +541,8 @@ export default async function NovaConsultaPage({
                     type="datetime-local"
                     name="dataHoraInicio"
                     required
+                    defaultValue={encaixeDefault}
+                    min={encaixeMin}
                     className={INPUT_CLS}
                     style={INPUT_STYLE}
                   />

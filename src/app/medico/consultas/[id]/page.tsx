@@ -18,6 +18,7 @@ import {
   podeEmitirDocumento,
 } from "@/lib/medico/rbac";
 import { CONSULTA_VISUAL, PROXIMOS_STATUS_CONSULTA } from "@/lib/medico/ui";
+import { getConsultasHoje } from "@/lib/medico/agenda-dia";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { calcularImc, formatVitalSeguro } from "@/lib/medico/prontuario";
 import type { SinaisVitaisInput } from "@/lib/medico/prontuario";
@@ -36,6 +37,11 @@ import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 import { Cid10Combobox } from "./cid10-combobox";
 import { ReceitaItens } from "./receita-itens";
 import { AssinarButton } from "./assinar-button";
+import { RascunhoAutosave } from "./rascunho-autosave";
+import { CopiarUltima } from "./copiar-ultima";
+import { SoapEditor } from "./soap-editor";
+import { modelosPara } from "@/lib/medico/modelos-evolucao";
+import { parseSoap, SOAP_LABELS, SOAP_ORDEM } from "@/lib/medico/soap";
 
 const ACAO_LABEL: Record<string, string> = {
   confirmada: "Confirmar",
@@ -66,6 +72,56 @@ function idade(d: Date | null): number | null {
 function iniciais(nome: string): string {
   const p = nome.trim().split(/\s+/);
   return ((p[0]?.[0] ?? "") + (p[p.length - 1]?.[0] ?? "")).toUpperCase();
+}
+
+/**
+ * #18 — render de SÓ LEITURA da nota (assinada ou somente-leitura). Usa parseSoap
+ * sobre o `texto` congelado: nota estruturada → 4 blocos rotulados (seção vazia
+ * omitida); nota livre/legada → 1 bloco pre-wrap idêntico ao comportamento
+ * anterior. Não escreve nada — imutabilidade por construção (zero textarea/action).
+ */
+function NotaTextoReadonly({ texto }: { texto: string | null }) {
+  if (!texto || texto.trim() === "") {
+    return <div className={styles.noteReadonly}>Sem texto de evolução.</div>;
+  }
+  const parsed = parseSoap(texto);
+  if (parsed.modo === "livre") {
+    return <div className={styles.noteReadonly}>{parsed.livre}</div>;
+  }
+  return (
+    <div className={styles.soapRead}>
+      {SOAP_ORDEM.filter((chave) => parsed[chave].trim() !== "").map((chave) => (
+        <div key={chave} className={styles.soapReadBlock}>
+          <span className={styles.soapLabel}>{SOAP_LABELS[chave]}</span>
+          <div className={styles.noteReadonly}>{parsed[chave]}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * #18 — render compacto SOAP-aware do histórico (timeline lateral). Nota
+ * estruturada → seções rotuladas curtas (S/O/A/P), seção vazia omitida; nota
+ * livre/legada → bloco único idêntico ao anterior. Só leitura, aditivo.
+ */
+const SOAP_INICIAL: Record<"s" | "o" | "a" | "p", string> = { s: "S", o: "O", a: "A", p: "P" };
+
+function TimelineTexto({ texto }: { texto: string }) {
+  const parsed = parseSoap(texto);
+  if (parsed.modo === "livre") {
+    return <div className={styles.tlBody}>{parsed.livre}</div>;
+  }
+  return (
+    <div className={styles.tlBody}>
+      {SOAP_ORDEM.filter((chave) => parsed[chave].trim() !== "").map((chave) => (
+        <div key={chave} className={styles.tlSoapLine}>
+          <span className={styles.tlSoapTag}>{SOAP_INICIAL[chave]}</span>
+          <span>{parsed[chave]}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default async function ConsultaDetalhePage({
@@ -163,6 +219,13 @@ export default async function ConsultaDetalhePage({
     });
   const nota: Awaited<ReturnType<typeof carregarNota>> = podeVer ? await carregarNota() : null;
 
+  // Pré-preenche o CID do atestado a partir do diagnóstico principal da nota
+  // (fallback: primeiro diagnóstico). Usa SÓ o código CID — a descrição livre não
+  // é um CID e não pode vazar pro campo "CID" do atestado. Sem código → "" (campo
+  // vazio, o médico digita). Input não-controlado: o médico edita/apaga normalmente.
+  const diagAtestado = nota?.diagnosticos.find((d) => d.principal) ?? nota?.diagnosticos[0] ?? null;
+  const cidPrincipal = diagAtestado?.codigoCid || "";
+
   const [especialidadesAtivas, encaminhamentos, receitas, atestados] = await Promise.all([
     db.especialidade.findMany({
       where: { ativa: true },
@@ -209,6 +272,22 @@ export default async function ConsultaDetalhePage({
     !assinada &&
     podeEditarNota(session, consulta.profissional.userId, nota?.status ?? "rascunho");
   const cidadao = consulta.cidadao;
+
+  // #7 — "Copiar da última consulta": reusa o `historico` JÁ carregado (mesmo
+  // cidadão, ordenado por data clínica desc, NOT a consulta atual). O primeiro
+  // item com texto não-vazio É a nota anterior. ZERO query nova; passa só
+  // { texto, especialidade, data } (PII que a tela já mostra no card de histórico
+  // ao lado, read-only) — não vaza o objeto inteiro para o client.
+  const ultimaNota = historico.find((h) => h.texto?.trim());
+  const ultimaComTexto =
+    podeEditar && ultimaNota?.texto
+      ? {
+          texto: ultimaNota.texto,
+          especialidade: ultimaNota.consulta.especialidade.nome,
+          data: ultimaNota.consulta.slot.dataHoraInicio.toLocaleDateString("pt-BR"),
+        }
+      : undefined;
+
   const pesoNum = nota?.pesoKg != null ? Number(nota.pesoKg) : null;
   const imc = calcularImc(pesoNum, nota?.alturaCm ?? null);
   const visual = CONSULTA_VISUAL[consulta.status];
@@ -240,6 +319,30 @@ export default async function ConsultaDetalhePage({
   // `/` e NÃO com `//`/`\`) — espelha o guard da checkin-action. Sem origem
   // válida, não renderiza nada (a tela é alcançada por fila/agenda/recepção).
   const voltarHref = voltar && /^\/(?![/\\])/.test(voltar) ? voltar : null;
+
+  // #12 — "Próximo paciente da fila →" após assinar. Só quando a nota está
+  // ASSINADA (fora do hot-path de atendimento aberto): busca a PRÓXIMA consulta
+  // ativa DO MESMO profissional hoje (NOT a atual), em ordem de horário (asc da
+  // lib). assinarNotaAction NÃO é tocada — isto é só render + Link, o médico
+  // decide. Include parcial: só nome (rótulo do Link, server-side, não vai pra
+  // URL) + slot (ordenação preservada pelo orderBy da lib). Sem PII na URL.
+  const proximo = assinada
+    ? (
+        await getConsultasHoje({
+          agora: new Date(),
+          filtro: {
+            profissional: { userId: consulta.profissional.userId },
+            status: { in: ["em_atendimento", "confirmada", "agendada"] },
+            NOT: { id: consulta.id },
+          },
+          include: {
+            slot: { select: { dataHoraInicio: true } },
+            cidadao: { select: { nomeCompleto: true, nomeSocial: true } },
+          },
+        })
+      )[0]
+    : null;
+  const filaHref = (voltarHref ?? "/medico/minha-fila") as Route;
 
   // QW1 — "Rascunho salvo às HH:MM": ?salvo=HHMM (4 dígitos) vira HH:MM.
   const salvoHora =
@@ -603,7 +706,7 @@ export default async function ConsultaDetalhePage({
                           </div>
                           <div className={styles.tlTitle}>{h.profissional.nomeExibicao}</div>
                           <div className={styles.tlMeta}>{h.consulta.especialidade.nome}</div>
-                          {h.texto ? <div className={styles.tlBody}>{h.texto}</div> : null}
+                          {h.texto ? <TimelineTexto texto={h.texto} /> : null}
                         </div>
                       ))}
                     </div>
@@ -636,13 +739,20 @@ export default async function ConsultaDetalhePage({
                         {voltarHref ? (
                           <input type="hidden" name="voltar" value={voltarHref} />
                         ) : null}
-                        <textarea
-                          className={styles.note}
-                          name="texto"
-                          aria-label="Texto da evolução"
-                          defaultValue={nota?.texto ?? ""}
-                          placeholder="Anamnese, exame físico, conduta…"
+                        {/* #7 — "Copiar da última" + modelos por especialidade.
+                            Island client-side que insere texto no textarea abaixo
+                            (confirma se já há conteúdo) e dispara o input event pra
+                            o guard/autosave reconhecerem. ZERO action/DB novos. */}
+                        <CopiarUltima
+                          ultima={ultimaComTexto}
+                          modelos={modelosPara(consulta.especialidade.nome)}
                         />
+                        {/* #18 — editor SOAP por cima do MESMO campo `texto`. As 4
+                            seções (ou a caixa de texto livre) serializam num único
+                            textarea oculto name="texto" — contrato do form, autosave
+                            e assinatura inalterados. Nota legada (sem marcador) abre
+                            em "Texto livre" com conteúdo intacto. */}
+                        <SoapEditor defaultValue={nota?.texto ?? ""} />
                         <div className={styles.blockLabel}>
                           <span className={styles.micro}>Sinais vitais</span>
                           <span className={styles.hr} />
@@ -681,6 +791,12 @@ export default async function ConsultaDetalhePage({
                             Salvar mantém em rascunho. Assinar torna a nota imutável e conclui a
                             consulta — correções depois entram como addendo.
                           </span>
+                          {/* #3 — autosave: indicador vivo "Rascunho salvo às
+                              HH:MM" + debounce + aviso ao sair com mudanças não
+                              salvas. Montado DENTRO do #formEvolucao (lê o form
+                              por id); chama autosalvarRascunhoAction sem redirect.
+                              Convive com o botão manual e o banner ?salvo=HHMM. */}
+                          <RascunhoAutosave />
                           <SubmitButton variant="secondary" pendingLabel="Salvando rascunho…">
                             Salvar rascunho
                           </SubmitButton>
@@ -696,9 +812,7 @@ export default async function ConsultaDetalhePage({
                     </>
                   ) : nota ? (
                     <>
-                      <div className={styles.noteReadonly}>
-                        {nota.texto || "Sem texto de evolução."}
-                      </div>
+                      <NotaTextoReadonly texto={nota.texto} />
                       <div className={styles.blockLabel}>
                         <span className={styles.micro}>Sinais vitais</span>
                         <span className={styles.hr} />
@@ -774,6 +888,58 @@ export default async function ConsultaDetalhePage({
                               </SubmitButton>
                             </div>
                           </form>
+
+                          {/* #12 — encadeamento da fila: nota assinada, então a
+                              consulta está concluída. Oferece "Próximo paciente
+                              da fila →" (próxima consulta ativa do MESMO
+                              profissional hoje) + "Voltar à minha fila". Só
+                              LINKS, sem redirect à força — o médico decide. */}
+                          <div className={styles.blockLabel}>
+                            <span className={styles.micro}>Fila</span>
+                            <span className={styles.hr} />
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 8,
+                              flexWrap: "wrap",
+                              alignItems: "center",
+                            }}
+                          >
+                            {proximo ? (
+                              <Link
+                                href={
+                                  `/medico/consultas/${proximo.id}?voltar=${encodeURIComponent(
+                                    filaHref,
+                                  )}` as Route
+                                }
+                                className={`${styles.btn} ${styles.btnSecondary}`}
+                              >
+                                Próximo paciente da fila →
+                                <span
+                                  className={styles.mono}
+                                  style={{ marginLeft: 6, opacity: 0.8 }}
+                                >
+                                  {proximo.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}{" "}
+                                  · {proximo.cidadao.nomeSocial || proximo.cidadao.nomeCompleto}
+                                </span>
+                              </Link>
+                            ) : null}
+                            <Link
+                              href={filaHref}
+                              className={`${styles.btn} ${styles.btnSecondary}`}
+                            >
+                              Voltar à minha fila
+                            </Link>
+                            {!proximo ? (
+                              <span className={styles.micro} style={{ color: "var(--text-3)" }}>
+                                Fila do dia concluída.
+                              </span>
+                            ) : null}
+                          </div>
                         </>
                       )}
                     </>
@@ -900,6 +1066,7 @@ export default async function ConsultaDetalhePage({
                         <input
                           className={styles.docInput}
                           name="cid"
+                          defaultValue={cidPrincipal}
                           placeholder="CID (opcional)"
                         />
                       </div>

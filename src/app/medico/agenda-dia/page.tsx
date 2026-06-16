@@ -11,16 +11,20 @@ import {
   type ConsultaDoDia,
   type SlotDoDia,
 } from "@/lib/medico/agenda-dia";
+import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { CONSULTA_VISUAL, corTextoSobre } from "@/lib/medico/ui";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { AgendaTabs } from "../_components/agenda-tabs";
 import { KpiCard } from "@/components/kpi-card";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { AgendaDiaRefresh } from "./agenda-dia-refresh";
 import { AgendaDiaNowMarker } from "./agenda-dia-now";
+import { AcaoInline } from "../_components/acao-inline";
 import { transitionAction } from "../consultas/[id]/actions";
 import { marcarCheckinAction } from "../consultas/[id]/checkin-action";
 import { chamarAction } from "@/app/painel/chamar-actions";
@@ -56,7 +60,13 @@ export default async function AgendaDiaPage({
 }: {
   // Ack lido do redirect das actions (QW1): ?chamado=<1onome>&chamadoHora=HH:MM,
   // ?checkin=ok|desfeito. searchParams e Promise no App Router atual.
-  searchParams?: Promise<{ chamado?: string; chamadoHora?: string; checkin?: string }>;
+  // ?profissionalId — filtro de apresentacao (#11), espelha a agenda semanal.
+  searchParams?: Promise<{
+    chamado?: string;
+    chamadoHora?: string;
+    checkin?: string;
+    profissionalId?: string;
+  }>;
 }) {
   const sp = (await searchParams) ?? {};
   const session = await auth();
@@ -92,6 +102,23 @@ export default async function AgendaDiaPage({
   // Gating de AÇÕES (não de acesso): esconde o botão que o papel não pode disparar.
   const canCheckin = podeMarcarConsulta(session);
   const canChamar = podeChamar(session);
+  // FIX 5 — quem NÃO pode marcar consulta (ex.: profissional) não recebe o atalho
+  // de slot vazio (?slotId=): o submit falharia "Sem permissão". Reusa a MESMA
+  // capability do check-in (recepção/gestão/social). Sem permissão → chip estático.
+  const canMarcar = podeMarcarConsulta(session);
+
+  // #17 — atalho "Só os meus" da barra de abas: reusa o ?profissionalId= JÁ
+  // existente desta página (filtro de apresentação, #11). Lookup read-only por
+  // userId, só pra profissional — não relaxa nenhum gate.
+  const profissionalLogado = hasAnyRole(session, "profissional")
+    ? await db.profissional.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+    : null;
+  const meusHref = profissionalLogado
+    ? (`/medico/agenda-dia?profissionalId=${profissionalLogado.id}` as Route)
+    : undefined;
 
   // ── Derivações em memória (na página, não na lib) ─────────────────────
   // Colunas = profissionais que têm consulta OU slot hoje.
@@ -118,6 +145,14 @@ export default async function AgendaDiaPage({
   }
   const colunas = [...colMap.values()].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
+  // #11 — Filtro por profissional (apenas apresentação): derivamos `colunas`
+  // COMPLETA primeiro (alimenta o <select> com todos), e só então filtramos a
+  // versão renderizada. Espelha o filtro da Agenda semanal. Sem mutar arrays.
+  const profissionalFiltro = sp.profissionalId || "";
+  const colunasVisiveis = profissionalFiltro
+    ? colunas.filter((c) => c.profissionalId === profissionalFiltro)
+    : colunas;
+
   // KPIs do dia.
   const aguardando = consultas.filter(
     (c) => c.status === "agendada" || c.status === "confirmada",
@@ -141,8 +176,10 @@ export default async function AgendaDiaPage({
   const legend = [...legendMap.values()];
 
   // Fila de ação: atrasados sem check-in no topo, depois por horário.
+  // #11 — acompanha o filtro por profissional do board (só apresentação).
   const fila = consultas
     .filter((c) => c.status === "agendada" || c.status === "confirmada")
+    .filter((c) => !profissionalFiltro || c.profissionalId === profissionalFiltro)
     .map((c) => {
       const atrasado = !c.checkinEm && c.slot.dataHoraInicio.getTime() < agora.getTime();
       return { c, atrasado };
@@ -169,7 +206,7 @@ export default async function AgendaDiaPage({
   // QW1 — ack curto lido do redirect das actions (reusa o .toast do kit).
   const chamadoNome = typeof sp.chamado === "string" ? sp.chamado : null;
   const ackChamado =
-    chamadoNome && sp.chamadoHora ? `${chamadoNome} chamada às ${sp.chamadoHora}` : null;
+    chamadoNome && sp.chamadoHora ? `Chamada de ${chamadoNome} às ${sp.chamadoHora}` : null;
   const ackCheckin =
     sp.checkin === "ok"
       ? "Check-in registrado."
@@ -185,6 +222,10 @@ export default async function AgendaDiaPage({
         titulo="Agenda do dia"
         descricao={`${dataWeekday} · ${dataFull} — mapa de operação por profissional, atualizado sozinho.`}
       />
+
+      {/* #17 — abas das três visões de agenda. H1 "Agenda do dia" e o gate
+          podeOperarAgenda preservados; "Só os meus" reusa o ?profissionalId=. */}
+      <AgendaTabs active="hoje" meusHref={meusHref} />
 
       {ackChamado || ackCheckin ? (
         <div className="toast ok" role="status" style={{ marginBottom: 16 }}>
@@ -246,6 +287,30 @@ export default async function AgendaDiaPage({
         </div>
       )}
 
+      {/* #11 — Filtro por profissional (espelha a Agenda semanal). As opções saem
+          das próprias `colunas` (profissionais com agenda hoje) — sem query nova.
+          Só aparece quando há ≥2 profissionais a escolher. */}
+      {colunas.length > 1 ? (
+        <form method="get" className="mb-4 flex flex-wrap items-center gap-2">
+          <select
+            name="profissionalId"
+            defaultValue={profissionalFiltro}
+            className="select w-auto"
+            aria-label="Filtrar por profissional"
+          >
+            <option value="">Todos os profissionais</option>
+            {colunas.map((col) => (
+              <option key={col.profissionalId} value={col.profissionalId}>
+                {col.nome}
+              </option>
+            ))}
+          </select>
+          <SubmitButton size="sm" pendingLabel="Filtrando…">
+            Filtrar
+          </SubmitButton>
+        </form>
+      ) : null}
+
       <div className="agenda-dia-layout">
         {/* ── Grade: colunas por profissional × horas ───────────────── */}
         <Card
@@ -253,25 +318,36 @@ export default async function AgendaDiaPage({
           role="region"
           aria-label="Mapa do dia por profissional e horário"
         >
-          {colunas.length === 0 ? (
+          {colunasVisiveis.length === 0 ? (
             <div style={{ padding: 24 }}>
               <EmptyState
-                titulo="Dia livre por enquanto"
-                descricao="Nenhum profissional com consulta ou vaga aberta para hoje."
+                titulo={
+                  profissionalFiltro
+                    ? "Sem agenda para este profissional"
+                    : "Dia livre por enquanto"
+                }
+                descricao={
+                  profissionalFiltro
+                    ? "Esse profissional não tem consulta ou vaga aberta hoje."
+                    : "Nenhum profissional com consulta ou vaga aberta para hoje."
+                }
               />
             </div>
           ) : (
-            <div className="agenda-dia-grade" style={{ minWidth: 120 + colunas.length * 160 }}>
+            <div
+              className="agenda-dia-grade"
+              style={{ minWidth: 120 + colunasVisiveis.length * 160 }}
+            >
               {/* Cabeçalho de colunas */}
               <div
                 className="grid border-b"
                 style={{
-                  gridTemplateColumns: `56px repeat(${colunas.length}, 1fr)`,
+                  gridTemplateColumns: `56px repeat(${colunasVisiveis.length}, 1fr)`,
                   borderColor: "var(--line)",
                 }}
               >
                 <div />
-                {colunas.map((col) => (
+                {colunasVisiveis.map((col) => (
                   <div
                     key={col.profissionalId}
                     style={{
@@ -312,7 +388,7 @@ export default async function AgendaDiaPage({
               {/* Corpo da grade */}
               <div
                 className="relative grid"
-                style={{ gridTemplateColumns: `56px repeat(${colunas.length}, 1fr)` }}
+                style={{ gridTemplateColumns: `56px repeat(${colunasVisiveis.length}, 1fr)` }}
               >
                 {/* coluna de horas */}
                 <div className="relative" style={{ height: altura }}>
@@ -328,7 +404,7 @@ export default async function AgendaDiaPage({
                 </div>
 
                 {/* colunas de profissional */}
-                {colunas.map((col) => (
+                {colunasVisiveis.map((col) => (
                   <div
                     key={col.profissionalId}
                     className="relative"
@@ -352,24 +428,46 @@ export default async function AgendaDiaPage({
                         (s.dataHoraInicio.getHours() - HORA_INICIO) * 60 +
                         s.dataHoraInicio.getMinutes();
                       const cor = s.especialidade.corDestaque;
-                      return (
-                        <div
+                      const chipStyle = {
+                        top: minDia * PX_POR_MIN,
+                        height: Math.max(s.duracaoMin * PX_POR_MIN - 2, 14),
+                        // FIX 3 — slot curto (chip de 14px) fica abaixo do alvo de toque
+                        // mínimo; garante altura clicável quando vira <Link>.
+                        minHeight: 24,
+                        background: cor + "26",
+                        color: "var(--text)",
+                        borderLeft: `2px solid ${cor}`,
+                      };
+                      const chipCls =
+                        "ad-chip absolute right-0.5 left-0.5 block overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight no-underline";
+                      const conteudo = (
+                        <span className="block truncate" style={{ color: "var(--text-3)" }}>
+                          Livre
+                          <span className="sr-only"> · {s.especialidade.nome}</span>
+                        </span>
+                      );
+                      // FIX 5 — só quem pode marcar recebe o atalho clicável; os demais
+                      // (ex.: profissional) caem no chip estático (o submit falharia).
+                      return canMarcar ? (
+                        <Link
                           key={s.id}
-                          className="ad-chip absolute right-0.5 left-0.5 overflow-hidden rounded-[5px] px-1.5 py-0.5 text-[10px] leading-tight"
-                          title={`Livre · ${horaCurta(s.dataHoraInicio)} · ${s.especialidade.nome}`}
-                          style={{
-                            top: minDia * PX_POR_MIN,
-                            height: Math.max(s.duracaoMin * PX_POR_MIN - 2, 14),
-                            background: cor + "26",
-                            color: "var(--text)",
-                            borderLeft: `2px solid ${cor}`,
-                          }}
+                          href={`/medico/consultas/nova?slotId=${s.id}` as Route}
+                          className={chipCls}
+                          title={`Marcar · Livre · ${horaCurta(s.dataHoraInicio)} · ${s.especialidade.nome}`}
+                          aria-label={`Marcar consulta · ${col.nome} · ${horaCurta(s.dataHoraInicio)} · ${s.especialidade.nome}`}
+                          style={chipStyle}
                         >
-                          <span className="block truncate" style={{ color: "var(--text-3)" }}>
-                            Livre
-                            <span className="sr-only"> · {s.especialidade.nome}</span>
-                          </span>
-                        </div>
+                          {conteudo}
+                        </Link>
+                      ) : (
+                        <span
+                          key={s.id}
+                          className={chipCls}
+                          title={`Livre · ${horaCurta(s.dataHoraInicio)} · ${s.especialidade.nome}`}
+                          style={chipStyle}
+                        >
+                          {conteudo}
+                        </span>
                       );
                     })}
 
@@ -429,9 +527,15 @@ export default async function AgendaDiaPage({
             Fila de ação
           </h2>
           {fila.length === 0 ? (
-            <Card>
-              <p style={{ color: "var(--text-3)" }}>Ninguém aguardando agora.</p>
-            </Card>
+            <EmptyState
+              titulo="Ninguém aguardando agora"
+              descricao="Quando alguém fizer check-in ou estiver atrasado, aparece aqui."
+              cta={
+                <Link href={"/medico/recepcao" as Route} className="btn btn-secondary">
+                  Ir para a recepção
+                </Link>
+              }
+            />
           ) : (
             fila.map(({ c, atrasado }) => {
               const visual = CONSULTA_VISUAL[c.status];
@@ -455,6 +559,15 @@ export default async function AgendaDiaPage({
                   "em_atendimento",
                   c.profissional.userId,
                 );
+              // #14 — "Faltou"/"Reagendar" inline (mesmo gate por papel/consulta da ficha).
+              // Esconder quando !pode evita o "Sem permissão" (500), igual aos botões acima.
+              const podeFaltar = podeTransicionarConsulta(
+                session,
+                c.status,
+                "faltou",
+                c.profissional.userId,
+              );
+              const podeReagendar = STATUS_REAGENDAVEL.has(c.status) && podeMarcarConsulta(session);
               // QW1 — Chamar -> Rechamar quando ja houve chamada desta consulta hoje
               // (derivado do model Chamada por consultaId; so troca de TEXTO).
               const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
@@ -512,37 +625,49 @@ export default async function AgendaDiaPage({
                     }}
                   >
                     {canCheckin && ativa && !c.checkinEm ? (
-                      <form action={marcarCheckinAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
+                      <AcaoInline
+                        action={marcarCheckinAction}
+                        hiddenFields={{ id: c.id, voltar: "/medico/agenda-dia" }}
+                      >
                         <SubmitButton variant="secondary">Chegou</SubmitButton>
-                      </form>
+                      </AcaoInline>
                     ) : null}
                     {podeConfirmar ? (
-                      <form action={transitionAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="para" value="confirmada" />
+                      <AcaoInline
+                        action={transitionAction}
+                        hiddenFields={{ id: c.id, para: "confirmada" }}
+                      >
                         <SubmitButton variant="secondary">Confirmar</SubmitButton>
-                      </form>
+                      </AcaoInline>
                     ) : null}
                     {podeIniciar ? (
-                      <form action={transitionAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="para" value="em_atendimento" />
+                      <AcaoInline
+                        action={transitionAction}
+                        hiddenFields={{
+                          id: c.id,
+                          para: "em_atendimento",
+                          // #12 — opt-in: iniciar daqui abre o prontuário direto.
+                          // NÃO está no form Confirmar/Chamar/Chegou acima.
+                          irParaProntuario: "1",
+                          voltar: "/medico/agenda-dia",
+                        }}
+                      >
                         <SubmitButton>Iniciar</SubmitButton>
-                      </form>
+                      </AcaoInline>
                     ) : null}
                     {canChamar ? (
-                      <form
+                      <AcaoInline
                         action={chamarAction}
-                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                        formStyle={{ display: "flex", alignItems: "center", gap: 6 }}
+                        hiddenFields={{
+                          unidade: "medico",
+                          nomeChamado: nomeExibido,
+                          destino: c.profissional.nomeExibicao,
+                          cidadaoId: c.cidadao.id,
+                          consultaId: c.id,
+                          voltar: "/medico/agenda-dia",
+                        }}
                       >
-                        <input type="hidden" name="unidade" value="medico" />
-                        <input type="hidden" name="nomeChamado" value={nomeExibido} />
-                        <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
-                        <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
-                        <input type="hidden" name="consultaId" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
                         <SubmitButton variant="secondary">
                           {chamadaEm ? "Rechamar" : "Chamar"}
                         </SubmitButton>
@@ -551,7 +676,28 @@ export default async function AgendaDiaPage({
                             chamada às {horaCurta(chamadaEm)}
                           </span>
                         ) : null}
-                      </form>
+                      </AcaoInline>
+                    ) : null}
+                    {/* #14 — exceções (Faltou/Reagendar) por último na ordem mental. */}
+                    {podeFaltar ? (
+                      <ConfirmDialog
+                        action={transitionAction}
+                        danger
+                        triggerVariant="secondary"
+                        triggerLabel="Marcar falta"
+                        title="Marcar falta?"
+                        message="Isso afeta o histórico do paciente."
+                        confirmLabel="Marcar falta"
+                        hiddenFields={{ id: c.id, para: "faltou" }}
+                      />
+                    ) : null}
+                    {podeReagendar ? (
+                      <Link
+                        href={`/medico/consultas/${c.id}/reagendar` as Route}
+                        className="btn btn-secondary"
+                      >
+                        Reagendar
+                      </Link>
                     ) : null}
                   </div>
                 </Card>

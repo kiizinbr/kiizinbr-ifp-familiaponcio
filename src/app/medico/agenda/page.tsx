@@ -3,8 +3,10 @@ import Link from "next/link";
 import type { Route } from "next";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
+import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { AgendaTabs } from "../_components/agenda-tabs";
 import { Card } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,6 +29,10 @@ function ymd(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+function horaCurta(d: Date): string {
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 export default async function AgendaSemanalPage({
   searchParams,
 }: {
@@ -35,6 +41,11 @@ export default async function AgendaSemanalPage({
   const session = await auth();
   if (!session) redirect("/medico/login" as Route);
   if (!canAccessUnidade(session, "medico")) redirect("/" as Route);
+
+  // FIX 5 — só quem pode marcar consulta (recepção/gestão/social) recebe o atalho
+  // de slot vazio (?slotId=); pros demais (ex.: profissional) o submit falharia
+  // "Sem permissão", então o slot livre cai no <span> estático.
+  const canMarcar = podeMarcarConsulta(session);
 
   const sp = await searchParams;
   const refDate = sp.semana ? new Date(sp.semana) : new Date();
@@ -116,6 +127,10 @@ export default async function AgendaSemanalPage({
           </form>
         }
       />
+
+      {/* #17 — abas das três visões de agenda. H1 "Agenda semanal" preservado;
+          os filtros ?profissionalId=/?semana= seguem na própria tela. */}
+      <AgendaTabs active="semana" />
 
       {/* Filtros */}
       <form method="get" className="mb-5 flex flex-wrap items-center gap-2">
@@ -304,6 +319,15 @@ export default async function AgendaSemanalPage({
                           {s.profissional.nomeExibicao}
                         </span>
                       </a>
+                    ) : s.status === "disponivel" && canMarcar ? (
+                      <Link
+                        href={`/medico/consultas/nova?slotId=${s.id}` as Route}
+                        title={`Marcar consulta · ${s.profissional.nomeExibicao} · ${s.especialidade.nome} · ${horaCurta(s.dataHoraInicio)}`}
+                        aria-label={`Marcar consulta · ${s.profissional.nomeExibicao} · ${horaCurta(s.dataHoraInicio)}`}
+                        className="block h-full w-full truncate no-underline"
+                      >
+                        {s.profissional.nomeExibicao.split(" ").slice(0, 2).join(" ")}
+                      </Link>
                     ) : (
                       <span
                         title={`${s.profissional.nomeExibicao} · ${s.especialidade.nome} · ${s.status}`}

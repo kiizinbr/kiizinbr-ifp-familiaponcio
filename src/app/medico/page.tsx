@@ -4,15 +4,22 @@ import type { Route } from "next";
 import type { StatusConsulta } from "@prisma/client";
 import { clsx } from "clsx";
 import { auth } from "@/lib/auth";
-import { canAccessUnidade } from "@/lib/rbac";
+import { canAccessUnidade, podeChamar, hasAnyRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
+import { AgendaTabs } from "./_components/agenda-tabs";
 import { KpiCard } from "@/components/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { podeMarcarConsulta } from "@/lib/medico/rbac";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { podeMarcarConsulta, podeTransicionarConsulta } from "@/lib/medico/rbac";
 import { buildJanelaDia, getConsultasHoje } from "@/lib/medico/agenda-dia";
+import { transitionAction } from "./consultas/[id]/actions";
+import { marcarCheckinAction } from "./consultas/[id]/checkin-action";
+import { chamarAction } from "@/app/painel/chamar-actions";
+
+const STATUS_ATIVA = ["agendada", "confirmada"] as const;
 
 const STATUS_EM_FILA = ["agendada", "confirmada", "em_atendimento"] as const;
 
@@ -46,7 +53,7 @@ export default async function MedicoHomePage({
   const horaValida = chamadoHora && /^\d{1,2}:\d{2}$/.test(chamadoHora) ? chamadoHora : null;
   const sucessoMsg =
     chamado && /^[\p{L}\p{M}'-]{1,40}$/u.test(chamado)
-      ? `${chamado} chamado${horaValida ? ` às ${horaValida}` : ""}`
+      ? `Chamada de ${chamado}${horaValida ? ` às ${horaValida}` : ""}`
       : checkin === "ok"
         ? "Check-in registrado"
         : checkin === "desfeito"
@@ -58,7 +65,7 @@ export default async function MedicoHomePage({
   const em7Dias = new Date(inicioDia);
   em7Dias.setDate(em7Dias.getDate() + 7);
 
-  const [consultasHoje, consultas7d, slotsLivresHoje] = await Promise.all([
+  const [consultasHoje, consultas7d, slotsLivresHoje, chamadasHoje] = await Promise.all([
     getConsultasHoje({ agora }),
     db.consulta.count({
       where: {
@@ -69,7 +76,39 @@ export default async function MedicoHomePage({
     db.slot.count({
       where: { status: "disponivel", dataHoraInicio: { gte: agora, lte: fimDia } },
     }),
+    // #6 — chamadas de hoje no painel médico (mesma query leve do board/recepção,
+    // filtro unidade+dia usa o @@index([unidade, criadoEm])): alimenta Chamar → Rechamar.
+    db.chamada.findMany({
+      where: { unidade: "medico", criadoEm: { gte: inicioDia }, consultaId: { not: null } },
+      select: { consultaId: true, criadoEm: true },
+      orderBy: { criadoEm: "asc" },
+    }),
   ]);
+
+  // #6 — mapa consultaId → hora da ÚLTIMA chamada (orderBy asc => o último set vence).
+  const ultimaChamadaPorConsulta = new Map<string, Date>();
+  for (const ch of chamadasHoje) {
+    if (ch.consultaId) ultimaChamadaPorConsulta.set(ch.consultaId, ch.criadoEm);
+  }
+
+  // #6 — gating de AÇÕES (não de acesso): esconde o botão que o papel não pode
+  // disparar. Igual ao board agenda-dia. As actions re-checam no servidor.
+  const canCheckin = podeMarcarConsulta(session);
+  const canChamar = podeChamar(session);
+
+  // #17 — atalho "Só os meus" da barra de abas: aponta a Agenda do dia já filtrada
+  // pelo profissional logado (?profissionalId=, filtro JÁ existente do board). Só
+  // pra quem é profissional; lookup read-only por userId (igual minha-agenda),
+  // sem efeito em RBAC/anti-overbooking.
+  const profissionalLogado = hasAnyRole(session, "profissional")
+    ? await db.profissional.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+    : null;
+  const meusHref = profissionalLogado
+    ? (`/medico/agenda-dia?profissionalId=${profissionalLogado.id}` as Route)
+    : undefined;
 
   const emAndamento = consultasHoje.filter((c) =>
     STATUS_EM_FILA.includes(c.status as (typeof STATUS_EM_FILA)[number]),
@@ -112,11 +151,16 @@ export default async function MedicoHomePage({
         }
       />
 
+      {/* #17 — abas das três visões de agenda (Fila do dia / Agenda do dia /
+          Agenda semanal). Entram ENTRE o header e os KPIs; o H1 "Fila do dia"
+          e o KPI "Na fila" permanecem intactos. */}
+      <AgendaTabs active="fila" meusHref={meusHref} />
+
       {/* QW1 — ack curto da última ação (chamar / check-in), reusando a classe
           .toast.ok do kit (tokens var(--ok), sem cor inventada). Inline (não
           flutuante) logo abaixo do cabeçalho. */}
       {sucessoMsg ? (
-        <div className="toast ok" role="status" style={{ marginBottom: 24, animation: "none" }}>
+        <div className="toast ok" role="status" style={{ marginBottom: 24 }}>
           <div>
             <div className="t-title">{sucessoMsg}</div>
           </div>
@@ -208,12 +252,42 @@ export default async function MedicoHomePage({
                 isNow && durationMin && elapsedMin != null
                   ? Math.max(4, Math.min(100, Math.round((elapsedMin / durationMin) * 100)))
                   : undefined;
+              // #6 — gating por papel POR consulta (igual ao board): a home mostra
+              // TODOS os profissionais, então um profissional não transiciona a
+              // consulta de um colega — esconder evita o "Sem permissão" (500).
+              const nomeExibido = c.cidadao.nomeSocial || c.cidadao.nomeCompleto;
+              const ativa = STATUS_ATIVA.includes(c.status as (typeof STATUS_ATIVA)[number]);
+              const podeConfirmar =
+                c.status === "agendada" &&
+                podeTransicionarConsulta(session, c.status, "confirmada", c.profissional.userId);
+              const podeIniciar =
+                ativa &&
+                podeTransicionarConsulta(
+                  session,
+                  c.status,
+                  "em_atendimento",
+                  c.profissional.userId,
+                );
+              const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
+              // FIX 1 — a home itera TODOS os status, mas o board agenda-dia só
+              // mostra a linha de ações sobre consultas EM FILA (não-terminais).
+              // Espelhar esse recorte aqui: em consulta realizada/faltou/cancelada
+              // a linha (e principalmente o Chamar, que anuncia na TV pública) some.
+              const emFila = STATUS_EM_FILA.includes(c.status as (typeof STATUS_EM_FILA)[number]);
+              const podeChamarConsulta = canChamar && emFila;
+              const temAcao =
+                (canCheckin && ativa && !c.checkinEm) ||
+                podeConfirmar ||
+                podeIniciar ||
+                podeChamarConsulta;
               return (
-                <Link
+                // #6 — o item deixa de ser um <a> externo (não se pode aninhar
+                // <form>/<button> dentro de <a>). Vira <div>; a navegação pro
+                // detalhe migra pro <Link> no nome; as ações são irmãs do nome.
+                <div
                   key={c.id}
-                  href={`/medico/consultas/${c.id}?voltar=/medico` as Route}
                   className={clsx("tl-item", isNow && "live")}
-                  style={{ display: "block", textDecoration: "none", color: "inherit" }}
+                  style={{ display: "block" }}
                 >
                   <div
                     style={{
@@ -228,9 +302,13 @@ export default async function MedicoHomePage({
                         {hora}
                         {durationMin != null && ` · ${durationMin} min`}
                       </span>
-                      <div className="tl-title" style={{ color: "var(--text)" }}>
-                        {c.cidadao.nomeCompleto}
-                      </div>
+                      <Link
+                        href={`/medico/consultas/${c.id}?voltar=/medico` as Route}
+                        className="tl-title"
+                        style={{ color: "var(--text)", textDecoration: "none", display: "block" }}
+                      >
+                        {nomeExibido}
+                      </Link>
                       <span
                         style={{
                           display: "inline-flex",
@@ -305,7 +383,78 @@ export default async function MedicoHomePage({
                       </div>
                     </div>
                   )}
-                </Link>
+
+                  {/* #6 — ações inline (mesmos forms + actions do board agenda-dia,
+                      gated por papel por-consulta). Todos com voltar="/medico". */}
+                  {temAcao ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 6,
+                        flexWrap: "wrap",
+                        marginTop: 8,
+                        alignItems: "center",
+                      }}
+                    >
+                      {canCheckin && ativa && !c.checkinEm ? (
+                        <form action={marcarCheckinAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="voltar" value="/medico" />
+                          <SubmitButton
+                            variant="secondary"
+                            aria-label={`Registrar chegada de ${nomeExibido} às ${hora}`}
+                          >
+                            Chegou
+                          </SubmitButton>
+                        </form>
+                      ) : null}
+                      {podeConfirmar ? (
+                        <form action={transitionAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="para" value="confirmada" />
+                          <SubmitButton
+                            variant="secondary"
+                            aria-label={`Confirmar consulta de ${nomeExibido} às ${hora}`}
+                          >
+                            Confirmar
+                          </SubmitButton>
+                        </form>
+                      ) : null}
+                      {podeIniciar ? (
+                        <form action={transitionAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="para" value="em_atendimento" />
+                          <input type="hidden" name="irParaProntuario" value="1" />
+                          <input type="hidden" name="voltar" value="/medico" />
+                          <SubmitButton
+                            aria-label={`Iniciar atendimento de ${nomeExibido} às ${hora}`}
+                          >
+                            Iniciar
+                          </SubmitButton>
+                        </form>
+                      ) : null}
+                      {podeChamarConsulta ? (
+                        <form
+                          action={chamarAction}
+                          style={{ display: "flex", alignItems: "center", gap: 6 }}
+                        >
+                          <input type="hidden" name="unidade" value="medico" />
+                          <input type="hidden" name="nomeChamado" value={nomeExibido} />
+                          <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
+                          <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
+                          <input type="hidden" name="consultaId" value={c.id} />
+                          <input type="hidden" name="voltar" value="/medico" />
+                          <SubmitButton
+                            variant="secondary"
+                            aria-label={`${chamadaEm ? "Rechamar" : "Chamar"} ${nomeExibido}`}
+                          >
+                            {chamadaEm ? "Rechamar" : "Chamar"}
+                          </SubmitButton>
+                        </form>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
               );
             })}
           </div>

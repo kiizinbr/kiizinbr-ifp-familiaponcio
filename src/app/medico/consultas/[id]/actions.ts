@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 import type { StatusConsulta } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -47,6 +49,29 @@ export async function transitionAction(formData: FormData) {
     await logEvent({ userId: session.user.id, action, meta: { consultaId: id } });
   }
   revalidatePath(`/medico/consultas/${id}`);
+  // Marcar 'faltou'/'confirmada' pela FILA muda o card que vive na agenda-dia e na
+  // recepção — revalida essas rotas (como checkin-action/chamarAction) pro card
+  // sumir/atualizar na hora, não só no refresh de 30s. Regra de transição intacta.
+  revalidatePath("/medico/agenda-dia");
+  revalidatePath("/medico/recepcao");
+
+  // #12 — "Iniciar" das telas de FILA (minha-fila/agenda-dia) leva direto ao
+  // prontuário. Redirect CONDICIONAL a DOIS gatilhos (opt-in): (1) está
+  // INICIANDO o atendimento e (2) o form enviou o hidden `irParaProntuario=1`.
+  // O "Iniciar" da PRÓPRIA tela de detalhe NÃO envia o hidden (o médico já está
+  // no prontuário) e Confirmar/Marcar falta nunca usam em_atendimento → todos
+  // mantêm o comportamento atual (só revalidate). Vem por ÚLTIMO, após a
+  // transição + audit + revalidate (redirect lança internamente no Next).
+  // Propaga ?voltar (mesmo guard anti-open-redirect da checkin-action) pro
+  // "← Voltar" no topo do prontuário cair na fila de origem.
+  if (para === "em_atendimento" && String(formData.get("irParaProntuario")) === "1") {
+    const rawVoltar = String(formData.get("voltar") || "");
+    const voltar = /^\/(?![/\\])/.test(rawVoltar) ? rawVoltar : null;
+    const destino = voltar
+      ? `/medico/consultas/${id}?voltar=${encodeURIComponent(voltar)}`
+      : `/medico/consultas/${id}`;
+    redirect(destino as Route);
+  }
 }
 
 export async function cancelAction(formData: FormData) {
