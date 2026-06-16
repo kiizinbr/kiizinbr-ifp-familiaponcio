@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import type { Route } from "next";
 import clsx from "clsx";
 import { Badge } from "@/components/ui/badge";
 import styles from "../capacitacao.module.css";
@@ -15,21 +17,42 @@ export function KitBadge({ variant, children }: { variant: KitVariant; children:
   return <Badge variant={variant}>{children}</Badge>;
 }
 
+/**
+ * Cabeçalho de página da Capacitação. O `eyebrow` é uma trilha "Seção · Contexto".
+ *
+ * C10 (mini-breadcrumb): passando `eyebrowHref`, o PRIMEIRO segmento (antes do
+ * primeiro "·") vira um Link de volta (ex "Capacitação" → /capacitacao) e o resto
+ * fica como contexto não-clicável. ADITIVO: sem `eyebrowHref` o eyebrow continua
+ * sendo texto plano, então os call-sites antigos que passam só `eyebrow` não mudam.
+ */
 export function PageHead({
   eyebrow,
+  eyebrowHref,
   title,
   desc,
   action,
 }: {
   eyebrow: string;
+  eyebrowHref?: Route | string;
   title: string;
   desc?: string;
   action?: ReactNode;
 }) {
+  const [primeiro, ...resto] = eyebrow.split("·").map((s) => s.trim());
+  const contexto = resto.join(" · ");
   return (
     <div className="page-head">
       <div>
-        <p className="micro text-accent">{eyebrow}</p>
+        {eyebrowHref ? (
+          <p className="micro text-accent">
+            <Link href={eyebrowHref as Route} className={styles.crumbLink}>
+              {primeiro}
+            </Link>
+            {contexto ? <span className={styles.crumbSep}> · {contexto}</span> : null}
+          </p>
+        ) : (
+          <p className="micro text-accent">{eyebrow}</p>
+        )}
         <h1 className="t-h1">{title}</h1>
         {desc ? <p className="ph-sub">{desc}</p> : null}
       </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
-import type { StatusMatricula } from "@prisma/client";
+import type { StatusMatricula, StatusTurma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { qrDataUrl } from "@/lib/pdf/qr";
 import { canAccessUnidade } from "@/lib/rbac";
@@ -39,10 +39,34 @@ import { CertificadoCelebracao } from "./certificado-celebracao";
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
 
+// C8 — VERBO da AÇÃO de transicionar PARA aquele estado (os botões disparam a
+// transição; antes mostravam o NOME DO ESTADO-ALVO, ex "Concluída", que lê como
+// rótulo e não como ação). Os BADGES continuam usando STATUS_TURMA_VISUAL /
+// MATRICULA_VISUAL (labels de ESTADO) — não confundir badge(estado) com
+// botão(verbo). Fallback ao label de estado quando o verbo não existe no mapa.
+const VERBO_TURMA: Partial<Record<StatusTurma, string>> = {
+  inscricoes_abertas: "Abrir inscrições",
+  em_andamento: "Iniciar turma",
+  concluida: "Concluir turma",
+  cancelada: "Cancelar turma",
+};
+const VERBO_MATRICULA: Partial<Record<StatusMatricula, string>> = {
+  inscrito: "Reabrir",
+  confirmado: "Confirmar",
+  cursando: "Iniciar curso",
+  concluido: "Concluir",
+  reprovado: "Reprovar",
+  desistente: "Marcar desistência",
+  cancelado: "Cancelar matrícula",
+};
+
 const ERROS: Record<string, string> = {
   duplicada: "Esse cidadão já tem matrícula ativa nesta turma.",
   transicao: "Não foi possível mudar o status dessa matrícula.",
+  // C8 — duas causas distintas (antes juntas em "promocao", mantida por compat):
   promocao: "Não há ninguém na lista de espera ou a turma está lotada.",
+  espera_vazia: "Não há ninguém na lista de espera para promover.",
+  turma_lotada: "A turma está lotada — finalize ou libere uma vaga antes de promover.",
   status: "Não foi possível mudar o status da turma.",
   presenca: "Não foi possível registrar a presença (data inválida).",
   cert: "Não foi possível emitir o certificado.",
@@ -64,6 +88,8 @@ export default async function TurmaDetalhePage({
     cert?: string;
     vaga_liberada?: string;
     turma_concluida?: string;
+    matricula?: string;
+    status?: string;
   }>;
 }) {
   const session = await auth();
@@ -71,7 +97,8 @@ export default async function TurmaDetalhePage({
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const { id } = await params;
-  const { erro, presenca, cert, vaga_liberada, turma_concluida } = await searchParams;
+  const { erro, presenca, cert, vaga_liberada, turma_concluida, matricula, status } =
+    await searchParams;
 
   const turma = await db.turma.findUnique({
     where: { id },
@@ -170,6 +197,7 @@ export default async function TurmaDetalhePage({
       <div className={styles.root}>
         <PageHead
           eyebrow={`Capacitação · ${turma.curso.area}`}
+          eyebrowHref="/capacitacao"
           title={turma.curso.nome}
           desc={`Turma ${turma.codigo} · ${fmt.format(turma.dataInicio)} a ${fmt.format(turma.dataFim)}${
             turma.local ? ` · ${turma.local}` : ""
@@ -189,6 +217,13 @@ export default async function TurmaDetalhePage({
         {presenca === "ok" ? (
           <div role="status" className={styles.alert}>
             Presença do dia registrada.
+          </div>
+        ) : null}
+        {matricula === "ok" ? (
+          <div role="status" className={styles.alert}>
+            {status === "lista_espera"
+              ? "Turma lotada — cidadão entrou na lista de espera."
+              : "Cidadão matriculado na turma."}
           </div>
         ) : null}
         {turma_concluida ? (
@@ -234,7 +269,7 @@ export default async function TurmaDetalhePage({
                           size="sm"
                           pendingLabel="Mudando status da turma…"
                         >
-                          {STATUS_TURMA_VISUAL[st].label}
+                          {VERBO_TURMA[st] ?? STATUS_TURMA_VISUAL[st].label}
                         </SubmitButton>
                       </form>
                     ))}
@@ -323,17 +358,21 @@ export default async function TurmaDetalhePage({
                         {alvos.length > 0 ? (
                           <div className={styles.rowRight}>
                             <div className={styles.btnRow}>
-                              {alvos.map((a) =>
-                                NEGATIVAS.has(a) ? (
+                              {alvos.map((a) => {
+                                // C8 — o botão mostra o VERBO da ação; o estado-alvo
+                                // (MATRICULA_VISUAL[a].label) só aparece no aviso de
+                                // confirmação, onde nomear o estado resultante ajuda.
+                                const verbo = VERBO_MATRICULA[a] ?? MATRICULA_VISUAL[a].label;
+                                return NEGATIVAS.has(a) ? (
                                   <ConfirmDialog
                                     key={a}
                                     action={transicionarMatriculaAction}
                                     danger
                                     triggerSize="sm"
-                                    title={`${MATRICULA_VISUAL[a].label}: ${nome(m.cidadao)}`}
+                                    title={`${verbo}: ${nome(m.cidadao)}`}
                                     message={`Confirmar mudança da matrícula para "${MATRICULA_VISUAL[a].label}"? Isso afeta o histórico do aluno.`}
-                                    confirmLabel={MATRICULA_VISUAL[a].label}
-                                    triggerLabel={MATRICULA_VISUAL[a].label}
+                                    confirmLabel={verbo}
+                                    triggerLabel={verbo}
                                     hiddenFields={{
                                       matriculaId: m.id,
                                       turmaId: turma.id,
@@ -350,11 +389,11 @@ export default async function TurmaDetalhePage({
                                       size="sm"
                                       pendingLabel="Mudando status da matrícula…"
                                     >
-                                      {MATRICULA_VISUAL[a].label}
+                                      {verbo}
                                     </SubmitButton>
                                   </form>
-                                ),
-                              )}
+                                );
+                              })}
                             </div>
                           </div>
                         ) : null}

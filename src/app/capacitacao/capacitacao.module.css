@@ -170,6 +170,7 @@ a.row:hover {
 
 /* ===== course card ===== */
 .course {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -313,6 +314,51 @@ a.row:hover {
   align-items: center;
 }
 
+/* ===== combobox de matrícula (a11y) =====
+   Espelha .cidListbox/.cidOption/.cidOptionAtiva do prontuario.module.css
+   (médico/CID-10): listbox flutuante, opção ≥44px de alvo de toque, estado ativo
+   por aria-activedescendant (foco DOM fica no input). Cor/raio saem de tokens. */
+.comboWrap {
+  position: relative;
+}
+.comboListbox {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 60; /* acima dos cards do grid */
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  max-height: 240px;
+  overflow: auto;
+}
+.comboOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.comboOption:hover {
+  background: var(--surface-sunken);
+}
+/* Sem :focus-visible nas options: o padrão é aria-activedescendant (o foco DOM
+   fica no input). O estado ativo real é .comboOptionAtiva. */
+.comboOptionAtiva,
+.comboOptionAtiva:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 /* ===== vagas meter ===== */
 .meter {
   height: 8px;
@@ -337,6 +383,98 @@ a.row:hover {
 }
 .meterText b {
   color: var(--text);
+}
+
+/* ===== mini-breadcrumb no eyebrow (C10) =====
+   O 1º segmento do eyebrow vira Link de volta; o contexto fica muted. Herda a
+   cor de acento do `.micro.text-accent`; só o contexto desbota pra var(--text-3). */
+.crumbLink {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.12s;
+}
+.crumbLink:hover {
+  border-bottom-color: currentColor;
+}
+.crumbSep {
+  color: var(--text-3);
+}
+
+/* ===== destaque de hover na linha de turma (C9) =====
+   O nome do curso é o ÚNICO Link da linha (1 só nome acessível — o e2e clica
+   "Informática Básica"). NÃO há overlay ::after esticado sobre a <tr>:
+   `position: relative` numa <tr>/<td> NÃO estabelece containing block de forma
+   confiável entre engines (só o Chromium respeita), então um ::after com
+   `inset: 0` poderia esticar até o ancestral posicionado mais próximo e capturar
+   cliques muito além da linha. O kit prefere o link direto na célula a inventar
+   overlay sobre <tr>. O hover na <tr> (background) é confiável cross-engine. */
+.rowLink:hover {
+  background: var(--surface-2);
+}
+/* O Link do nome do curso ocupa toda a largura da 1ª célula → alvo de clique
+   amplo e confiável, sem depender de containing block na <tr>. */
+.rowLinkName {
+  display: inline-block;
+}
+.vagasLotada {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* ===== busca/filtro de listas (C9) =====
+   Barra de busca + chips de filtro com estado na URL. Cor/raio de tokens; o chip
+   ativo usa o acento da unidade (var(--accent-soft)/var(--accent)) como o
+   .comboOptionAtiva. Sem cor inventada. */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.filterBar .input {
+  flex: 1;
+  min-width: 200px;
+}
+.chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.chip:hover {
+  background: var(--surface-2);
+}
+.chipAtivo,
+.chipAtivo:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+/* Badge "Inativo" no card de curso (C9): canto sup. direito, não empurra o layout. */
+.courseBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
 }
 
 /* ===== misc ===== */

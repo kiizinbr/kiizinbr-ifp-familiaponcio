@@ -20,7 +20,11 @@ export function capacitacaoNavItems(session: Session): NavItem[] {
   if (podeCriarTurma(session)) {
     items.push({ label: "Instrutores", href: "/capacitacao/instrutores" });
   }
-  items.push({ label: "Cidadãos", href: "/app/cidadaos" });
+  // "Cidadãos" leva à área GLOBAL (/app/cidadaos), fora do shell da Capacitação.
+  // O destino é contrato de nav (não muda); o "↗" sinaliza que é uma saída pro app
+  // geral, e o retorno fica óbvio pelo mini-breadcrumb do eyebrow ("Capacitação" →
+  // /capacitacao) nas telas da unidade.
+  items.push({ label: "Cidadãos ↗", href: "/app/cidadaos" });
   const config = configuracoesNavItem(session);
   if (config) items.push(config);
   return items;

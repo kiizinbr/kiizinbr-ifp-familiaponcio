@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
+import { Prisma } from "@prisma/client";
+import type { StatusMatricula } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { canAccessUnidade } from "@/lib/rbac";
@@ -86,7 +88,7 @@ export async function criarCursoAction(formData: FormData) {
     entityId: curso.id,
     meta: { nome: curso.nome },
   });
-  redirect("/capacitacao/cursos" as Route);
+  redirect("/capacitacao/cursos?criado=1" as Route);
 }
 
 export async function criarTurmaAction(formData: FormData) {
@@ -95,17 +97,41 @@ export async function criarTurmaAction(formData: FormData) {
   if (!podeCriarTurma(session)) throw new Error("Sem permissão");
   const cursoId = s(formData, "cursoId");
   const curso = await db.curso.findUniqueOrThrow({ where: { id: cursoId } });
-  const turma = await db.turma.create({
-    data: {
-      cursoId,
-      codigo: s(formData, "codigo"),
-      dataInicio: new Date(s(formData, "dataInicio")),
-      dataFim: new Date(s(formData, "dataFim")),
-      local: sOpt(formData, "local"),
-      capacidade: num(formData, "capacidade", curso.capacidadePadrao),
-      instrutorId: sOpt(formData, "instrutorId"),
-    },
-  });
+  let turma;
+  try {
+    turma = await db.turma.create({
+      data: {
+        cursoId,
+        codigo: s(formData, "codigo"),
+        dataInicio: new Date(s(formData, "dataInicio")),
+        dataFim: new Date(s(formData, "dataFim")),
+        local: sOpt(formData, "local"),
+        capacidade: num(formData, "capacidade", curso.capacidadePadrao),
+        instrutorId: sOpt(formData, "instrutorId"),
+      },
+    });
+  } catch (e) {
+    // Código de turma duplicado (unicidade do schema, INTOCADA): em vez de subir
+    // pra error boundary e perder o form, volta pro form com feedback inline e os
+    // valores digitados (campos NÃO-PII: curso/código/datas/local/capacidade/instrutor).
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const qs = new URLSearchParams({ erro: "codigo_duplicado" });
+      for (const k of [
+        "cursoId",
+        "codigo",
+        "dataInicio",
+        "dataFim",
+        "local",
+        "capacidade",
+        "instrutorId",
+      ]) {
+        const v = s(formData, k);
+        if (v) qs.set(k, v);
+      }
+      redirect(`/capacitacao/turmas/nova?${qs.toString()}` as Route);
+    }
+    throw e;
+  }
   await logEvent({
     userId: session!.user.id,
     action: "turma_criada",
@@ -122,8 +148,12 @@ export async function matricularAction(formData: FormData) {
   if (!podeMatricular(session)) throw new Error("Sem permissão");
   const turmaId = s(formData, "turmaId");
   const cidadaoId = s(formData, "cidadaoId");
+  // Captura o status pro feedback pós-ação (a tela não dizia se entrou na turma
+  // ou na lista de espera). FIFO/lock dentro de matricular() ficam INTOCADOS.
+  let statusMatricula: StatusMatricula;
   try {
     const m = await matricular({ turmaId, cidadaoId, createdBy: session!.user.id });
+    statusMatricula = m.status;
     await logEvent({
       userId: session!.user.id,
       action: "matricula_criada",
@@ -139,7 +169,7 @@ export async function matricularAction(formData: FormData) {
     }
     throw e;
   }
-  redirect(`/capacitacao/turmas/${turmaId}` as Route);
+  redirect(`/capacitacao/turmas/${turmaId}?matricula=ok&status=${statusMatricula}` as Route);
 }
 
 export async function transicionarMatriculaAction(formData: FormData) {
@@ -207,8 +237,14 @@ export async function promoverListaEsperaAction(formData: FormData) {
       meta: { turmaId },
     });
   } catch (e) {
-    if (e instanceof ListaEsperaVaziaError || e instanceof TurmaLotadaError) {
-      redirect(`/capacitacao/turmas/${turmaId}?erro=promocao` as Route);
+    // C8 — separa as DUAS causas que antes caíam no mesmo `?erro=promocao`
+    // ("ninguém na espera" vs "turma lotada"), pra o usuário saber o que fazer.
+    // Lógica FIFO/lock de promoverDaListaEspera INTOCADA — só o feedback muda.
+    if (e instanceof ListaEsperaVaziaError) {
+      redirect(`/capacitacao/turmas/${turmaId}?erro=espera_vazia` as Route);
+    }
+    if (e instanceof TurmaLotadaError) {
+      redirect(`/capacitacao/turmas/${turmaId}?erro=turma_lotada` as Route);
     }
     throw e;
   }
