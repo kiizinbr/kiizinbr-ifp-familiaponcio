@@ -80,7 +80,10 @@ export type AuditAction =
   // Educacional / creche (Fase A — check-in/out)
   | "check_in_registrado"
   | "check_out_registrado"
-  | "check_tentativa_bloqueada";
+  | "check_tentativa_bloqueada"
+  // Educacional / creche (Fase A — diário + selo)
+  | "rotina_registrada"
+  | "diario_fechado";
 
 interface LogEventArgs {
   userId?: string | null;
