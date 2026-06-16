@@ -39,6 +39,7 @@ export default async function MinhasTurmasPage() {
     <CapacitacaoShell session={session}>
       <PageHead
         eyebrow="Capacitação · Instrutor"
+        eyebrowHref="/capacitacao"
         title="Minhas turmas"
         desc={
           instrutor

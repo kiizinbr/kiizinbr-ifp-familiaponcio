@@ -20,7 +20,7 @@ export function StagingBanner() {
         zIndex: 100,
       }}
     >
-      ⚠ STAGING · DADOS DE DEMONSTRAÇÃO — não usar com dados reais de paciente
+      ⚠ STAGING · DADOS DE DEMONSTRAÇÃO — não usar com dados reais
     </div>
   );
 }

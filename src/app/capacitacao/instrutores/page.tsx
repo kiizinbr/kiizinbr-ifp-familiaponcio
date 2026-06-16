@@ -45,6 +45,7 @@ export default async function InstrutoresPage({
     <CapacitacaoShell session={session}>
       <PageHead
         eyebrow="Capacitação · Equipe"
+        eyebrowHref="/capacitacao"
         title="Instrutores"
         desc="Quem ministra as turmas. Vincule um login (papel profissional·capacitação) pra o instrutor marcar presença das próprias turmas."
       />

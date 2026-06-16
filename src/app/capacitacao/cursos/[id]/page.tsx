@@ -46,6 +46,7 @@ export default async function CursoDetalhePage({ params }: { params: Promise<{ i
     <CapacitacaoShell session={session}>
       <PageHead
         eyebrow={`Capacitação · ${curso.area}`}
+        eyebrowHref="/capacitacao"
         title={curso.nome}
         desc={curso.descricao ?? undefined}
         action={
