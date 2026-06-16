@@ -8,8 +8,8 @@ import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { formatCpf } from "@/lib/cpf";
 import { reservarConsultaAction, criarSlotAdHocAction, atenderAgoraAction } from "./actions";
+import { BuscaCidadaoStep } from "./busca-cidadao-step";
 
 const INPUT_CLS = "rounded-[var(--r-md)] border px-2 py-1.5 text-sm";
 const INPUT_STYLE = {
@@ -90,79 +90,18 @@ export default async function NovaConsultaPage({
     }
   }
 
-  // ---- Step 1: buscar cidadão ----
+  // ---- Step 1: buscar cidadão (ou cadastrar novo) ----
+  // Busca incremental + "Novo paciente" vivem num client component (espelha o
+  // combobox da capacitação): chama buscarCidadaosAction/criarCidadaoAction e
+  // navega o wizard pra ?cidadaoId=<id>. A regra de filtro mora em
+  // src/lib/medico/busca-cidadao (testada, sem o LIKE '%%' quebrado).
   if (!sp.cidadaoId) {
-    // CPF só entra no OR se a query tiver dígitos: senão `contains: ""` vira
-    // LIKE '%%' e casa TODOS os registros, quebrando a busca por nome.
-    const digits = sp.q?.replace(/\D/g, "") ?? "";
-    const matches = sp.q
-      ? await db.cidadao.findMany({
-          where: {
-            deletedAt: null, // soft-delete real (NÃO existe status "deletado")
-            OR: [
-              { nomeCompleto: { contains: sp.q, mode: "insensitive" } },
-              { telefonePrincipal: { contains: sp.q } },
-              ...(digits ? [{ cpf: { contains: digits } }] : []),
-            ],
-          },
-          take: 8,
-          orderBy: { nomeCompleto: "asc" },
-        })
-      : [];
-
     return (
       <MedicoShell session={session}>
         <MedicoHeader eyebrow="Nova consulta" titulo="Marcar consulta" />
         <Stepper current={1} />
         <Card accent="medico" className="max-w-2xl">
-          <p className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>
-            Quem será atendido?
-          </p>
-          <form method="get" className="flex gap-2">
-            <input
-              name="q"
-              defaultValue={sp.q ?? ""}
-              autoFocus
-              placeholder="Buscar por nome, CPF ou telefone"
-              className="input"
-            />
-            <button type="submit" className="btn btn-primary shrink-0">
-              Buscar
-            </button>
-          </form>
-
-          {sp.q && matches.length === 0 && (
-            <p className="mt-4 text-sm" style={{ color: "var(--text-3)" }}>
-              Ninguém encontrado para “{sp.q}”.{" "}
-              <Link
-                href={"/app/cidadaos/novo" as Route}
-                className="underline"
-                style={{ color: "var(--accent)" }}
-              >
-                Cadastrar novo cidadão
-              </Link>
-            </p>
-          )}
-
-          {matches.length > 0 && (
-            <ul className="mt-4 divide-y" style={{ borderColor: "var(--line)" }}>
-              {matches.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/medico/consultas/nova?cidadaoId=${c.id}` as Route}
-                    className="flex items-center justify-between gap-3 py-3 transition hover:bg-[var(--surface-2)]"
-                  >
-                    <span className="font-medium" style={{ color: "var(--text)" }}>
-                      {c.nomeCompleto}
-                    </span>
-                    <span className="mono text-xs" style={{ color: "var(--text-3)" }}>
-                      {formatCpf(c.cpf)} · {c.telefonePrincipal}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <BuscaCidadaoStep queryInicial={sp.q ?? ""} />
         </Card>
       </MedicoShell>
     );

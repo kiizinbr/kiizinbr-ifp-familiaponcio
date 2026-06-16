@@ -13,6 +13,14 @@ import {
 import { reservarConsultaSchema, criarSlotAdHocSchema } from "@/lib/medico/agenda-schema";
 import { podeMarcarConsulta } from "@/lib/medico/rbac";
 import { logEvent } from "@/lib/audit";
+import { db } from "@/lib/db";
+import { buscaCidadaoValida, buildBuscaCidadaoWhere } from "@/lib/medico/busca-cidadao";
+import {
+  novoPacienteSchema,
+  novoPacienteParaCidadaoInput,
+  type NovoPacienteInput,
+} from "@/lib/medico/novo-paciente-schema";
+import { createCidadaoAction, type CreateCidadaoResult } from "@/app/app/cidadaos/novo/actions";
 
 export async function reservarConsultaAction(formData: FormData) {
   const session = await auth();
@@ -131,6 +139,60 @@ export async function criarSlotAdHocAction(formData: FormData) {
   }
 
   await executarAdHoc(session!.user.id, parsed.data);
+}
+
+/**
+ * Busca incremental de cidadão no passo 1 do wizard (server-side). Espelha o
+ * padrão da capacitação (buscarCandidatosAction): REUSA buildBuscaCidadaoWhere
+ * (índices trigram + escopo do médico, sem o LIKE '%%' quebrado), exclui
+ * deletados/anonimizados e devolve no máx. 8 resultados. Sem efeito colateral.
+ */
+export async function buscarCidadaosAction(
+  query: string,
+): Promise<{ id: string; nome: string; cpf: string; telefone: string }[]> {
+  const session = await auth();
+  if (!canAccessUnidade(session, "medico") || !podeMarcarConsulta(session)) return [];
+  if (!buscaCidadaoValida(query)) return [];
+
+  const cidadaos = await db.cidadao.findMany({
+    where: buildBuscaCidadaoWhere(query),
+    orderBy: { nomeCompleto: "asc" },
+    take: 8,
+    select: { id: true, nomeCompleto: true, nomeSocial: true, cpf: true, telefonePrincipal: true },
+  });
+  return cidadaos.map((c) => ({
+    id: c.id,
+    nome: c.nomeSocial?.trim() ? c.nomeSocial : c.nomeCompleto,
+    cpf: c.cpf ?? "",
+    telefone: c.telefonePrincipal ?? "",
+  }));
+}
+
+/**
+ * Cria um cidadão a partir do form mínimo de "Novo paciente" do wizard, quando a
+ * ficha ainda não existe. NÃO duplica regra: valida o subconjunto com
+ * novoPacienteSchema, mapeia pro CidadaoCreateInput (unitIdOrigem=medico) e delega
+ * pra createCidadaoAction — que faz RBAC, CPF duplicado, persistência e logEvent
+ * (ficha_created). Devolve o resultado pro wizard seguir com esse cidadão.
+ */
+export async function criarCidadaoAction(input: NovoPacienteInput): Promise<CreateCidadaoResult> {
+  const session = await auth();
+  if (!canAccessUnidade(session, "medico") || !podeMarcarConsulta(session)) {
+    return { ok: false, errors: {}, message: "Sem permissão" };
+  }
+
+  const parsed = novoPacienteSchema.safeParse(input);
+  if (!parsed.success) {
+    const errors: Record<string, string[]> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      errors[key] = errors[key] ?? [];
+      errors[key].push(issue.message);
+    }
+    return { ok: false, errors };
+  }
+
+  return createCidadaoAction(novoPacienteParaCidadaoInput(parsed.data));
 }
 
 /** Walk-in / ordem de chegada: encaixe imediato (dataHoraInicio = agora, 30 min). */
