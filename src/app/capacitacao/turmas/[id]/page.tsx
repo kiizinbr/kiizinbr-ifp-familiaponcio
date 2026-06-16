@@ -9,7 +9,7 @@ import { CapacitacaoShell } from "@/components/capacitacao/capacitacao-shell";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MATRICULA_VISUAL, STATUS_TURMA_VISUAL } from "@/lib/capacitacao/ui";
 import { TRANSICOES_MATRICULA, STATUS_OCUPA_VAGA } from "@/lib/capacitacao/matricula";
-import { proximosStatusTurma } from "@/lib/capacitacao/turma";
+import { podeEditarTurma, proximosStatusTurma } from "@/lib/capacitacao/turma";
 import { avaliarRiscoEvasao } from "@/lib/capacitacao/evasao";
 import {
   podeCriarTurma,
@@ -27,6 +27,7 @@ import styles from "../../capacitacao.module.css";
 import { MatricularCombobox } from "./matricular-combobox";
 import { PresencaCard } from "./presenca-card";
 import { CertificadoControl } from "./certificado-control";
+import { EditarTurmaPanel } from "./editar-turma-panel";
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const NEGATIVAS = new Set<StatusMatricula>(["cancelado", "reprovado", "desistente"]);
@@ -39,6 +40,8 @@ const ERROS: Record<string, string> = {
   presenca: "Não foi possível registrar a presença (data inválida).",
   cert: "Não foi possível emitir o certificado.",
   cert_inelegivel: "Sem certificado: matrícula não concluída ou frequência abaixo de 80%.",
+  edicao: "Não foi possível salvar (dados inválidos).",
+  edicao_status: "A turma não pode mais ser editada neste status.",
 };
 
 function nome(c: { nomeCompleto: string; nomeSocial: string | null }): string {
@@ -50,14 +53,19 @@ export default async function TurmaDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string; presenca?: string; cert?: string }>;
+  searchParams: Promise<{
+    erro?: string;
+    presenca?: string;
+    cert?: string;
+    edicao?: string;
+  }>;
 }) {
   const session = await auth();
   if (!session) redirect("/capacitacao/login" as Route);
   if (!canAccessUnidade(session, "capacitacao")) redirect("/" as Route);
 
   const { id } = await params;
-  const { erro, presenca, cert } = await searchParams;
+  const { erro, presenca, cert, edicao } = await searchParams;
 
   const turma = await db.turma.findUnique({
     where: { id },
@@ -120,6 +128,7 @@ export default async function TurmaDetalhePage({
           <div className={`${styles.alert} ${styles.alertError}`}>{ERROS[erro]}</div>
         ) : null}
         {presenca === "ok" ? <div className={styles.alert}>Presença do dia registrada.</div> : null}
+        {edicao === "ok" ? <div className={styles.alert}>Turma atualizada.</div> : null}
         {cert ? (
           <div className={styles.alert}>
             Certificado emitido —{" "}
@@ -183,6 +192,16 @@ export default async function TurmaDetalhePage({
                   <MatricularCombobox turmaId={turma.id} />
                 </div>
               </div>
+            ) : null}
+
+            {podeGerir && podeEditarTurma(turma.status) ? (
+              <EditarTurmaPanel
+                turmaId={turma.id}
+                dataInicio={turma.dataInicio}
+                dataFim={turma.dataFim}
+                local={turma.local}
+                capacidade={turma.capacidade}
+              />
             ) : null}
           </div>
 
