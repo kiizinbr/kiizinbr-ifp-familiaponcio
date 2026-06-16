@@ -53,9 +53,13 @@ describe("parseSoap — detecção de modo", () => {
   it("preâmbulo antes do 1º marcador → anexado ao Subjetivo (nunca se perde)", () => {
     // ≥2 marcadores → SOAP pela heurística endurecida; o preâmbulo antes do 1º
     // cabeçalho vai pro Subjetivo e nunca se perde.
-    const texto = ["Anotação solta no topo", "## Objetivo", "exame normal", "## Plano", "repouso"].join(
-      "\n",
-    );
+    const texto = [
+      "Anotação solta no topo",
+      "## Objetivo",
+      "exame normal",
+      "## Plano",
+      "repouso",
+    ].join("\n");
     const r = parseSoap(texto);
     expect(r.modo).toBe("soap");
     expect(r.s).toBe("Anotação solta no topo");
