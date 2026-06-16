@@ -167,6 +167,13 @@ export default async function ConsultaDetalhePage({
     });
   const nota: Awaited<ReturnType<typeof carregarNota>> = podeVer ? await carregarNota() : null;
 
+  // Pré-preenche o CID do atestado a partir do diagnóstico principal da nota
+  // (fallback: primeiro diagnóstico). Usa SÓ o código CID — a descrição livre não
+  // é um CID e não pode vazar pro campo "CID" do atestado. Sem código → "" (campo
+  // vazio, o médico digita). Input não-controlado: o médico edita/apaga normalmente.
+  const diagAtestado = nota?.diagnosticos.find((d) => d.principal) ?? nota?.diagnosticos[0] ?? null;
+  const cidPrincipal = diagAtestado?.codigoCid || "";
+
   const [especialidadesAtivas, encaminhamentos, receitas, atestados] = await Promise.all([
     db.especialidade.findMany({
       where: { ativa: true },
@@ -1010,6 +1017,7 @@ export default async function ConsultaDetalhePage({
                         <input
                           className={styles.docInput}
                           name="cid"
+                          defaultValue={cidPrincipal}
                           placeholder="CID (opcional)"
                         />
                       </div>

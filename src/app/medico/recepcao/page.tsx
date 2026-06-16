@@ -180,121 +180,134 @@ export default async function RecepcaoPage({
         />
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
-          {consultas.map((c) => {
-            const hora = c.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-            const visual = CONSULTA_VISUAL[c.status];
-            const espera =
-              c.checkinEm && c.status !== "em_atendimento"
-                ? Math.max(0, Math.floor((agora.getTime() - c.checkinEm.getTime()) / 60000))
-                : null;
-            const ativa = c.status === "agendada" || c.status === "confirmada";
-            const podeConfirmar = c.status === "agendada";
-            // QW5 — só oferece desfazer enquanto o paciente está marcado como "chegou"
-            // e o atendimento ainda NÃO começou (espelha o guard de `espera`).
-            const podeDesfazerChegada = !!c.checkinEm && c.status !== "em_atendimento";
-            // QW1 — Chamar -> Rechamar quando já houve chamada desta consulta hoje
-            // (derivado do model Chamada por consultaId; só troca de TEXTO).
-            const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
-            return (
-              <Card key={c.id}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 12,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <span className="mono" style={{ fontWeight: 700, color: "var(--text)" }}>
-                      {hora}
-                    </span>{" "}
-                    <Link
-                      href={`/medico/consultas/${c.id}?voltar=/medico/recepcao` as Route}
-                      style={{ color: "var(--text)", fontWeight: 600 }}
-                    >
-                      {c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
-                    </Link>
-                    <span style={{ color: "var(--text-3)", fontSize: 12 }}>
-                      {" "}
-                      · {c.especialidade.nome} · {c.profissional.nomeExibicao}
-                    </span>
-                    {espera != null ? (
-                      <span style={{ color: "var(--accent)", fontSize: 12, fontWeight: 600 }}>
-                        {" "}
-                        · ✓ esperando {espera} min
-                      </span>
-                    ) : null}
-                  </div>
-                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                    <Badge variant={visual.variant}>{visual.label}</Badge>
-                    {ativa && !c.checkinEm ? (
-                      <form action={marcarCheckinAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/recepcao" />
-                        <SubmitButton variant="secondary">Chegou</SubmitButton>
-                      </form>
-                    ) : null}
-                    {podeDesfazerChegada ? (
-                      <form action={desfazerCheckinAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/recepcao" />
-                        <SubmitButton variant="ghost" pendingLabel="Desfazendo…">
-                          Desfazer chegada
-                        </SubmitButton>
-                      </form>
-                    ) : null}
-                    {podeConfirmar ? (
-                      <form action={transitionAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="para" value="confirmada" />
-                        <SubmitButton variant="secondary">Confirmar</SubmitButton>
-                      </form>
-                    ) : null}
-                    {STATUS_REAGENDAVEL.has(c.status) ? (
+          {/* #11 — prioriza quem CHEGOU/está esperando no topo, depois por horário.
+              Lógica portada do sort do board (agenda-dia). NÃO muta `consultas`
+              (copia com [...]); `getConsultasHoje` já vem asc por horário, então o
+              desempate por horário se mantém — só elevamos quem está esperando. */}
+          {[...consultas]
+            .sort((a, b) => {
+              const chegouA = !!a.checkinEm && a.status !== "em_atendimento";
+              const chegouB = !!b.checkinEm && b.status !== "em_atendimento";
+              if (chegouA !== chegouB) return chegouA ? -1 : 1;
+              return a.slot.dataHoraInicio.getTime() - b.slot.dataHoraInicio.getTime();
+            })
+            .map((c) => {
+              const hora = c.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const visual = CONSULTA_VISUAL[c.status];
+              const espera =
+                c.checkinEm && c.status !== "em_atendimento"
+                  ? Math.max(0, Math.floor((agora.getTime() - c.checkinEm.getTime()) / 60000))
+                  : null;
+              const ativa = c.status === "agendada" || c.status === "confirmada";
+              const podeConfirmar = c.status === "agendada";
+              // QW5 — só oferece desfazer enquanto o paciente está marcado como "chegou"
+              // e o atendimento ainda NÃO começou (espelha o guard de `espera`).
+              const podeDesfazerChegada = !!c.checkinEm && c.status !== "em_atendimento";
+              // QW1 — Chamar -> Rechamar quando já houve chamada desta consulta hoje
+              // (derivado do model Chamada por consultaId; só troca de TEXTO).
+              const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
+              return (
+                <Card key={c.id}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 12,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <span className="mono" style={{ fontWeight: 700, color: "var(--text)" }}>
+                        {hora}
+                      </span>{" "}
                       <Link
-                        href={`/medico/consultas/${c.id}/reagendar` as Route}
-                        className="btn btn-secondary"
+                        href={`/medico/consultas/${c.id}?voltar=/medico/recepcao` as Route}
+                        style={{ color: "var(--text)", fontWeight: 600 }}
                       >
-                        Reagendar
+                        {c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
                       </Link>
-                    ) : null}
-                    <form
-                      action={chamarAction}
-                      style={{ display: "flex", alignItems: "center", gap: 6 }}
-                    >
-                      <input type="hidden" name="unidade" value="medico" />
-                      <input
-                        type="hidden"
-                        name="nomeChamado"
-                        value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
-                      />
-                      <input type="hidden" name="destino" value="Recepcao" />
-                      <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
-                      <input type="hidden" name="consultaId" value={c.id} />
-                      <input type="hidden" name="voltar" value="/medico/recepcao" />
-                      <SubmitButton variant="secondary">
-                        {chamadaEm ? "Rechamar" : "Chamar"}
-                      </SubmitButton>
-                      {chamadaEm ? (
-                        <span className="t-small" style={{ color: "var(--text-3)" }}>
-                          chamada às{" "}
-                          {chamadaEm.toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                      <span style={{ color: "var(--text-3)", fontSize: 12 }}>
+                        {" "}
+                        · {c.especialidade.nome} · {c.profissional.nomeExibicao}
+                      </span>
+                      {espera != null ? (
+                        <span style={{ color: "var(--accent)", fontSize: 12, fontWeight: 600 }}>
+                          {" "}
+                          · ✓ esperando {espera} min
                         </span>
                       ) : null}
-                    </form>
+                    </div>
+                    <div
+                      style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}
+                    >
+                      <Badge variant={visual.variant}>{visual.label}</Badge>
+                      {ativa && !c.checkinEm ? (
+                        <form action={marcarCheckinAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="voltar" value="/medico/recepcao" />
+                          <SubmitButton variant="secondary">Chegou</SubmitButton>
+                        </form>
+                      ) : null}
+                      {podeDesfazerChegada ? (
+                        <form action={desfazerCheckinAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="voltar" value="/medico/recepcao" />
+                          <SubmitButton variant="ghost" pendingLabel="Desfazendo…">
+                            Desfazer chegada
+                          </SubmitButton>
+                        </form>
+                      ) : null}
+                      {podeConfirmar ? (
+                        <form action={transitionAction}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="para" value="confirmada" />
+                          <SubmitButton variant="secondary">Confirmar</SubmitButton>
+                        </form>
+                      ) : null}
+                      {STATUS_REAGENDAVEL.has(c.status) ? (
+                        <Link
+                          href={`/medico/consultas/${c.id}/reagendar` as Route}
+                          className="btn btn-secondary"
+                        >
+                          Reagendar
+                        </Link>
+                      ) : null}
+                      <form
+                        action={chamarAction}
+                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                      >
+                        <input type="hidden" name="unidade" value="medico" />
+                        <input
+                          type="hidden"
+                          name="nomeChamado"
+                          value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
+                        />
+                        <input type="hidden" name="destino" value="Recepcao" />
+                        <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
+                        <input type="hidden" name="consultaId" value={c.id} />
+                        <input type="hidden" name="voltar" value="/medico/recepcao" />
+                        <SubmitButton variant="secondary">
+                          {chamadaEm ? "Rechamar" : "Chamar"}
+                        </SubmitButton>
+                        {chamadaEm ? (
+                          <span className="t-small" style={{ color: "var(--text-3)" }}>
+                            chamada às{" "}
+                            {chamadaEm.toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        ) : null}
+                      </form>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
+                </Card>
+              );
+            })}
         </div>
       )}
     </MedicoShell>
