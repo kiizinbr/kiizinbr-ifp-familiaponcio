@@ -66,7 +66,10 @@ jobs:
         run: pnpm build
 
       - name: Install Playwright browsers
-        run: pnpm dlx playwright install --with-deps chromium
+        # pnpm exec (não dlx): instala o browser na versão TRAVADA do @playwright/test
+        # do lockfile. dlx baixa o playwright mais recente do registry → revisão de
+        # browser diferente da do runtime → "Executable doesn't exist" (quebrou 16/06).
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Reset + reseed DB para e2e (estado limpo, sem mutações do test:cov)
         run: pnpm prisma migrate reset --force --skip-seed && pnpm exec tsx prisma/seed.ts
