@@ -98,7 +98,11 @@ export async function reservarCAS(updateMany: () => Promise<{ count: number }>):
 export interface CriarSlotAdHocArgs<T> {
   /** Create delegate da tabela do consumidor — ex.: `(d) => tx.slot.create({ data: d })`. */
   create: (
-    data: Record<string, unknown> & { dataHoraInicio: Date; duracaoMin: number; status: "disponivel" },
+    data: Record<string, unknown> & {
+      dataHoraInicio: Date;
+      duracaoMin: number;
+      status: "disponivel";
+    },
   ) => Promise<T>;
   /** Campos do recurso, mesclados no slot — ex.: `{ profissionalId, especialidadeId }` | `{ assistenteSocialId }`. */
   recurso: Record<string, unknown>;
