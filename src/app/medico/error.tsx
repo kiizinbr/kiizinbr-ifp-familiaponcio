@@ -14,6 +14,13 @@ import Image from "next/image";
  * nem reusa o `MedicoShell` (que é server). Só mostra a UI do kit (`.empty`) e
  * oferece `reset()` (re-render do segmento) + volta ao balcão. A action em si
  * fica intocada; este boundary só captura o erro que ela lança.
+ *
+ * #10 — Escopo na prática: as AÇÕES das telas de fila (agenda-dia, recepção)
+ * passaram a capturar o próprio throw no cliente (`AcaoInline`), mostrando um
+ * aviso vermelho inline COLADO ao cartão/linha em vez de subir até aqui. Logo
+ * este boundary fica reservado a falha de CARREGAMENTO da página (auth/db no
+ * corpo do Server Component). Comportamento desta tela mantido — só muda o que
+ * chega até ela.
  */
 export default function MedicoError({
   error,

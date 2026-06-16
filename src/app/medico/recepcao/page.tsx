@@ -11,13 +11,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { formatCpf } from "@/lib/cpf";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { transitionAction } from "../consultas/[id]/actions";
 import { marcarCheckinAction, desfazerCheckinAction } from "../consultas/[id]/checkin-action";
 import { chamarAction } from "@/app/painel/chamar-actions";
 import { AgendaDiaRefresh } from "../agenda-dia/agenda-dia-refresh";
+import { AcaoInline } from "../_components/acao-inline";
+import { BuscaPaciente } from "./busca-paciente";
 
 /** Balcão único da recepção: busca o paciente + agenda do dia com ações inline. */
 export default async function RecepcaoPage({
@@ -42,6 +43,9 @@ export default async function RecepcaoPage({
   const { q } = sp;
   const agora = new Date();
 
+  // #16 — busca server-side da 1ª carga (no-JS / deep-link com ?q=). A QUERY é a
+  // mesma de sempre; a interação ao vivo (digitar sem clicar) é assumida pelo
+  // island <BuscaPaciente>, que chama buscarPacientesAction (mesma query + RBAC).
   const digits = q?.replace(/\D/g, "") ?? "";
   const matches = q
     ? await db.cidadao.findMany({
@@ -53,6 +57,7 @@ export default async function RecepcaoPage({
             ...(digits ? [{ cpf: { contains: digits } }] : []),
           ],
         },
+        select: { id: true, nomeCompleto: true, cpf: true, telefonePrincipal: true },
         take: 6,
         orderBy: { nomeCompleto: "asc" },
       })
@@ -85,7 +90,7 @@ export default async function RecepcaoPage({
   // QW1 — ack curto lido do redirect das actions (reusa o .toast do kit, igual ao board).
   const chamadoNome = typeof sp.chamado === "string" ? sp.chamado : null;
   const ackChamado =
-    chamadoNome && sp.chamadoHora ? `${chamadoNome} chamada às ${sp.chamadoHora}` : null;
+    chamadoNome && sp.chamadoHora ? `Chamada de ${chamadoNome} às ${sp.chamadoHora}` : null;
   const ackCheckin =
     sp.checkin === "ok"
       ? "Check-in registrado."
@@ -120,54 +125,10 @@ export default async function RecepcaoPage({
       ) : null}
 
       <Card>
-        <form method="get" style={{ display: "flex", gap: 8 }}>
-          <input
-            name="q"
-            defaultValue={q ?? ""}
-            aria-label="Buscar paciente"
-            placeholder="Buscar paciente por nome, CPF ou telefone"
-            className="input"
-            style={{ flex: 1 }}
-          />
-          <SubmitButton variant="secondary" pendingLabel="Buscando…">
-            Buscar
-          </SubmitButton>
-        </form>
-        {q && matches.length === 0 ? (
-          <EmptyState
-            titulo="Ninguém encontrado"
-            descricao="Nenhum paciente bate com essa busca. Confira o nome, o CPF ou o telefone — ou cadastre um novo."
-            cta={
-              <Link href={"/app/cidadaos/novo" as Route} className="btn btn-secondary">
-                Cadastrar paciente
-              </Link>
-            }
-          />
-        ) : null}
-        {matches.length > 0 ? (
-          <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
-            {matches.map((c) => (
-              <Link
-                key={c.id}
-                href={`/medico/consultas/nova?cidadaoId=${c.id}` as Route}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid var(--line)",
-                  textDecoration: "none",
-                }}
-              >
-                <span style={{ color: "var(--text)", fontWeight: 600 }}>{c.nomeCompleto}</span>
-                <span className="mono" style={{ color: "var(--text-3)", fontSize: 12 }}>
-                  {formatCpf(c.cpf)} · {c.telefonePrincipal}
-                </span>
-              </Link>
-            ))}
-          </div>
-        ) : null}
+        {/* #16 — busca incremental (digita sem clicar, debounce) + foco automático.
+            O island reusa o <form method="get"> + botão "Buscar" como fallback no-JS
+            e semeia com os resultados server-side (matches) da carga com ?q=. */}
+        <BuscaPaciente qInicial={q ?? ""} iniciais={matches} />
       </Card>
 
       <h2 className="t-h2" style={{ color: "var(--text)", margin: "20px 0 12px" }}>
@@ -246,27 +207,30 @@ export default async function RecepcaoPage({
                     >
                       <Badge variant={visual.variant}>{visual.label}</Badge>
                       {ativa && !c.checkinEm ? (
-                        <form action={marcarCheckinAction}>
-                          <input type="hidden" name="id" value={c.id} />
-                          <input type="hidden" name="voltar" value="/medico/recepcao" />
+                        <AcaoInline
+                          action={marcarCheckinAction}
+                          hiddenFields={{ id: c.id, voltar: "/medico/recepcao" }}
+                        >
                           <SubmitButton variant="secondary">Chegou</SubmitButton>
-                        </form>
+                        </AcaoInline>
                       ) : null}
                       {podeDesfazerChegada ? (
-                        <form action={desfazerCheckinAction}>
-                          <input type="hidden" name="id" value={c.id} />
-                          <input type="hidden" name="voltar" value="/medico/recepcao" />
+                        <AcaoInline
+                          action={desfazerCheckinAction}
+                          hiddenFields={{ id: c.id, voltar: "/medico/recepcao" }}
+                        >
                           <SubmitButton variant="ghost" pendingLabel="Desfazendo…">
                             Desfazer chegada
                           </SubmitButton>
-                        </form>
+                        </AcaoInline>
                       ) : null}
                       {podeConfirmar ? (
-                        <form action={transitionAction}>
-                          <input type="hidden" name="id" value={c.id} />
-                          <input type="hidden" name="para" value="confirmada" />
+                        <AcaoInline
+                          action={transitionAction}
+                          hiddenFields={{ id: c.id, para: "confirmada" }}
+                        >
                           <SubmitButton variant="secondary">Confirmar</SubmitButton>
-                        </form>
+                        </AcaoInline>
                       ) : null}
                       {STATUS_REAGENDAVEL.has(c.status) ? (
                         <Link
@@ -276,20 +240,18 @@ export default async function RecepcaoPage({
                           Reagendar
                         </Link>
                       ) : null}
-                      <form
+                      <AcaoInline
                         action={chamarAction}
-                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                        formStyle={{ display: "flex", alignItems: "center", gap: 6 }}
+                        hiddenFields={{
+                          unidade: "medico",
+                          nomeChamado: c.cidadao.nomeSocial || c.cidadao.nomeCompleto,
+                          destino: "Recepcao",
+                          cidadaoId: c.cidadao.id,
+                          consultaId: c.id,
+                          voltar: "/medico/recepcao",
+                        }}
                       >
-                        <input type="hidden" name="unidade" value="medico" />
-                        <input
-                          type="hidden"
-                          name="nomeChamado"
-                          value={c.cidadao.nomeSocial || c.cidadao.nomeCompleto}
-                        />
-                        <input type="hidden" name="destino" value="Recepcao" />
-                        <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
-                        <input type="hidden" name="consultaId" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/recepcao" />
                         <SubmitButton variant="secondary">
                           {chamadaEm ? "Rechamar" : "Chamar"}
                         </SubmitButton>
@@ -302,7 +264,7 @@ export default async function RecepcaoPage({
                             })}
                           </span>
                         ) : null}
-                      </form>
+                      </AcaoInline>
                     </div>
                   </div>
                 </Card>

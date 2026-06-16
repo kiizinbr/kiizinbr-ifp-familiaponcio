@@ -211,7 +211,7 @@ export default async function CidadaosPage({
                   <tr key={c.id}>
                     <td>
                       <Link
-                        href={`/app/cidadaos/${c.id}` as Route}
+                        href={`/app/cidadaos/${c.id}?voltar=/app/cidadaos` as Route}
                         className="cell-strong"
                         style={{ color: "var(--text)", textDecoration: "none" }}
                       >

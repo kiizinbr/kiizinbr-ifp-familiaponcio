@@ -7,6 +7,7 @@ import { getConsultasHoje } from "@/lib/medico/agenda-dia";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { CONSULTA_VISUAL } from "@/lib/medico/ui";
 import { transitionAction } from "../consultas/[id]/actions";
@@ -44,9 +45,15 @@ export default async function MinhaFilaPage() {
       />
 
       {consultas.length === 0 ? (
-        <Card>
-          <p style={{ color: "var(--text-3)" }}>Nenhuma consulta sua para hoje.</p>
-        </Card>
+        <EmptyState
+          titulo="Sua fila está vazia"
+          descricao="Nenhuma consulta sua para hoje."
+          cta={
+            <Link href={"/medico/agenda-dia" as Route} className="btn btn-secondary">
+              Ver agenda do dia
+            </Link>
+          }
+        />
       ) : (
         <div style={{ display: "grid", gap: 10 }}>
           {consultas.map((c) => {

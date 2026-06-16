@@ -49,6 +49,11 @@ export async function transitionAction(formData: FormData) {
     await logEvent({ userId: session.user.id, action, meta: { consultaId: id } });
   }
   revalidatePath(`/medico/consultas/${id}`);
+  // Marcar 'faltou'/'confirmada' pela FILA muda o card que vive na agenda-dia e na
+  // recepção — revalida essas rotas (como checkin-action/chamarAction) pro card
+  // sumir/atualizar na hora, não só no refresh de 30s. Regra de transição intacta.
+  revalidatePath("/medico/agenda-dia");
+  revalidatePath("/medico/recepcao");
 
   // #12 — "Iniciar" das telas de FILA (minha-fila/agenda-dia) leva direto ao
   // prontuário. Redirect CONDICIONAL a DOIS gatilhos (opt-in): (1) está

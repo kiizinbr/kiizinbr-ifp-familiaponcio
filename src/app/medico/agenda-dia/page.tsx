@@ -11,6 +11,7 @@ import {
   type ConsultaDoDia,
   type SlotDoDia,
 } from "@/lib/medico/agenda-dia";
+import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { CONSULTA_VISUAL, corTextoSobre } from "@/lib/medico/ui";
 import { db } from "@/lib/db";
 import { MedicoShell, MedicoHeader } from "@/components/medico/medico-shell";
@@ -19,8 +20,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { AgendaDiaRefresh } from "./agenda-dia-refresh";
 import { AgendaDiaNowMarker } from "./agenda-dia-now";
+import { AcaoInline } from "../_components/acao-inline";
 import { transitionAction } from "../consultas/[id]/actions";
 import { marcarCheckinAction } from "../consultas/[id]/checkin-action";
 import { chamarAction } from "@/app/painel/chamar-actions";
@@ -189,7 +192,7 @@ export default async function AgendaDiaPage({
   // QW1 — ack curto lido do redirect das actions (reusa o .toast do kit).
   const chamadoNome = typeof sp.chamado === "string" ? sp.chamado : null;
   const ackChamado =
-    chamadoNome && sp.chamadoHora ? `${chamadoNome} chamada às ${sp.chamadoHora}` : null;
+    chamadoNome && sp.chamadoHora ? `Chamada de ${chamadoNome} às ${sp.chamadoHora}` : null;
   const ackCheckin =
     sp.checkin === "ok"
       ? "Check-in registrado."
@@ -506,9 +509,15 @@ export default async function AgendaDiaPage({
             Fila de ação
           </h2>
           {fila.length === 0 ? (
-            <Card>
-              <p style={{ color: "var(--text-3)" }}>Ninguém aguardando agora.</p>
-            </Card>
+            <EmptyState
+              titulo="Ninguém aguardando agora"
+              descricao="Quando alguém fizer check-in ou estiver atrasado, aparece aqui."
+              cta={
+                <Link href={"/medico/recepcao" as Route} className="btn btn-secondary">
+                  Ir para a recepção
+                </Link>
+              }
+            />
           ) : (
             fila.map(({ c, atrasado }) => {
               const visual = CONSULTA_VISUAL[c.status];
@@ -532,6 +541,15 @@ export default async function AgendaDiaPage({
                   "em_atendimento",
                   c.profissional.userId,
                 );
+              // #14 — "Faltou"/"Reagendar" inline (mesmo gate por papel/consulta da ficha).
+              // Esconder quando !pode evita o "Sem permissão" (500), igual aos botões acima.
+              const podeFaltar = podeTransicionarConsulta(
+                session,
+                c.status,
+                "faltou",
+                c.profissional.userId,
+              );
+              const podeReagendar = STATUS_REAGENDAVEL.has(c.status) && podeMarcarConsulta(session);
               // QW1 — Chamar -> Rechamar quando ja houve chamada desta consulta hoje
               // (derivado do model Chamada por consultaId; so troca de TEXTO).
               const chamadaEm = ultimaChamadaPorConsulta.get(c.id) ?? null;
@@ -589,41 +607,49 @@ export default async function AgendaDiaPage({
                     }}
                   >
                     {canCheckin && ativa && !c.checkinEm ? (
-                      <form action={marcarCheckinAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
+                      <AcaoInline
+                        action={marcarCheckinAction}
+                        hiddenFields={{ id: c.id, voltar: "/medico/agenda-dia" }}
+                      >
                         <SubmitButton variant="secondary">Chegou</SubmitButton>
-                      </form>
+                      </AcaoInline>
                     ) : null}
                     {podeConfirmar ? (
-                      <form action={transitionAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="para" value="confirmada" />
+                      <AcaoInline
+                        action={transitionAction}
+                        hiddenFields={{ id: c.id, para: "confirmada" }}
+                      >
                         <SubmitButton variant="secondary">Confirmar</SubmitButton>
-                      </form>
+                      </AcaoInline>
                     ) : null}
                     {podeIniciar ? (
-                      <form action={transitionAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="para" value="em_atendimento" />
-                        {/* #12 — opt-in: iniciar daqui abre o prontuário direto.
-                            NÃO está no form Confirmar/Chamar/Chegou acima. */}
-                        <input type="hidden" name="irParaProntuario" value="1" />
-                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
+                      <AcaoInline
+                        action={transitionAction}
+                        hiddenFields={{
+                          id: c.id,
+                          para: "em_atendimento",
+                          // #12 — opt-in: iniciar daqui abre o prontuário direto.
+                          // NÃO está no form Confirmar/Chamar/Chegou acima.
+                          irParaProntuario: "1",
+                          voltar: "/medico/agenda-dia",
+                        }}
+                      >
                         <SubmitButton>Iniciar</SubmitButton>
-                      </form>
+                      </AcaoInline>
                     ) : null}
                     {canChamar ? (
-                      <form
+                      <AcaoInline
                         action={chamarAction}
-                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                        formStyle={{ display: "flex", alignItems: "center", gap: 6 }}
+                        hiddenFields={{
+                          unidade: "medico",
+                          nomeChamado: nomeExibido,
+                          destino: c.profissional.nomeExibicao,
+                          cidadaoId: c.cidadao.id,
+                          consultaId: c.id,
+                          voltar: "/medico/agenda-dia",
+                        }}
                       >
-                        <input type="hidden" name="unidade" value="medico" />
-                        <input type="hidden" name="nomeChamado" value={nomeExibido} />
-                        <input type="hidden" name="destino" value={c.profissional.nomeExibicao} />
-                        <input type="hidden" name="cidadaoId" value={c.cidadao.id} />
-                        <input type="hidden" name="consultaId" value={c.id} />
-                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
                         <SubmitButton variant="secondary">
                           {chamadaEm ? "Rechamar" : "Chamar"}
                         </SubmitButton>
@@ -632,7 +658,28 @@ export default async function AgendaDiaPage({
                             chamada às {horaCurta(chamadaEm)}
                           </span>
                         ) : null}
-                      </form>
+                      </AcaoInline>
+                    ) : null}
+                    {/* #14 — exceções (Faltou/Reagendar) por último na ordem mental. */}
+                    {podeFaltar ? (
+                      <ConfirmDialog
+                        action={transitionAction}
+                        danger
+                        triggerVariant="secondary"
+                        triggerLabel="Marcar falta"
+                        title="Marcar falta?"
+                        message="Isso afeta o histórico do paciente."
+                        confirmLabel="Marcar falta"
+                        hiddenFields={{ id: c.id, para: "faltou" }}
+                      />
+                    ) : null}
+                    {podeReagendar ? (
+                      <Link
+                        href={`/medico/consultas/${c.id}/reagendar` as Route}
+                        className="btn btn-secondary"
+                      >
+                        Reagendar
+                      </Link>
                     ) : null}
                   </div>
                 </Card>

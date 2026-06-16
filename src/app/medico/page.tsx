@@ -52,7 +52,7 @@ export default async function MedicoHomePage({
   const horaValida = chamadoHora && /^\d{1,2}:\d{2}$/.test(chamadoHora) ? chamadoHora : null;
   const sucessoMsg =
     chamado && /^[\p{L}\p{M}'-]{1,40}$/u.test(chamado)
-      ? `${chamado} chamado${horaValida ? ` às ${horaValida}` : ""}`
+      ? `Chamada de ${chamado}${horaValida ? ` às ${horaValida}` : ""}`
       : checkin === "ok"
         ? "Check-in registrado"
         : checkin === "desfeito"
@@ -140,7 +140,7 @@ export default async function MedicoHomePage({
           .toast.ok do kit (tokens var(--ok), sem cor inventada). Inline (não
           flutuante) logo abaixo do cabeçalho. */}
       {sucessoMsg ? (
-        <div className="toast ok" role="status" style={{ marginBottom: 24, animation: "none" }}>
+        <div className="toast ok" role="status" style={{ marginBottom: 24 }}>
           <div>
             <div className="t-title">{sucessoMsg}</div>
           </div>
