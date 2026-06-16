@@ -76,7 +76,11 @@ export type AuditAction =
   // Encaminhamento (F1.B)
   | "encaminhamento_criado"
   | "encaminhamento_agendado"
-  | "encaminhamento_cancelado";
+  | "encaminhamento_cancelado"
+  // Educacional / creche (Fase A — check-in/out)
+  | "check_in_registrado"
+  | "check_out_registrado"
+  | "check_tentativa_bloqueada";
 
 interface LogEventArgs {
   userId?: string | null;
