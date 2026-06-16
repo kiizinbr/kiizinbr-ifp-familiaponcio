@@ -28,7 +28,7 @@ import {
   transicionarMatricula,
   TurmaLotadaError,
 } from "@/lib/capacitacao/matricula";
-import { podeTransicionarTurma } from "@/lib/capacitacao/turma";
+import { podeEditarTurma, podeTransicionarTurma } from "@/lib/capacitacao/turma";
 import { avaliarElegibilidade } from "@/lib/capacitacao/certificado";
 import { randomBytes } from "node:crypto";
 
@@ -113,6 +113,62 @@ export async function criarTurmaAction(formData: FormData) {
     meta: { codigo: turma.codigo },
   });
   redirect(`/capacitacao/turmas/${turma.id}` as Route);
+}
+
+/**
+ * Edita os dados básicos da turma (datas/local/capacidade). Só vale enquanto a turma
+ * está em `planejada`/`inscricoes_abertas` (regra pura `podeEditarTurma`): depois que
+ * começa, os dados ficam congelados. Não mexe em status (isso é transicionarTurmaAction).
+ */
+const editarTurmaSchema = z.object({
+  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  local: z
+    .string()
+    .trim()
+    .max(200)
+    .transform((v) => v || null),
+  capacidade: z.coerce.number().int().positive(),
+});
+
+export async function atualizarTurmaAction(formData: FormData) {
+  const session = await auth();
+  if (!canAccessUnidade(session, "capacitacao")) throw new Error("Sem permissão");
+  if (!podeCriarTurma(session)) throw new Error("Sem permissão");
+
+  const turmaId = s(formData, "turmaId");
+  const voltar = `/capacitacao/turmas/${turmaId}`;
+
+  const parsed = editarTurmaSchema.safeParse({
+    dataInicio: s(formData, "dataInicio"),
+    dataFim: s(formData, "dataFim"),
+    local: s(formData, "local"),
+    capacidade: s(formData, "capacidade"),
+  });
+  if (!parsed.success) redirect(`${voltar}?erro=edicao` as Route);
+  const { dataInicio, dataFim, local, capacidade } = parsed.data;
+
+  const turma = await db.turma.findUniqueOrThrow({ where: { id: turmaId } });
+  if (!podeEditarTurma(turma.status)) redirect(`${voltar}?erro=edicao_status` as Route);
+
+  await db.turma.update({
+    where: { id: turmaId },
+    data: {
+      dataInicio: new Date(dataInicio),
+      dataFim: new Date(dataFim),
+      local,
+      capacidade,
+    },
+  });
+  await logEvent({
+    userId: session!.user.id,
+    action: "turma_atualizada",
+    entityType: "turma",
+    entityId: turmaId,
+    meta: { dataInicio, dataFim, local, capacidade },
+  });
+  revalidatePath(voltar);
+  redirect(`${voltar}?edicao=ok` as Route);
 }
 
 export async function matricularAction(formData: FormData) {

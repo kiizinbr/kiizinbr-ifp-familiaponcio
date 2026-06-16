@@ -20,3 +20,17 @@ export function podeTransicionarTurma(de: StatusTurma, para: StatusTurma): boole
 export function proximosStatusTurma(de: StatusTurma): StatusTurma[] {
   return [...TRANSICOES_TURMA[de]];
 }
+
+/**
+ * Status em que a turma ainda pode ter dados básicos (datas/local/capacidade) editados.
+ * Depois que entra em andamento, conclui ou cancela, os dados ficam congelados — alunos
+ * já estão se organizando em cima deles. Decisão institucional.
+ */
+export const STATUS_TURMA_EDITAVEIS: ReadonlySet<StatusTurma> = new Set<StatusTurma>([
+  "planejada",
+  "inscricoes_abertas",
+]);
+
+export function podeEditarTurma(status: StatusTurma): boolean {
+  return STATUS_TURMA_EDITAVEIS.has(status);
+}

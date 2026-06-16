@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { podeTransicionarTurma, proximosStatusTurma } from "@/lib/capacitacao/turma";
+import {
+  podeEditarTurma,
+  podeTransicionarTurma,
+  proximosStatusTurma,
+} from "@/lib/capacitacao/turma";
 
 /** Máquina de estados da Turma (Capacitação) — pura. */
 
@@ -23,5 +27,18 @@ describe("podeTransicionarTurma", () => {
     expect(proximosStatusTurma("concluida")).toEqual([]);
     expect(proximosStatusTurma("cancelada")).toEqual([]);
     expect(podeTransicionarTurma("cancelada", "em_andamento")).toBe(false);
+  });
+});
+
+describe("podeEditarTurma", () => {
+  it("permite editar enquanto planejada ou com inscrições abertas", () => {
+    expect(podeEditarTurma("planejada")).toBe(true);
+    expect(podeEditarTurma("inscricoes_abertas")).toBe(true);
+  });
+
+  it("bloqueia edição depois que a turma já começou ou terminou", () => {
+    expect(podeEditarTurma("em_andamento")).toBe(false);
+    expect(podeEditarTurma("concluida")).toBe(false);
+    expect(podeEditarTurma("cancelada")).toBe(false);
   });
 });
