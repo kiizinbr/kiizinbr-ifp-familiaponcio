@@ -97,7 +97,15 @@ export function AssinarButton({ action, consultaId, notaId }: Props) {
       if (input.value !== input.defaultValue) return true;
     }
     const hidden = evo.querySelector<HTMLInputElement>('input[name="diagnosticosJson"]');
-    if (hidden && diagInicialRef.current != null && hidden.value !== diagInicialRef.current) {
+    // Baseline do CID: o autosave publica em `evo.dataset.cidBaseline` o
+    // diagnosticosJson que FOI persistido a cada save confirmado. Preferi-lo ao
+    // snapshot de MOUNT (diagInicialRef) quando presente elimina o falso
+    // "Alterações não salvas" depois que o autosave salvou um CID — o indicador
+    // "salvo às HH:MM" já confirmou. Sem autosave (dataset ausente) cai no
+    // snapshot de mount, comportamento idêntico ao anterior. Fail-safe: assinar
+    // nunca assina sem o conteúdo; aqui só removemos o aviso redundante.
+    const cidBaseline = evo.dataset.cidBaseline ?? diagInicialRef.current;
+    if (hidden && cidBaseline != null && hidden.value !== cidBaseline) {
       return true;
     }
     return false;

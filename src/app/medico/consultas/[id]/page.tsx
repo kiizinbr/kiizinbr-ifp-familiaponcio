@@ -18,6 +18,7 @@ import {
   podeEmitirDocumento,
 } from "@/lib/medico/rbac";
 import { CONSULTA_VISUAL, PROXIMOS_STATUS_CONSULTA } from "@/lib/medico/ui";
+import { getConsultasHoje } from "@/lib/medico/agenda-dia";
 import { STATUS_REAGENDAVEL } from "@/lib/medico/agenda";
 import { calcularImc, formatVitalSeguro } from "@/lib/medico/prontuario";
 import type { SinaisVitaisInput } from "@/lib/medico/prontuario";
@@ -36,6 +37,9 @@ import { EncaminhamentoPanel } from "./_encaminhamento-panel";
 import { Cid10Combobox } from "./cid10-combobox";
 import { ReceitaItens } from "./receita-itens";
 import { AssinarButton } from "./assinar-button";
+import { RascunhoAutosave } from "./rascunho-autosave";
+import { CopiarUltima } from "./copiar-ultima";
+import { modelosPara } from "@/lib/medico/modelos-evolucao";
 
 const ACAO_LABEL: Record<string, string> = {
   confirmada: "Confirmar",
@@ -209,6 +213,22 @@ export default async function ConsultaDetalhePage({
     !assinada &&
     podeEditarNota(session, consulta.profissional.userId, nota?.status ?? "rascunho");
   const cidadao = consulta.cidadao;
+
+  // #7 — "Copiar da última consulta": reusa o `historico` JÁ carregado (mesmo
+  // cidadão, ordenado por data clínica desc, NOT a consulta atual). O primeiro
+  // item com texto não-vazio É a nota anterior. ZERO query nova; passa só
+  // { texto, especialidade, data } (PII que a tela já mostra no card de histórico
+  // ao lado, read-only) — não vaza o objeto inteiro para o client.
+  const ultimaNota = historico.find((h) => h.texto?.trim());
+  const ultimaComTexto =
+    podeEditar && ultimaNota?.texto
+      ? {
+          texto: ultimaNota.texto,
+          especialidade: ultimaNota.consulta.especialidade.nome,
+          data: ultimaNota.consulta.slot.dataHoraInicio.toLocaleDateString("pt-BR"),
+        }
+      : undefined;
+
   const pesoNum = nota?.pesoKg != null ? Number(nota.pesoKg) : null;
   const imc = calcularImc(pesoNum, nota?.alturaCm ?? null);
   const visual = CONSULTA_VISUAL[consulta.status];
@@ -240,6 +260,30 @@ export default async function ConsultaDetalhePage({
   // `/` e NÃO com `//`/`\`) — espelha o guard da checkin-action. Sem origem
   // válida, não renderiza nada (a tela é alcançada por fila/agenda/recepção).
   const voltarHref = voltar && /^\/(?![/\\])/.test(voltar) ? voltar : null;
+
+  // #12 — "Próximo paciente da fila →" após assinar. Só quando a nota está
+  // ASSINADA (fora do hot-path de atendimento aberto): busca a PRÓXIMA consulta
+  // ativa DO MESMO profissional hoje (NOT a atual), em ordem de horário (asc da
+  // lib). assinarNotaAction NÃO é tocada — isto é só render + Link, o médico
+  // decide. Include parcial: só nome (rótulo do Link, server-side, não vai pra
+  // URL) + slot (ordenação preservada pelo orderBy da lib). Sem PII na URL.
+  const proximo = assinada
+    ? (
+        await getConsultasHoje({
+          agora: new Date(),
+          filtro: {
+            profissional: { userId: consulta.profissional.userId },
+            status: { in: ["em_atendimento", "confirmada", "agendada"] },
+            NOT: { id: consulta.id },
+          },
+          include: {
+            slot: { select: { dataHoraInicio: true } },
+            cidadao: { select: { nomeCompleto: true, nomeSocial: true } },
+          },
+        })
+      )[0]
+    : null;
+  const filaHref = (voltarHref ?? "/medico/minha-fila") as Route;
 
   // QW1 — "Rascunho salvo às HH:MM": ?salvo=HHMM (4 dígitos) vira HH:MM.
   const salvoHora =
@@ -636,6 +680,14 @@ export default async function ConsultaDetalhePage({
                         {voltarHref ? (
                           <input type="hidden" name="voltar" value={voltarHref} />
                         ) : null}
+                        {/* #7 — "Copiar da última" + modelos por especialidade.
+                            Island client-side que insere texto no textarea abaixo
+                            (confirma se já há conteúdo) e dispara o input event pra
+                            o guard/autosave reconhecerem. ZERO action/DB novos. */}
+                        <CopiarUltima
+                          ultima={ultimaComTexto}
+                          modelos={modelosPara(consulta.especialidade.nome)}
+                        />
                         <textarea
                           className={styles.note}
                           name="texto"
@@ -681,6 +733,12 @@ export default async function ConsultaDetalhePage({
                             Salvar mantém em rascunho. Assinar torna a nota imutável e conclui a
                             consulta — correções depois entram como addendo.
                           </span>
+                          {/* #3 — autosave: indicador vivo "Rascunho salvo às
+                              HH:MM" + debounce + aviso ao sair com mudanças não
+                              salvas. Montado DENTRO do #formEvolucao (lê o form
+                              por id); chama autosalvarRascunhoAction sem redirect.
+                              Convive com o botão manual e o banner ?salvo=HHMM. */}
+                          <RascunhoAutosave />
                           <SubmitButton variant="secondary" pendingLabel="Salvando rascunho…">
                             Salvar rascunho
                           </SubmitButton>
@@ -774,6 +832,58 @@ export default async function ConsultaDetalhePage({
                               </SubmitButton>
                             </div>
                           </form>
+
+                          {/* #12 — encadeamento da fila: nota assinada, então a
+                              consulta está concluída. Oferece "Próximo paciente
+                              da fila →" (próxima consulta ativa do MESMO
+                              profissional hoje) + "Voltar à minha fila". Só
+                              LINKS, sem redirect à força — o médico decide. */}
+                          <div className={styles.blockLabel}>
+                            <span className={styles.micro}>Fila</span>
+                            <span className={styles.hr} />
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 8,
+                              flexWrap: "wrap",
+                              alignItems: "center",
+                            }}
+                          >
+                            {proximo ? (
+                              <Link
+                                href={
+                                  `/medico/consultas/${proximo.id}?voltar=${encodeURIComponent(
+                                    filaHref,
+                                  )}` as Route
+                                }
+                                className={`${styles.btn} ${styles.btnSecondary}`}
+                              >
+                                Próximo paciente da fila →
+                                <span
+                                  className={styles.mono}
+                                  style={{ marginLeft: 6, opacity: 0.8 }}
+                                >
+                                  {proximo.slot.dataHoraInicio.toLocaleTimeString("pt-BR", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}{" "}
+                                  · {proximo.cidadao.nomeSocial || proximo.cidadao.nomeCompleto}
+                                </span>
+                              </Link>
+                            ) : null}
+                            <Link
+                              href={filaHref}
+                              className={`${styles.btn} ${styles.btnSecondary}`}
+                            >
+                              Voltar à minha fila
+                            </Link>
+                            {!proximo ? (
+                              <span className={styles.micro} style={{ color: "var(--text-3)" }}>
+                                Fila do dia concluída.
+                              </span>
+                            ) : null}
+                          </div>
                         </>
                       )}
                     </>

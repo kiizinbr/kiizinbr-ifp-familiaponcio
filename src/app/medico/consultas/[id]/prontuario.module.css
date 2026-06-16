@@ -516,6 +516,48 @@
   color: var(--accent);
 }
 
+/* ===== autosave do rascunho (indicador vivo, deriva de .hint/.micro) ===== */
+.autosave {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  font-feature-settings: "tnum" 1;
+}
+.autosaveSalvando {
+  color: var(--text-2);
+}
+.autosaveSalvo {
+  color: var(--accent);
+}
+.autosaveSujo {
+  color: var(--text-3);
+}
+.autosaveErro {
+  color: var(--danger);
+}
+
+/* ===== copiar da última / modelos (barra acima do textarea) ===== */
+.copiarBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.copiarModelos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.copiarModelos .micro {
+  margin-right: 2px;
+}
+
 /* ===== ações de assinar ===== */
 .signbar {
   display: flex;

@@ -98,6 +98,10 @@ export default async function MinhaFilaPage() {
                       <form action={transitionAction}>
                         <input type="hidden" name="id" value={c.id} />
                         <input type="hidden" name="para" value="em_atendimento" />
+                        {/* #12 — opt-in: ao iniciar daqui, vai direto pro
+                            prontuário (voltar propaga a origem pro "← Voltar"). */}
+                        <input type="hidden" name="irParaProntuario" value="1" />
+                        <input type="hidden" name="voltar" value="/medico/minha-fila" />
                         <SubmitButton>Iniciar</SubmitButton>
                       </form>
                     ) : (

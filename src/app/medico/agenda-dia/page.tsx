@@ -529,6 +529,10 @@ export default async function AgendaDiaPage({
                       <form action={transitionAction}>
                         <input type="hidden" name="id" value={c.id} />
                         <input type="hidden" name="para" value="em_atendimento" />
+                        {/* #12 — opt-in: iniciar daqui abre o prontuário direto.
+                            NÃO está no form Confirmar/Chamar/Chegou acima. */}
+                        <input type="hidden" name="irParaProntuario" value="1" />
+                        <input type="hidden" name="voltar" value="/medico/agenda-dia" />
                         <SubmitButton>Iniciar</SubmitButton>
                       </form>
                     ) : null}
