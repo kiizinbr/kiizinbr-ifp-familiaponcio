@@ -12,6 +12,7 @@ import Link from "next/link";
 
 import { usePrancha, useIniciarAtendimento, useSalvarSoap, useSalvarVitais, useEncerrarAtendimento, type VitaisPayload } from "@/lib/use-medico";
 import { Alerta, Botao, Campo, Input, Spinner, Textarea } from "@/components/ui";
+import { CrestAvatar } from "@/components/casa";
 import { ChipClinico } from "@/components/medico/chip-clinico";
 import { PranchaStepper, PASSOS_PRANCHA } from "@/components/medico/prancha-stepper";
 import { idade } from "@/lib/idade";
@@ -164,11 +165,9 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
       {/* ---------- Cabeçalho do paciente ---------- */}
-      <div className="rounded-lg border border-border bg-surface p-5 shadow-casa-sm">
+      <div className="rounded-[18px] border border-border bg-surface p-5 shadow-casa-sm">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-lg font-bold text-primary">
-            {iniciais(paciente)}
-          </div>
+          <CrestAvatar iniciais={iniciais(paciente)} size={56} />
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-bold text-foreground">{paciente}</h1>
             <p className="text-sm text-muted-foreground">
@@ -224,7 +223,7 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
       </div>
 
       {/* ---------- Conteúdo do passo ---------- */}
-      <div className="mt-6 rounded-lg border border-border bg-surface p-6 shadow-ifp-sm">
+      <div className="mt-6 rounded-[18px] border border-border bg-surface p-6 shadow-ifp-sm">
         {passo === 0 ? (
           <section className="space-y-4">
             <h2 className="font-semibold text-foreground">Resumo da consulta</h2>
