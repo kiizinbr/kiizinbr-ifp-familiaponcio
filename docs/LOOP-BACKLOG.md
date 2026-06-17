@@ -25,7 +25,7 @@
 - [x] Agenda médica: navegação de data, dependente, duração
 
 ## 🟢 Fila — baixo risco (loop autônomo)
-- [ ] Reskin **Família** (mobile) — `ShellMobile` com bottom-nav funcional (Links diário/comunicados/criança)
+- [x] Reskin **Família** (mobile) — topbar CASA (leão na cor da unidade) + bottom-nav com destaque do ativo
 - [ ] Refino interno das páginas já reskinadas — aplicar blocos (`PageHeader`/`Card`/`Kpi`/`ListRow`/`Pill`) por dentro de: educacional (painel/turma/comunicados/criança), capacitação (painel/turmas/turma/chamada), serviço social (início/fichas/nova/detalhe)
 - [ ] Home `/` (hub) — adicionar card do Centro Educacional + ajustar vitrine (tirar Esportivo/Recreativo sem rota)
 
