@@ -5,4 +5,5 @@ export { JubaRing } from "./JubaRing";
 export { CoroaSeal } from "./CoroaSeal";
 export { CasaDefs } from "./CasaDefs";
 export { Card, PageHeader, SecTitle, Kpi, Pill, ListRow, Pulso } from "./blocks";
-export { ShellInterno, ShellPublico, ShellMobile, type ModuloCasa } from "./Shell";
+export { ShellInterno, ShellPublico, ShellMobile } from "./Shell";
+export type { ModuloCasa } from "./nav";
