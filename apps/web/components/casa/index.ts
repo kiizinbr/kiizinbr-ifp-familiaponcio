@@ -1,6 +1,8 @@
-/** Componentes-assinatura da direção CASA (design system do IFP Connect). */
+/** Design system CASA do IFP Connect — componentes-assinatura, blocos e shell. */
 export { Brandmark } from "./Brandmark";
 export { CrestAvatar } from "./CrestAvatar";
 export { JubaRing } from "./JubaRing";
 export { CoroaSeal } from "./CoroaSeal";
 export { CasaDefs } from "./CasaDefs";
+export { Card, PageHeader, SecTitle, Kpi, Pill, ListRow, Pulso } from "./blocks";
+export { ShellInterno, ShellPublico, ShellMobile, type ModuloCasa } from "./Shell";

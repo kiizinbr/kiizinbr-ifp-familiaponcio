@@ -85,6 +85,21 @@ export default function CasaGaleriaPage() {
           <p style={{ color: "#9a8f84", fontSize: 14, margin: 0 }}>
             Fase 0 — componentes-assinatura em React, recolorindo por unidade. Equivale ao Atlas.
           </p>
+          <a
+            href="/casa-ui/shell"
+            style={{
+              display: "inline-block",
+              marginTop: 14,
+              padding: "10px 18px",
+              borderRadius: 11,
+              background: "var(--ifp-tinta)",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            Ver o Shell completo (topbar + rail) →
+          </a>
         </header>
         <div style={{ display: "grid", gap: 16 }}>
           {TEMAS.map((t) => (

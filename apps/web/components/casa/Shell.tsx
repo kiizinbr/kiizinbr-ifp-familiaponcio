@@ -1,0 +1,282 @@
+/**
+ * Shell CASA — o "esqueleto" das telas, em 3 modos:
+ *  - ShellInterno: topbar + rail lateral (gestão/operação), recolore por unidade
+ *  - ShellPublico: header + footer do site institucional
+ *  - ShellMobile: moldura de celular + navegação inferior (portal família)
+ * Server components (sem estado): a cor vem do data-theme; navegação por <Link>.
+ */
+import Link from "next/link";
+import type { ReactNode } from "react";
+import {
+  Activity,
+  Award,
+  Baby,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Calendar,
+  ClipboardCheck,
+  ClipboardList,
+  FileText,
+  Home,
+  LayoutGrid,
+  ListChecks,
+  ListOrdered,
+  Network,
+  Search,
+  Settings,
+  ShieldCheck,
+  Stethoscope,
+  User,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
+import { cn } from "@/lib/cn";
+import { Brandmark } from "./Brandmark";
+import { CrestAvatar } from "./CrestAvatar";
+
+export type ModuloCasa =
+  | "presidencia"
+  | "medico"
+  | "capacitacao"
+  | "educacional"
+  | "esportivo"
+  | "servico-social"
+  | "admin";
+
+const NOME_UNIDADE: Record<ModuloCasa, string> = {
+  presidencia: "Corte · Presidência",
+  medico: "Centro Médico",
+  capacitacao: "Centro de Capacitação",
+  educacional: "Centro Educacional",
+  esportivo: "Centro Esportivo",
+  "servico-social": "Serviço Social",
+  admin: "Administração",
+};
+
+type NavItem = { href: string; label: string; icon: LucideIcon };
+const NAV: Record<ModuloCasa, NavItem[]> = {
+  presidencia: [
+    { href: "/presidencia", label: "Painel", icon: Home },
+    { href: "/presidencia/unidades", label: "Unidades", icon: LayoutGrid },
+    { href: "/presidencia/impacto", label: "Impacto", icon: BarChart3 },
+    { href: "/presidencia/familias", label: "Famílias", icon: Users },
+    { href: "/presidencia/relatorios", label: "Relatórios", icon: FileText },
+  ],
+  medico: [
+    { href: "/medico/agenda", label: "Agenda", icon: Calendar },
+    { href: "/medico/fila", label: "Fila", icon: ListOrdered },
+    { href: "/medico/prontuarios", label: "Prontuários", icon: ClipboardList },
+    { href: "/medico/beneficiarios", label: "Beneficiários", icon: Users },
+    { href: "/medico/indicadores", label: "Indicadores", icon: BarChart3 },
+  ],
+  capacitacao: [
+    { href: "/capacitacao", label: "Painel", icon: Home },
+    { href: "/capacitacao/turmas", label: "Turmas", icon: Users },
+    { href: "/capacitacao/cursos", label: "Cursos", icon: BookOpen },
+    { href: "/capacitacao/certificados", label: "Certificados", icon: Award },
+    { href: "/capacitacao/indicadores", label: "Indicadores", icon: Activity },
+  ],
+  educacional: [
+    { href: "/educacional", label: "Painel", icon: Home },
+    { href: "/educacional/turmas", label: "Turmas", icon: Baby },
+    { href: "/educacional/comunicados", label: "Comunicados", icon: Bell },
+    { href: "/educacional/criancas", label: "Crianças", icon: User },
+  ],
+  esportivo: [
+    { href: "/esportivo", label: "Painel", icon: Home },
+    { href: "/esportivo/turmas", label: "Turmas", icon: Users },
+    { href: "/esportivo/frequencia", label: "Frequência", icon: ClipboardCheck },
+    { href: "/esportivo/indicadores", label: "Indicadores", icon: BarChart3 },
+  ],
+  "servico-social": [
+    { href: "/servico-social", label: "Início", icon: Home },
+    { href: "/servico-social/fichas", label: "Fichas", icon: FileText },
+    { href: "/servico-social/triagem", label: "Triagem", icon: ListChecks },
+    { href: "/servico-social/elegibilidade", label: "Elegib.", icon: ShieldCheck },
+    { href: "/servico-social/ponte", label: "Ponte", icon: Network },
+  ],
+  admin: [
+    { href: "/admin/usuarios", label: "Usuários", icon: Users },
+    { href: "/admin/unidades", label: "Unidades", icon: LayoutGrid },
+    { href: "/admin/auditoria", label: "Auditoria", icon: ShieldCheck },
+    { href: "/admin/config", label: "Config", icon: Settings },
+  ],
+};
+
+function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: string; cargo: string; iniciais: string }) {
+  return (
+    <header className="sticky top-0 z-20 col-span-2 flex h-[70px] items-center gap-4 border-b border-border bg-background px-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-background text-primary shadow-[inset_0_0_0_1.5px_var(--ifp-dourado)]">
+          <Brandmark size={30} title="IFP Connect" />
+        </span>
+        <div className="leading-tight">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.13em] text-foreground">IFP Connect</div>
+          <div className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-[0.22em] text-[var(--unidade-escuro)]">
+            {NOME_UNIDADE[modulo]}
+          </div>
+        </div>
+      </div>
+      <div className="flex max-w-[420px] flex-1 items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-muted-foreground">
+        <Search className="h-4 w-4" />
+        <span className="text-[13px]">Buscar família, protocolo, beneficiário…</span>
+      </div>
+      <div className="ml-auto flex items-center gap-3.5">
+        <span className="relative flex h-[38px] w-[38px] items-center justify-center rounded-xl border border-border bg-surface text-foreground">
+          <Bell className="h-[18px] w-[18px]" />
+          <span className="absolute -right-1.5 -top-1.5 flex h-[17px] w-[17px] items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white">
+            3
+          </span>
+        </span>
+        <span className="flex items-center gap-2">
+          <CrestAvatar iniciais={iniciais} size={34} />
+          <span className="leading-tight">
+            <span className="block text-[12.5px] font-semibold text-foreground">{user}</span>
+            <span className="block text-[10px] text-muted-foreground">{cargo}</span>
+          </span>
+        </span>
+      </div>
+    </header>
+  );
+}
+
+function Rail({ modulo, telaAtiva }: { modulo: ModuloCasa; telaAtiva?: string }) {
+  return (
+    <nav className="sticky top-[70px] flex h-[calc(100vh-70px)] w-[86px] flex-col items-center gap-1.5 border-r border-border bg-background py-4">
+      {NAV[modulo].map((item) => {
+        const Icon = item.icon;
+        const ativo = telaAtiva ? item.href.endsWith(telaAtiva) : false;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex h-[54px] w-[58px] flex-col items-center justify-center gap-1 rounded-2xl transition",
+              ativo
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-surface hover:text-[var(--unidade-escuro)]",
+            )}
+          >
+            <Icon className="h-[21px] w-[21px]" />
+            <span className="text-[8.5px] font-semibold uppercase tracking-[0.04em]">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function ShellInterno({
+  modulo,
+  theme,
+  user = "Erick Ramos",
+  cargo = "Presidência",
+  iniciais = "ER",
+  telaAtiva,
+  children,
+}: {
+  modulo: ModuloCasa;
+  /** sobrescreve o data-theme; default segue o módulo */
+  theme?: string;
+  user?: string;
+  cargo?: string;
+  iniciais?: string;
+  telaAtiva?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-theme={theme ?? modulo}
+      className="grid min-h-screen grid-cols-[86px_1fr] grid-rows-[70px_1fr] bg-background"
+    >
+      <Topbar modulo={modulo} user={user} cargo={cargo} iniciais={iniciais} />
+      <Rail modulo={modulo} telaAtiva={telaAtiva} />
+      <main className="col-start-2 row-start-2 overflow-y-auto px-8 py-7">{children}</main>
+    </div>
+  );
+}
+
+export function ShellPublico({ children }: { children: ReactNode }) {
+  const nav = [
+    { href: "/", label: "Início" },
+    { href: "/unidades", label: "Unidades" },
+    { href: "/como-ser-atendido", label: "Como funciona" },
+    { href: "/doe", label: "Doe" },
+    { href: "/voluntario", label: "Voluntário" },
+  ];
+  return (
+    <div data-theme="presidencia" className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-20 flex items-center gap-4 border-b border-border bg-background/85 px-10 py-4 backdrop-blur">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-background text-primary shadow-[inset_0_0_0_1.5px_var(--ifp-dourado)]">
+          <Brandmark size={31} title="IFP" />
+        </span>
+        <span className="text-sm font-semibold uppercase tracking-[0.13em] text-foreground">Instituto Família Poncio</span>
+        <nav className="ml-auto flex items-center gap-6">
+          {nav.map((n) => (
+            <Link key={n.href} href={n.href} className="text-[13px] font-medium text-foreground/80 hover:text-foreground">
+              {n.label}
+            </Link>
+          ))}
+          <Link href="/login" className="rounded-md bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground">
+            Acessar sistema
+          </Link>
+        </nav>
+      </header>
+      <main className="flex-1">{children}</main>
+      <footer className="mt-10 bg-[var(--ifp-tinta)] px-10 py-10 text-center text-[13px] text-[#f3e9e2]">
+        <span className="mx-auto mb-3 block h-10 w-10 text-[var(--ifp-dourado)]">
+          <Brandmark size={40} title="IFP" />
+        </span>
+        Instituto Família Poncio · Acolhimento integral à família
+      </footer>
+    </div>
+  );
+}
+
+export function ShellMobile({
+  user = "Sandra",
+  sub = "Mãe da Ana",
+  children,
+}: {
+  user?: string;
+  sub?: string;
+  children: ReactNode;
+}) {
+  const nav = [
+    { label: "Diário", icon: BookOpen },
+    { label: "Avisos", icon: Bell },
+    { label: "Criança", icon: User },
+  ];
+  return (
+    <div
+      data-theme="educacional"
+      className="flex min-h-screen items-center justify-center bg-[repeating-linear-gradient(45deg,#f1e7df,#f1e7df_12px,#efe4db_12px,#efe4db_24px)] p-6"
+    >
+      <div className="relative flex h-[780px] w-[390px] max-w-full flex-col overflow-hidden rounded-[42px] border-[9px] border-[#2a1c12] bg-background shadow-[var(--ifp-shadow-casa)]">
+        <div className="flex items-center gap-2.5 bg-primary px-5 py-3.5 text-white">
+          <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-white/15 text-white shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.6)]">
+            <Brandmark size={23} title="IFP" />
+          </span>
+          <div>
+            <div className="text-[13px] font-semibold">{user}</div>
+            <div className="text-[10px] opacity-85">{sub}</div>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 pb-[90px] pt-4">{children}</div>
+        <div className="absolute inset-x-0 bottom-0 flex h-[72px] items-center justify-around border-t border-border bg-surface pb-1.5">
+          {nav.map((n, i) => {
+            const Icon = n.icon;
+            return (
+              <span key={n.label} className={cn("flex flex-col items-center gap-0.5 text-[9.5px] font-semibold", i === 0 ? "text-primary" : "text-muted-foreground")}>
+                <Icon className="h-[22px] w-[22px]" />
+                {n.label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
