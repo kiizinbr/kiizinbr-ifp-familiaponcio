@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import "./globals.css";
 import { authOptions } from "@/lib/auth";
 import { Providers } from "./providers";
+import { CasaDefs } from "@/components/casa";
 
 // Jost = substituta geométrica da Garet (direção CASA do protótipo Connect).
 // Quando o Erick enviar os .woff2 da Garet oficial, trocar por next/font/local.
@@ -36,6 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="pt-BR" className={jost.variable} suppressHydrationWarning>
       <body>
+        <CasaDefs />
         <Providers session={session}>{children}</Providers>
       </body>
     </html>
