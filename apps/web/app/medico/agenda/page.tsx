@@ -23,6 +23,7 @@ import {
   useCriarAgendamento,
 } from "@/lib/use-medico";
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
+import { PageHeader } from "@/components/casa";
 import { cn } from "@/lib/cn";
 import { idade } from "@/lib/idade";
 
@@ -236,25 +237,21 @@ export default function AgendaPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {ehHoje ? "Agenda do dia" : "Agenda"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {new Date(`${dataSel}T12:00:00`).toLocaleDateString("pt-BR", {
-              weekday: "long",
-              day: "2-digit",
-              month: "long",
-            })}
-          </p>
-        </div>
-        {!novoAberto ? (
-          <Botao onClick={() => setNovoAberto(true)}>
-            <CalendarPlus className="h-4 w-4" /> Novo agendamento
-          </Botao>
-        ) : null}
-      </div>
+      <PageHeader
+        titulo={ehHoje ? "Agenda do dia" : "Agenda"}
+        descricao={new Date(`${dataSel}T12:00:00`).toLocaleDateString("pt-BR", {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+        })}
+        acoes={
+          !novoAberto ? (
+            <Botao onClick={() => setNovoAberto(true)}>
+              <CalendarPlus className="h-4 w-4" /> Novo agendamento
+            </Botao>
+          ) : undefined
+        }
+      />
 
       {/* Navegação de data — a API e o hook já aceitam ?data=YYYY-MM-DD */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -310,7 +307,7 @@ export default function AgendaPage() {
           <li key={ag.id}>
             <Link
               href={`/medico/atendimento/${ag.id}`}
-              className="group flex items-center gap-4 rounded-lg border border-border bg-surface p-4 shadow-ifp-sm transition hover:shadow-casa-sm"
+              className="group flex items-center gap-4 rounded-[18px] border border-border bg-surface p-4 shadow-[var(--ifp-shadow-casa-sm)] transition hover:shadow-[var(--ifp-shadow-casa)]"
             >
               <div className="w-14 shrink-0 text-center">
                 <div className="text-lg font-bold text-primary">{hora(ag.inicioEm)}</div>
