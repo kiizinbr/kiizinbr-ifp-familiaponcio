@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Baby, BellRing, BookOpenCheck, ChevronRight, Users } from "lucide-react";
+import {
+  Baby,
+  BellRing,
+  BookOpenCheck,
+  ChevronRight,
+  Megaphone,
+  Users,
+} from "lucide-react";
 
 import { Alerta, Spinner } from "@/components/ui";
 import { useResumoEducacional, useTurmasInfantis } from "@/lib/use-educacional";
@@ -49,7 +56,15 @@ export default function PainelEducacional() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <h1 className="text-xl font-bold text-foreground">Painel do dia</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-foreground">Painel do dia</h1>
+        <Link
+          href="/educacional/comunicados"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted"
+        >
+          <Megaphone className="h-4 w-4" /> Comunicados
+        </Link>
+      </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi

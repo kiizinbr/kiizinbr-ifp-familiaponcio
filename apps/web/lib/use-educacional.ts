@@ -377,3 +377,114 @@ export function useConfirmarLeitura() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["familia", "comunicados"] }),
   });
 }
+
+// ============================================================
+// Gestão da unidade (gestora): comunicados, autorizados, imagem
+// ============================================================
+
+export interface ComunicadoGestora {
+  id: string;
+  titulo: string;
+  corpo: string;
+  critico: boolean;
+  turmaId: string | null;
+  criadoEm: string;
+  _count: { leituras: number };
+}
+
+export interface NovoComunicadoPayload {
+  titulo: string;
+  corpo: string;
+  critico?: boolean;
+  /** vazio/ausente = comunicado geral da unidade */
+  turmaId?: string;
+}
+
+export interface NovoAutorizadoPayload {
+  nome: string;
+  documento: string;
+  parentesco: string;
+  /** ISO; ausente = sem prazo de validade */
+  vigenteAte?: string;
+  restricaoJudicial?: boolean;
+}
+
+/** Lista os comunicados da unidade (com a contagem de confirmações de leitura). */
+export function useComunicadosGestora() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["educacional", "comunicados"],
+    queryFn: () =>
+      authFetch<{ items: ComunicadoGestora[] }>("/educacional/comunicados"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useCriarComunicado() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NovoComunicadoPayload) =>
+      authFetch<ComunicadoGestora>("/educacional/comunicados", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["educacional", "comunicados"] });
+      qc.invalidateQueries({ queryKey: ["educacional", "resumo"] });
+    },
+  });
+}
+
+export function useCriarAutorizado(membroId: string) {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NovoAutorizadoPayload) =>
+      authFetch<AutorizadoItem>(`/educacional/criancas/${membroId}/autorizados`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["educacional", "crianca", membroId] });
+      qc.invalidateQueries({ queryKey: ["educacional", "autorizados", membroId] });
+    },
+  });
+}
+
+export function useRevogarAutorizado(membroId: string) {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (autorizadoId: string) =>
+      authFetch<AutorizadoItem>(
+        `/educacional/criancas/autorizados/${autorizadoId}/revogar`,
+        { method: "PATCH" },
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["educacional", "crianca", membroId] });
+      qc.invalidateQueries({ queryKey: ["educacional", "autorizados", membroId] });
+    },
+  });
+}
+
+export function useAtualizarAutorizacaoImagem(membroId: string) {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      escopo,
+      concedido,
+    }: {
+      escopo: EscopoImagem;
+      concedido: boolean;
+    }) =>
+      authFetch(`/educacional/criancas/${membroId}/autorizacoes-imagem/${escopo}`, {
+        method: "PATCH",
+        body: JSON.stringify({ concedido }),
+      }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["educacional", "crianca", membroId] }),
+  });
+}
