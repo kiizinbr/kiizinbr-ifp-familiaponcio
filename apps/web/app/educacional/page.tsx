@@ -11,28 +11,8 @@ import {
 } from "lucide-react";
 
 import { Alerta, Spinner } from "@/components/ui";
+import { Card, Kpi, ListRow, PageHeader, SecTitle } from "@/components/casa";
 import { useResumoEducacional, useTurmasInfantis } from "@/lib/use-educacional";
-
-function Kpi({
-  rotulo,
-  valor,
-  alerta,
-}: {
-  rotulo: string;
-  valor: number | string;
-  alerta?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-lg border p-4 ${
-        alerta ? "border-warning/60 bg-warning/10" : "border-border bg-surface"
-      }`}
-    >
-      <p className="text-2xl font-bold text-foreground">{valor}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{rotulo}</p>
-    </div>
-  );
-}
 
 /** Painel da unidade: presentes × matriculados, diários, críticos sem leitura. */
 export default function PainelEducacional() {
@@ -56,72 +36,70 @@ export default function PainelEducacional() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-foreground">Painel do dia</h1>
-        <Link
-          href="/educacional/comunicados"
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted"
-        >
-          <Megaphone className="h-4 w-4" /> Comunicados
-        </Link>
-      </div>
+      <PageHeader
+        titulo="Painel do dia"
+        acoes={
+          <Link
+            href="/educacional/comunicados"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted"
+          >
+            <Megaphone className="h-4 w-4" /> Comunicados
+          </Link>
+        }
+      />
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi
-          rotulo="Presentes agora"
+          label="Presentes agora"
           valor={`${resumo?.presentesAgora ?? 0}/${resumo?.matriculados ?? 0}`}
         />
-        <Kpi rotulo="Diários abertos" valor={resumo?.diariosAbertos ?? 0} />
-        <Kpi rotulo="Diários fechados hoje" valor={resumo?.diariosFechados ?? 0} />
+        <Kpi label="Diários abertos" valor={resumo?.diariosAbertos ?? 0} />
+        <Kpi label="Diários fechados hoje" valor={resumo?.diariosFechados ?? 0} />
         <Kpi
-          rotulo="Críticos sem leitura"
+          label="Críticos sem leitura"
           valor={resumo?.criticosSemLeitura ?? 0}
           alerta={(resumo?.criticosSemLeitura ?? 0) > 0}
         />
       </div>
 
       {(resumo?.criticosSemLeitura ?? 0) > 0 && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-warning/60 bg-warning/10 px-4 py-3 text-sm text-foreground">
+        <Card className="mt-4 flex items-center gap-2 border-warning/60 bg-warning/10 p-4 text-sm text-foreground">
           <BellRing className="h-4 w-4 shrink-0 text-warning" />
           Há comunicado crítico sem confirmação de leitura — considere reforçar pelo
           WhatsApp oficial do IFP.
-        </div>
+        </Card>
       )}
 
-      <h2 className="mt-8 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        <Users className="h-4 w-4" /> Turmas
-      </h2>
-      <ul className="mt-3 space-y-2">
-        {turmas?.items.map((t) => (
-          <li key={t.id}>
-            <Link
-              href={`/educacional/turmas/${t.id}`}
-              className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 transition hover:border-primary/50"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Baby className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{t.nome}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {Math.floor(t.faixaEtariaMin / 12)}–{Math.floor(t.faixaEtariaMax / 12)}{" "}
-                    anos · {t._count.matriculas}/{t.capacidade} crianças ·{" "}
-                    {t.educador.user.nome}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          </li>
-        ))}
-        {turmas?.items.length === 0 && (
-          <li className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-            <BookOpenCheck className="mx-auto mb-2 h-5 w-5" />
-            Nenhuma turma cadastrada ainda.
-          </li>
-        )}
-      </ul>
+      <div className="mt-8">
+        <SecTitle icon={<Users />}>Turmas</SecTitle>
+        <ul>
+          {turmas?.items.map((t) => (
+            <li key={t.id}>
+              <Link href={`/educacional/turmas/${t.id}`} className="block">
+                <ListRow
+                  className="transition hover:border-primary/50"
+                  avatar={<Baby className="h-4 w-4" />}
+                  titulo={<span className="text-sm">{t.nome}</span>}
+                  subtitulo={
+                    <>
+                      {Math.floor(t.faixaEtariaMin / 12)}–{Math.floor(t.faixaEtariaMax / 12)}{" "}
+                      anos · {t._count.matriculas}/{t.capacidade} crianças ·{" "}
+                      {t.educador.user.nome}
+                    </>
+                  }
+                  trailing={<ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                />
+              </Link>
+            </li>
+          ))}
+          {turmas?.items.length === 0 && (
+            <li className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+              <BookOpenCheck className="mx-auto mb-2 h-5 w-5" />
+              Nenhuma turma cadastrada ainda.
+            </li>
+          )}
+        </ul>
+      </div>
     </main>
   );
 }

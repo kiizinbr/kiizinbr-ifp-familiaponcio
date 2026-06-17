@@ -26,7 +26,7 @@
 
 ## 🟢 Fila — baixo risco (loop autônomo)
 - [x] Reskin **Família** (mobile) — topbar CASA (leão na cor da unidade) + bottom-nav com destaque do ativo
-- [ ] Refino interno das páginas já reskinadas — aplicar blocos (`PageHeader`/`Card`/`Kpi`/`ListRow`/`Pill`) por dentro de: educacional (painel/turma/comunicados/criança), capacitação (painel/turmas/turma/chamada), serviço social (início/fichas/nova/detalhe)
+- [~] Refino interno das páginas — **painéis feitos** (educacional, capacitação, serviço social). Faltam sub-páginas: educacional (turma/comunicados/criança), capacitação (turmas/turma/chamada), serviço social (fichas/nova/detalhe), família (diário/comunicados/criança)
 - [ ] Home `/` (hub) — adicionar card do Centro Educacional + ajustar vitrine (tirar Esportivo/Recreativo sem rota)
 
 ## 🟡 Fila — novo-front (API já existe; médio)
