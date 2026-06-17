@@ -144,9 +144,10 @@
 }
 
 [data-theme="servico-social"] {
-  --unidade:        var(--ifp-gray-700);
-  --unidade-escuro: var(--ifp-gray-900);
-  --unidade-suave:  #F1EDE8;
+  /* Serviço Social = dourado heráldico (direção CASA) */
+  --unidade:        var(--ifp-dourado);
+  --unidade-escuro: #9a6f16;
+  --unidade-suave:  #F7EFDD;
 }
 
 [data-theme="presidencia"] {

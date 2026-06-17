@@ -1,12 +1,13 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { SairButton } from "@/components/sair-button";
+import { iniciaisDe } from "@/lib/iniciais";
+import { ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /servico-social/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "SERVICO_SOCIAL"];
+const ROTAS_PRONTAS = ["/servico-social", "/servico-social/fichas"];
 
 export default async function ServicoSocialLayout({
   children,
@@ -31,25 +32,16 @@ export default async function ServicoSocialLayout({
     );
   }
 
+  const nome = session.user?.name ?? session.user?.email ?? "Equipe";
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <Link href="/servico-social" className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-widest text-ifp-orange">
-              IFP Connect
-            </span>
-            <span className="text-sm font-semibold text-foreground">Serviço Social</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {session.user?.name ?? session.user?.email}
-            </span>
-            <SairButton />
-          </div>
-        </div>
-      </header>
+    <ShellInterno
+      modulo="servico-social"
+      user={nome}
+      cargo="Serviço Social"
+      iniciais={iniciaisDe(nome)}
+      habilitadas={ROTAS_PRONTAS}
+    >
       {children}
-    </div>
+    </ShellInterno>
   );
 }

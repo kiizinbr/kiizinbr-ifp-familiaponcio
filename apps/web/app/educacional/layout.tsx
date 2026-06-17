@@ -1,12 +1,13 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { SairButton } from "@/components/sair-button";
+import { iniciaisDe } from "@/lib/iniciais";
+import { ShellInterno } from "@/components/casa";
 
-/** Guard único de toda a área /educacional/* (console da equipe — visual sóbrio). */
+/** Guard único de toda a área /educacional/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE", "PROFISSIONAL"];
+const ROTAS_PRONTAS = ["/educacional", "/educacional/comunicados"];
 
 export default async function EducacionalLayout({
   children,
@@ -31,28 +32,16 @@ export default async function EducacionalLayout({
     );
   }
 
+  const nome = session.user?.name ?? session.user?.email ?? "Profissional";
   return (
-    // data-theme troca o trio --unidade/* → verde-petróleo do Educacional
-    <div data-theme="educacional" className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/educacional" className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-widest text-primary">
-              IFP Connect
-            </span>
-            <span className="text-sm font-semibold text-foreground">
-              Centro Educacional
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {session.user?.name ?? session.user?.email}
-            </span>
-            <SairButton />
-          </div>
-        </div>
-      </header>
+    <ShellInterno
+      modulo="educacional"
+      user={nome}
+      cargo="Centro Educacional"
+      iniciais={iniciaisDe(nome)}
+      habilitadas={ROTAS_PRONTAS}
+    >
       {children}
-    </div>
+    </ShellInterno>
   );
 }
