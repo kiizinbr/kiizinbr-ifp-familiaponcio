@@ -1,109 +1,19 @@
 /**
  * Shell CASA — o "esqueleto" das telas, em 3 modos:
- *  - ShellInterno: topbar + rail lateral (gestão/operação), recolore por unidade
- *  - ShellPublico: header + footer do site institucional
- *  - ShellMobile: moldura de celular + navegação inferior (portal família)
- * Server components (sem estado): a cor vem do data-theme; navegação por <Link>.
+ *  - ShellInterno: topbar + rail lateral (gestão/operação), recolore por unidade.
+ *    Vai no layout.tsx do módulo; as páginas mantêm seu próprio conteúdo/<main>.
+ *  - ShellPublico: header + footer do site institucional.
+ *  - ShellMobile: moldura de celular + navegação inferior (portal família).
  */
 import Link from "next/link";
 import type { ReactNode } from "react";
-import {
-  Activity,
-  Award,
-  Baby,
-  BarChart3,
-  Bell,
-  BookOpen,
-  Calendar,
-  ClipboardCheck,
-  ClipboardList,
-  FileText,
-  Home,
-  LayoutGrid,
-  ListChecks,
-  ListOrdered,
-  Network,
-  Search,
-  Settings,
-  ShieldCheck,
-  Stethoscope,
-  User,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { Bell, BookOpen, Search, User } from "lucide-react";
 
-import { cn } from "@/lib/cn";
+import { SairButton } from "@/components/sair-button";
 import { Brandmark } from "./Brandmark";
 import { CrestAvatar } from "./CrestAvatar";
-
-export type ModuloCasa =
-  | "presidencia"
-  | "medico"
-  | "capacitacao"
-  | "educacional"
-  | "esportivo"
-  | "servico-social"
-  | "admin";
-
-const NOME_UNIDADE: Record<ModuloCasa, string> = {
-  presidencia: "Corte · Presidência",
-  medico: "Centro Médico",
-  capacitacao: "Centro de Capacitação",
-  educacional: "Centro Educacional",
-  esportivo: "Centro Esportivo",
-  "servico-social": "Serviço Social",
-  admin: "Administração",
-};
-
-type NavItem = { href: string; label: string; icon: LucideIcon };
-const NAV: Record<ModuloCasa, NavItem[]> = {
-  presidencia: [
-    { href: "/presidencia", label: "Painel", icon: Home },
-    { href: "/presidencia/unidades", label: "Unidades", icon: LayoutGrid },
-    { href: "/presidencia/impacto", label: "Impacto", icon: BarChart3 },
-    { href: "/presidencia/familias", label: "Famílias", icon: Users },
-    { href: "/presidencia/relatorios", label: "Relatórios", icon: FileText },
-  ],
-  medico: [
-    { href: "/medico/agenda", label: "Agenda", icon: Calendar },
-    { href: "/medico/fila", label: "Fila", icon: ListOrdered },
-    { href: "/medico/prontuarios", label: "Prontuários", icon: ClipboardList },
-    { href: "/medico/beneficiarios", label: "Beneficiários", icon: Users },
-    { href: "/medico/indicadores", label: "Indicadores", icon: BarChart3 },
-  ],
-  capacitacao: [
-    { href: "/capacitacao", label: "Painel", icon: Home },
-    { href: "/capacitacao/turmas", label: "Turmas", icon: Users },
-    { href: "/capacitacao/cursos", label: "Cursos", icon: BookOpen },
-    { href: "/capacitacao/certificados", label: "Certificados", icon: Award },
-    { href: "/capacitacao/indicadores", label: "Indicadores", icon: Activity },
-  ],
-  educacional: [
-    { href: "/educacional", label: "Painel", icon: Home },
-    { href: "/educacional/turmas", label: "Turmas", icon: Baby },
-    { href: "/educacional/comunicados", label: "Comunicados", icon: Bell },
-    { href: "/educacional/criancas", label: "Crianças", icon: User },
-  ],
-  esportivo: [
-    { href: "/esportivo", label: "Painel", icon: Home },
-    { href: "/esportivo/turmas", label: "Turmas", icon: Users },
-    { href: "/esportivo/frequencia", label: "Frequência", icon: ClipboardCheck },
-    { href: "/esportivo/indicadores", label: "Indicadores", icon: BarChart3 },
-  ],
-  "servico-social": [
-    { href: "/servico-social", label: "Início", icon: Home },
-    { href: "/servico-social/fichas", label: "Fichas", icon: FileText },
-    { href: "/servico-social/triagem", label: "Triagem", icon: ListChecks },
-    { href: "/servico-social/elegibilidade", label: "Elegib.", icon: ShieldCheck },
-    { href: "/servico-social/ponte", label: "Ponte", icon: Network },
-  ],
-  admin: [
-    { href: "/admin/usuarios", label: "Usuários", icon: Users },
-    { href: "/admin/unidades", label: "Unidades", icon: LayoutGrid },
-    { href: "/admin/auditoria", label: "Auditoria", icon: ShieldCheck },
-    { href: "/admin/config", label: "Config", icon: Settings },
-  ],
-};
+import { Rail } from "./Rail";
+import { NOME_UNIDADE, type ModuloCasa } from "./nav";
 
 function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: string; cargo: string; iniciais: string }) {
   return (
@@ -137,34 +47,9 @@ function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: s
             <span className="block text-[10px] text-muted-foreground">{cargo}</span>
           </span>
         </span>
+        <SairButton />
       </div>
     </header>
-  );
-}
-
-function Rail({ modulo, telaAtiva }: { modulo: ModuloCasa; telaAtiva?: string }) {
-  return (
-    <nav className="sticky top-[70px] flex h-[calc(100vh-70px)] w-[86px] flex-col items-center gap-1.5 border-r border-border bg-background py-4">
-      {NAV[modulo].map((item) => {
-        const Icon = item.icon;
-        const ativo = telaAtiva ? item.href.endsWith(telaAtiva) : false;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex h-[54px] w-[58px] flex-col items-center justify-center gap-1 rounded-2xl transition",
-              ativo
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-surface hover:text-[var(--unidade-escuro)]",
-            )}
-          >
-            <Icon className="h-[21px] w-[21px]" />
-            <span className="text-[8.5px] font-semibold uppercase tracking-[0.04em]">{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
   );
 }
 
@@ -174,7 +59,7 @@ export function ShellInterno({
   user = "Erick Ramos",
   cargo = "Presidência",
   iniciais = "ER",
-  telaAtiva,
+  habilitadas,
   children,
 }: {
   modulo: ModuloCasa;
@@ -183,7 +68,8 @@ export function ShellInterno({
   user?: string;
   cargo?: string;
   iniciais?: string;
-  telaAtiva?: string;
+  /** rotas do rail que já existem; as demais aparecem como "em breve" */
+  habilitadas?: string[];
   children: ReactNode;
 }) {
   return (
@@ -192,8 +78,8 @@ export function ShellInterno({
       className="grid min-h-screen grid-cols-[86px_1fr] grid-rows-[70px_1fr] bg-background"
     >
       <Topbar modulo={modulo} user={user} cargo={cargo} iniciais={iniciais} />
-      <Rail modulo={modulo} telaAtiva={telaAtiva} />
-      <main className="col-start-2 row-start-2 overflow-y-auto px-8 py-7">{children}</main>
+      <Rail modulo={modulo} habilitadas={habilitadas} />
+      <div className="col-start-2 row-start-2 overflow-y-auto">{children}</div>
     </div>
   );
 }
@@ -269,7 +155,7 @@ export function ShellMobile({
           {nav.map((n, i) => {
             const Icon = n.icon;
             return (
-              <span key={n.label} className={cn("flex flex-col items-center gap-0.5 text-[9.5px] font-semibold", i === 0 ? "text-primary" : "text-muted-foreground")}>
+              <span key={n.label} className={i === 0 ? "flex flex-col items-center gap-0.5 text-[9.5px] font-semibold text-primary" : "flex flex-col items-center gap-0.5 text-[9.5px] font-semibold text-muted-foreground"}>
                 <Icon className="h-[22px] w-[22px]" />
                 {n.label}
               </span>

@@ -1,12 +1,19 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { SairButton } from "@/components/sair-button";
+import { ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /medico/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL"];
+
+/** Rotas do médico que já existem (as demais aparecem como "em breve" no rail). */
+const ROTAS_PRONTAS = ["/medico/agenda"];
+
+function iniciais(nome: string) {
+  const partes = nome.trim().split(/\s+/);
+  return ((partes[0]?.[0] ?? "") + (partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? "") : "")).toUpperCase();
+}
 
 export default async function MedicoLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -27,26 +34,16 @@ export default async function MedicoLayout({ children }: { children: React.React
     );
   }
 
+  const nome = session.user?.name ?? session.user?.email ?? "Profissional";
   return (
-    // data-theme troca o trio --unidade/* → teal do Centro Médico (direção CASA)
-    <div data-theme="medico" className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <Link href="/medico" className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-widest text-primary">
-              IFP Connect
-            </span>
-            <span className="text-sm font-semibold text-foreground">Centro Médico</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {session.user?.name ?? session.user?.email}
-            </span>
-            <SairButton />
-          </div>
-        </div>
-      </header>
+    <ShellInterno
+      modulo="medico"
+      user={nome}
+      cargo="Centro Médico"
+      iniciais={iniciais(nome)}
+      habilitadas={ROTAS_PRONTAS}
+    >
       {children}
-    </div>
+    </ShellInterno>
   );
 }
