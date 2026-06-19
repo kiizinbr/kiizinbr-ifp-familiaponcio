@@ -1,15 +1,15 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Baby, BellRing, BookOpen, MessagesSquare } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 import { SairButton } from "@/components/sair-button";
+import { Brandmark } from "@/components/casa";
+import { BottomNavFamilia } from "@/components/casa/BottomNavFamilia";
 
 /**
- * Portal da família — exclusivo do responsável. Telas enxutas (pesquisa):
- * Diário · Comunicados · Mensagens · Minha criança. Navegação por ícones
- * grandes, tom mais quente que o console da equipe.
+ * Portal da família — exclusivo do responsável. Mobile-first, identidade CASA
+ * (leão + cor da unidade), tom mais quente que o console da equipe. Navegação
+ * inferior: Diário · Comunicados · Mensagens · Minha criança.
  */
 const PERFIS_PERMITIDOS = ["RESPONSAVEL_FAMILIAR"];
 
@@ -36,53 +36,27 @@ export default async function FamiliaLayout({
     );
   }
 
+  const nome = session.user?.name ?? "Família";
   return (
     <div data-theme="educacional" className="flex min-h-screen flex-col bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <Link href="/familia/diario" className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-widest text-primary">IFP</span>
-            <span className="text-sm font-semibold text-foreground">Minha família</span>
-          </Link>
-          <SairButton />
+      <header className="sticky top-0 z-20 bg-primary text-white">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.6)]">
+            <Brandmark size={24} title="IFP" />
+          </span>
+          <div className="leading-tight">
+            <div className="text-sm font-semibold">Minha família</div>
+            <div className="text-[11px] opacity-85">{nome}</div>
+          </div>
+          <div className="ml-auto">
+            <SairButton />
+          </div>
         </div>
       </header>
 
-      <div className="flex-1 pb-20">{children}</div>
+      <div className="flex-1 pb-24">{children}</div>
 
-      {/* Navegação fixa de ícones grandes (mobile-first) */}
-      <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-surface">
-        <div className="mx-auto grid max-w-2xl grid-cols-4">
-          <Link
-            href="/familia/diario"
-            className="flex flex-col items-center gap-1 py-3 text-xs font-semibold text-muted-foreground transition hover:text-primary"
-          >
-            <BookOpen className="h-6 w-6" />
-            Diário
-          </Link>
-          <Link
-            href="/familia/comunicados"
-            className="flex flex-col items-center gap-1 py-3 text-xs font-semibold text-muted-foreground transition hover:text-primary"
-          >
-            <BellRing className="h-6 w-6" />
-            Comunicados
-          </Link>
-          <Link
-            href="/familia/mensagens"
-            className="flex flex-col items-center gap-1 py-3 text-xs font-semibold text-muted-foreground transition hover:text-primary"
-          >
-            <MessagesSquare className="h-6 w-6" />
-            Mensagens
-          </Link>
-          <Link
-            href="/familia/crianca"
-            className="flex flex-col items-center gap-1 py-3 text-xs font-semibold text-muted-foreground transition hover:text-primary"
-          >
-            <Baby className="h-6 w-6" />
-            Minha criança
-          </Link>
-        </div>
-      </nav>
+      <BottomNavFamilia />
     </div>
   );
 }
