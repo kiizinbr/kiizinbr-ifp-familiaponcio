@@ -1,12 +1,14 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { SairButton } from "@/components/sair-button";
+import { iniciaisDe } from "@/lib/iniciais";
+import { ShellInterno } from "@/components/casa";
 
-/** Guard único de toda a área /esportivo/* (console da equipe — visual sóbrio). */
+/** Guard único de toda a área /esportivo/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE", "PROFISSIONAL"];
+/** Rotas do esportivo que já existem (as demais aparecem como "em breve" no rail). */
+const ROTAS_PRONTAS = ["/esportivo"];
 
 export default async function EsportivoLayout({
   children,
@@ -31,28 +33,16 @@ export default async function EsportivoLayout({
     );
   }
 
+  const nome = session.user?.name ?? session.user?.email ?? "Profissional";
   return (
-    // data-theme troca o trio --unidade/* → terracota profundo do Esportivo
-    <div data-theme="esportivo" className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/esportivo" className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-widest text-primary">
-              IFP Connect
-            </span>
-            <span className="text-sm font-semibold text-foreground">
-              Centro Esportivo
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {session.user?.name ?? session.user?.email}
-            </span>
-            <SairButton />
-          </div>
-        </div>
-      </header>
+    <ShellInterno
+      modulo="esportivo"
+      user={nome}
+      cargo="Centro Esportivo"
+      iniciais={iniciaisDe(nome)}
+      habilitadas={ROTAS_PRONTAS}
+    >
       {children}
-    </div>
+    </ShellInterno>
   );
 }
