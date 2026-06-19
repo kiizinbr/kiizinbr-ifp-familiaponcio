@@ -4,6 +4,8 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   perfis: string[];
+  /** Lido fresco do banco no JwtStrategy: bloqueia operações até a troca da senha. */
+  mustChangePassword: boolean;
 }
 
 export const CurrentUser = createParamDecorator(

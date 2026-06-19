@@ -28,6 +28,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user || !user.ativo) {
       throw new UnauthorizedException("Sessão inválida");
     }
-    return { id: user.id, email: user.email, perfis: payload.perfis };
+    // mustChangePassword vem do banco (não do token) → um reset feito por um admin
+    // passa a valer na request seguinte, sem esperar o token expirar.
+    return {
+      id: user.id,
+      email: user.email,
+      perfis: payload.perfis,
+      mustChangePassword: user.mustChangePassword,
+    };
   }
 }

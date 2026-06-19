@@ -10,6 +10,7 @@ interface ApiLoginResponse {
     nome: string;
     email: string;
     perfis: string[];
+    mustChangePassword: boolean;
     unidades: { id: string; slug: string; tipo: string }[];
   };
 }
@@ -44,16 +45,23 @@ export const authOptions: NextAuthOptions = {
           accessToken: data.accessToken,
           perfis: data.user.perfis,
           unidades: data.user.unidades,
+          mustChangePassword: data.user.mustChangePassword,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.accessToken = user.accessToken;
         token.perfis = user.perfis;
         token.unidades = user.unidades;
+        token.mustChangePassword = user.mustChangePassword;
+      }
+      // Após o usuário trocar a senha no 1º acesso, a página chama
+      // update({ mustChangePassword: false }) para liberar a navegação.
+      if (trigger === "update" && typeof session?.mustChangePassword === "boolean") {
+        token.mustChangePassword = session.mustChangePassword;
       }
       return token;
     },
@@ -61,6 +69,7 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken;
       session.perfis = token.perfis;
       session.unidades = token.unidades;
+      session.mustChangePassword = token.mustChangePassword;
       if (session.user && token.sub) {
         session.user.id = token.sub;
       }

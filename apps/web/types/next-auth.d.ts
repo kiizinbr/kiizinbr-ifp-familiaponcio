@@ -13,12 +13,14 @@ declare module "next-auth" {
     accessToken: string;
     perfis: string[];
     unidades: UnidadeRef[];
+    mustChangePassword: boolean;
   }
 
   interface Session {
     accessToken: string;
     perfis: string[];
     unidades: UnidadeRef[];
+    mustChangePassword: boolean;
     user: {
       id: string;
       name?: string | null;
@@ -32,5 +34,6 @@ declare module "next-auth/jwt" {
     accessToken: string;
     perfis: string[];
     unidades: UnidadeRef[];
+    mustChangePassword: boolean;
   }
 }

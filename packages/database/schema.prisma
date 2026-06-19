@@ -93,6 +93,9 @@ model User {
   nome         String
   cpf          String?   @unique
   ativo        Boolean   @default(true)
+  // Primeiro acesso: senha provisória definida pelo admin/gestor. Enquanto true,
+  // o login obriga o usuário a trocar a senha antes de usar o sistema.
+  mustChangePassword Boolean @default(false)
   ultimoLogin  DateTime?
   criadoEm     DateTime  @default(now())
   atualizadoEm DateTime  @updatedAt

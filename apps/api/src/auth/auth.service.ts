@@ -1,7 +1,13 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { compare } from "bcrypt";
+import { AcaoAuditoria } from "@ifp/database";
+import { compare, hash } from "bcrypt";
 
+import { AuditService } from "../audit/audit.service";
 import { UsersService } from "../users/users.service";
 
 export interface JwtPayload {
@@ -15,6 +21,7 @@ export class AuthService {
   constructor(
     private readonly users: UsersService,
     private readonly jwt: JwtService,
+    private readonly audit: AuditService,
   ) {}
 
   async login(email: string, senha: string) {
@@ -44,6 +51,8 @@ export class AuthService {
         nome: user.nome,
         email: user.email,
         perfis: payload.perfis,
+        // Sinaliza ao front que a senha é provisória → forçar troca no 1º acesso.
+        mustChangePassword: user.mustChangePassword,
         unidades: withPerfis.unidades.map((u) => ({
           id: u.unidade.id,
           slug: u.unidade.slug,
@@ -51,5 +60,34 @@ export class AuthService {
         })),
       },
     };
+  }
+
+  /** Troca da própria senha (valida a senha atual). Limpa o flag de 1º acesso. */
+  async trocarSenha(userId: string, senhaAtual: string, novaSenha: string) {
+    const user = await this.users.findById(userId);
+    if (!user || !user.senhaHash) {
+      throw new UnauthorizedException("Sessão inválida");
+    }
+
+    const ok = await compare(senhaAtual, user.senhaHash);
+    if (!ok) {
+      throw new UnauthorizedException("Senha atual incorreta");
+    }
+    if (novaSenha === senhaAtual) {
+      throw new BadRequestException("A nova senha deve ser diferente da atual");
+    }
+
+    const senhaHash = await hash(novaSenha, 12);
+    await this.users.atualizarSenha(userId, senhaHash);
+
+    this.audit.registrar({
+      userId,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "User",
+      entidadeId: userId,
+      metadados: { evento: "trocou-senha" },
+    });
+
+    return { ok: true };
   }
 }
