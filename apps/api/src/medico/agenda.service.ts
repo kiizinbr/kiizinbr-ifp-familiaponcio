@@ -1,6 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import {
   AcaoAuditoria,
+  Perfil,
   Prisma,
   StatusAgendamento,
   StatusElegibilidade,
@@ -308,6 +314,60 @@ export class AgendaService {
     return atendimento;
   }
 
+  /**
+   * Resolve o acesso ao balcão do Centro Médico. ehBalcao=true para quem opera a
+   * unidade inteira (SUPER_ADMIN, ou GESTOR_UNIDADE/RECEPCAO lotado na unidade);
+   * para o PROFISSIONAL puro, ehBalcao=false e ele só mexe nos próprios.
+   */
+  private async acessoBalcao(
+    user: AuthenticatedUser,
+  ): Promise<{ unidadeId: string; profissionalId: string | null; ehBalcao: boolean }> {
+    const unidade = await this.prisma.unidade.findUnique({
+      where: { tipo: TipoUnidade.MEDICO },
+      select: { id: true },
+    });
+    if (!unidade) throw new NotFoundException("Unidade médica não encontrada");
+
+    const prof = await this.prisma.profissional.findUnique({
+      where: { userId: user.id },
+      select: { id: true, ativo: true, unidadeId: true },
+    });
+    const profissionalId = prof?.ativo && prof.unidadeId === unidade.id ? prof.id : null;
+
+    if (user.perfis.includes(Perfil.SUPER_ADMIN)) {
+      return { unidadeId: unidade.id, profissionalId, ehBalcao: true };
+    }
+    const ehGestorOuRecepcao = user.perfis.some(
+      (p) => p === Perfil.GESTOR_UNIDADE || p === Perfil.RECEPCAO,
+    );
+    if (ehGestorOuRecepcao) {
+      const lotado = await this.prisma.usuarioUnidade.findFirst({
+        where: { userId: user.id, unidadeId: unidade.id },
+        select: { id: true },
+      });
+      if (lotado) return { unidadeId: unidade.id, profissionalId, ehBalcao: true };
+    }
+    if (profissionalId) return { unidadeId: unidade.id, profissionalId, ehBalcao: false };
+
+    throw new ForbiddenException("Sem acesso à agenda do Centro Médico.");
+  }
+
+  /** Fila do dia da UNIDADE (todos os profissionais) — para o balcão/recepção. */
+  async filaUnidade(user: AuthenticatedUser, data?: string) {
+    const { unidadeId } = await this.acessoBalcao(user);
+    const { inicio, fim, dia } = this.janelaDoDia(data);
+
+    const items = await this.prisma.agendamento.findMany({
+      where: { unidadeId, inicioEm: { gte: inicio, lt: fim } },
+      orderBy: { inicioEm: "asc" },
+      include: {
+        ...agendaInclude,
+        profissional: { select: { user: { select: { nome: true } } } },
+      },
+    });
+    return { items, dia };
+  }
+
   /** Gestão do agendamento: confirmar, marcar falta, cancelar ou reagendar. */
   async atualizarAgendamento(
     user: AuthenticatedUser,
@@ -319,10 +379,15 @@ export class AgendaService {
       motivo?: string;
     },
   ) {
-    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
+    const { unidadeId, profissionalId, ehBalcao } = await this.acessoBalcao(user);
     const ag = await this.prisma.agendamento.findUnique({ where: { id: agendamentoId } });
-    if (!ag) throw new NotFoundException("Agendamento não encontrado");
-    this.profissionais.assertOwnership(ag.profissionalId, profissional, user);
+    if (!ag || ag.unidadeId !== unidadeId) {
+      throw new NotFoundException("Agendamento não encontrado");
+    }
+    // Profissional puro só mexe nos seus; o balcão gere qualquer um da unidade.
+    if (!ehBalcao && ag.profissionalId !== profissionalId) {
+      throw new ForbiddenException("Este agendamento pertence a outro profissional.");
+    }
 
     if (
       ag.status === StatusAgendamento.EM_ATENDIMENTO ||

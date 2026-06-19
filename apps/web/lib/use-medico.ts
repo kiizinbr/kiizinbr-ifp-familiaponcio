@@ -64,6 +64,25 @@ export function usePrancha(agendamentoId: string | undefined) {
   });
 }
 
+export interface FilaItem extends AgendamentoResumo {
+  profissional: { user: { nome: string } };
+}
+
+/** Fila do dia da UNIDADE (todos os profissionais) — usada pelo balcão/recepção. */
+export function useFilaUnidade(data?: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["medico", "fila", data ?? "hoje"],
+    queryFn: () =>
+      authFetch<{ items: FilaItem[]; dia: string }>(
+        `/medico/fila${data ? `?data=${data}` : ""}`,
+      ),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
+  });
+}
+
 /** Busca enxuta de pacientes (autocomplete do novo agendamento). */
 export function useBuscarFichas(q: string) {
   const authFetch = useAuthFetch();

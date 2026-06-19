@@ -8,11 +8,11 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardList } from "lucide-react";
 
-import { useAgendaDoDia } from "@/lib/use-medico";
+import { useFilaUnidade, type FilaItem } from "@/lib/use-medico";
 import { AcoesAgendamento } from "@/components/medico/acoes-agendamento";
 import { PageHeader } from "@/components/casa";
 import { Alerta, Spinner } from "@/components/ui";
-import { STATUS_AGENDAMENTO_LABEL, type AgendamentoResumo, type StatusAgendamento } from "@/lib/api";
+import { STATUS_AGENDAMENTO_LABEL, type StatusAgendamento } from "@/lib/api";
 import { idade } from "@/lib/idade";
 
 function hora(iso: string) {
@@ -26,7 +26,7 @@ const GRUPOS: { titulo: string; statuses: StatusAgendamento[]; tom: string }[] =
   { titulo: "Faltas e cancelados", statuses: ["FALTOU", "CANCELADO"], tom: "text-muted-foreground" },
 ];
 
-function Paciente({ ag }: { ag: AgendamentoResumo }) {
+function Paciente({ ag }: { ag: FilaItem }) {
   return (
     <li className="space-y-2 rounded-lg border border-border bg-surface p-3">
       <div className="flex items-center gap-3">
@@ -41,7 +41,7 @@ function Paciente({ ag }: { ag: AgendamentoResumo }) {
             </span>
           </div>
           <div className="truncate text-xs text-muted-foreground">
-            {ag.motivo ?? "Sem motivo"} · {ag.ficha.protocolo}
+            {ag.profissional.user.nome} · {ag.motivo ?? "Sem motivo"} · {ag.ficha.protocolo}
           </div>
         </div>
         <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
@@ -60,7 +60,7 @@ function Paciente({ ag }: { ag: AgendamentoResumo }) {
 }
 
 export default function FilaPage() {
-  const { data, isLoading, isError, error } = useAgendaDoDia();
+  const { data, isLoading, isError, error } = useFilaUnidade();
   const items = data?.items ?? [];
 
   return (

@@ -25,6 +25,13 @@ export class AgendaController {
     return this.agenda.listarDia(user, query.data);
   }
 
+  @Get("fila")
+  @Perfis(Perfil.SUPER_ADMIN, Perfil.PROFISSIONAL, Perfil.GESTOR_UNIDADE, Perfil.RECEPCAO)
+  @ApiOperation({ summary: "Fila do dia da unidade (todos os profissionais) — balcão/recepção" })
+  fila(@Query() query: ListAgendaQuery, @CurrentUser() user: AuthenticatedUser) {
+    return this.agenda.filaUnidade(user, query.data);
+  }
+
   @Get("agenda/:agendamentoId")
   @ApiOperation({
     summary: "Payload completo da prancha (ficha + histórico clínico + draft) — registra READ",
@@ -53,6 +60,7 @@ export class AgendaController {
   }
 
   @Patch("agendamentos/:agendamentoId")
+  @Perfis(Perfil.SUPER_ADMIN, Perfil.PROFISSIONAL, Perfil.GESTOR_UNIDADE, Perfil.RECEPCAO)
   @ApiOperation({ summary: "Confirma, marca falta, cancela ou reagenda um agendamento" })
   @ApiParam({ name: "agendamentoId", description: "cuid do agendamento" })
   atualizarAgendamento(

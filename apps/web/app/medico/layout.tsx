@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /medico/*. */
-const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE"];
+const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE", "RECEPCAO"];
 
 /** Rotas do médico que já existem (as demais aparecem como "em breve" no rail). */
 const ROTAS_PRONTAS = [
