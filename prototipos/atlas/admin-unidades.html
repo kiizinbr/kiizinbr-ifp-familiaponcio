@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Unidades e salões · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="unidades" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Unidades e salões</h2>
+      <div class="desc">As quatro casas da Corte · cor, gestão e capacidade de cada unidade</div>
+    </div>
+    <button class="btn btn-primary">＋ Nova unidade</button>
+  </div>
+
+  <!-- cards das 4 unidades (cada uma com sua cor) -->
+  <div class="grid g2" style="margin-bottom:24px">
+
+    <div class="card pulso" style="--u:#10C2BB">
+      <span class="juba-ring" style="width:64px;height:64px">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#10C2BB" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="22"/></svg>
+        <span class="num" style="color:#0E9A95">87%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Centro Médico</div>
+        <div class="pm">Gestão: Raquel Souza · 9 profissionais · 280/320 vagas</div>
+        <span class="pstatus" style="background:rgba(16,194,187,.14);color:#0E9A95">Ativa</span>
+      </div>
+    </div>
+
+    <div class="card pulso" style="--u:#FF772E">
+      <span class="juba-ring" style="width:64px;height:64px">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#FF772E" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="61"/></svg>
+        <span class="num" style="color:#C24D0F">64%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Capacitação</div>
+        <div class="pm">Gestão: Tânia Moraes · 6 instrutores · 192/300 vagas</div>
+        <span class="pstatus" style="background:rgba(255,119,46,.14);color:#C24D0F">Ativa</span>
+      </div>
+    </div>
+
+    <div class="card pulso" style="--u:#007571">
+      <span class="juba-ring" style="width:64px;height:64px">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#007571" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="14"/></svg>
+        <span class="num" style="color:#005C59">92%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Centro Educacional</div>
+        <div class="pm">Gestão: Beatriz Nunes · 12 educadoras · 110/120 vagas</div>
+        <span class="pstatus" style="background:rgba(0,117,113,.14);color:#005C59">Ativa</span>
+      </div>
+    </div>
+
+    <div class="card pulso" style="--u:#9A3D0B">
+      <span class="juba-ring" style="width:64px;height:64px">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#9A3D0B" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="78"/></svg>
+        <span class="num" style="color:#9A3D0B">54%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Centro Esportivo</div>
+        <div class="pm">Gestão: Carlos Ferreira · 4 técnicos · 135/250 vagas</div>
+        <span class="pstatus" style="background:rgba(154,61,11,.14);color:#9A3D0B">Ativa</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- tabela detalhada / CRUD -->
+  <div class="sec-tit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Configuração das unidades
+  </div>
+  <div class="card" style="padding:8px 10px 4px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Unidade</th><th>Identificador (salão)</th><th>Cor</th><th>Responsável</th><th>Capacidade</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:34px;border-radius:4px;background:#10C2BB;display:inline-block"></span><b style="color:var(--tinta)">Centro Médico</b></div></td>
+          <td><code style="font-size:12px;color:#9a8f84">medico</code></td>
+          <td><span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:16px;border-radius:4px;background:#10C2BB;display:inline-block"></span>#10C2BB</span></td>
+          <td>Raquel Souza</td>
+          <td>320 vagas</td>
+          <td><span class="pill pill-ok">Ativa</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:34px;border-radius:4px;background:#FF772E;display:inline-block"></span><b style="color:var(--tinta)">Capacitação</b></div></td>
+          <td><code style="font-size:12px;color:#9a8f84">capacitacao</code></td>
+          <td><span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:16px;border-radius:4px;background:#FF772E;display:inline-block"></span>#FF772E</span></td>
+          <td>Tânia Moraes</td>
+          <td>300 vagas</td>
+          <td><span class="pill pill-ok">Ativa</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:34px;border-radius:4px;background:#007571;display:inline-block"></span><b style="color:var(--tinta)">Centro Educacional</b></div></td>
+          <td><code style="font-size:12px;color:#9a8f84">educacional</code></td>
+          <td><span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:16px;border-radius:4px;background:#007571;display:inline-block"></span>#007571</span></td>
+          <td>Beatriz Nunes</td>
+          <td>120 vagas</td>
+          <td><span class="pill pill-ok">Ativa</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:34px;border-radius:4px;background:#9A3D0B;display:inline-block"></span><b style="color:var(--tinta)">Centro Esportivo</b></div></td>
+          <td><code style="font-size:12px;color:#9a8f84">esportivo</code></td>
+          <td><span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:16px;border-radius:4px;background:#9A3D0B;display:inline-block"></span>#9A3D0B</span></td>
+          <td>Carlos Ferreira</td>
+          <td>250 vagas</td>
+          <td><span class="pill pill-ok">Ativa</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- form de edição (estado aberto, ilustrativo) -->
+  <div class="card" style="margin-top:24px;border:1px solid var(--unidade);max-width:680px">
+    <div class="sec-tit">Editar unidade · Centro Médico</div>
+    <div class="grid g2">
+      <label class="campo"><span>Nome da unidade</span><input value="Centro Médico" /></label>
+      <label class="campo"><span>Identificador (salão)</span><input value="medico" /></label>
+      <label class="campo"><span>Cor da unidade</span><input value="#10C2BB" /></label>
+      <label class="campo"><span>Responsável (gestão)</span><select><option selected>Raquel Souza</option><option>Tânia Moraes</option><option>Beatriz Nunes</option><option>Carlos Ferreira</option></select></label>
+      <label class="campo"><span>Capacidade (vagas)</span><input type="number" value="320" /></label>
+      <label class="campo"><span>Status</span><select><option selected>Ativa</option><option>Em manutenção</option><option>Inativa</option></select></label>
+    </div>
+    <label class="campo"><span>Descrição pública</span><textarea rows="2">Atendimento clínico e odontológico filantrópico em diversas especialidades.</textarea></label>
+    <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Salvar alterações</button></div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

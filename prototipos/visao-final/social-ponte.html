@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ponte da Corte · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="ponte" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Ponte da Corte</h2>
+      <div class="desc">Sinalizações enviadas pelos profissionais ao Serviço Social — o ciclo do cuidado integral</div>
+    </div>
+    <span class="pill pill-warn">2 a atender</span>
+  </div>
+
+  <!-- encaminhamentos -->
+  <div class="card" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;border-left:4px solid var(--ambar)">
+    <div style="color:var(--ambar);flex:0 0 auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"><path d="M4 21V5a2 2 0 0 1 2-2h7l1 2h5v11h-6l-1-2H6"/></svg>
+    </div>
+    <div style="flex:1">
+      <div style="font-weight:600;color:var(--tinta);font-size:14px">João Silva (8) — sugere avaliação social da família</div>
+      <div class="li-s" style="margin-top:4px">De: <b>Dr. Marcos Lima</b> · Centro Médico · há 2 horas</div>
+      <p class="desc" style="margin:8px 0 0">Criança com asma recorrente; suspeita de gatilho ambiental na moradia. Solicito avaliação das condições da família e possível encaminhamento à Capacitação para a responsável.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:0 0 auto">
+      <span class="pill pill-warn">Urgente</span>
+      <a class="btn btn-primary" href="social-ficha-detalhe.html" style="padding:8px 12px">Abrir ficha</a>
+      <button class="btn btn-ghost" style="padding:8px 12px">Atender</button>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;border-left:4px solid var(--ambar)">
+    <div style="color:var(--ambar);flex:0 0 auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"><path d="M4 21V5a2 2 0 0 1 2-2h7l1 2h5v11h-6l-1-2H6"/></svg>
+    </div>
+    <div style="flex:1">
+      <div style="font-weight:600;color:var(--tinta);font-size:14px">Ana Silva (5) — encaminhar irmão para reforço</div>
+      <div class="li-s" style="margin-top:4px">De: <b>Prof. Carla</b> · Recreativo · ontem</div>
+      <p class="desc" style="margin:8px 0 0">Aluna comenta que o irmão mais velho está fora da escola. Sugiro avaliar a família para reforço educacional e vaga no esportivo.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:0 0 auto">
+      <span class="pill pill-unid">Normal</span>
+      <a class="btn btn-primary" href="social-ficha-detalhe.html" style="padding:8px 12px">Abrir ficha</a>
+      <button class="btn btn-ghost" style="padding:8px 12px">Atender</button>
+    </div>
+  </div>
+
+  <!-- já atendidas -->
+  <div class="sec-tit" style="margin-top:26px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Atendidas recentemente</div>
+
+  <div class="list-row" style="opacity:.75">
+    <div class="av">PA</div>
+    <div class="li-main"><div class="li-t">Pedro Alves — risco de evasão em Barbeiro</div><div class="li-s">De: Tânia Moraes · Capacitação · resolvido há 3 dias</div></div>
+    <span class="pill pill-ok">Atendida</span>
+  </div>
+  <div class="list-row" style="opacity:.75">
+    <div class="av">FC</div>
+    <div class="li-main"><div class="li-t">Família Costa — transporte para exame externo</div><div class="li-s">De: Enf. Cláudia Rocha · Centro Médico · resolvido há 5 dias</div></div>
+    <span class="pill pill-ok">Atendida</span>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

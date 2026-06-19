@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minhas crianças · Portal da Família</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="mobile" data-user="Sandra" data-cargo="Mãe da Ana" data-tela="crianca">
+<span class="ribbon">Protótipo conceitual</span>
+<div class="phone-screen">
+
+  <div class="page-h" style="margin-bottom:16px">
+    <div>
+      <h2 style="font-size:20px">Minhas crianças</h2>
+      <div class="desc">Selecione um dependente para ver os detalhes</div>
+    </div>
+  </div>
+
+  <!-- card grande: Ana (selecionada) -->
+  <div class="card" style="margin-bottom:16px;border:1.5px solid var(--unidade)">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span class="crest" style="width:62px;height:72px;color:var(--dourado)"><span class="foto" style="font-size:22px">AP</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1;min-width:0">
+        <div class="li-t" style="font-size:17px">Ana Poncio</div>
+        <div class="li-s">2 anos · Berçário II</div>
+        <div style="margin-top:6px"><span class="pill pill-ok">Selecionada</span></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px;gap:10px">
+      <a class="btn btn-outline" href="familia-diario.html" style="justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg> Diário</a>
+      <a class="btn btn-outline" href="familia-ficha.html" style="justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg> Ficha</a>
+      <a class="btn btn-outline" href="familia-agenda.html" style="justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg> Agenda</a>
+      <a class="btn btn-outline" href="familia-certificados.html" style="justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.2 13.3L7 22l5-3 5 3-1.2-8.7"/></svg> Certificados</a>
+    </div>
+  </div>
+
+  <!-- outros dependentes -->
+  <div class="sec-tit">Outros dependentes</div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span class="crest" style="width:54px;height:63px;color:var(--dourado)"><span class="foto" style="font-size:18px">LP</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1;min-width:0">
+        <div class="li-t" style="font-size:16px">Lucas Poncio</div>
+        <div class="li-s">8 anos · Centro Esportivo · Jiu-Jitsu</div>
+        <div style="margin-top:6px"><span class="pill pill-unid">Esporte</span></div>
+      </div>
+      <button class="btn btn-ghost" style="padding:8px 10px">Selecionar ›</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span class="crest" style="width:54px;height:63px;color:var(--dourado)"><span class="foto" style="font-size:18px">MP</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1;min-width:0">
+        <div class="li-t" style="font-size:16px">Miguel Poncio</div>
+        <div class="li-s">5 anos · Centro Educacional · Jardim I</div>
+        <div style="margin-top:6px"><span class="pill pill-unid">Creche</span></div>
+      </div>
+      <button class="btn btn-ghost" style="padding:8px 10px">Selecionar ›</button>
+    </div>
+  </div>
+
+  <p class="desc" style="text-align:center;margin-top:18px;font-size:12px">Para incluir um novo dependente, procure o Serviço Social do Instituto.</p>
+
+</div>
+<script src="casa-shell.js"></script>
+</body>
+</html>

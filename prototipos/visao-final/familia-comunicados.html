@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Comunicados · Portal da Família</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="mobile" data-user="Sandra" data-cargo="Mãe da Ana" data-tela="comunicados">
+<span class="ribbon">Protótipo conceitual</span>
+<div class="phone-screen">
+
+  <div class="page-h" style="margin-bottom:14px">
+    <div>
+      <h2 style="font-size:20px">Comunicados</h2>
+      <div class="desc">Avisos do Instituto e do Centro Educacional</div>
+    </div>
+  </div>
+
+  <!-- comunicado crítico: exige confirmação de leitura -->
+  <div class="card" style="margin-bottom:14px;border:1.5px solid var(--ambar);background:var(--ambar-bg)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span class="pill pill-warn">Crítico · leitura obrigatória</span>
+      <span style="font-size:11px;color:#9a8f84">16/06 · 09:12</span>
+    </div>
+    <div class="li-t" style="font-size:15px">Recesso escolar nesta sexta-feira (20/06)</div>
+    <p style="font-size:13px;color:var(--corpo);margin:8px 0 14px">Na sexta-feira, 20/06, não haverá atividades no Centro Educacional devido ao feriado municipal. As aulas e a creche retornam normalmente na segunda, 23/06. Por favor, confirmem a leitura deste aviso.</p>
+    <button class="btn btn-primary" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M20 6L9 17l-5-5"/></svg> Confirmar leitura</button>
+  </div>
+
+  <!-- comunicado crítico já confirmado -->
+  <div class="card" style="margin-bottom:14px;border-left:4px solid var(--ambar)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span class="pill pill-warn">Crítico</span>
+      <span style="font-size:11px;color:#9a8f84">10/06 · 14:30</span>
+    </div>
+    <div class="li-t" style="font-size:15px">Atualização da carteira de vacinação</div>
+    <p style="font-size:13px;color:var(--corpo);margin:8px 0 12px">Pedimos a todas as famílias que tragam a carteira de vacinação atualizada até 30/06 para conferência no Centro Médico.</p>
+    <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Leitura confirmada em 10/06</span>
+  </div>
+
+  <!-- comunicado comum -->
+  <div class="sec-tit" style="margin-top:6px">Outros avisos</div>
+  <div class="list-row">
+    <div class="av">FE</div>
+    <div class="li-main"><div class="li-t">Festa Junina do Instituto</div><div class="li-s">Sábado, 28/06, às 14h · traje a caráter · entrada gratuita</div></div>
+    <span class="pill pill-unid">Evento</span>
+  </div>
+  <div class="list-row">
+    <div class="av">CA</div>
+    <div class="li-main"><div class="li-t">Cardápio da semana publicado</div><div class="li-s">Confira as refeições de 16/06 a 20/06 no diário</div></div>
+    <span class="pill">Geral</span>
+  </div>
+  <div class="list-row">
+    <div class="av">RM</div>
+    <div class="li-main"><div class="li-t">Reunião de pais · Berçário II</div><div class="li-s">Quinta, 26/06, às 18h, no auditório do Instituto</div></div>
+    <span class="pill pill-unid">Convite</span>
+  </div>
+  <div class="list-row">
+    <div class="av">UN</div>
+    <div class="li-main"><div class="li-t">Lista de uniformes de inverno</div><div class="li-s">Disponível na secretaria · retirada gratuita</div></div>
+    <span class="pill">Geral</span>
+  </div>
+
+</div>
+<script src="casa-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Odontograma · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="prontuarios" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Odontograma</h2>
+      <div class="desc">Pedro Oliveira · 6 anos · dentição mista · Dra. Beatriz Nunes · sala 3</div>
+    </div>
+    <button class="btn btn-gold">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l4 4 5-6 5 6 4-4v10H3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Selar atendimento
+    </button>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal: arcadas -->
+    <div class="card">
+      <div class="sec-tit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v6a6 6 0 0 0 12 0V3M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M9 3H5M15 3h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Arcada superior
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:7px;margin-bottom:22px">
+        <!-- 18..11 / 21..28 (FDI) — destaca alterados -->
+        <span data-t="18" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>18</span>
+        <span data-t="17" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>17</span>
+        <span data-t="16" style="aspect-ratio:3/4;border:1px solid var(--unidade);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:var(--tinta);cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:var(--unidade);border:1px solid var(--unidade)"></span>16</span>
+        <span data-t="15" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>15</span>
+        <span data-t="14" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>14</span>
+        <span data-t="13" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>13</span>
+        <span data-t="12" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>12</span>
+        <span data-t="11" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>11</span>
+        <span data-t="21" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>21</span>
+        <span data-t="22" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>22</span>
+        <span data-t="23" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>23</span>
+        <span data-t="24" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>24</span>
+        <span data-t="25" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>25</span>
+        <span data-t="26" style="aspect-ratio:3/4;border:1px solid var(--erro);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:var(--tinta);cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:var(--erro);border:1px solid var(--erro)"></span>26</span>
+        <span data-t="27" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>27</span>
+        <span data-t="28" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>28</span>
+      </div>
+
+      <div class="sec-tit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v6a6 6 0 0 0 12 0V3M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M9 3H5M15 3h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Arcada inferior
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:7px">
+        <!-- 48..41 / 31..38 (FDI) -->
+        <span data-t="48" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>48</span>
+        <span data-t="47" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>47</span>
+        <span data-t="46" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>46</span>
+        <span data-t="45" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>45</span>
+        <span data-t="44" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>44</span>
+        <span data-t="43" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>43</span>
+        <span data-t="42" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>42</span>
+        <span data-t="41" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>41</span>
+        <span data-t="31" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>31</span>
+        <span data-t="32" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>32</span>
+        <span data-t="33" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>33</span>
+        <span data-t="34" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>34</span>
+        <span data-t="35" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>35</span>
+        <span data-t="36" style="aspect-ratio:3/4;border:1px solid var(--erro);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:var(--tinta);cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:var(--erro);border:1px solid var(--erro)"></span>36</span>
+        <span data-t="37" style="aspect-ratio:3/4;border:1px solid var(--linha);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:#9a8f84;cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:#f4efe8;border:1px solid var(--linha)"></span>37</span>
+        <span data-t="38" style="aspect-ratio:3/4;border:1px solid var(--ambar);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:6px 0 5px;font-size:11px;font-weight:600;color:var(--tinta);cursor:pointer"><span style="width:60%;height:46%;border-radius:6px 6px 4px 4px;background:var(--ambar);border:1px solid var(--ambar)"></span>38</span>
+      </div>
+
+      <!-- legenda -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px solid var(--linha)">
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--corpo)"><span style="width:14px;height:14px;border-radius:4px;background:#fff;border:1px solid var(--linha)"></span> Hígido</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--corpo)"><span style="width:14px;height:14px;border-radius:4px;background:var(--erro)"></span> Cárie</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--corpo)"><span style="width:14px;height:14px;border-radius:4px;background:var(--unidade)"></span> Restaurado</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--corpo)"><span style="width:14px;height:14px;border-radius:4px;background:var(--ambar)"></span> Indicado p/ extração</span>
+      </div>
+      <div class="desc" style="margin-top:12px;font-size:12px">Toque em um dente para registrar o procedimento por face (vestibular, lingual, oclusal, mesial, distal).</div>
+    </div>
+
+    <!-- coluna lateral: plano de tratamento -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:18px">
+          <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="67.8"/></svg><span class="num">60%</span></span>
+          <div>
+            <div class="sec-tit" style="margin:0">Saúde bucal</div>
+            <div class="desc">3 de 5 procedimentos concluídos · tudo gratuito</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Plano de tratamento
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av" style="background:var(--unidade-suave)">16</div>
+          <div class="li-main"><div class="li-t">Restauração — dente 16</div><div class="li-s">Face oclusal · concluído em 02/02</div></div>
+          <span class="pill pill-ok">Concluído</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av" style="background:var(--erro-bg);color:var(--erro)">26</div>
+          <div class="li-main"><div class="li-t">Cárie — dente 26</div><div class="li-s">Face oclusal · restauração indicada</div></div>
+          <span class="pill pill-warn">A fazer</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av" style="background:var(--erro-bg);color:var(--erro)">36</div>
+          <div class="li-main"><div class="li-t">Cárie — dente 36</div><div class="li-s">Face oclusal · restauração indicada</div></div>
+          <span class="pill pill-warn">A fazer</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av" style="background:var(--ambar-bg);color:var(--ambar)">38</div>
+          <div class="li-main"><div class="li-t">Extração — dente 38</div><div class="li-s">Decíduo retido · indicar exodontia</div></div>
+          <span class="pill pill-warn">A fazer</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av">F</div>
+          <div class="li-main"><div class="li-t">Aplicação de flúor</div><div class="li-s">Prevenção · arcada completa</div></div>
+          <span class="pill pill-ok">Concluído</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px">＋ Adicionar procedimento</button>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script src="casa-shell.js"></script>
+</body>
+</html>

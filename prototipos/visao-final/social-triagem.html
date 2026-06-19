@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fila de Triagem · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="triagem" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Fila de Triagem</h2>
+      <div class="desc">Famílias aguardando avaliação do Serviço Social · ordenadas por prioridade</div>
+    </div>
+    <a class="btn btn-primary" href="social-ficha-nova.html">＋ Nova Ficha</a>
+  </div>
+
+  <!-- KPIs rápidos -->
+  <div class="grid g3" style="margin-bottom:22px">
+    <div class="card kpi"><div class="k-top"><span class="k-label">Na fila agora</span></div><div class="k-val">7</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Prioritárias</span><span class="k-tend">Atenção</span></div><div class="k-val">3</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Maior espera</span></div><div class="k-val">4d</div></div>
+  </div>
+
+  <!-- fila -->
+  <div class="list-row">
+    <div class="av">FO</div>
+    <div class="li-main"><div class="li-t">Família Oliveira <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Rosa Oliveira, 29</span></div><div class="li-s">IFP-2026-000401 · solicita Centro Médico + Recreativo · espera há 4 dias</div></div>
+    <span class="pill pill-warn">Prioridade alta</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+  <div class="list-row">
+    <div class="av">FP</div>
+    <div class="li-main"><div class="li-t">Família Pereira <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Lúcia Pereira, 45</span></div><div class="li-s">IFP-2026-000433 · solicita Centro Médico · espera há 3 dias</div></div>
+    <span class="pill pill-warn">Prioridade</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+  <div class="list-row">
+    <div class="av">FM</div>
+    <div class="li-main"><div class="li-t">Família Mendes <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Sônia Mendes, 31</span></div><div class="li-s">IFP-2026-000440 · solicita Capacitação · ficha nova hoje</div></div>
+    <span class="pill pill-warn">Insegurança alimentar</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+  <div class="list-row">
+    <div class="av">FA</div>
+    <div class="li-main"><div class="li-t">Família Almeida <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Carlos Almeida, 52</span></div><div class="li-s">IFP-2026-000444 · solicita Esportivo · espera há 2 dias</div></div>
+    <span class="pill pill-unid">Na fila</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+  <div class="list-row">
+    <div class="av">FR</div>
+    <div class="li-main"><div class="li-t">Família Ribeiro <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Joana Ribeiro, 38</span></div><div class="li-s">IFP-2026-000447 · solicita Centro Médico + Capacitação · espera há 1 dia</div></div>
+    <span class="pill pill-unid">Na fila</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+  <div class="list-row">
+    <div class="av">FN</div>
+    <div class="li-main"><div class="li-t">Família Nunes <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Paulo Nunes, 44</span></div><div class="li-s">IFP-2026-000451 · solicita Recreativo · ficha nova hoje</div></div>
+    <span class="pill pill-unid">Nova</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+  <div class="list-row">
+    <div class="av">FT</div>
+    <div class="li-main"><div class="li-t">Família Teixeira <span style="font-weight:400;color:#9a8f84;font-size:12px">· titular Marta Teixeira, 27</span></div><div class="li-s">IFP-2026-000453 · solicita Capacitação · ficha nova hoje</div></div>
+    <span class="pill pill-unid">Nova</span>
+    <button class="btn btn-primary" style="padding:8px 14px">Iniciar triagem</button>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

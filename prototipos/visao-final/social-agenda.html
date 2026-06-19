@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agenda Geral · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="agenda" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Agenda Geral</h2>
+      <div class="desc">Visão transversal das 4 unidades · quarta-feira, 17 de junho</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-outline" style="padding:9px 11px">‹</button>
+      <button class="btn btn-primary" style="padding:9px 14px">Hoje</button>
+      <button class="btn btn-outline" style="padding:9px 11px">›</button>
+    </div>
+  </div>
+
+  <!-- pulso das unidades -->
+  <div class="grid g4" style="margin-bottom:24px">
+    <div class="card pulso" style="--u:#10C2BB;cursor:default">
+      <div class="pinfo"><div class="pn">Centro Médico</div><div class="pm">8 agendamentos</div><span class="pstatus" style="background:#FCEDEC;color:#B3261E">Sob pressão</span></div>
+    </div>
+    <div class="card pulso" style="--u:#FF772E;cursor:default">
+      <div class="pinfo"><div class="pn">Capacitação</div><div class="pm">3 turmas hoje</div><span class="pstatus" style="background:rgba(26,122,74,.12);color:#1a7a4a">Saudável</span></div>
+    </div>
+    <div class="card pulso" style="--u:#007571;cursor:default">
+      <div class="pinfo"><div class="pn">Recreativo</div><div class="pm">2 atividades</div><span class="pstatus" style="background:rgba(26,122,74,.12);color:#1a7a4a">Com folga</span></div>
+    </div>
+    <div class="card pulso" style="--u:#9A3D0B;cursor:default">
+      <div class="pinfo"><div class="pn">Esportivo</div><div class="pm">2 treinos</div><span class="pstatus" style="background:rgba(26,122,74,.12);color:#1a7a4a">Saudável</span></div>
+    </div>
+  </div>
+
+  <!-- agenda do dia por unidade -->
+  <div class="card">
+    <div class="sec-tit" style="color:#10C2BB"><svg viewBox="0 0 24 24" fill="none" stroke="#10C2BB" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Centro Médico</div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#10C2BB">08:30</div></div>
+      <div class="av" style="background:#E2F8F6;color:#0E9A95">FS</div>
+      <div class="li-main"><div class="li-t">Família Santos</div><div class="li-s">Dr. Marcos Lima · Sala 2 · clínica geral</div></div>
+      <span class="pill pill-ok">Atendido</span>
+    </div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#10C2BB">15:30</div></div>
+      <div class="av" style="background:#E2F8F6;color:#0E9A95">FP</div>
+      <div class="li-main"><div class="li-t">Família Pereira</div><div class="li-s">Dr. Marcos Lima · Sala 2 · retorno</div></div>
+      <span class="pill" style="background:#E2F8F6;color:#0E9A95;border-color:transparent">Agendado</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="sec-tit" style="color:#FF772E"><svg viewBox="0 0 24 24" fill="none" stroke="#FF772E" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Capacitação</div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#FF772E">09:00</div></div>
+      <div class="av" style="background:#FCE9DD;color:#C24D0F">CI</div>
+      <div class="li-main"><div class="li-t">Turma · Costura Industrial</div><div class="li-s">Profª Tânia Moraes · 14 alunos · Sala 3</div></div>
+      <span class="pill" style="background:#FCE9DD;color:#C24D0F;border-color:transparent">Em aula</span>
+    </div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#FF772E">14:00</div></div>
+      <div class="av" style="background:#FCE9DD;color:#C24D0F">IB</div>
+      <div class="li-main"><div class="li-t">Turma · Informática Básica</div><div class="li-s">Prof. Rafael Dias · 18 alunos · Lab</div></div>
+      <span class="pill" style="background:#FCE9DD;color:#C24D0F;border-color:transparent">Agendado</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="sec-tit" style="color:#007571"><svg viewBox="0 0 24 24" fill="none" stroke="#007571" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/></svg> Recreativo</div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#007571">10:00</div></div>
+      <div class="av" style="background:#DCEFED;color:#005C59">AS</div>
+      <div class="li-main"><div class="li-t">Reforço educacional · Turma A</div><div class="li-s">Profª Carla · Ana Silva entre os inscritos</div></div>
+      <span class="pill" style="background:#DCEFED;color:#005C59;border-color:transparent">Em andamento</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="sec-tit" style="color:#9A3D0B"><svg viewBox="0 0 24 24" fill="none" stroke="#9A3D0B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8"/></svg> Esportivo</div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#9A3D0B">16:00</div></div>
+      <div class="av" style="background:#F2E5DC;color:#752C05">JJ</div>
+      <div class="li-main"><div class="li-t">Jiu-Jitsu · Infantil</div><div class="li-s">Prof. André · 22 atletas · Tatame 1</div></div>
+      <span class="pill" style="background:#F2E5DC;color:#752C05;border-color:transparent">Agendado</span>
+    </div>
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#9A3D0B">18:00</div></div>
+      <div class="av" style="background:#F2E5DC;color:#752C05">FT</div>
+      <div class="li-main"><div class="li-t">Futsal · Juvenil</div><div class="li-s">Prof. André · 40 vagas · Quadra</div></div>
+      <span class="pill" style="background:#F2E5DC;color:#752C05;border-color:transparent">Agendado</span>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

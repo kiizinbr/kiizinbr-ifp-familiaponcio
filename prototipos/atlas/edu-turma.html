@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Turma do dia · Centro Educacional</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="educacional" data-tela="turmas" data-user="Prof. Carla Mendes" data-cargo="Centro Educacional" data-ini="CM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Sala Bem-te-vi · Maternal I</h2>
+      <div class="desc">quarta-feira, 17 de junho · turno manhã · Profa. Carla Mendes</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline">Trocar de sala</button>
+      <button class="btn btn-gold">Fechar diário do dia</button>
+    </div>
+  </div>
+
+  <!-- resumo da chamada -->
+  <div class="card" style="display:flex;align-items:center;gap:18px;margin-bottom:20px;background:var(--unidade-suave);border:0">
+    <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="#fff" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="33.9"/></svg><span class="num">80%</span></span>
+    <div style="flex:1">
+      <div style="font-weight:600;color:var(--tinta)">12 presentes · 2 ausentes · 1 saiu mais cedo</div>
+      <div class="desc">Capacidade 15 crianças · marque o check-in/out tocando no cartão de cada criança</div>
+    </div>
+    <span class="pill pill-warn">diário aberto</span>
+  </div>
+
+  <!-- rotina por 1 toque -->
+  <div class="sec-tit">Rotina da sala · registro por 1 toque (vale para toda a turma)</div>
+  <div class="card" style="margin-bottom:22px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" style="padding:11px 16px">🍎 Lanche da manhã ✓</button>
+      <button class="btn btn-primary" style="padding:11px 16px">🍽️ Almoço ✓</button>
+      <button class="btn btn-outline" style="padding:11px 16px">😴 Soninho</button>
+      <button class="btn btn-outline" style="padding:11px 16px">🚻 Troca / higiene</button>
+      <button class="btn btn-outline" style="padding:11px 16px">🎨 Atividade pedagógica</button>
+      <button class="btn btn-outline" style="padding:11px 16px">🌳 Parque</button>
+      <button class="btn btn-outline" style="padding:11px 16px">🥪 Lanche da tarde</button>
+    </div>
+    <div class="desc" style="margin-top:12px">2 de 7 rotinas registradas hoje · o registro aparece no diário de cada criança e no app da família.</div>
+  </div>
+
+  <!-- crianças: check-in/out com foto -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5M12 2a5 5 0 0 0-5 5v1a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/></svg> Crianças da sala (15)</div>
+  <div class="grid g3">
+
+    <!-- presente -->
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--ok)">
+      <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">LA</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--tinta)">Laura Alves</div>
+        <div class="desc">Entrou 07:48 · com a mãe</div>
+      </div>
+      <span class="pill pill-ok">presente</span>
+    </div>
+
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--ok)">
+      <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">BC</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--tinta)">Bruno Carvalho</div>
+        <div class="desc">Entrou 07:55 · com o pai</div>
+      </div>
+      <span class="pill pill-ok">presente</span>
+    </div>
+
+    <!-- presente com alerta -->
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--ambar)">
+      <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">LC</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--tinta)">Lucas Andrade</div>
+        <div class="desc" style="color:var(--ambar);font-weight:600">⚠ Febre 37,9° · família avisada</div>
+      </div>
+      <span class="pill pill-warn">monitorar</span>
+    </div>
+
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--ok)">
+      <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">MN</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--tinta)">Manuela Nunes</div>
+        <div class="desc">Entrou 08:02 · com a avó</div>
+      </div>
+      <span class="pill pill-ok">presente</span>
+    </div>
+
+    <!-- saiu mais cedo (check-out) -->
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--unidade)">
+      <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">TF</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--tinta)">Théo Ferreira</div>
+        <div class="desc">Saiu 10:15 · busca: Joana Ferreira (mãe)</div>
+      </div>
+      <span class="pill pill-unid">check-out</span>
+    </div>
+
+    <!-- ausente -->
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--linha);opacity:.78">
+      <span class="medalhao" style="width:46px;height:46px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:#9a8f84"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8" stroke-linecap="round"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--corpo)">Sofia Pires</div>
+        <div class="desc">Ausência avisada · consulta médica</div>
+      </div>
+      <button class="btn btn-ghost" style="padding:7px 12px">Check-in</button>
+    </div>
+
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--linha);opacity:.78">
+      <span class="medalhao" style="width:46px;height:46px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:#9a8f84"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8" stroke-linecap="round"/></svg></span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--corpo)">Davi Rocha</div>
+        <div class="desc" style="color:var(--erro)">Falta sem aviso · ligar para a família</div>
+      </div>
+      <button class="btn btn-ghost" style="padding:7px 12px">Check-in</button>
+    </div>
+
+  </div>
+
+  <!-- ação fechar diário -->
+  <div class="card" style="margin-top:22px;border:1px solid var(--unidade);max-width:760px">
+    <div class="sec-tit">Fechar diário do dia</div>
+    <p class="desc" style="margin-top:0">Ao fechar, o diário de cada criança presente é enviado ao app da família (presença, rotinas, alimentação e observações). Diários não podem ser editados após o fechamento.</p>
+    <label class="campo"><span>Observação geral da turma (opcional)</span><textarea rows="2" placeholder="Ex.: dia tranquilo, atividade de pintura com guache, todos almoçaram bem."></textarea></label>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="desc">2 de 7 rotinas registradas · confirme antes de fechar</div>
+      <button class="btn btn-gold">Fechar e enviar às famílias</button>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Relatórios · Corte</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="relatorios" data-user="Erick Ramos" data-cargo="Presidencia" data-ini="ER">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Relatórios</h2>
+      <div class="desc">Documentos selados do período · maio/2026</div>
+    </div>
+    <button class="btn btn-gold">
+      <svg viewBox="0 0 24 18" width="15" fill="currentColor" style="vertical-align:middle"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg>
+      Gerar Relatório da Corte
+    </button>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- lista de relatórios -->
+    <div>
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Relatórios do período</div>
+
+      <div class="list-row">
+        <div class="av">RC</div>
+        <div class="li-main"><div class="li-t">Relatório da Corte · Maio/2026</div><div class="li-s">Consolidado das 4 unidades · 14 páginas · 1.248 famílias</div></div>
+        <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado</span>
+      </div>
+
+      <div class="list-row">
+        <div class="av">RC</div>
+        <div class="li-main"><div class="li-t">Relatório da Corte · Abril/2026</div><div class="li-s">Consolidado das 4 unidades · 13 páginas · 1.143 famílias</div></div>
+        <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado</span>
+      </div>
+
+      <div class="list-row">
+        <div class="av">IM</div>
+        <div class="li-main"><div class="li-t">Impacto Social · 1º trimestre 2026</div><div class="li-s">Tendência e marcos · 22 páginas · prestação de contas</div></div>
+        <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado</span>
+      </div>
+
+      <div class="list-row">
+        <div class="av">MU</div>
+        <div class="li-main"><div class="li-t">Mutirão de Inverno · Resultado</div><div class="li-s">Odontologia · 96 famílias · 8 páginas</div></div>
+        <span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em revisão</span>
+      </div>
+
+      <div class="list-row">
+        <div class="av">CA</div>
+        <div class="li-main"><div class="li-t">Capacitação · Certificados 2026</div><div class="li-s">213 certificados emitidos · 6 páginas</div></div>
+        <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado</span>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-outline">Filtrar por período</button>
+        <button class="btn btn-ghost">Ver arquivados</button>
+      </div>
+    </div>
+
+    <!-- preview de PDF selado -->
+    <div>
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Pré-visualização</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <!-- folha do documento -->
+        <div style="background:#fff;padding:28px 26px;border-bottom:1px solid var(--linha)">
+          <!-- cabeçalho selado com coroa -->
+          <div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--tinta);padding-bottom:14px;margin-bottom:18px">
+            <span class="medalhao" style="width:48px;height:48px;flex:0 0 auto"><span class="leao" style="width:32px;height:32px"><span class="brandmark"></span></span></span>
+            <div>
+              <div class="titulo" style="font-size:13px">Instituto Família Poncio</div>
+              <div class="muted" style="font-size:11px">Relatório da Corte · Maio/2026</div>
+            </div>
+          </div>
+
+          <div style="font-size:18px;color:var(--tinta);font-weight:600;margin-bottom:4px">A Corte acolheu 1.248 famílias este mês.</div>
+          <div class="desc" style="margin-bottom:18px">84% das vagas das 4 unidades preenchidas · 1.180 atendimentos no mês.</div>
+
+          <!-- mini-resumo -->
+          <table class="tabela" style="font-size:12px">
+            <tbody>
+              <tr><td>Famílias acolhidas</td><td style="text-align:right"><b style="color:var(--tinta)">1.248</b></td></tr>
+              <tr><td>Pessoas impactadas</td><td style="text-align:right"><b style="color:var(--tinta)">4.612</b></td></tr>
+              <tr><td>Certificados emitidos</td><td style="text-align:right"><b style="color:var(--tinta)">213</b></td></tr>
+              <tr><td>Famílias na fila de espera</td><td style="text-align:right"><b style="color:var(--tinta)">73</b></td></tr>
+            </tbody>
+          </table>
+
+          <div style="height:1px;background:var(--linha);margin:18px 0"></div>
+
+          <!-- selo de autenticidade -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div class="muted" style="font-size:11px;line-height:1.5">
+              Documento gerado em 17/06/2026<br>
+              Protocolo IFP-REL-2026-0531 · dados anonimizados
+            </div>
+            <span class="coroa-seal cs-aprovado">
+              <svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg>
+              Selado pela Corte
+            </span>
+          </div>
+        </div>
+
+        <!-- rodapé de ações -->
+        <div style="padding:14px 18px;display:flex;gap:10px;justify-content:flex-end;background:var(--papel)">
+          <button class="btn btn-ghost">Compartilhar</button>
+          <button class="btn btn-primary">Baixar PDF</button>
+        </div>
+      </div>
+
+      <div class="desc" style="margin-top:12px;text-align:center">O selo da coroa garante que o relatório é oficial e não foi alterado após a emissão.</div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

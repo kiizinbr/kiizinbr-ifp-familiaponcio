@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Matrículas · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="turmas" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Matrículas</h2>
+      <div class="desc">Ligadas à Ficha Cidadã · sem redigitação</div>
+    </div>
+    <button class="btn btn-primary">＋ Nova matrícula</button>
+  </div>
+
+  <!-- aviso integração -->
+  <div class="card" style="margin-bottom:16px;background:var(--unidade-suave);border:0;color:var(--unidade-escuro);font-size:13px">
+    Toda matrícula puxa os dados direto da <b>Ficha Cidadã</b> da família. Nada de redigitar nome, protocolo ou contexto social — o histórico do aprendiz já chega pronto do Serviço Social.
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="card kpi"><span class="k-label">Confirmadas (semestre)</span><div class="k-val">540</div><div class="k-delta k-up">+62 no período</div></div>
+    <div class="card kpi"><span class="k-label">Aguardando confirmação</span><div class="k-val">7</div><div class="k-delta">enviar WhatsApp à família</div></div>
+    <div class="card kpi"><span class="k-label">Em lista de espera</span><div class="k-val">12</div><div class="k-delta">vinculadas à fila de interesse</div></div>
+    <div class="card kpi"><span class="k-label">Canceladas (mês)</span><div class="k-val">4</div><div class="k-delta">maioria por contexto social</div></div>
+  </div>
+
+  <!-- filtros -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="padding:9px 14px">Todas</button>
+    <button class="btn btn-outline" style="padding:9px 14px">Confirmadas</button>
+    <button class="btn btn-outline" style="padding:9px 14px">Aguardando</button>
+    <button class="btn btn-outline" style="padding:9px 14px">Lista de espera</button>
+    <label class="campo" style="margin:0;flex:1;min-width:200px;max-width:320px"><input placeholder="Buscar por protocolo, aprendiz ou curso" /></label>
+  </div>
+
+  <!-- tabela consolidada -->
+  <div class="card" style="padding:6px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Protocolo (Ficha Cidadã)</th><th>Aprendiz</th><th>Curso</th><th>Vaga / Turma</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000412</b></td><td>Maria Silva</td><td>Corte e Costura</td><td>CC-2026-1</td><td><span class="pill pill-ok">CONFIRMADA</span></td><td><button class="btn btn-ghost">Abrir ficha</button></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000440</b></td><td>Família Mendes · membro</td><td>Barbeiro</td><td>BB-2026-1</td><td><span class="pill pill-warn">AGUARDANDO</span></td><td><button class="btn btn-primary">Confirmar</button></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000401</b></td><td>membro Oliveira</td><td>Informática Básica</td><td>lista de espera</td><td><span class="pill">ESPERA</span></td><td><button class="btn btn-ghost">Alocar vaga</button></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000388</b></td><td>Joana Alves</td><td>Cabeleireira</td><td>CB-2026-1</td><td><span class="pill pill-ok">CONFIRMADA</span></td><td><button class="btn btn-ghost">Abrir ficha</button></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000433</b></td><td>membro Pereira</td><td>Corte e Costura</td><td>lista de espera</td><td><span class="pill">ESPERA</span></td><td><button class="btn btn-ghost">Alocar vaga</button></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000455</b></td><td>Bruna Lima</td><td>Manicure &amp; Design</td><td>MN-2026-1</td><td><span class="pill pill-warn">AGUARDANDO</span></td><td><button class="btn btn-primary">Confirmar</button></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-2026-000299</b></td><td>Antônio Vidal</td><td>Padaria &amp; Confeitaria</td><td>PD-2026-1</td><td><span class="pill pill-ok">CONFIRMADA</span></td><td><button class="btn btn-ghost">Abrir ficha</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="desc" style="margin-top:12px">Selecione uma matrícula aguardando para confirmar — o sistema dispara o WhatsApp de confirmação à família automaticamente.</div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

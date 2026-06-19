@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Indicadores · Centro Educacional</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="educacional" data-tela="indicadores" data-user="Prof. Carla Mendes" data-cargo="Centro Educacional" data-ini="CM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Indicadores</h2>
+      <div class="desc">Saúde das turmas educacionais · ano letivo 2026 · frequência e evasão</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <select class="btn btn-outline" style="cursor:pointer"><option>Junho/2026</option><option>Maio/2026</option><option>1º semestre</option></select>
+      <button class="btn btn-outline">Exportar relatório</button>
+    </div>
+  </div>
+
+  <!-- KPIs gerais -->
+  <div class="grid g4" style="margin-bottom:22px">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Frequência média</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">87%</div>
+      <div class="k-delta k-up">+3 p.p. vs mês anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Taxa de evasão</span><span class="k-tend">Estável</span></div>
+      <div class="k-val">4%</div>
+      <div class="k-delta k-flat">3 saídas no semestre</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Ocupação das vagas</span><span class="k-tend">Cheio</span></div>
+      <div class="k-val">91%</div>
+      <div class="k-delta k-up">104 de 114 vagas</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label" style="color:var(--ambar)">Em risco de evasão</span><span class="k-tend" style="background:var(--ambar-bg);color:var(--ambar)">Atenção</span></div>
+      <div class="k-val" style="color:var(--ambar)">5</div>
+      <div class="k-delta" style="color:var(--ambar)">faltas seguidas — sinalizar Serviço Social</div>
+    </div>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- frequência por sala (barras) -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 3v18h18M19 9l-5 5-3-3-4 4"/></svg> Frequência por sala</div>
+      <div class="bar-row">
+        <div class="bl"><span>Sala Girassol · Berçário</span><b>92%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Sala Ipê · Pré II</span><b>90%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Sala Sabiá · Maternal II</span><b>87%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:87%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Sala Pinheiro · Pré I</span><b>82%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Sala Bem-te-vi · Maternal I</span><b>80%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:80%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Sala Quero-quero · Integral</span><b>76%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:76%"></div></div>
+      </div>
+      <div class="desc" style="margin-top:10px">Meta institucional de frequência: 85% · 2 salas abaixo da meta.</div>
+    </div>
+
+    <!-- evasão e risco -->
+    <div class="card">
+      <div class="sec-tit">Evasão e risco por sala</div>
+      <div class="bar-row">
+        <div class="bl"><span>Quero-quero · Integral</span><b style="color:var(--ambar)">8%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:8%;background:linear-gradient(90deg,var(--ambar),var(--dourado))"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Bem-te-vi · Maternal I</span><b style="color:var(--ambar)">6%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:6%;background:linear-gradient(90deg,var(--ambar),var(--dourado))"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Pinheiro · Pré I</span><b>3%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:3%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Demais salas</span><b>2%</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:2%"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px;background:var(--ambar-bg);border:0;color:var(--ambar);font-size:13px">
+        <b>5 crianças</b> com 3+ faltas seguidas. Encaminhe ao Serviço Social para avaliar o contexto da família antes que vire evasão.
+      </div>
+      <button class="btn btn-gold" style="margin-top:12px;width:100%">Sinalizar risco ao Serviço Social</button>
+    </div>
+
+  </div>
+
+  <!-- tabela detalhada -->
+  <div class="card" style="margin-top:18px">
+    <div class="sec-tit">Detalhe por sala</div>
+    <table class="tabela">
+      <thead>
+        <tr><th>Sala</th><th>Faixa</th><th>Matriculados</th><th>Frequência</th><th>Evasão</th><th>Saúde da turma</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Girassol</td><td>Berçário</td><td>12</td><td>92%</td><td>0%</td><td><span class="pill pill-ok">saudável</span></td></tr>
+        <tr><td>Bem-te-vi</td><td>Maternal I</td><td>15</td><td>80%</td><td>6%</td><td><span class="pill pill-warn">atenção</span></td></tr>
+        <tr><td>Sabiá</td><td>Maternal II</td><td>15</td><td>87%</td><td>2%</td><td><span class="pill pill-ok">saudável</span></td></tr>
+        <tr><td>Pinheiro</td><td>Pré I</td><td>17</td><td>82%</td><td>3%</td><td><span class="pill pill-ok">saudável</span></td></tr>
+        <tr><td>Ipê</td><td>Pré II</td><td>20</td><td>90%</td><td>1%</td><td><span class="pill pill-ok">saudável</span></td></tr>
+        <tr><td>Quero-quero</td><td>Integral</td><td>25</td><td>76%</td><td>8%</td><td><span class="pill pill-warn">atenção</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

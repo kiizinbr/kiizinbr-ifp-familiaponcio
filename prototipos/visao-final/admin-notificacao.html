@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Camada de notificação · templates e eventos · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="config" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Camada de notificação</h2>
+      <div class="desc">Templates do WhatsApp Business oficial, canais e os eventos que disparam cada aviso · configurado em <a href="../atlas/admin-config.html" style="color:var(--unidade-escuro)">Integrações</a></div>
+    </div>
+    <button class="btn btn-primary">Salvar configuração</button>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal -->
+    <div>
+
+      <!-- templates oficiais -->
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Templates do WhatsApp Business (oficial)
+        </div>
+
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">comunicado_geral</div><div class="li-s">"Olá {{nome}}, o IFP tem um aviso: {{mensagem}}"</div></div>
+          <span class="pill pill-ok">Aprovado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">lembrete_consulta</div><div class="li-s">"{{nome}}, sua consulta é {{data}} às {{hora}} no {{unidade}}."</div></div>
+          <span class="pill pill-ok">Aprovado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">fechamento_diario</div><div class="li-s">"O diário de {{crianca}} hoje já está disponível no app."</div></div>
+          <span class="pill pill-ok">Aprovado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">otp_login</div><div class="li-s">"Seu código de acesso ao IFP Connect é {{codigo}}. Não compartilhe."</div></div>
+          <span class="pill pill-ok">Aprovado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">convite_familia</div><div class="li-s">"{{nome}}, seu acesso à família no IFP foi liberado: {{link}}"</div></div>
+          <span class="pill pill-warn">Em revisão Meta</span>
+        </div>
+        <div style="margin-top:14px"><button class="btn btn-outline">＋ Novo template</button></div>
+      </div>
+
+      <!-- eventos que disparam -->
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>
+          Eventos que disparam notificação
+        </div>
+        <table class="tabela">
+          <thead><tr><th>Evento do sistema</th><th>Template</th><th>Canal</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b style="color:var(--tinta)">Comunicado publicado</b><div style="font-size:11px;color:#9a8f84">gestão envia aviso à unidade</div></td>
+              <td><code style="font-size:11px;color:#9a8f84">comunicado_geral</code></td>
+              <td><span class="pill pill-unid">WhatsApp</span> <span class="pill">E-mail</span></td>
+              <td><span class="pill pill-ok">Ligado</span></td>
+            </tr>
+            <tr>
+              <td><b style="color:var(--tinta)">24h antes da consulta</b><div style="font-size:11px;color:#9a8f84">agenda do Centro Médico</div></td>
+              <td><code style="font-size:11px;color:#9a8f84">lembrete_consulta</code></td>
+              <td><span class="pill pill-unid">WhatsApp</span></td>
+              <td><span class="pill pill-ok">Ligado</span></td>
+            </tr>
+            <tr>
+              <td><b style="color:var(--tinta)">Diário da creche fechado</b><div style="font-size:11px;color:#9a8f84">educadora encerra o dia</div></td>
+              <td><code style="font-size:11px;color:#9a8f84">fechamento_diario</code></td>
+              <td><span class="pill pill-unid">WhatsApp</span></td>
+              <td><span class="pill pill-ok">Ligado</span></td>
+            </tr>
+            <tr>
+              <td><b style="color:var(--tinta)">Login na família (OTP)</b><div style="font-size:11px;color:#9a8f84">código de uso único</div></td>
+              <td><code style="font-size:11px;color:#9a8f84">otp_login</code></td>
+              <td><span class="pill pill-unid">WhatsApp</span> <span class="pill">SMS</span></td>
+              <td><span class="pill pill-ok">Ligado</span></td>
+            </tr>
+            <tr>
+              <td><b style="color:var(--tinta)">Acesso provisionado</b><div style="font-size:11px;color:#9a8f84">elegibilidade aprovada</div></td>
+              <td><code style="font-size:11px;color:#9a8f84">convite_familia</code></td>
+              <td><span class="pill pill-unid">WhatsApp</span></td>
+              <td><span class="pill pill-warn">Em piloto</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- coluna lateral -->
+    <div>
+
+      <!-- canais -->
+      <div class="card">
+        <div class="sec-tit">Canais de envio</div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">WhatsApp oficial</div><div class="li-s">canal primário · API Business</div></div>
+          <span class="pill pill-ok">Conectado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">@</div>
+          <div class="li-main"><div class="li-t">E-mail (SMTP)</div><div class="li-s">smtp.ifp.org.br · fallback</div></div>
+          <span class="pill pill-ok">Conectado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av">SMS</div>
+          <div class="li-main"><div class="li-t">SMS (gateway)</div><div class="li-s">só OTP e número sem WhatsApp</div></div>
+          <span class="pill pill-warn">Pendente</span>
+        </div>
+      </div>
+
+      <!-- editor de variáveis -->
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">Variáveis disponíveis</div>
+        <p class="desc" style="margin-top:0">Use entre chaves no corpo do template.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          <span class="pill">{{nome}}</span>
+          <span class="pill">{{crianca}}</span>
+          <span class="pill">{{unidade}}</span>
+          <span class="pill">{{data}}</span>
+          <span class="pill">{{hora}}</span>
+          <span class="pill">{{profissional}}</span>
+          <span class="pill">{{codigo}}</span>
+          <span class="pill">{{link}}</span>
+          <span class="pill">{{mensagem}}</span>
+        </div>
+      </div>
+
+      <!-- preview -->
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">Pré-visualização</div>
+        <div style="background:#E5DDD5;border-radius:14px;padding:14px">
+          <div style="background:#fff;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--corpo);box-shadow:var(--shadow-sm);max-width:240px">
+            <b style="color:var(--tinta)">IFP Connect</b><br>
+            Paula, sua consulta é <b>22/06</b> às <b>14h30</b> no <b>Centro Médico</b>. Confirme respondendo SIM.
+            <div style="text-align:right;font-size:10px;color:#9a8f84;margin-top:4px">09:41 ✓✓</div>
+          </div>
+        </div>
+        <p class="desc" style="margin:10px 0 0">Template <code>lembrete_consulta</code> · canal WhatsApp</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fila de chegada · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="fila" data-user="Recepção · Dani Lopes" data-cargo="Centro Médico" data-ini="DL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Fila de chegada</h2>
+      <div class="desc">Recepção marca presença · agendados de quinta-feira, 19 de junho</div>
+    </div>
+    <a class="btn btn-outline" href="medico-fila.html">Ver fila de atendimento ›</a>
+  </div>
+
+  <!-- KPIs do dia -->
+  <div class="grid g4">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Agendados hoje</span><span class="k-tend">Manhã</span></div>
+      <div class="k-val">42</div>
+      <div class="k-delta k-flat">próximo às 14:40</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Presença confirmada</span><span class="k-tend">Chegou</span></div>
+      <div class="k-val">29</div>
+      <div class="k-delta k-up">69% dos agendados</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Aguardando triagem</span><span class="k-tend">Fila</span></div>
+      <div class="k-val">6</div>
+      <div class="k-delta k-flat">espera média: 12 min</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Faltas</span><span class="k-tend">No-show</span></div>
+      <div class="k-val">3</div>
+      <div class="k-delta k-flat">após 30 min de tolerância</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="sec-tit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Agendados do dia
+    </div>
+
+    <!-- linha: aguardando chegada -->
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">13:40</div><div style="font-size:10px;color:#9a8f84">clínica</div></div>
+      <div class="av">RO</div>
+      <div class="li-main"><div class="li-t">Rosa Oliveira <span style="font-weight:400;color:#9a8f84;font-size:12px">· 29 anos</span></div><div class="li-s">Pré-natal · 1ª consulta · IFP-2026-900022</div></div>
+      <span class="pill">aguardando</span>
+      <button class="btn btn-primary" style="margin-left:8px">Marcar chegada</button>
+    </div>
+
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">14:00</div><div style="font-size:10px;color:#9a8f84">pediatria</div></div>
+      <div class="av">JS</div>
+      <div class="li-main"><div class="li-t">João da Silva <span style="font-weight:400;color:#9a8f84;font-size:12px">· 8 anos</span></div><div class="li-s">Consulta clínica · IFP-2026-900014</div></div>
+      <span class="pill pill-warn">⚠ Dipirona</span>
+      <button class="btn btn-primary" style="margin-left:8px">Marcar chegada</button>
+    </div>
+
+    <!-- linha: já chegou, em triagem -->
+    <div class="list-row" style="background:var(--ambar-bg);border-radius:12px;border:1px solid rgba(194,77,15,.18)">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--ambar)">14:00</div><div style="font-size:10px;color:#9a8f84">triagem</div></div>
+      <div class="av">LF</div>
+      <div class="li-main"><div class="li-t">Lucas Ferreira <span style="font-weight:400;color:#9a8f84;font-size:12px">· 6 anos</span></div><div class="li-s">Febre há 2 dias · senha A-08 · chegou 13:58</div></div>
+      <span class="pill pill-warn">em triagem</span>
+      <a class="btn btn-outline" href="medico-triagem-enfermagem.html" style="margin-left:8px">Abrir triagem ›</a>
+    </div>
+
+    <!-- linha: em atendimento -->
+    <div class="list-row" style="background:var(--unidade-suave);border-radius:12px">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade-escuro)">13:20</div><div style="font-size:10px;color:#9a8f84">sala 2</div></div>
+      <div class="av">PO</div>
+      <div class="li-main"><div class="li-t">Pedro Oliveira <span style="font-weight:400;color:#9a8f84;font-size:12px">· 6 anos</span></div><div class="li-s">Odontopediatria · Dra. Beatriz · chegou 13:12</div></div>
+      <span class="pill pill-unid">em atendimento</span>
+      <a class="btn btn-ghost" href="medico-atendimento.html" style="margin-left:8px">Acompanhar</a>
+    </div>
+
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">14:40</div><div style="font-size:10px;color:#9a8f84">odonto</div></div>
+      <div class="av">LC</div>
+      <div class="li-main"><div class="li-t">Lara Costa <span style="font-weight:400;color:#9a8f84;font-size:12px">· 4 anos</span></div><div class="li-s">Odontopediatria · IFP-2026-900021</div></div>
+      <span class="pill">aguardando</span>
+      <button class="btn btn-primary" style="margin-left:8px">Marcar chegada</button>
+    </div>
+
+    <div class="list-row">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">15:10</div><div style="font-size:10px;color:#9a8f84">clínica</div></div>
+      <div class="av">PA</div>
+      <div class="li-main"><div class="li-t">Pedro Alves <span style="font-weight:400;color:#9a8f84;font-size:12px">· 51 anos</span></div><div class="li-s">Clínica geral · retorno hipertensão · IFP-2026-900040</div></div>
+      <span class="pill">aguardando</span>
+      <button class="btn btn-primary" style="margin-left:8px">Marcar chegada</button>
+    </div>
+
+    <!-- linha: faltou -->
+    <div class="list-row" style="opacity:.6">
+      <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:#9a8f84">12:40</div><div style="font-size:10px;color:#9a8f84">clínica</div></div>
+      <div class="av" style="background:#eee;color:#9a8f84">CB</div>
+      <div class="li-main"><div class="li-t">Carla Brito <span style="font-weight:400;color:#9a8f84;font-size:12px">· 44 anos</span></div><div class="li-s">Cefaleia · IFP-2026-900033</div></div>
+      <span class="pill" style="color:var(--erro);border-color:rgba(179,38,30,.3)">falta</span>
+      <button class="btn btn-ghost" style="margin-left:8px">Reagendar</button>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

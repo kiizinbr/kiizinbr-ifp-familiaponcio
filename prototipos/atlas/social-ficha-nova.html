@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nova Ficha Cidadã · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="ficha-nova" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Nova Ficha Cidadã</h2>
+      <div class="desc">Abrindo o registro único de uma família · etapa 1 de 5</div>
+    </div>
+    <a class="btn btn-ghost" href="social-fichas.html">✕ Cancelar</a>
+  </div>
+
+  <!-- stepper -->
+  <div style="display:flex;gap:0;align-items:center;margin-bottom:26px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:30px;height:30px;border-radius:50%;background:var(--unidade);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">1</span>
+      <span style="font-weight:600;color:var(--tinta);font-size:13px">Dados pessoais</span>
+    </div>
+    <div style="flex:1;min-width:24px;height:2px;background:var(--linha);margin:0 12px"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--linha);color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">2</span>
+      <span style="color:#9a8f84;font-size:13px">Composição familiar</span>
+    </div>
+    <div style="flex:1;min-width:24px;height:2px;background:var(--linha);margin:0 12px"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--linha);color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">3</span>
+      <span style="color:#9a8f84;font-size:13px">Socioeconômico</span>
+    </div>
+    <div style="flex:1;min-width:24px;height:2px;background:var(--linha);margin:0 12px"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--linha);color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">4</span>
+      <span style="color:#9a8f84;font-size:13px">Necessidades</span>
+    </div>
+    <div style="flex:1;min-width:24px;height:2px;background:var(--linha);margin:0 12px"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--linha);color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">5</span>
+      <span style="color:#9a8f84;font-size:13px">Revisão</span>
+    </div>
+  </div>
+
+  <!-- etapa 1: dados pessoais do titular -->
+  <div class="card" style="max-width:780px;border:1px solid var(--unidade)">
+    <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Dados do titular da família</div>
+    <div class="grid g2">
+      <label class="campo"><span>Nome completo</span><input placeholder="Ex.: Maria da Silva" /></label>
+      <label class="campo"><span>Data de nascimento</span><input type="date" /></label>
+      <label class="campo"><span>CPF</span><input placeholder="000.000.000-00" /></label>
+      <label class="campo"><span>RG</span><input placeholder="00.000.000-0" /></label>
+      <label class="campo"><span>Telefone / WhatsApp</span><input placeholder="(00) 00000-0000" /></label>
+      <label class="campo"><span>Estado civil</span><select><option>Selecione…</option><option>Solteiro(a)</option><option>Casado(a)</option><option>União estável</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></label>
+    </div>
+
+    <div class="sec-tit" style="margin-top:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Endereço</div>
+    <div class="grid g2">
+      <label class="campo"><span>CEP</span><input placeholder="00000-000" /></label>
+      <label class="campo"><span>Bairro</span><input placeholder="Ex.: Jardim Primavera" /></label>
+      <label class="campo" style="grid-column:1 / -1"><span>Logradouro e número</span><input placeholder="Rua, número, complemento" /></label>
+      <label class="campo"><span>Cidade</span><input value="São Paulo" /></label>
+      <label class="campo"><span>UF</span><select><option selected>SP</option><option>RJ</option><option>MG</option><option>PR</option></select></label>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;border-top:1px solid var(--linha);padding-top:16px">
+      <button class="btn btn-ghost" disabled style="opacity:.5">‹ Voltar</button>
+      <button class="btn btn-primary">Avançar para composição familiar ›</button>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

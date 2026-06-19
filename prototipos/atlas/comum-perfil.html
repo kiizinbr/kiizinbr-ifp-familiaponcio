@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minha conta · IFP Connect</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="" data-user="Joana Martins" data-cargo="Serviço Social" data-ini="JM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Minha conta</h2>
+      <div class="desc">Seus dados, perfis e preferências de acesso</div>
+    </div>
+    <button class="btn btn-primary">Salvar alterações</button>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna esquerda -->
+    <div>
+      <!-- identidade -->
+      <div class="card" style="display:flex;align-items:center;gap:18px;margin-bottom:16px">
+        <span class="crest" style="width:64px;height:74px"><span class="foto" style="font-size:21px">JM</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+        <div style="flex:1">
+          <div style="font-size:18px;font-weight:600;color:var(--tinta)">Joana Martins</div>
+          <div class="desc">Serviço Social · Chave-Mestra da Corte</div>
+          <div style="margin-top:8px"><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Conta ativa</span></div>
+        </div>
+        <button class="btn btn-outline">Trocar foto</button>
+      </div>
+
+      <!-- dados pessoais -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8" stroke-linecap="round" stroke-linejoin="round"/></svg> Dados pessoais</div>
+        <div class="grid g2">
+          <label class="campo"><span>Nome completo</span><input value="Joana Aparecida Martins" /></label>
+          <label class="campo"><span>CPF</span><input value="123.456.789-00" /></label>
+          <label class="campo"><span>E-mail institucional</span><input type="email" value="joana.martins@familiaponcio.org.br" /></label>
+          <label class="campo"><span>Telefone</span><input value="(11) 98765-4321" /></label>
+          <label class="campo"><span>Matrícula</span><input value="IFP-COL-0042" disabled /></label>
+          <label class="campo"><span>Admissão</span><input value="14/03/2024" disabled /></label>
+        </div>
+      </div>
+
+      <!-- alterar senha -->
+      <div class="card">
+        <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg> Segurança · alterar senha</div>
+        <div class="grid g2">
+          <label class="campo"><span>Senha atual</span><input type="password" placeholder="••••••••" /></label>
+          <span></span>
+          <label class="campo"><span>Nova senha</span><input type="password" placeholder="Mínimo de 8 caracteres" /></label>
+          <label class="campo"><span>Confirmar nova senha</span><input type="password" placeholder="Repita a senha" /></label>
+        </div>
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary">Atualizar senha</button></div>
+      </div>
+    </div>
+
+    <!-- coluna direita -->
+    <div>
+      <!-- perfis e unidades -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg> Perfis e unidades</div>
+        <p class="desc" style="margin-top:-4px">Acessos concedidos à sua conta. Quem libera ou revoga é a gestão.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+          <span class="pill" style="background:#F7EFDD;color:#9a6f16;border-color:transparent">Serviço Social · Chave-Mestra</span>
+          <span class="pill" style="background:#E2F8F6;color:#0E9A95;border-color:transparent">Centro Médico</span>
+          <span class="pill" style="background:#FCE9DD;color:#C24D0F;border-color:transparent">Capacitação</span>
+          <span class="pill pill-ok">Acesso transversal</span>
+        </div>
+      </div>
+
+      <!-- preferências -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.81 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Preferências</div>
+
+        <label class="campo"><span>Unidade de início (ao logar)</span><select><option>Perguntar sempre</option><option selected>Serviço Social</option><option>Centro Médico</option><option>Capacitação</option></select></label>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--linha)">
+          <div><div style="font-weight:600;color:var(--tinta);font-size:13px">Notificações por e-mail</div><div class="desc">Comunicados críticos e Ponte da Corte</div></div>
+          <input type="checkbox" checked style="width:auto" />
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--linha)">
+          <div><div style="font-weight:600;color:var(--tinta);font-size:13px">Resumo diário</div><div class="desc">Um e-mail às 8h com pendências do dia</div></div>
+          <input type="checkbox" style="width:auto" />
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--linha)">
+          <div><div style="font-weight:600;color:var(--tinta);font-size:13px">Verificação em duas etapas</div><div class="desc">Código por SMS ao entrar em novo dispositivo</div></div>
+          <input type="checkbox" checked style="width:auto" />
+        </div>
+      </div>
+
+      <!-- sessão -->
+      <div class="card">
+        <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/></svg> Sessão</div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av">PC</div>
+          <div class="li-main"><div class="li-t">Windows · Chrome <span style="font-weight:400;color:#9a8f84;font-size:12px">· este dispositivo</span></div><div class="li-s">São Paulo, BR · ativo agora</div></div>
+          <span class="pill pill-ok">Atual</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-danger">Encerrar outras sessões</button></div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

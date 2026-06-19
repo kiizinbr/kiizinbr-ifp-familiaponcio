@@ -1,0 +1,56 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Moldura ogival (crista) -->
+  <path d="M60 8
+           C82 8 98 20 98 42
+           C98 74 82 96 60 112
+           C38 96 22 74 22 42
+           C22 20 38 8 60 8 Z" stroke-width="3.6"/>
+  <!-- Coroa discreta de 3 pontas, integrada ao topo da crista -->
+  <path d="M44 24 L48 14 L54 21 L60 11 L66 21 L72 14 L76 24 Z"
+        fill="currentColor" stroke="none"/>
+  <path d="M44 24 H76" stroke-width="3"/>
+  <circle cx="48" cy="14" r="2.1" fill="currentColor" stroke="none"/>
+  <circle cx="60" cy="11" r="2.1" fill="currentColor" stroke="none"/>
+  <circle cx="72" cy="14" r="2.1" fill="currentColor" stroke="none"/>
+
+  <!-- Juba: silhueta cheia em ondas Bezier simetricas -->
+  <path d="M60 30
+           C50 30 42 34 38 42
+           C32 41 28 44 30 50
+           C25 51 23 56 27 60
+           C23 63 24 69 30 70
+           C29 76 33 81 39 80
+           C40 87 47 91 54 89
+           C56 93 64 93 66 89
+           C73 91 80 87 81 80
+           C87 81 91 76 90 70
+           C96 69 97 63 93 60
+           C97 56 95 51 90 50
+           C92 44 88 41 82 42
+           C78 34 70 30 60 30 Z"
+        fill="currentColor" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Rosto vazado (negativo dentro da juba) -->
+  <path d="M60 38
+           C68 38 74 44 75 53
+           C75 62 70 71 60 75
+           C50 71 45 62 45 53
+           C46 44 52 38 60 38 Z"
+        fill="#FAF7F2" stroke="none"/>
+
+  <!-- Tracos faciais do leao (em currentColor sobre o rosto claro) -->
+  <!-- Orelhas -->
+  <path d="M48 41 C45 39 43 40 44 44" stroke-width="2.6"/>
+  <path d="M72 41 C75 39 77 40 76 44" stroke-width="2.6"/>
+  <!-- Olhos -->
+  <path d="M51 52 C53 50 56 50 57 53" stroke-width="2.8"/>
+  <path d="M63 53 C64 50 67 50 69 52" stroke-width="2.8"/>
+  <!-- Focinho / nariz -->
+  <path d="M56 60 C57 64 63 64 64 60 C63 58 57 58 56 60 Z"
+        fill="currentColor" stroke="currentColor" stroke-width="1.6"/>
+  <!-- Boca -->
+  <path d="M60 64 V68 M60 68 C57 71 54 70 53 68 M60 68 C63 71 66 70 67 68"
+        stroke-width="2.6"/>
+  <!-- Bigodes -->
+  <path d="M52 62 C49 62 47 63 45 64 M68 62 C71 62 73 63 75 64" stroke-width="2"/>
+</svg>

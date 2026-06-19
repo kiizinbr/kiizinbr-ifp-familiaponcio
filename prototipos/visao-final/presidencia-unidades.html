@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Unidades · Visão da Corte</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="unidades" data-user="Erick Ramos" data-cargo="Presidencia" data-ini="ER">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Unidades</h2>
+      <div class="desc">Ocupação e fila das 4 unidades · maio/2026</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="periodo"><span class="pl">Maio/2026</span></div>
+      <button class="btn btn-outline">Exportar</button>
+    </div>
+  </div>
+
+  <!-- KPIs agregados -->
+  <div class="grid g4" style="margin-bottom:22px">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Ocupação média</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">84%</div>
+      <div class="k-delta k-up">+3 p.p. vs anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Vagas preenchidas</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">2.106</div>
+      <div class="k-delta k-up">+118 vs anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Em lista de espera</span><span class="k-tend" style="background:var(--erro-bg);color:var(--erro)">Atenção</span></div>
+      <div class="k-val">73</div>
+      <div class="k-delta k-flat">47 só no Centro Médico</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Unidades sob pressão</span><span class="k-tend">Monitorar</span></div>
+      <div class="k-val">1</div>
+      <div class="k-delta k-flat">de 4 unidades</div>
+    </div>
+  </div>
+
+  <!-- cards pulso das unidades -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Pulso por unidade</div>
+  <div class="grid g4" style="margin-bottom:26px">
+
+    <div class="card pulso" style="--u:#10C2BB">
+      <span class="juba-ring" style="width:64px;height:64px;flex:0 0 auto">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#10C2BB" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="17" transform="rotate(-90 32 32)"/></svg>
+        <span class="num">90%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Centro Médico</div>
+        <div class="pm">612/680 vagas · fila 47</div>
+        <span class="pstatus" style="background:var(--erro-bg);color:var(--erro)">Sob pressão</span>
+      </div>
+    </div>
+
+    <div class="card pulso" style="--u:#FF772E">
+      <span class="juba-ring" style="width:64px;height:64px;flex:0 0 auto">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#FF772E" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="22" transform="rotate(-90 32 32)"/></svg>
+        <span class="num">87%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Capacitação</div>
+        <div class="pm">540/620 vagas · fila 12</div>
+        <span class="pstatus" style="background:rgba(26,122,74,.12);color:#1a7a4a">Saudável</span>
+      </div>
+    </div>
+
+    <div class="card pulso" style="--u:#9A3D0B">
+      <span class="juba-ring" style="width:64px;height:64px;flex:0 0 auto">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#9A3D0B" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="37" transform="rotate(-90 32 32)"/></svg>
+        <span class="num">78%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Centro Esportivo</div>
+        <div class="pm">498/640 vagas · fila 5</div>
+        <span class="pstatus" style="background:rgba(26,122,74,.12);color:#1a7a4a">Com folga</span>
+      </div>
+    </div>
+
+    <div class="card pulso" style="--u:#007571">
+      <span class="juba-ring" style="width:64px;height:64px;flex:0 0 auto">
+        <svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="#007571" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="34" transform="rotate(-90 32 32)"/></svg>
+        <span class="num">80%</span>
+      </span>
+      <div class="pinfo">
+        <div class="pn">Recreativo</div>
+        <div class="pm">456/568 vagas · fila 9</div>
+        <span class="pstatus" style="background:rgba(26,122,74,.12);color:#1a7a4a">Saudável</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- tabela comparativa -->
+  <div class="card">
+    <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16v-5M12 16V8M17 16v-9"/></svg> Comparativo de ocupação</div>
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th>Unidade</th>
+          <th>Vagas</th>
+          <th>Ocupação</th>
+          <th>Fila de espera</th>
+          <th>Tendência (mês)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b style="color:var(--tinta)">Centro Médico</b><div class="muted" style="font-size:11px">Clínica + Odontologia</div></td>
+          <td>612 / 680</td>
+          <td><b style="color:var(--tinta)">90%</b></td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:transparent">47 esperando</span></td>
+          <td class="k-up" style="font-weight:600">+12 vagas</td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:transparent">Sob pressão</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">Capacitação</b><div class="muted" style="font-size:11px">Cursos profissionalizantes</div></td>
+          <td>540 / 620</td>
+          <td><b style="color:var(--tinta)">87%</b></td>
+          <td><span class="pill">12 esperando</span></td>
+          <td class="k-up" style="font-weight:600">+28 certificados</td>
+          <td><span class="pill pill-ok">Saudável</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">Centro Esportivo</b><div class="muted" style="font-size:11px">Jiu-Jitsu · Futsal</div></td>
+          <td>498 / 640</td>
+          <td><b style="color:var(--tinta)">78%</b></td>
+          <td><span class="pill">5 esperando</span></td>
+          <td class="k-up" style="font-weight:600">+40 vagas abertas</td>
+          <td><span class="pill pill-ok">Com folga</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">Recreativo</b><div class="muted" style="font-size:11px">Primeira infância</div></td>
+          <td>456 / 568</td>
+          <td><b style="color:var(--tinta)">80%</b></td>
+          <td><span class="pill">9 esperando</span></td>
+          <td class="k-flat" style="font-weight:600">estável</td>
+          <td><span class="pill pill-ok">Saudável</span></td>
+        </tr>
+        <tr style="font-weight:600">
+          <td><b style="color:var(--tinta)">Total da Corte</b></td>
+          <td>2.106 / 2.508</td>
+          <td><b style="color:var(--tinta)">84%</b></td>
+          <td><span class="pill pill-warn">73 na fila</span></td>
+          <td class="k-up">+118 vs abril</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em equilíbrio</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

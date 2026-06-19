@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Usuários e perfis · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="usuarios" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Usuários e perfis</h2>
+      <div class="desc">Controle de acesso baseado em perfis (RBAC) · 47 contas ativas · 3 pendentes de aprovação</div>
+    </div>
+    <button class="btn btn-primary">＋ Novo usuário</button>
+  </div>
+
+  <!-- KPIs de contas -->
+  <div class="grid g4" style="margin-bottom:22px">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Contas ativas</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">47</div>
+      <div class="k-delta k-up">+5 vs mês anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Perfis (papéis)</span></div>
+      <div class="k-val">6</div>
+      <div class="k-delta k-flat">Presidência a Família</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Pendentes</span></div>
+      <div class="k-val">3</div>
+      <div class="k-delta k-flat">aguardando aprovação</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Bloqueadas</span></div>
+      <div class="k-val">2</div>
+      <div class="k-delta k-flat">por inatividade (90 dias)</div>
+    </div>
+  </div>
+
+  <!-- filtros -->
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+    <label class="campo" style="margin:0;min-width:260px;flex:1"><span>Buscar</span><input placeholder="Nome, e-mail ou perfil…" /></label>
+    <label class="campo" style="margin:0;min-width:170px"><span>Perfil</span><select><option>Todos os perfis</option><option>Presidência</option><option>Gestão de unidade</option><option>Profissional</option><option>Serviço Social</option><option>Administração</option><option>Família</option></select></label>
+    <label class="campo" style="margin:0;min-width:170px"><span>Unidade</span><select><option>Todas as unidades</option><option>Centro Médico</option><option>Capacitação</option><option>Centro Educacional</option><option>Centro Esportivo</option></select></label>
+  </div>
+
+  <!-- tabela de usuários -->
+  <div class="card" style="padding:8px 10px 4px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Usuário</th><th>Perfil</th><th>Unidades de acesso</th><th>Último acesso</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><span class="crest" style="width:40px;height:46px"><span class="foto" style="font-size:13px">ER</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span><div><div style="font-weight:600;color:var(--tinta)">Erick Ramos</div><div style="font-size:11px;color:#9a8f84">erick.ramos@ifp.org.br</div></div></div></td>
+          <td><span class="pill pill-unid">Administração</span></td>
+          <td><span class="pill">Todas</span></td>
+          <td>hoje, 08:42</td>
+          <td><span class="pill pill-ok">Ativo</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:var(--unidade-suave);color:var(--unidade-escuro);display:flex;align-items:center;justify-content:center;font-weight:600">JP</div><div><div style="font-weight:600;color:var(--tinta)">Joana Pôncio</div><div style="font-size:11px;color:#9a8f84">joana.poncio@ifp.org.br</div></div></div></td>
+          <td><span class="pill pill-unid">Presidência</span></td>
+          <td><span class="pill">Todas</span></td>
+          <td>hoje, 07:55</td>
+          <td><span class="pill pill-ok">Ativo</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:rgba(16,194,187,.16);color:#0E9A95;display:flex;align-items:center;justify-content:center;font-weight:600">RS</div><div><div style="font-weight:600;color:var(--tinta)">Raquel Souza</div><div style="font-size:11px;color:#9a8f84">raquel.souza@ifp.org.br</div></div></div></td>
+          <td><span class="pill">Gestão de unidade</span></td>
+          <td><span class="pill" style="background:rgba(16,194,187,.14);color:#0E9A95;border-color:transparent">Centro Médico</span></td>
+          <td>ontem, 17:20</td>
+          <td><span class="pill pill-ok">Ativo</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:rgba(255,119,46,.16);color:#C24D0F;display:flex;align-items:center;justify-content:center;font-weight:600">TM</div><div><div style="font-weight:600;color:var(--tinta)">Tânia Moraes</div><div style="font-size:11px;color:#9a8f84">tania.moraes@ifp.org.br</div></div></div></td>
+          <td><span class="pill">Gestão de unidade</span></td>
+          <td><span class="pill" style="background:rgba(255,119,46,.14);color:#C24D0F;border-color:transparent">Capacitação</span></td>
+          <td>ontem, 14:08</td>
+          <td><span class="pill pill-ok">Ativo</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:rgba(16,194,187,.16);color:#0E9A95;display:flex;align-items:center;justify-content:center;font-weight:600">MA</div><div><div style="font-weight:600;color:var(--tinta)">Dr. Marcos Alves</div><div style="font-size:11px;color:#9a8f84">marcos.alves@ifp.org.br</div></div></div></td>
+          <td><span class="pill">Profissional</span></td>
+          <td><span class="pill" style="background:rgba(16,194,187,.14);color:#0E9A95;border-color:transparent">Centro Médico</span></td>
+          <td>hoje, 09:10</td>
+          <td><span class="pill pill-ok">Ativo</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:rgba(201,150,47,.18);color:#8a6516;display:flex;align-items:center;justify-content:center;font-weight:600">SC</div><div><div style="font-weight:600;color:var(--tinta)">Sandra Campos</div><div style="font-size:11px;color:#9a8f84">sandra.campos@ifp.org.br</div></div></div></td>
+          <td><span class="pill">Serviço Social</span></td>
+          <td><span class="pill" style="background:rgba(201,150,47,.14);color:#8a6516;border-color:transparent">Serviço Social</span></td>
+          <td>hoje, 08:30</td>
+          <td><span class="pill pill-ok">Ativo</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:rgba(154,61,11,.16);color:#9A3D0B;display:flex;align-items:center;justify-content:center;font-weight:600">CF</div><div><div style="font-weight:600;color:var(--tinta)">Carlos Ferreira</div><div style="font-size:11px;color:#9a8f84">carlos.ferreira@ifp.org.br</div></div></div></td>
+          <td><span class="pill">Profissional</span></td>
+          <td><span class="pill" style="background:rgba(154,61,11,.14);color:#9A3D0B;border-color:transparent">Centro Esportivo</span></td>
+          <td>3 dias atrás</td>
+          <td><span class="pill pill-warn">Pendente</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Aprovar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:40px;height:40px;border-radius:50%;background:#f0ece6;color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600">PL</div><div><div style="font-weight:600;color:var(--tinta)">Paula Lima</div><div style="font-size:11px;color:#9a8f84">paula.lima@ifp.org.br</div></div></div></td>
+          <td><span class="pill">Família</span></td>
+          <td><span class="pill">App da Família</span></td>
+          <td>há 4 meses</td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">Bloqueado</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Reativar</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px">
+    <div class="desc">Mostrando 8 de 47 usuários</div>
+    <div class="periodo"><button>‹</button><span class="pl">Página 1 de 6</span><button>›</button></div>
+  </div>
+
+  <!-- referência rápida dos perfis (RBAC) -->
+  <div class="card" style="margin-top:24px;max-width:760px">
+    <div class="sec-tit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>
+      Perfis e o que cada um enxerga
+    </div>
+    <ul class="tl">
+      <li><div class="tx"><b>Presidência</b> — visão agregada das 4 unidades, sem dado individual de beneficiário.</div><div class="tt">acesso global · somente leitura no operacional</div></li>
+      <li><div class="tx"><b>Gestão de unidade</b> — opera a sua unidade (agenda, fila, equipe), restrita ao salão.</div><div class="tt">escopo: 1 unidade</div></li>
+      <li><div class="tx"><b>Profissional</b> — prancha/atendimento dos beneficiários elegíveis na sua unidade.</div><div class="tt">escopo: 1 unidade · dado sensível</div></li>
+      <li><div class="tx"><b>Serviço Social</b> — Ficha Cidadã e elegibilidades (a chave-mestra das portas).</div><div class="tt">acesso transversal · concede acesso às unidades</div></li>
+      <li><div class="tx"><b>Administração</b> — usuários, unidades, integrações e auditoria da plataforma.</div><div class="tt">acesso global · configuração</div></li>
+      <li><div class="tx"><b>Família</b> — app: diário da creche, comunicados e dados das crianças.</div><div class="tt">escopo: própria família</div></li>
+    </ul>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

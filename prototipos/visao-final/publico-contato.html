@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contato · Instituto Família Poncio</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="publico" data-tela="contato">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="site-main">
+
+  <section class="site-hero">
+    <div class="eyebrow">Fale com a gente</div>
+    <h1>Onde estamos<br>e como falar.</h1>
+    <p>Venha nos visitar, ligue ou mande uma mensagem. A recepção do Serviço Social é a porta de entrada para tudo no Instituto.</p>
+  </section>
+
+  <section class="site-sec">
+    <div class="grid g-50">
+      <!-- endereço, mapa e telefones -->
+      <div>
+        <div class="card">
+          <div class="sec-tit">Onde estamos</div>
+          <p style="font-size:15px;color:var(--corpo);margin:10px 0 0;line-height:1.6">
+            <b style="color:var(--tinta)">Instituto Família Poncio</b><br>
+            Av. das Acácias, 410 — Jardim Esperança<br>
+            São Paulo · SP · CEP 03200-000
+          </p>
+          <!-- placeholder de mapa -->
+          <div style="margin-top:16px;height:220px;border-radius:14px;background:var(--unidade-suave);border:1px dashed var(--linha);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--unidade-escuro);text-align:center">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div style="font-weight:600;margin-top:8px">Mapa interativo</div>
+            <div class="desc" style="font-size:12px">Av. das Acácias, 410 — Jardim Esperança</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <a class="btn btn-outline" href="#">Abrir no mapa</a>
+            <a class="btn btn-ghost" href="#">Como chegar</a>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <div class="sec-tit">Telefones e canais</div>
+          <div class="list-row" style="margin-top:6px">
+            <div class="av">SS</div>
+            <div class="li-main"><div class="li-t">Serviço Social (acolhimento)</div><div class="li-s">(11) 3200-4100 · seg a sex, 8h-17h</div></div>
+            <span class="pill pill-unid">Principal</span>
+          </div>
+          <div class="list-row">
+            <div class="av">WA</div>
+            <div class="li-main"><div class="li-t">WhatsApp</div><div class="li-s">(11) 99000-4100</div></div>
+            <span class="pill pill-ok">Online</span>
+          </div>
+          <div class="list-row">
+            <div class="av">@</div>
+            <div class="li-main"><div class="li-t">E-mail</div><div class="li-s">contato@familiaponcio.org.br</div></div>
+            <span class="pill">Resposta em 48h</span>
+          </div>
+          <div class="list-row">
+            <div class="av">DO</div>
+            <div class="li-main"><div class="li-t">Doações e parcerias</div><div class="li-s">doe@familiaponcio.org.br · (11) 3200-4150</div></div>
+            <span class="pill pill-unid">Captação</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- formulário de contato -->
+      <div>
+        <div class="card">
+          <div class="sec-tit">Envie uma mensagem</div>
+          <p class="desc">Preencha abaixo e retornamos em até 48h úteis.</p>
+          <div class="grid g2" style="margin-top:14px">
+            <label class="campo"><span>Nome</span><input placeholder="Seu nome" /></label>
+            <label class="campo"><span>Telefone</span><input placeholder="(11) 90000-0000" /></label>
+          </div>
+          <label class="campo"><span>E-mail</span><input type="email" placeholder="voce@email.com" /></label>
+          <label class="campo"><span>Assunto</span>
+            <select>
+              <option>Quero ser atendido (Serviço Social)</option>
+              <option>Doações e parcerias</option>
+              <option>Voluntariado</option>
+              <option>Imprensa</option>
+              <option>Outro assunto</option>
+            </select>
+          </label>
+          <label class="campo"><span>Mensagem</span><textarea rows="6" placeholder="Conte como podemos ajudar"></textarea></label>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px">Enviar mensagem</button>
+        </div>
+
+        <div class="card" style="background:var(--unidade-suave);border:0;margin-top:18px">
+          <div class="sec-tit">Horário de funcionamento</div>
+          <ul class="tl" style="margin-top:12px">
+            <li><div class="tx"><b>Segunda a sexta</b> · 07h30 às 17h00</div><div class="tt">Recepção e Serviço Social</div></li>
+            <li><div class="tx"><b>Sábado</b> · 08h00 às 12h00</div><div class="tt">Atendimentos pontuais</div></li>
+            <li><div class="tx"><b>Domingo</b> · fechado</div><div class="tt">Emergências pelo WhatsApp</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

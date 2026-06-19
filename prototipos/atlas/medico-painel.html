@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="painel" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Painel do dia</h2>
+      <div class="desc">quarta-feira, 17 de junho · Centro Médico</div>
+    </div>
+    <a class="btn btn-primary" href="medico-agenda.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>
+      Abrir agenda
+    </a>
+  </div>
+
+  <!-- KPIs do dia -->
+  <div class="grid g4">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Pacientes do dia</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">38</div>
+      <div class="k-delta k-up">+6 vs. mesma hora ontem</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Aguardando</span><span class="k-tend">Fila</span></div>
+      <div class="k-val">7</div>
+      <div class="k-delta k-flat">tempo médio de espera: 18 min</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Em atendimento</span><span class="k-tend">Agora</span></div>
+      <div class="k-val">5</div>
+      <div class="k-delta k-flat">3 consultórios · 1 odonto · 1 triagem</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Concluídos</span><span class="k-tend">Selados</span></div>
+      <div class="k-val">26</div>
+      <div class="k-delta k-up">68% da meta do dia</div>
+    </div>
+  </div>
+
+  <div class="grid g-60-40" style="margin-top:20px">
+
+    <!-- próximos atendimentos + atalho agenda -->
+    <div class="card">
+      <div class="sec-tit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>
+        Próximos da agenda
+      </div>
+      <div class="list-row">
+        <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">14:00</div><div style="font-size:10px;color:#9a8f84">sala 2</div></div>
+        <div class="av">JS</div>
+        <div class="li-main"><div class="li-t">João da Silva <span style="font-weight:400;color:#9a8f84;font-size:12px">· 8 anos</span></div><div class="li-s">Consulta clínica · IFP-2026-900014</div></div>
+        <span class="pill pill-warn">Alergia: Dipirona</span>
+      </div>
+      <div class="list-row">
+        <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">14:40</div><div style="font-size:10px;color:#9a8f84">sala 3</div></div>
+        <div class="av">LC</div>
+        <div class="li-main"><div class="li-t">Lara Costa <span style="font-weight:400;color:#9a8f84;font-size:12px">· 4 anos</span></div><div class="li-s">Odontopediatria · IFP-2026-900021</div></div>
+        <span class="pill pill-unid">Agendado</span>
+      </div>
+      <div class="list-row">
+        <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">15:10</div><div style="font-size:10px;color:#9a8f84">sala 1</div></div>
+        <div class="av">RO</div>
+        <div class="li-main"><div class="li-t">Rosa Oliveira <span style="font-weight:400;color:#9a8f84;font-size:12px">· 29 anos</span></div><div class="li-s">Pré-natal · 1ª consulta · IFP-2026-900022</div></div>
+        <span class="pill pill-unid">Agendado</span>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <a class="btn btn-outline" href="medico-agenda.html">Ver agenda completa ›</a>
+      </div>
+    </div>
+
+    <!-- ocupação por sala + avisos -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M19 9l-5 5-3-3-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Ocupação dos consultórios
+        </div>
+        <div class="bar-row"><div class="bl"><span>Clínica geral</span><b>92%</b></div><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Pediatria</span><b>74%</b></div><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Odontologia</span><b>61%</b></div><div class="bar-track"><div class="bar-fill" style="width:61%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Enfermagem / triagem</span><b>48%</b></div><div class="bar-track"><div class="bar-fill" style="width:48%"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Avisos da unidade
+        </div>
+        <ul class="tl">
+          <li><div class="tx">Serviço Social liberou 4 novos beneficiários para o Centro Médico.</div><div class="tt">há 20 min</div></li>
+          <li><div class="tx">Mutirão odontológico confirmado para sábado — 96 vagas.</div><div class="tt">há 1 h</div></li>
+          <li><div class="tx">Estoque de vacina dupla adulto repõe amanhã.</div><div class="tt">hoje, 08:10</div></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

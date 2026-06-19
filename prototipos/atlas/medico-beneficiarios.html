@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Beneficiários · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="beneficiarios" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Beneficiários liberados</h2>
+      <div class="desc">Liberados pelo Serviço Social para o Centro Médico · elegibilidade verificada</div>
+    </div>
+    <button class="btn btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Exportar lista
+    </button>
+  </div>
+
+  <!-- KPIs rápidos -->
+  <div class="grid g4" style="margin-bottom:20px">
+    <div class="card kpi"><div class="k-top"><span class="k-label">Elegíveis ativos</span></div><div class="k-val">312</div><div class="k-delta k-up">+4 esta semana</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Em análise</span></div><div class="k-val">9</div><div class="k-delta k-flat">aguardando Social</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Atendidos no mês</span></div><div class="k-val">268</div><div class="k-delta k-up">86% dos elegíveis</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Não elegíveis</span></div><div class="k-val">3</div><div class="k-delta k-flat">encaminhados à rede</div></div>
+  </div>
+
+  <!-- filtro -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="padding:8px 14px">Todos</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Elegíveis</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Em análise</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Não elegíveis</button>
+  </div>
+
+  <!-- tabela -->
+  <div class="card" style="padding:8px 8px 4px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Protocolo</th><th>Beneficiário</th><th>Idade</th><th>Família</th><th>Liberado por</th><th>Elegibilidade</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b style="color:var(--tinta)">IFP-2026-900014</b></td>
+          <td>João da Silva</td>
+          <td>8 anos</td>
+          <td>Família Silva</td>
+          <td>Joana Martins · há 5 min</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aprovado</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">IFP-2026-900022</b></td>
+          <td>Rosa Oliveira</td>
+          <td>29 anos</td>
+          <td>Família Oliveira</td>
+          <td>Joana Martins · ontem</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aprovado</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">IFP-2026-900401</b></td>
+          <td>Marcos Pereira</td>
+          <td>52 anos</td>
+          <td>Família Pereira</td>
+          <td>Serviço Social · 15/06</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aprovado</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">IFP-2026-900433</b></td>
+          <td>Sandra Lopes</td>
+          <td>41 anos</td>
+          <td>Família Lopes</td>
+          <td>Em triagem · Serviço Social</td>
+          <td><span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em análise</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">IFP-2026-900512</b></td>
+          <td>Lara Costa</td>
+          <td>4 anos</td>
+          <td>Família Costa</td>
+          <td>Joana Martins · 14/06</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aprovado</span></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--tinta)">IFP-2026-900518</b></td>
+          <td>Antônio Reis</td>
+          <td>67 anos</td>
+          <td>Família Reis</td>
+          <td>Renda fora do critério</td>
+          <td><span class="coroa-seal cs-bloq"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Não elegível</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="desc" style="margin-top:14px;display:flex;align-items:center;gap:8px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--unidade)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    A elegibilidade é definida pelo Serviço Social. O Centro Médico vê apenas quem já foi liberado — sem acesso à renda ou aos dados sociais da família.
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

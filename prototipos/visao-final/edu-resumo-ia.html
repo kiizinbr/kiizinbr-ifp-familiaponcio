@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resumo do diário por IA · Centro Educacional</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="educacional" data-tela="turmas" data-user="Prof. Carla Mendes" data-cargo="Centro Educacional" data-ini="CM">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Resumo do diário por IA</h2>
+      <div class="desc">Laura Alves · Sala Bem-te-vi · quarta-feira, 17 de junho · fechamento do dia</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <a href="edu-diario-lote.html" class="btn btn-outline">← Voltar ao lote</a>
+      <a href="edu-fotos-diario.html" class="btn btn-outline">Anexar fotos</a>
+    </div>
+  </div>
+
+  <!-- como funciona -->
+  <div class="card" style="display:flex;align-items:center;gap:18px;margin-bottom:20px;background:var(--unidade-suave);border:0">
+    <span style="width:54px;height:54px;border-radius:14px;background:var(--unidade);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:24px">✨</span>
+    <div style="flex:1">
+      <div style="font-weight:600;color:var(--tinta)">A IA transforma as tags do dia num texto afetuoso pra família</div>
+      <div class="desc">Nada é enviado sem a educadora revisar. Edite à vontade e toque em <strong>selar</strong> para liberar no app da família.</div>
+    </div>
+    <span class="pill pill-unid">rascunho gerado</span>
+  </div>
+
+  <div class="grid g-50">
+
+    <!-- tags de origem -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7 7h.01"/></svg> Tags do dia · origem do resumo</div>
+      <p class="desc" style="margin-top:0">Foi a partir destes registros que a IA escreveu o texto ao lado.</p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:9px;margin-bottom:6px">
+        <span class="pill pill-ok">🍎 Comeu tudo no lanche</span>
+        <span class="pill pill-ok">🍽️ Almoçou bem</span>
+        <span class="pill pill-ok">😴 Dormiu 1h20</span>
+        <span class="pill pill-ok">🎨 Participou da pintura</span>
+        <span class="pill pill-ok">🌳 Brincou no parque</span>
+        <span class="pill pill-unid">🚻 2 trocas</span>
+        <span class="pill pill-unid">😊 Humor: alegre</span>
+      </div>
+
+      <div class="card" style="margin-top:14px;background:var(--papel);border:1px solid var(--linha)">
+        <div class="sec-tit" style="margin-bottom:8px">Linha do dia</div>
+        <ul class="tl">
+          <li><div class="tx">Entrou 07:48 · com a mãe, bem-humorada</div><div class="tt">07:48</div></li>
+          <li><div class="tx">Lanche da manhã · comeu tudo</div><div class="tt">09:10</div></li>
+          <li><div class="tx">Atividade de pintura com guache</div><div class="tt">10:00</div></li>
+          <li><div class="tx">Almoço · arroz, feijão, frango e legumes</div><div class="tt">11:30</div></li>
+          <li><div class="tx">Soninho · 1h20</div><div class="tt">12:40</div></li>
+          <li><div class="tx">Parque · brincou no escorregador</div><div class="tt">15:00</div></li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:14px;background:var(--unidade-suave);border:0;padding:14px;display:flex;gap:10px;align-items:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--unidade-escuro)" stroke-width="2" stroke-linecap="round" style="width:20px;height:20px;flex:0 0 auto"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <div class="desc" style="margin:0;color:var(--unidade-escuro)">A IA <strong>nunca inventa</strong> evento que não esteja nas tags. Sem foto autorizada, o resumo não cita imagens.</div>
+      </div>
+    </div>
+
+    <!-- texto gerado + revisão -->
+    <div class="card" style="border:1px solid var(--unidade)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="sec-tit" style="margin-bottom:0">Texto gerado pela IA</div>
+        <span class="pill pill-unid">✨ rascunho</span>
+      </div>
+      <p class="desc" style="margin-top:0">Revise o tom, ajuste o que quiser e sele. O que for selado vai para a família.</p>
+
+      <label class="campo"><span>Mensagem para a Família Silva</span><textarea rows="9" style="line-height:1.55">Oi, família da Laura! 💛
+
+Hoje foi um dia cheio e gostoso. A Laura chegou animada e participou super bem da atividade de pintura com guache — adorou se sujar de tinta! No lanche e no almoço comeu tudo, inclusive os legumes. Tirou um soninho tranquilo de 1h20 e, à tarde, se divertiu bastante no parque, principalmente no escorregador.
+
+Um dia leve e feliz por aqui. Até amanhã! 😊
+
+— Profa. Carla, Sala Bem-te-vi</textarea></label>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:7px 12px">↺ Gerar de novo</button>
+        <button class="btn btn-ghost" style="padding:7px 12px">🙂 Mais curto</button>
+        <button class="btn btn-ghost" style="padding:7px 12px">💛 Mais afetuoso</button>
+        <button class="btn btn-ghost" style="padding:7px 12px">📋 Mais objetivo</button>
+      </div>
+
+      <div class="card" style="background:var(--ambar-bg);border:0;padding:13px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--ambar)" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px;flex:0 0 auto;margin-top:1px"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <div class="desc" style="margin:0;color:var(--ambar)">Texto gerado por IA a partir das tags. <strong>Você é responsável pelo conteúdo final</strong> — confira nomes, horários e o tom antes de selar.</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--corpo);cursor:pointer"><input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--unidade)"> Li e revisei o texto</label>
+        <a href="edu-diario-lote.html" class="btn btn-gold">🔒 Selar e enviar à família</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- fila de revisão das outras crianças -->
+  <div class="card" style="margin-top:18px">
+    <div class="sec-tit">Fila de resumos a revisar · Sala Bem-te-vi</div>
+    <table class="tabela">
+      <thead><tr><th>Criança</th><th>Status do resumo</th><th>Família</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--tinta)">Laura Alves</strong></td><td><span class="pill pill-unid">✨ rascunho gerado</span></td><td>Família Silva</td><td><span class="desc">revisando agora</span></td></tr>
+        <tr><td><strong style="color:var(--tinta)">Bruno Carvalho</strong></td><td><span class="pill pill-warn">aguardando geração</span></td><td>Família Carvalho</td><td><a href="edu-resumo-ia.html" class="btn btn-ghost" style="padding:6px 11px">Gerar</a></td></tr>
+        <tr><td><strong style="color:var(--tinta)">Manuela Nunes</strong></td><td><span class="coroa-seal cs-ok" style="background:rgba(26,122,74,.1);color:var(--ok);border-color:rgba(26,122,74,.3)"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado</span></td><td>Família Nunes</td><td><span class="desc">enviado 16:12</span></td></tr>
+        <tr><td><strong style="color:var(--tinta)">Helena Dias</strong></td><td><span class="coroa-seal cs-ok" style="background:rgba(26,122,74,.1);color:var(--ok);border-color:rgba(26,122,74,.3)"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado</span></td><td>Família Dias</td><td><span class="desc">enviado 16:10</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

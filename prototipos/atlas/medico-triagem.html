@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Triagem · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="prontuarios" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Triagem de enfermagem</h2>
+      <div class="desc">Lucas Ferreira · 6 anos · senha A-08 · Enf. Cláudia Campos</div>
+    </div>
+    <button class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Encaminhar para fila
+    </button>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal: sinais vitais -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sinais vitais
+        </div>
+        <div class="grid g3">
+          <label class="campo"><span>Pressão arterial (mmHg)</span><input value="100 / 65" /></label>
+          <label class="campo"><span>Frequência cardíaca (bpm)</span><input value="118" /></label>
+          <label class="campo"><span>Temperatura (°C)</span><input value="38,6" /></label>
+          <label class="campo"><span>Saturação O₂ (%)</span><input value="96" /></label>
+          <label class="campo"><span>Frequência respiratória</span><input value="26 irpm" /></label>
+          <label class="campo"><span>Dor (0–10)</span><input value="4" /></label>
+          <label class="campo"><span>Peso (kg)</span><input value="22,4" /></label>
+          <label class="campo"><span>Glicemia capilar</span><input value="—" /></label>
+          <label class="campo"><span>Estatura (cm)</span><input value="118" /></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1zM8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Queixa e observações
+        </div>
+        <label class="campo"><span>Queixa principal</span><input value="Febre há 2 dias, prostração e recusa alimentar" /></label>
+        <label class="campo"><span>Observações da enfermagem</span><textarea rows="3">Criança febril, hidratada. Mãe relata uso de antitérmico em casa. Sem rigidez de nuca. Atenção: alergia a Dipirona registrada na ficha.</textarea></label>
+      </div>
+    </div>
+
+    <!-- coluna lateral: classificação de risco -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit">Classificação de risco</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <!-- VERMELHO -->
+          <button style="display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--linha);background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit">
+            <span style="width:18px;height:18px;border-radius:50%;background:var(--erro);flex:0 0 auto"></span>
+            <div><div style="font-weight:700;color:var(--tinta)">Vermelho · Emergência</div><div class="desc" style="font-size:12px">Atendimento imediato</div></div>
+          </button>
+          <!-- AMARELO (selecionado) -->
+          <button style="display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--ambar);background:var(--ambar-bg);border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit">
+            <span style="width:18px;height:18px;border-radius:50%;background:var(--ambar);flex:0 0 auto"></span>
+            <div><div style="font-weight:700;color:var(--ambar)">Amarelo · Urgente</div><div class="desc" style="font-size:12px">Atender em até 30 min · selecionado</div></div>
+          </button>
+          <!-- VERDE -->
+          <button style="display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--linha);background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit">
+            <span style="width:18px;height:18px;border-radius:50%;background:var(--ok);flex:0 0 auto"></span>
+            <div><div style="font-weight:700;color:var(--tinta)">Verde · Pouco urgente</div><div class="desc" style="font-size:12px">Atendimento por ordem de chegada</div></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-tit">Alertas da ficha</div>
+        <div style="padding:11px;border-radius:11px;background:var(--erro-bg);color:var(--erro);font-size:13px;margin-bottom:10px;font-weight:600">⚠ Alergia: Dipirona — não administrar</div>
+        <div style="padding:11px;border-radius:11px;background:var(--ambar-bg);color:var(--ambar);font-size:13px">Pediátrico — calcular dose por peso (22,4 kg)</div>
+        <div class="sec-tit" style="margin-top:16px">Resumo</div>
+        <ul class="tl">
+          <li><div class="tx">Senha A-08 chamada para triagem</div><div class="tt">14:06</div></li>
+          <li><div class="tx">Sinais vitais aferidos · febril</div><div class="tt">14:10</div></li>
+          <li><div class="tx">Classificado como amarelo</div><div class="tt">14:12</div></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

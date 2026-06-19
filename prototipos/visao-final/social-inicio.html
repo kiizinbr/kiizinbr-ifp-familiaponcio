@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Início · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="inicio" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Bom dia, Joana</h2>
+      <div class="desc">quarta-feira, 17 de junho · a Chave-Mestra que abre as portas da Corte</div>
+    </div>
+    <a class="btn btn-primary" href="social-ficha-nova.html">＋ Nova Ficha Cidadã</a>
+  </div>
+
+  <!-- atalhos rápidos -->
+  <div class="grid g3" style="margin-bottom:24px">
+    <a class="card" href="social-ficha-nova.html" style="border-top:4px solid var(--unidade)">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 11v6M9 14h6"/></svg> Nova Ficha</div>
+      <p class="desc">Abrir o registro único de uma nova família — wizard em 5 etapas.</p>
+    </a>
+    <a class="card" href="social-fichas.html" style="border-top:4px solid var(--unidade)">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg> Todas as Fichas</div>
+      <p class="desc">Pesquisar e abrir qualquer família já cadastrada na Corte.</p>
+    </a>
+    <a class="card" href="social-triagem.html" style="border-top:4px solid var(--unidade)">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg> Pendentes</div>
+      <p class="desc">Fila de famílias aguardando avaliação e elegibilidade.</p>
+    </a>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid g4" style="margin-bottom:24px">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Fichas ativas</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">1.248</div>
+      <div class="k-delta k-up">+34 esta semana</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Pendentes</span><span class="k-tend">Atenção</span></div>
+      <div class="k-val">23</div>
+      <div class="k-delta k-flat">aguardando elegibilidade</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Triagem hoje</span><span class="k-tend">Hoje</span></div>
+      <div class="k-val">7</div>
+      <div class="k-delta k-flat">famílias na fila</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Pontes abertas</span><span class="k-tend">Corte</span></div>
+      <div class="k-val">2</div>
+      <div class="k-delta k-flat">sinalizações a atender</div>
+    </div>
+  </div>
+
+  <div class="grid g-60-40">
+    <!-- triagem do dia -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Aguardando triagem hoje</div>
+      <div class="list-row">
+        <div class="av">FO</div>
+        <div class="li-main"><div class="li-t">Família Oliveira</div><div class="li-s">IFP-2026-000401 · Centro Médico + Recreativo</div></div>
+        <span class="pill pill-warn">Prioridade</span>
+      </div>
+      <div class="list-row">
+        <div class="av">FP</div>
+        <div class="li-main"><div class="li-t">Família Pereira</div><div class="li-s">IFP-2026-000433 · Centro Médico</div></div>
+        <span class="pill pill-unid">Na fila</span>
+      </div>
+      <div class="list-row">
+        <div class="av">FM</div>
+        <div class="li-main"><div class="li-t">Família Mendes</div><div class="li-s">IFP-2026-000440 · Capacitação</div></div>
+        <span class="pill pill-unid">Nova</span>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px"><a class="btn btn-ghost" href="social-triagem.html">Ver fila completa →</a></div>
+    </div>
+
+    <!-- ponte da corte -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V5a2 2 0 0 1 2-2h7l1 2h5v11h-6l-1-2H6"/></svg> Ponte da Corte</div>
+      <ul class="tl">
+        <li><div class="tx"><b>Dr. Marcos Lima</b> sugere avaliação social da Família Silva (João, 8)</div><div class="tt">há 2 horas · Centro Médico</div></li>
+        <li><div class="tx"><b>Prof. Carla</b> encaminhou Ana Silva para reforço educacional</div><div class="tt">ontem · Recreativo</div></li>
+      </ul>
+      <div style="display:flex;justify-content:flex-end"><a class="btn btn-ghost" href="social-ponte.html">Atender pontes →</a></div>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

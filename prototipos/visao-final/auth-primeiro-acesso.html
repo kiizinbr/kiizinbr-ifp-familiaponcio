@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Primeiro acesso · IFP Connect</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="limpo">
+<span class="ribbon">Prototipo conceitual</span>
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;z-index:1">
+  <div class="card" style="width:100%;max-width:420px;padding:34px 32px;text-align:center">
+
+    <span class="medalhao" style="width:64px;height:64px;margin-bottom:16px"><span class="leao" style="width:44px;height:44px"><span class="brandmark"></span></span></span>
+
+    <div class="titulo" style="font-size:15px;margin-bottom:6px">Bem-vindo(a) à Corte</div>
+    <div class="desc" style="margin-bottom:24px;line-height:1.5">Olá, <b style="color:var(--tinta)">Mariana Castro</b>. Sua conta foi criada pela equipe do Instituto. Defina uma senha para concluir seu primeiro acesso.</div>
+
+    <form onsubmit="return false" style="text-align:left">
+      <label class="campo"><span>Nova senha</span><input type="password" placeholder="Mínimo de 8 caracteres" /></label>
+      <label class="campo"><span>Confirmar nova senha</span><input type="password" placeholder="Repita a senha" /></label>
+
+      <div class="card" style="background:var(--papel);border:1px solid var(--linha);box-shadow:none;padding:12px 14px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9a8f84;margin-bottom:8px">Sua senha precisa de</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ok);margin-bottom:5px"><span style="color:var(--ok)">✓</span> Ao menos 8 caracteres</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ok);margin-bottom:5px"><span style="color:var(--ok)">✓</span> Uma letra maiúscula e uma minúscula</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#9a8f84"><span>○</span> Ao menos um número</div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px">Definir senha e entrar</button>
+    </form>
+
+  </div>
+</div>
+
+<script src="casa-shell.js"></script>
+</body>
+</html>

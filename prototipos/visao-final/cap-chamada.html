@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chamada · BB-2026-1 · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="turmas" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Chamada de hoje · BB-2026-1</h2>
+      <div class="desc">Barbeiro · Salão-Escola · quarta-feira, 17 de junho · 18h</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-outline">Ler crachá-QR</button>
+      <button class="btn btn-primary">Encerrar chamada</button>
+    </div>
+  </div>
+
+  <!-- resumo da chamada -->
+  <div class="card" style="display:flex;align-items:center;gap:18px;margin-bottom:16px;flex-wrap:wrap;background:var(--unidade-suave);border:0">
+    <div style="display:flex;gap:22px;flex-wrap:wrap;flex:1">
+      <div><div class="k-val" style="color:var(--unidade-escuro)">4</div><div class="desc">presentes</div></div>
+      <div><div class="k-val" style="color:var(--erro)">1</div><div class="desc">faltas</div></div>
+      <div><div class="k-val" style="color:#9a8f84">1</div><div class="desc">justificadas</div></div>
+    </div>
+    <div class="desc" style="max-width:280px">Toque no aluno para alternar presença. Use os botões P / F / J para registrar direto.</div>
+  </div>
+
+  <!-- lista de alunos com toque -->
+  <div class="grid g2">
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid #1a7a4a">
+      <div class="av">MP</div>
+      <div class="li-main"><div class="li-t">Marcos Pereira</div><div class="li-s">Família Pereira · freq 84%</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-primary" style="padding:8px 13px">P</button><button class="btn btn-outline" style="padding:8px 13px">F</button><button class="btn btn-ghost" style="padding:8px 13px">J</button></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--erro)">
+      <div class="av">DC</div>
+      <div class="li-main"><div class="li-t">Diego Costa</div><div class="li-s">Família Costa · freq 52% · risco</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-outline" style="padding:8px 13px">P</button><button class="btn btn-danger" style="padding:8px 13px">F</button><button class="btn btn-ghost" style="padding:8px 13px">J</button></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid #1a7a4a">
+      <div class="av">TA</div>
+      <div class="li-main"><div class="li-t">Tiago Alves</div><div class="li-s">Família Alves · freq 90%</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-primary" style="padding:8px 13px">P</button><button class="btn btn-outline" style="padding:8px 13px">F</button><button class="btn btn-ghost" style="padding:8px 13px">J</button></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid #9a8f84">
+      <div class="av">BM</div>
+      <div class="li-main"><div class="li-t">Bruno Mendes</div><div class="li-s">Família Mendes · freq 61% · risco</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-outline" style="padding:8px 13px">P</button><button class="btn btn-outline" style="padding:8px 13px">F</button><button class="btn btn-gold" style="padding:8px 13px">J</button></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid #1a7a4a">
+      <div class="av">WL</div>
+      <div class="li-main"><div class="li-t">Wesley Lima</div><div class="li-s">Família Lima · freq 77%</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-primary" style="padding:8px 13px">P</button><button class="btn btn-outline" style="padding:8px 13px">F</button><button class="btn btn-ghost" style="padding:8px 13px">J</button></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;border-left:4px solid #1a7a4a">
+      <div class="av">IS</div>
+      <div class="li-main"><div class="li-t">Igor Santos</div><div class="li-s">Família Santos · freq 88%</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-primary" style="padding:8px 13px">P</button><button class="btn btn-outline" style="padding:8px 13px">F</button><button class="btn btn-ghost" style="padding:8px 13px">J</button></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;background:var(--unidade-suave);border:0;color:var(--unidade-escuro);font-size:13px">
+    Faltas seguidas de <b>Diego Costa</b> e <b>Bruno Mendes</b> acendem o alerta de evasão — ao encerrar, a frequência sobe ao painel da Tânia e a Ponte da Corte pode ser acionada com o Serviço Social.
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

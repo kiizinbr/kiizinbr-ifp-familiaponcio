@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Entrega e leitura de comunicados críticos · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="config" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Entrega e leitura de comunicados</h2>
+      <div class="desc">Quem confirmou a leitura de um comunicado crítico · reenvio em lote pelos canais para quem ainda não leu · vinculado à <a href="admin-notificacao.html" style="color:var(--unidade-escuro)">camada de notificação</a></div>
+    </div>
+    <button class="btn btn-gold">↻ Reenviar a quem não leu</button>
+  </div>
+
+  <!-- comunicado em foco -->
+  <div class="card" style="border:1px solid var(--unidade);margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+      <div>
+        <span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">CRÍTICO</span>
+        <div style="font-weight:600;color:var(--tinta);font-size:17px;margin-top:8px">Recesso emergencial da creche — quinta 20/06</div>
+        <div class="desc" style="margin-top:4px">Publicado por Beatriz Nunes · Centro Educacional · 19/06 às 07:30 · 110 famílias</div>
+      </div>
+      <span class="juba-ring" style="width:84px;height:84px">
+        <svg width="84" height="84"><circle cx="42" cy="42" r="35" fill="none" stroke="var(--linha)" stroke-width="6"/><circle cx="42" cy="42" r="35" fill="none" stroke="#10C2BB" stroke-width="6" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="57" transform="rotate(-90 42 42)"/></svg>
+        <span class="num" style="color:#0E9A95">74%</span>
+      </span>
+    </div>
+
+    <div style="margin-top:18px">
+      <div class="bar-row">
+        <div class="bl"><span>Leram e confirmaram</span><b>81 famílias</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:74%;background:linear-gradient(90deg,#0E9A95,#10C2BB)"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Entregue, ainda não leu</span><b>21 famílias</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:19%;background:linear-gradient(90deg,#C24D0F,#FF772E)"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bl"><span>Falha na entrega</span><b>8 famílias</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:7%;background:linear-gradient(90deg,var(--erro),#d6584d)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ação em lote -->
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+    <div>
+      <div style="font-weight:600;color:var(--tinta)">29 famílias não confirmaram a leitura</div>
+      <div class="desc" style="margin:2px 0 0">Reenvio em lote dispara o comunicado novamente pelos canais ativos.</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-outline">WhatsApp</button>
+      <button class="btn btn-outline">E-mail</button>
+      <button class="btn btn-gold">↻ Reenviar pelos 2 canais</button>
+    </div>
+  </div>
+
+  <!-- lista detalhada -->
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <div class="periodo">
+      <button class="pl" style="background:var(--unidade);color:#fff">Não confirmaram (29)</button>
+      <button>Confirmaram (81)</button>
+      <button>Falha (8)</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:8px 10px 4px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Família</th><th>Criança</th><th>Entrega</th><th>Leitura</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:36px;height:36px;border-radius:50%;background:var(--unidade-suave);color:var(--unidade-escuro);display:flex;align-items:center;justify-content:center;font-weight:600">MS</div><div><div style="font-weight:600;color:var(--tinta)">Marta Aparecida Silva</div><div style="font-size:11px;color:#9a8f84">+55 43 99812-4477</div></div></div></td>
+          <td>Theo Silva · Maternal II</td>
+          <td><span class="pill pill-ok">Entregue WhatsApp</span></td>
+          <td><span class="pill pill-warn">Não leu</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Reenviar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:36px;height:36px;border-radius:50%;background:var(--unidade-suave);color:var(--unidade-escuro);display:flex;align-items:center;justify-content:center;font-weight:600">RC</div><div><div style="font-weight:600;color:var(--tinta)">Rosângela Camargo</div><div style="font-size:11px;color:#9a8f84">+55 43 99877-3321</div></div></div></td>
+          <td>Lara Camargo · Berçário</td>
+          <td><span class="pill pill-ok">Entregue WhatsApp</span></td>
+          <td><span class="pill pill-warn">Não leu</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Reenviar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:36px;height:36px;border-radius:50%;background:var(--unidade-suave);color:var(--unidade-escuro);display:flex;align-items:center;justify-content:center;font-weight:600">LD</div><div><div style="font-weight:600;color:var(--tinta)">Luana Ribeiro Dias</div><div style="font-size:11px;color:#9a8f84">+55 43 99201-7733</div></div></div></td>
+          <td>3 crianças · Maternal / Pré</td>
+          <td><span class="pill pill-ok">Entregue E-mail</span></td>
+          <td><span class="pill pill-warn">Não leu</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Reenviar</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:36px;height:36px;border-radius:50%;background:#f0ece6;color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600">EL</div><div><div style="font-weight:600;color:var(--tinta)">Edna Ferreira Lopes</div><div style="font-size:11px;color:#9a8f84">número inválido</div></div></div></td>
+          <td>Miguel Lopes · Pré I</td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">Falha</span></td>
+          <td><span style="color:#9a8f84">—</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Corrigir nº</button></td>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:36px;height:36px;border-radius:50%;background:var(--unidade-suave);color:var(--unidade-escuro);display:flex;align-items:center;justify-content:center;font-weight:600">JC</div><div><div style="font-weight:600;color:var(--tinta)">João Severino Costa</div><div style="font-size:11px;color:#9a8f84">+55 43 99654-1208</div></div></div></td>
+          <td>Helena Costa · Berçário</td>
+          <td><span class="pill pill-ok">Entregue WhatsApp</span></td>
+          <td><span class="pill pill-warn">Não leu</span></td>
+          <td><button class="btn btn-ghost" style="padding:6px 10px">Reenviar</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px">
+    <div class="desc">Mostrando 5 de 29 famílias sem confirmação</div>
+    <div class="periodo"><button>‹</button><span class="pl">Página 1 de 6</span><button>›</button></div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seja voluntário · Instituto Família Poncio</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="publico" data-tela="voluntario">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="site-main">
+
+  <section class="site-hero">
+    <div class="eyebrow">Doe o seu tempo</div>
+    <h1>Seja voluntário<br>no Instituto.</h1>
+    <p>Há muitas formas de ajudar com o que você já sabe fazer. Preencha o formulário de interesse e nossa equipe entra em contato para combinar como você pode participar.</p>
+  </section>
+
+  <!-- áreas + formulário -->
+  <section class="site-sec">
+    <div class="grid g-50">
+      <div>
+        <div class="card">
+          <div class="sec-tit">Formulário de interesse</div>
+          <p class="desc">Leva menos de 2 minutos. Sem compromisso — é só o primeiro passo.</p>
+          <div class="grid g2" style="margin-top:14px">
+            <label class="campo"><span>Nome completo</span><input placeholder="Seu nome" /></label>
+            <label class="campo"><span>Telefone / WhatsApp</span><input placeholder="(11) 90000-0000" /></label>
+          </div>
+          <label class="campo"><span>E-mail</span><input type="email" placeholder="voce@email.com" /></label>
+          <div class="grid g2">
+            <label class="campo"><span>Área de interesse</span>
+              <select>
+                <option>Saúde — Centro Médico</option>
+                <option>Educação — cursos e oficinas</option>
+                <option>Creche — apoio pedagógico</option>
+                <option>Esporte — Jiu-Jitsu</option>
+                <option>Serviço Social</option>
+                <option>Administração e captação</option>
+                <option>Banco de modelos (sessões práticas)</option>
+              </select>
+            </label>
+            <label class="campo"><span>Disponibilidade</span>
+              <select>
+                <option>Manhãs durante a semana</option>
+                <option>Tardes durante a semana</option>
+                <option>Noites durante a semana</option>
+                <option>Fins de semana</option>
+                <option>Pontual / em eventos</option>
+              </select>
+            </label>
+          </div>
+          <label class="campo"><span>Conte um pouco sobre você</span><textarea rows="4" placeholder="Profissão, experiências e como gostaria de ajudar"></textarea></label>
+          <label class="campo" style="display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:auto" /> <span style="margin:0;font-weight:400">Concordo em ser contatado pela equipe do Instituto.</span></label>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px">Enviar interesse</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="sec-tit">Onde precisamos de você</div>
+          <div class="list-row" style="margin-top:6px">
+            <div class="av">SA</div>
+            <div class="li-main"><div class="li-t">Profissionais de saúde</div><div class="li-s">Médicos, dentistas, enfermeiros e psicólogos</div></div>
+            <span class="pill pill-warn">Urgente</span>
+          </div>
+          <div class="list-row">
+            <div class="av">ED</div>
+            <div class="li-main"><div class="li-t">Educadores e instrutores</div><div class="li-s">Para cursos e oficinas profissionalizantes</div></div>
+            <span class="pill pill-unid">Aberto</span>
+          </div>
+          <div class="list-row">
+            <div class="av">CR</div>
+            <div class="li-main"><div class="li-t">Apoio na creche</div><div class="li-s">Leitura, brincadeiras e cuidado</div></div>
+            <span class="pill pill-unid">Aberto</span>
+          </div>
+          <div class="list-row">
+            <div class="av">AD</div>
+            <div class="li-main"><div class="li-t">Administração e captação</div><div class="li-s">Finanças, marketing, parcerias</div></div>
+            <span class="pill pill-unid">Aberto</span>
+          </div>
+        </div>
+
+        <!-- destaque banco de modelos -->
+        <div class="card" style="background:var(--unidade-suave);border:0;margin-top:18px">
+          <span class="pill pill-unid">Destaque</span>
+          <div class="sec-tit" style="margin-top:10px">Banco de modelos das sessões práticas</div>
+          <p class="desc" style="font-size:14px;line-height:1.6">As turmas de cabeleireiro, manicure e estética precisam de pessoas dispostas a servir de modelo nas aulas práticas — cabelo, unhas e maquiagem, gratuitamente. É uma forma leve e divertida de ajudar quem está aprendendo um novo ofício.</p>
+          <ul class="tl" style="margin-top:8px">
+            <li><div class="tx">Sessões agendadas, sem custo para você</div><div class="tt">Você sai pronta(o) da aula</div></li>
+            <li><div class="tx">Conduzidas por instrutores experientes</div><div class="tt">Aluno acompanhado o tempo todo</div></li>
+            <li><div class="tx">Cadastro no banco de modelos</div><div class="tt">Chamamos quando há turma prática</div></li>
+          </ul>
+          <button class="btn btn-gold" style="margin-top:6px">Entrar no banco de modelos</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

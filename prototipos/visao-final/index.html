@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IFP Connect · Visão Completa do Sistema</title>
+<link rel="stylesheet" href="casa.css" />
+<style>
+  body{background:var(--papel);color:var(--corpo);min-height:100vh}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px 80px}
+  .hero{text-align:center;padding:64px 20px 30px;position:relative;z-index:2}
+  .hero .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dourado);font-weight:700}
+  .hero h1{font-size:clamp(30px,5vw,52px);line-height:1.05;color:var(--tinta);font-weight:700;margin:14px 0 0}
+  .hero p{font-size:17px;color:var(--corpo);max-width:680px;margin:16px auto 0}
+  .legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+  .lg{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--tinta);background:#fff;border:1px solid var(--linha);border-radius:999px;padding:6px 13px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .flow{display:flex;align-items:stretch;gap:8px;justify-content:center;flex-wrap:wrap;margin:34px auto 8px;max-width:1000px}
+  .flow a{flex:1 1 130px;min-width:120px;text-decoration:none;background:#fff;border:1px solid var(--linha);border-radius:16px;padding:14px 12px;text-align:center;transition:all .2s;position:relative}
+  .flow a:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--dourado)}
+  .flow .fi{font-size:24px}
+  .flow .ft{font-size:12px;font-weight:700;color:var(--tinta);margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+  .flow .fs{font-size:11px;color:#9a8f84;margin-top:2px}
+  .flowcap{text-align:center;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9a8f84;font-weight:600;margin-top:30px}
+  .sec{margin-top:40px}
+  .sec h2{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta);font-weight:700;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .sec .scount{font-size:11px;color:#9a8f84;font-weight:600;letter-spacing:.04em;text-transform:none}
+  .sec .sline{height:1px;background:var(--linha);margin:14px 0 16px}
+  .telas{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:12px}
+  .tela{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--linha);border-radius:13px;padding:12px 14px;text-decoration:none;transition:all .18s}
+  .tela:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);border-color:var(--unidade)}
+  .tela .tn{flex:1;font-size:13.5px;font-weight:600;color:var(--tinta);line-height:1.25}
+  .tela .badge{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px}
+  .b-nova{background:var(--ambar-bg);color:var(--ambar)}
+  .b-atlas{background:rgba(201,150,47,.14);color:#8a6516}
+  .ftr{text-align:center;margin-top:60px;font-size:12.5px;color:#9a8f84}
+  .ftr .leao{display:inline-block;width:34px;height:34px;color:var(--dourado);margin-bottom:8px}
+</style>
+</head>
+<body data-tipo="limpo">
+<span class="watermark leao"></span>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Protótipo de visão · navegável</div>
+    <h1>IFP Connect — o sistema completo</h1>
+    <p>Como a plataforma do Instituto Família Poncio fica no final: do site público à Sala de Comando da Presidência. Telas <b>já desenhadas</b> e <b>features propostas</b> do roadmap, todas clicáveis.</p>
+    <div class="legend">
+      <span class="lg"><span class="dot" style="background:#8a6516"></span> Desenhada (Atlas)</span>
+      <span class="lg"><span class="dot" style="background:var(--ambar)"></span> ✨ Proposta (nova do roadmap)</span>
+      <span class="lg">92 telas · 25 novas</span>
+    </div>
+  </header>
+
+  <div class="flowcap">A jornada ponta a ponta</div>
+  <nav class="flow">
+    <a href="publico-landing.html"><div class="fi">🌐</div><div class="ft">Site público</div><div class="fs">Vitrine + Doe</div></a>
+    <a href="auth-switcher.html"><div class="fi">🔑</div><div class="ft">Acesse</div><div class="fs">Escolha a unidade</div></a>
+    <a href="medico-painel.html"><div class="fi">🏥</div><div class="ft">Unidades</div><div class="fs">5 consoles internos</div></a>
+    <a href="social-inicio.html"><div class="fi">📋</div><div class="ft">Serviço Social</div><div class="fs">Ficha Cidadã</div></a>
+    <a href="familia-diario.html"><div class="fi">👪</div><div class="ft">Família</div><div class="fs">Portal mobile</div></a>
+    <a href="presidencia-impacto.html"><div class="fi">👑</div><div class="ft">Presidência</div><div class="fs">Sala de Comando</div></a>
+    <a href="admin-usuarios-v2.html"><div class="fi">⚙️</div><div class="ft">Admin</div><div class="fs">Plataforma</div></a>
+  </nav>
+
+  <div id="secoes"></div>
+
+  <div class="ftr">
+    <span class="leao brandmark"></span>
+    <div>Instituto Família Poncio · IFP Connect — protótipo de visão (dados fictícios)</div>
+  </div>
+</div>
+
+<script src="casa-shell.js"></script>
+<script>
+const TELAS=[{f:'admin-auditoria.html',t:'Log de acessos (LGPD)',n:false,s:9},{f:'admin-auto-provisionamento.html',t:'Auto-provisionamento de acesso família',n:true,s:9},{f:'admin-config.html',t:'Configurações da instituição',n:false,s:9},{f:'admin-entrega-comunicados.html',t:'Entrega e leitura de comunicados críticos',n:true,s:9},{f:'admin-notificacao.html',t:'Camada de notificação',n:true,s:9},{f:'admin-unidades.html',t:'Unidades e salões',n:false,s:9},{f:'admin-usuarios.html',t:'Usuários e perfis',n:false,s:9},{f:'admin-usuarios-v2.html',t:'Gestão de usuários',n:true,s:9},{f:'auth-hub.html',t:'Suas áreas',n:false,s:1},{f:'auth-login.html',t:'Entrar',n:false,s:1},{f:'auth-primeiro-acesso.html',t:'Primeiro acesso',n:false,s:1},{f:'auth-recuperar-senha.html',t:'Recuperar senha',n:false,s:1},{f:'auth-switcher.html',t:'Selecionar unidade',n:false,s:1},{f:'cap-certificados.html',t:'Certificados',n:false,s:3},{f:'cap-chamada.html',t:'Chamada',n:false,s:3},{f:'cap-curso.html',t:'Barbeiro',n:false,s:3},{f:'cap-cursos.html',t:'Catálogo de Cursos',n:false,s:3},{f:'cap-indicadores.html',t:'Indicadores &amp; Impacto',n:false,s:3},{f:'cap-matriculas.html',t:'Matrículas',n:false,s:3},{f:'cap-painel.html',t:'Painel',n:false,s:3},{f:'cap-sessoes.html',t:'Sessões Práticas',n:false,s:3},{f:'cap-turma.html',t:'BB-2026-1',n:false,s:3},{f:'cap-turmas.html',t:'Turmas',n:false,s:3},{f:'comum-403.html',t:'Acesso negado',n:false,s:1},{f:'comum-busca.html',t:'Busca',n:false,s:10},{f:'comum-notificacoes.html',t:'Notificações',n:false,s:10},{f:'comum-perfil.html',t:'Minha conta',n:false,s:10},{f:'edu-comunicados.html',t:'Comunicados',n:false,s:4},{f:'edu-crianca.html',t:'Perfil da criança',n:false,s:4},{f:'edu-diario-lote.html',t:'Diário em lote',n:true,s:4},{f:'edu-fotos-diario.html',t:'Fotos no diário',n:true,s:4},{f:'edu-indicadores.html',t:'Indicadores',n:false,s:4},{f:'edu-painel.html',t:'Painel do dia',n:false,s:4},{f:'edu-resumo-ia.html',t:'Resumo do diário por IA',n:true,s:4},{f:'edu-turma.html',t:'Turma do dia',n:false,s:4},{f:'esp-frequencia.html',t:'Chamada e frequência',n:false,s:5},{f:'esp-indicadores.html',t:'Indicadores esportivos',n:false,s:5},{f:'esp-painel.html',t:'Painel',n:false,s:5},{f:'esp-turmas.html',t:'Turmas e atividades',n:false,s:5},{f:'familia-agenda.html',t:'Agenda da família',n:false,s:7},{f:'familia-audio.html',t:'Ouvir o dia',n:true,s:7},{f:'familia-certificados.html',t:'Certificados',n:false,s:7},{f:'familia-comunicados.html',t:'Comunicados',n:false,s:7},{f:'familia-criancas.html',t:'Minhas crianças',n:false,s:7},{f:'familia-diario.html',t:'Diário do dia',n:false,s:7},{f:'familia-ficha.html',t:'Ficha da criança',n:false,s:7},{f:'familia-linha-tempo.html',t:'Linha do tempo',n:true,s:7},{f:'familia-presenca.html',t:'A Ana vem amanhã?',n:true,s:7},{f:'familia-recebido.html',t:'O que sua família recebeu',n:true,s:7},{f:'medico-agenda.html',t:'Agenda do dia',n:false,s:2},{f:'medico-atendimento.html',t:'Atendimento',n:false,s:2},{f:'medico-atestado.html',t:'Atestado e Receita',n:true,s:2},{f:'medico-beneficiarios.html',t:'Beneficiários',n:false,s:2},{f:'medico-equipe.html',t:'Equipe',n:false,s:2},{f:'medico-fila.html',t:'Fila',n:false,s:2},{f:'medico-fila-chegada.html',t:'Fila de chegada',n:true,s:2},{f:'medico-indicadores.html',t:'Indicadores',n:false,s:2},{f:'medico-odonto.html',t:'Odontograma',n:false,s:2},{f:'medico-painel.html',t:'Painel',n:false,s:2},{f:'medico-prescricao.html',t:'Prescrição',n:true,s:2},{f:'medico-resumo-ia.html',t:'Resumo clínico por IA',n:true,s:2},{f:'medico-triagem.html',t:'Triagem',n:false,s:2},{f:'medico-triagem-enfermagem.html',t:'Triagem de enfermagem',n:true,s:2},{f:'pres-crm-doadores.html',t:'CRM de Doadores',n:true,s:8},{f:'pres-custo-beneficiario.html',t:'Custo por Beneficiário',n:true,s:8},{f:'pres-historias-ia.html',t:'Histórias de Impacto',n:true,s:8},{f:'presidencia-familias.html',t:'Famílias',n:false,s:8},{f:'presidencia-impacto.html',t:'Impacto',n:false,s:8},{f:'presidencia-relatorios.html',t:'Relatórios',n:false,s:8},{f:'presidencia-unidades.html',t:'Unidades',n:false,s:8},{f:'pres-jornada-familia.html',t:'Jornada da Família',n:true,s:8},{f:'pres-mapa-territorial.html',t:'Mapa Territorial',n:true,s:8},{f:'pres-prestacao-contas.html',t:'Prestação de Contas',n:true,s:8},{f:'pres-saude-populacional.html',t:'Saúde Populacional',n:true,s:8},{f:'publico-como-ser-atendido.html',t:'Como ser atendido',n:false,s:1},{f:'publico-contato.html',t:'Contato',n:false,s:1},{f:'publico-doe.html',t:'Doe',n:false,s:1},{f:'publico-landing.html',t:'Instituto Família Poncio',n:false,s:1},{f:'publico-transparencia.html',t:'Transparência',n:false,s:1},{f:'publico-unidades.html',t:'As 4 Unidades',n:false,s:1},{f:'publico-verificar.html',t:'Verificar certificado',n:false,s:1},{f:'publico-voluntario.html',t:'Seja voluntário',n:false,s:1},{f:'social-agenda.html',t:'Agenda Geral',n:false,s:6},{f:'social-elegibilidade.html',t:'Elegibilidades',n:false,s:6},{f:'social-encaminhamentos.html',t:'Encaminhamentos entre unidades',n:true,s:6},{f:'social-ficha-detalhe.html',t:'Família Silva',n:false,s:6},{f:'social-ficha-nova.html',t:'Nova Ficha Cidadã',n:false,s:6},{f:'social-fichas.html',t:'Fichas Cidadãs',n:false,s:6},{f:'social-inicio.html',t:'Início',n:false,s:6},{f:'social-ponte.html',t:'Ponte da Corte',n:false,s:6},{f:'social-triagem.html',t:'Fila de Triagem',n:false,s:6},{f:'social-triagem-ia.html',t:'Triagem com IA',n:true,s:6}];
+const NOMES={1:'Site Público & Acesso',2:'Centro Médico',3:'Capacitação',4:'Educacional · Creche',5:'Esportivo',6:'Serviço Social · Ficha Cidadã',7:'Portal Família',8:'Presidência · Sala de Comando',9:'Admin · Plataforma',10:'Comum'};
+const ICN={1:'🌐',2:'🏥',3:'🎓',4:'🧸',5:'🥋',6:'📋',7:'👪',8:'👑',9:'⚙️',10:'🔎'};
+const root=document.getElementById('secoes');
+for(let s=1;s<=10;s++){
+  const tl=TELAS.filter(t=>t.s===s);if(!tl.length)continue;
+  tl.sort((a,b)=>(a.n===b.n)?0:(a.n?1:-1));
+  const novas=tl.filter(t=>t.n).length;
+  const sec=document.createElement('section');sec.className='sec';
+  sec.innerHTML='<h2>'+ICN[s]+' '+NOMES[s]+' <span class="scount">'+tl.length+' telas'+(novas?' · '+novas+' novas':'')+'</span></h2><div class="sline"></div>'+
+    '<div class="telas">'+tl.map(t=>'<a class="tela" href="'+t.f+'"><span class="tn">'+t.t+'</span>'+(t.n?'<span class="badge b-nova">✨ Nova</span>':'<span class="badge b-atlas">Atlas</span>')+'</a>').join('')+'</div>';
+  root.appendChild(sec);
+}
+</script>
+</body>
+</html>

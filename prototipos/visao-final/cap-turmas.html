@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Turmas · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="turmas" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Turmas</h2>
+      <div class="desc">Todas as turmas ativas · 2026</div>
+    </div>
+    <button class="btn btn-gold">＋ Abrir nova turma</button>
+  </div>
+
+  <!-- filtros -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="padding:9px 14px">Todas</button>
+    <button class="btn btn-outline" style="padding:9px 14px">Saudáveis</button>
+    <button class="btn btn-outline" style="padding:9px 14px">Em atenção</button>
+    <label class="campo" style="margin:0;flex:1;min-width:200px;max-width:320px"><input placeholder="Buscar por turma, curso ou instrutor" /></label>
+  </div>
+
+  <div class="card" style="padding:6px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Turma</th><th>Curso</th><th>Horário</th><th>Instrutor</th><th>Vagas</th><th>Frequência</th><th>Saúde</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b style="color:var(--tinta)">CC-2026-1</b></td><td>Corte e Costura</td><td>Ter/Qui 09h–11h</td><td>Profa. Marlene Dias</td><td>18/20</td><td>88%</td><td><span class="pill pill-ok">SAUDÁVEL</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">INF-2026-1</b></td><td>Informática Básica</td><td>Seg/Qua 14h</td><td>Prof. Edson Prado</td><td>16/20</td><td>90%</td><td><span class="pill pill-ok">SAUDÁVEL</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">BB-2026-1</b></td><td>Barbeiro</td><td>Seg/Qua/Sex 18h</td><td>Prof. Rafael Dias</td><td>14/16</td><td>71%</td><td><span class="pill pill-warn">ATENÇÃO</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">CB-2026-1</b></td><td>Cabeleireira</td><td>Ter/Qui 14h</td><td>Profa. Sônia Camargo</td><td>15/16</td><td>82%</td><td><span class="pill pill-ok">SAUDÁVEL</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">MN-2026-1</b></td><td>Manicure &amp; Design</td><td>Qua 15h</td><td>Profa. Sônia Camargo</td><td>13/16</td><td>79%</td><td><span class="pill pill-warn">ATENÇÃO</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">PD-2026-1</b></td><td>Padaria &amp; Confeitaria</td><td>Sex 14h</td><td>Prof. Antônio Vidal</td><td>11/13</td><td>85%</td><td><span class="pill pill-ok">SAUDÁVEL</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">MS-2026-1</b></td><td>Massagem / Massoterapia</td><td>Qui 18h</td><td>Profa. Lúcia Tavares</td><td>10/14</td><td>74%</td><td><span class="pill pill-warn">ATENÇÃO</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+        <tr><td><b style="color:var(--tinta)">MQ-2026-1</b></td><td>Maquiagem</td><td>Sáb 09h</td><td>Profa. Renata Pinho</td><td>14/20</td><td>70%</td><td><span class="pill pill-warn">ATENÇÃO</span></td><td><a class="btn btn-ghost" href="cap-turma.html">Abrir</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="desc" style="margin-top:12px">8 turmas ativas · 111 vagas ocupadas de 139 · 3 turmas com saúde em atenção (frequência ou evasão fora da meta).</div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

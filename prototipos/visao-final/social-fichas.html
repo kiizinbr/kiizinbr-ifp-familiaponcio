@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fichas Cidadãs · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="fichas" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Fichas Cidadãs</h2>
+      <div class="desc">Registro único por família · o núcleo de tudo na Corte</div>
+    </div>
+    <a class="btn btn-primary" href="social-ficha-nova.html">＋ Nova Ficha</a>
+  </div>
+
+  <!-- busca + filtros -->
+  <div class="card" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px">
+    <label class="campo" style="flex:1;min-width:240px;margin:0"><span>Buscar</span><input placeholder="Nome da família, protocolo ou titular…" /></label>
+    <label class="campo" style="margin:0;min-width:170px"><span>Status</span><select><option>Todos os status</option><option>Ativa</option><option>Em triagem</option><option>Aguardando elegibilidade</option></select></label>
+    <button class="btn btn-outline">Buscar</button>
+  </div>
+
+  <!-- tabela de fichas -->
+  <div class="card" style="padding:8px 14px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Protocolo</th><th>Família</th><th>Titular</th><th>Membros</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr style="cursor:pointer" onclick="location.href='social-ficha-detalhe.html'">
+          <td><b style="color:var(--tinta)">IFP-2026-000412</b></td>
+          <td>Família Silva</td>
+          <td>Maria Silva, 34</td>
+          <td>3</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Ativa</span></td>
+          <td style="text-align:right;color:var(--unidade)">›</td>
+        </tr>
+        <tr style="cursor:pointer" onclick="location.href='social-ficha-detalhe.html'">
+          <td><b style="color:var(--tinta)">IFP-2026-000388</b></td>
+          <td>Família Santos</td>
+          <td>Cleia Santos, 41</td>
+          <td>4</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Ativa</span></td>
+          <td style="text-align:right;color:var(--unidade)">›</td>
+        </tr>
+        <tr style="cursor:pointer" onclick="location.href='social-ficha-detalhe.html'">
+          <td><b style="color:var(--tinta)">IFP-2026-000401</b></td>
+          <td>Família Oliveira</td>
+          <td>Rosa Oliveira, 29</td>
+          <td>3</td>
+          <td><span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em triagem</span></td>
+          <td style="text-align:right;color:var(--unidade)">›</td>
+        </tr>
+        <tr style="cursor:pointer" onclick="location.href='social-ficha-detalhe.html'">
+          <td><b style="color:var(--tinta)">IFP-2026-000420</b></td>
+          <td>Família Costa</td>
+          <td>Paulo Costa, 37</td>
+          <td>5</td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Ativa</span></td>
+          <td style="text-align:right;color:var(--unidade)">›</td>
+        </tr>
+        <tr style="cursor:pointer" onclick="location.href='social-ficha-detalhe.html'">
+          <td><b style="color:var(--tinta)">IFP-2026-000433</b></td>
+          <td>Família Pereira</td>
+          <td>Lúcia Pereira, 45</td>
+          <td>2</td>
+          <td><span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aguardando elegibilidade</span></td>
+          <td style="text-align:right;color:var(--unidade)">›</td>
+        </tr>
+        <tr style="cursor:pointer" onclick="location.href='social-ficha-detalhe.html'">
+          <td><b style="color:var(--tinta)">IFP-2026-000440</b></td>
+          <td>Família Mendes</td>
+          <td>Sônia Mendes, 31</td>
+          <td>4</td>
+          <td><span class="coroa-seal cs-bloq"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Ficha incompleta</span></td>
+          <td style="text-align:right;color:var(--unidade)">›</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:#9a8f84">
+    <span>Mostrando 6 de 1.248 fichas</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" style="padding:8px 12px">‹ Anterior</button>
+      <button class="btn btn-outline" style="padding:8px 12px">Próxima ›</button>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

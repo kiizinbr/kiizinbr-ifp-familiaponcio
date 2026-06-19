@@ -1,0 +1,49 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor">
+  <!-- ANEL EXTERNO = JubaRing (contínuo, vira anel de progresso) -->
+  <circle cx="50" cy="50" r="46" stroke-width="3"/>
+  <!-- RAIOS DA JUBA: cunhas curtas saindo do anel interno, mais densas no topo -->
+  <g fill="currentColor" stroke="none">
+    <path d="M50 4 L54 16 L46 16 Z"/>
+    <path d="M28 9 L36 19 L29 23 Z"/>
+    <path d="M72 9 L64 19 L71 23 Z"/>
+    <path d="M11 24 L22 28 L19 35 Z"/>
+    <path d="M89 24 L78 28 L81 35 Z"/>
+    <path d="M5 47 L18 47 L17 54 Z"/>
+    <path d="M95 47 L82 47 L83 54 Z"/>
+    <path d="M11 71 L21 65 L24 71 Z"/>
+    <path d="M89 71 L79 65 L76 71 Z"/>
+  </g>
+  <!-- ANEL INTERMEDIARIO da juba -->
+  <circle cx="50" cy="50" r="34" stroke-width="5"/>
+  <!-- ORELHAS -->
+  <g fill="currentColor" stroke="none">
+    <path d="M27 30 C24 22 31 19 36 23 C33 27 31 31 31 35 C29 33 28 32 27 30 Z"/>
+    <path d="M73 30 C76 22 69 19 64 23 C67 27 69 31 69 35 C71 33 72 32 73 30 Z"/>
+  </g>
+  <!-- FACE: contorno arredondado do rosto do leao -->
+  <path d="M50 24
+           C63 24 72 33 72 46
+           C72 56 66 64 60 69
+           C56 72 53 74 50 74
+           C47 74 44 72 40 69
+           C34 64 28 56 28 46
+           C28 33 37 24 50 24 Z"
+        fill="currentColor" stroke="none"/>
+  <!-- TRACOS INTERNOS DA FACE em "negativo" (cor do papel via fill=none + stroke) -->
+  <!-- Sobrancelha / olhos / focinho desenhados por cima recortando -->
+  <g fill="#FAF7F2" stroke="none">
+    <!-- olhos -->
+    <path d="M40 44 C40 40 44 39 45 43 C46 47 42 49 40 47 Z"/>
+    <path d="M60 44 C60 40 56 39 55 43 C54 47 58 49 60 47 Z"/>
+    <!-- focinho / nariz + M da boca (linhas negativas) -->
+    <path d="M50 52 C53 52 55 54 55 56 C55 58 52 60 50 60 C48 60 45 58 45 56 C45 54 47 52 50 52 Z"/>
+    <path d="M49 60 L49 67 C49 68 47 69 45 67 L45 66 C47 66 47 65 47 64 L47 60 Z"/>
+    <path d="M51 60 L51 67 C51 68 53 69 55 67 L55 66 C53 66 53 65 53 64 L53 60 Z"/>
+  </g>
+  <!-- nariz solido por cima -->
+  <path d="M50 53 C52 53 53 55 53 56 C53 57 51 58 50 58 C49 58 47 57 47 56 C47 55 48 53 50 53 Z" fill="currentColor" stroke="none"/>
+  <!-- COROA HERALDICA discreta no topo (familia Poncio = leao coroado) -->
+  <g fill="currentColor" stroke="none">
+    <path d="M40 18 L43 13 L50 17 L57 13 L60 18 L60 21 L40 21 Z"/>
+  </g>
+</svg>

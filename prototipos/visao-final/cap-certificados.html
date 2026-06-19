@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Certificados · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="certificados" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Certificados</h2>
+      <div class="desc">Com QR de verificação · identidade do Instituto</div>
+    </div>
+    <button class="btn btn-gold">Pré-visualizar certificado</button>
+  </div>
+
+  <!-- destaque -->
+  <div class="card" style="margin-bottom:18px;background:var(--unidade-suave);border:0;color:var(--unidade-escuro)">
+    <b>137 certificados emitidos neste semestre.</b> Destaque: Turma de Costura Industrial — 28 alunas formadas.
+  </div>
+
+  <div class="grid g-60-40" style="margin-bottom:18px">
+    <!-- lotes a emitir -->
+    <div class="card" style="padding:6px">
+      <div class="sec-tit" style="padding:14px 14px 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg> Lotes prontos para emissão</div>
+      <table class="tabela">
+        <thead><tr><th>Turma</th><th>Concluintes</th><th>Carga</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><b>Costura Industrial — 2025/2</b></td><td>28</td><td>80h</td><td><button class="btn btn-gold">Emitir lote</button></td></tr>
+          <tr><td><b>Informática Básica — 2025/2</b></td><td>22</td><td>60h</td><td><button class="btn btn-gold">Emitir lote</button></td></tr>
+          <tr><td><b>Padaria — 2025/2</b></td><td>14</td><td>100h</td><td><button class="btn btn-gold">Emitir lote</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- preview do certificado -->
+    <div class="card" style="text-align:center;background:linear-gradient(160deg,#fff,var(--papel));border:1px solid var(--dourado)">
+      <span class="medalhao" style="width:64px;height:64px;margin:0 auto 10px;display:flex"><span class="leao" style="width:44px;height:44px"><span class="brandmark"></span></span></span>
+      <div style="font-weight:700;font-size:18px;color:var(--tinta)">Certificado</div>
+      <div style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--dourado);font-weight:600;margin-bottom:14px">Centro de Capacitação · IFP</div>
+      <p style="color:var(--corpo);font-size:13px;line-height:1.6;max-width:300px;margin:0 auto 16px">Certificamos que <b>Maria Silva</b> concluiu o curso de <b>Corte e Costura</b> (80h) no Instituto Família Pôncio.</p>
+      <div style="display:flex;gap:12px;justify-content:center;align-items:center">
+        <div style="width:60px;height:60px;background:#fff;border:1px solid var(--linha);border-radius:8px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:1px;padding:5px">
+          <span style="background:var(--tinta)"></span><span></span><span style="background:var(--tinta)"></span><span style="background:var(--tinta)"></span><span></span>
+          <span></span><span style="background:var(--tinta)"></span><span></span><span></span><span style="background:var(--tinta)"></span>
+          <span style="background:var(--tinta)"></span><span></span><span style="background:var(--tinta)"></span><span style="background:var(--tinta)"></span><span></span>
+          <span style="background:var(--tinta)"></span><span style="background:var(--tinta)"></span><span></span><span style="background:var(--tinta)"></span><span></span>
+          <span></span><span style="background:var(--tinta)"></span><span style="background:var(--tinta)"></span><span></span><span style="background:var(--tinta)"></span>
+        </div>
+        <div style="text-align:left"><div class="desc" style="font-size:11px">Verificação</div><div style="font-weight:600;color:var(--tinta);font-size:12px">IFP-CERT-2026-0731</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- histórico emitidos -->
+  <div class="sec-tit">Histórico de certificados emitidos</div>
+  <div class="card" style="padding:6px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Código</th><th>Aluno</th><th>Curso</th><th>Carga</th><th>Emissão</th><th>Verificação</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b style="color:var(--tinta)">IFP-CERT-2026-0731</b></td><td>Maria Silva</td><td>Corte e Costura</td><td>80h</td><td>10/06/2026</td><td><span class="pill pill-ok">QR ativo</span></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-CERT-2026-0698</b></td><td>Joana Alves</td><td>Cabeleireira</td><td>120h</td><td>02/06/2026</td><td><span class="pill pill-ok">QR ativo</span></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-CERT-2025-0644</b></td><td>Carla Ramos</td><td>Costura Industrial</td><td>80h</td><td>18/12/2025</td><td><span class="pill pill-ok">QR ativo</span></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-CERT-2025-0612</b></td><td>Edson Prado</td><td>Informática Básica</td><td>60h</td><td>15/12/2025</td><td><span class="pill pill-ok">QR ativo</span></td></tr>
+        <tr><td><b style="color:var(--tinta)">IFP-CERT-2025-0590</b></td><td>Lucas Tavares</td><td>Padaria &amp; Confeitaria</td><td>100h</td><td>10/12/2025</td><td><span class="pill">2ª via</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="desc" style="margin-top:12px">Cada certificado leva um QR único — qualquer empregador valida a autenticidade no portal público do Instituto. Certificados emitidos aparecem no PWA das famílias.</div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

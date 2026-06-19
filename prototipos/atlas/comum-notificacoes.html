@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Notificações · IFP Connect</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="" data-user="Joana Martins" data-cargo="Serviço Social" data-ini="JM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Central de notificações</h2>
+      <div class="desc">3 não lidas · tudo o que a Corte sinalizou para você</div>
+    </div>
+    <button class="btn btn-outline">Marcar todas como lidas</button>
+  </div>
+
+  <!-- filtros -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="padding:8px 14px">Todas</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Não lidas</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Comunicados</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Ponte da Corte</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Sistema</button>
+  </div>
+
+  <!-- COMUNICADO CRÍTICO -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg> Comunicado crítico</div>
+
+  <div class="list-row" style="border-left:4px solid var(--erro)">
+    <div class="av" style="background:var(--erro-bg);color:var(--erro)">!</div>
+    <div class="li-main"><div class="li-t">Suspensão de atendimento odontológico — quinta-feira</div><div class="li-s">Da Presidência · manutenção elétrica das 8h às 12h · reagendar pacientes</div></div>
+    <div style="text-align:right;flex:0 0 auto"><span class="pill pill-warn">Não lida</span><div class="desc" style="font-size:11px;margin-top:6px">há 12 min</div></div>
+  </div>
+
+  <!-- PONTE DA CORTE -->
+  <div class="sec-tit" style="margin-top:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18V9a10 10 0 0 1 20 0v9M2 14h20M8 14v4M16 14v4M12 14v4" stroke-linecap="round" stroke-linejoin="round"/></svg> Ponte da Corte</div>
+
+  <div class="list-row" style="border-left:4px solid var(--unidade)">
+    <div class="av">MD</div>
+    <div class="li-main"><div class="li-t">Dr. Marcos sinalizou: João Silva precisa de avaliação social</div><div class="li-s">Centro Médico → Serviço Social · vínculo com Capacitação sugerido · IFP-2026-000401</div></div>
+    <div style="text-align:right;flex:0 0 auto"><span class="pill pill-unid">Não lida</span><div class="desc" style="font-size:11px;margin-top:6px">há 1 h</div></div>
+  </div>
+  <div class="list-row" style="border-left:4px solid var(--unidade)">
+    <div class="av">RD</div>
+    <div class="li-main"><div class="li-t">Prof. Rafael concluiu turma de Barbeiro — 18 alunos</div><div class="li-s">Capacitação → Serviço Social · liberar próxima etapa de acompanhamento</div></div>
+    <div style="text-align:right;flex:0 0 auto"><span class="pill pill-unid">Não lida</span><div class="desc" style="font-size:11px;margin-top:6px">há 3 h</div></div>
+  </div>
+
+  <!-- SISTEMA -->
+  <div class="sec-tit" style="margin-top:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.81 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Sistema</div>
+
+  <div class="list-row">
+    <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.2 13.3L7 22l5-3 5 3-1.2-8.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="li-main"><div class="li-t">28 certificados de Costura Industrial foram emitidos</div><div class="li-s">Capacitação · disponíveis para assinatura digital da Presidência</div></div>
+    <div style="text-align:right;flex:0 0 auto"><span class="pill">Lida</span><div class="desc" style="font-size:11px;margin-top:6px">ontem</div></div>
+  </div>
+  <div class="list-row">
+    <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="li-main"><div class="li-t">Nova sessão iniciada · Windows · Chrome</div><div class="li-s">São Paulo, BR · se não foi você, altere sua senha</div></div>
+    <div style="text-align:right;flex:0 0 auto"><span class="pill">Lida</span><div class="desc" style="font-size:11px;margin-top:6px">ontem</div></div>
+  </div>
+  <div class="list-row">
+    <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="li-main"><div class="li-t">17 novas famílias registradas na Ficha Cidadã hoje</div><div class="li-s">Serviço Social · aguardando triagem</div></div>
+    <div style="text-align:right;flex:0 0 auto"><span class="pill">Lida</span><div class="desc" style="font-size:11px;margin-top:6px">há 2 dias</div></div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

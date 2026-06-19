@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestão de usuários · perfis e unidades · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="usuarios" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Gestão de usuários</h2>
+      <div class="desc">CRUD completo com atribuição de perfil (RBAC) e unidades · evolução do <a href="../atlas/admin-usuarios.html" style="color:var(--unidade-escuro)">cadastro atual</a> · 47 contas ativas</div>
+    </div>
+    <button class="btn btn-primary">＋ Novo usuário</button>
+  </div>
+
+  <!-- KPIs por perfil -->
+  <div class="grid g4" style="margin-bottom:22px">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Contas ativas</span><span class="k-tend">Em alta</span></div>
+      <div class="k-val">47</div>
+      <div class="k-delta k-up">+5 vs mês anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Profissionais</span></div>
+      <div class="k-val">22</div>
+      <div class="k-delta k-flat">nas 4 unidades</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Responsáveis familiares</span></div>
+      <div class="k-val">18</div>
+      <div class="k-delta k-up">+3 auto-provisionados</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Pendentes</span></div>
+      <div class="k-val">3</div>
+      <div class="k-delta k-flat">aguardando aprovação</div>
+    </div>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal: lista -->
+    <div>
+
+      <!-- filtros -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <label class="campo" style="margin:0;min-width:200px;flex:1"><span>Buscar</span><input placeholder="Nome, e-mail ou CPF…" /></label>
+        <label class="campo" style="margin:0;min-width:160px"><span>Perfil</span><select><option>Todos os perfis</option><option>SUPER_ADMIN</option><option>GESTOR_UNIDADE</option><option>PROFISSIONAL</option><option>RESPONSAVEL_FAMILIAR</option></select></label>
+        <label class="campo" style="margin:0;min-width:160px"><span>Unidade</span><select><option>Todas</option><option>Centro Médico</option><option>Capacitação</option><option>Centro Educacional</option><option>Centro Esportivo</option></select></label>
+      </div>
+
+      <div class="card" style="padding:8px 10px 4px">
+        <table class="tabela">
+          <thead>
+            <tr><th>Usuário</th><th>Perfil</th><th>Unidade(s)</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr style="background:var(--unidade-suave)">
+              <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:38px;height:38px;border-radius:50%;background:rgba(16,194,187,.16);color:#0E9A95;display:flex;align-items:center;justify-content:center;font-weight:600">RS</div><div><div style="font-weight:600;color:var(--tinta)">Raquel Souza</div><div style="font-size:11px;color:#9a8f84">raquel.souza@ifp.org.br</div></div></div></td>
+              <td><span class="pill pill-unid">GESTOR_UNIDADE</span></td>
+              <td><span class="pill" style="background:rgba(16,194,187,.14);color:#0E9A95;border-color:transparent">Centro Médico</span></td>
+              <td><span class="pill pill-ok">Ativo</span></td>
+              <td><button class="btn btn-ghost" style="padding:6px 10px">Editar →</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:38px;height:38px;border-radius:50%;background:rgba(16,194,187,.16);color:#0E9A95;display:flex;align-items:center;justify-content:center;font-weight:600">MA</div><div><div style="font-weight:600;color:var(--tinta)">Dr. Marcos Alves</div><div style="font-size:11px;color:#9a8f84">marcos.alves@ifp.org.br</div></div></div></td>
+              <td><span class="pill">PROFISSIONAL</span></td>
+              <td><span class="pill" style="background:rgba(16,194,187,.14);color:#0E9A95;border-color:transparent">Centro Médico</span></td>
+              <td><span class="pill pill-ok">Ativo</span></td>
+              <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:38px;height:38px;border-radius:50%;background:rgba(255,119,46,.16);color:#C24D0F;display:flex;align-items:center;justify-content:center;font-weight:600">TM</div><div><div style="font-weight:600;color:var(--tinta)">Tânia Moraes</div><div style="font-size:11px;color:#9a8f84">tania.moraes@ifp.org.br</div></div></div></td>
+              <td><span class="pill pill-unid">GESTOR_UNIDADE</span></td>
+              <td><span class="pill" style="background:rgba(255,119,46,.14);color:#C24D0F;border-color:transparent">Capacitação</span></td>
+              <td><span class="pill pill-ok">Ativo</span></td>
+              <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:38px;height:38px;border-radius:50%;background:rgba(0,117,113,.16);color:#005C59;display:flex;align-items:center;justify-content:center;font-weight:600">BN</div><div><div style="font-weight:600;color:var(--tinta)">Beatriz Nunes</div><div style="font-size:11px;color:#9a8f84">beatriz.nunes@ifp.org.br</div></div></div></td>
+              <td><span class="pill">PROFISSIONAL</span></td>
+              <td><span class="pill" style="background:rgba(0,117,113,.14);color:#005C59;border-color:transparent">Educacional</span> <span class="pill" style="background:rgba(154,61,11,.14);color:#9A3D0B;border-color:transparent">Esportivo</span></td>
+              <td><span class="pill pill-ok">Ativo</span></td>
+              <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:38px;height:38px;border-radius:50%;background:#f0ece6;color:#9a8f84;display:flex;align-items:center;justify-content:center;font-weight:600">PL</div><div><div style="font-weight:600;color:var(--tinta)">Paula Lima</div><div style="font-size:11px;color:#9a8f84">paula.lima@ifp.org.br</div></div></div></td>
+              <td><span class="pill" style="background:var(--dourado);color:#fff;border-color:transparent">RESPONSAVEL_FAMILIAR</span></td>
+              <td><span class="pill">App da Família</span></td>
+              <td><span class="pill pill-ok">Ativo</span></td>
+              <td><button class="btn btn-ghost" style="padding:6px 10px">Editar</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:11px"><div class="av" style="width:38px;height:38px;border-radius:50%;background:rgba(154,61,11,.16);color:#9A3D0B;display:flex;align-items:center;justify-content:center;font-weight:600">CF</div><div><div style="font-weight:600;color:var(--tinta)">Carlos Ferreira</div><div style="font-size:11px;color:#9a8f84">carlos.ferreira@ifp.org.br</div></div></div></td>
+              <td><span class="pill">PROFISSIONAL</span></td>
+              <td><span class="pill" style="background:rgba(154,61,11,.14);color:#9A3D0B;border-color:transparent">Centro Esportivo</span></td>
+              <td><span class="pill pill-warn">Pendente</span></td>
+              <td><button class="btn btn-ghost" style="padding:6px 10px">Aprovar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px">
+        <div class="desc">Mostrando 6 de 47 usuários</div>
+        <div class="periodo"><button>‹</button><span class="pl">Página 1 de 8</span><button>›</button></div>
+      </div>
+
+    </div>
+
+    <!-- coluna lateral: painel de edição -->
+    <div>
+      <div class="card" style="border:1px solid var(--unidade)">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>
+          Editar usuário · Raquel Souza
+        </div>
+        <label class="campo"><span>Nome completo</span><input value="Raquel Souza" /></label>
+        <div class="grid g2">
+          <label class="campo"><span>E-mail</span><input value="raquel.souza@ifp.org.br" /></label>
+          <label class="campo"><span>CPF</span><input value="045.221.338-10" /></label>
+        </div>
+
+        <label class="campo"><span>Perfil de acesso (RBAC)</span>
+          <select>
+            <option>SUPER_ADMIN — acesso global</option>
+            <option selected>GESTOR_UNIDADE — opera 1+ unidade</option>
+            <option>PROFISSIONAL — atendimento na unidade</option>
+            <option>RESPONSAVEL_FAMILIAR — app da família</option>
+          </select>
+        </label>
+
+        <div class="campo">
+          <span>Unidades de acesso</span>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <label class="list-row" style="box-shadow:none;cursor:pointer;padding:10px 14px"><input type="checkbox" checked style="width:auto" /><span style="width:10px;height:24px;border-radius:4px;background:#10C2BB;display:inline-block"></span><div class="li-main"><div class="li-t">Centro Médico</div></div></label>
+            <label class="list-row" style="box-shadow:none;cursor:pointer;padding:10px 14px"><input type="checkbox" style="width:auto" /><span style="width:10px;height:24px;border-radius:4px;background:#FF772E;display:inline-block"></span><div class="li-main"><div class="li-t">Capacitação</div></div></label>
+            <label class="list-row" style="box-shadow:none;cursor:pointer;padding:10px 14px"><input type="checkbox" style="width:auto" /><span style="width:10px;height:24px;border-radius:4px;background:#007571;display:inline-block"></span><div class="li-main"><div class="li-t">Centro Educacional</div></div></label>
+            <label class="list-row" style="box-shadow:none;cursor:pointer;padding:10px 14px"><input type="checkbox" style="width:auto" /><span style="width:10px;height:24px;border-radius:4px;background:#9A3D0B;display:inline-block"></span><div class="li-main"><div class="li-t">Centro Esportivo</div></div></label>
+          </div>
+        </div>
+
+        <div class="list-row" style="box-shadow:none;margin:6px 0 14px">
+          <div class="li-main"><div class="li-t">Conta ativa</div><div class="li-s">desligar suspende o login imediatamente</div></div>
+          <span class="pill pill-ok">Ativo</span>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Salvar usuário</button></div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">Permissões do perfil GESTOR_UNIDADE</div>
+        <ul class="tl">
+          <li><div class="tx">Agenda, fila e equipe da(s) unidade(s) atribuída(s)</div><div class="tt">leitura + escrita</div></li>
+          <li><div class="tx">Aprovar lançamentos de diário e comunicados</div><div class="tt">escrita</div></li>
+          <li><div class="tx">Dados de outras unidades</div><div class="tt">sem acesso</div></li>
+          <li><div class="tx">Gestão de usuários e integrações</div><div class="tt">sem acesso</div></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

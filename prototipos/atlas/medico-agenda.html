@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agenda do dia · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="agenda" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Agenda do dia</h2>
+      <div class="desc">terça-feira, 16 de junho</div>
+    </div>
+    <button class="btn btn-primary">＋ Novo agendamento</button>
+  </div>
+
+  <!-- navegação de data -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:22px;flex-wrap:wrap">
+    <button class="btn btn-outline" style="padding:9px 11px">‹</button>
+    <button class="btn btn-primary" style="padding:9px 14px">Hoje</button>
+    <button class="btn btn-outline" style="padding:9px 11px">›</button>
+    <div class="periodo" style="margin-left:4px"><span class="pl">16/06/2026</span></div>
+  </div>
+
+  <!-- lista de agendamentos -->
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">09:00</div><div style="font-size:10px;color:#9a8f84">09:30</div></div>
+    <div class="av">JS</div>
+    <div class="li-main"><div class="li-t">João da Silva <span style="font-weight:400;color:#9a8f84;font-size:12px">· 42 anos</span></div><div class="li-s">Consulta de rotina · IFP-2026-900001</div></div>
+    <span class="pill pill-unid">Confirmado</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">10:30</div><div style="font-size:10px;color:#9a8f84">11:00</div></div>
+    <div class="av">MO</div>
+    <div class="li-main"><div class="li-t">Maria Oliveira <span style="font-weight:400;color:#9a8f84;font-size:12px">· 35 anos</span></div><div class="li-s">Retorno · IFP-2026-900002</div></div>
+    <span class="pill" style="background:var(--unidade-suave);color:var(--unidade-escuro);border-color:transparent">Em atendimento</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:18px;font-weight:700;color:var(--unidade)">14:00</div><div style="font-size:10px;color:#9a8f84">14:30</div></div>
+    <div class="av">PS</div>
+    <div class="li-main"><div class="li-t">Pedro Santos <span style="font-weight:400;color:#9a8f84;font-size:12px">· 28 anos</span></div><div class="li-s">Primeira consulta · IFP-2026-900003</div></div>
+    <span class="pill pill-ok">Concluído</span>
+  </div>
+
+  <!-- form novo agendamento (estado aberto, ilustrativo) -->
+  <div class="card" style="margin-top:22px;border:1px solid var(--unidade);max-width:680px">
+    <div class="sec-tit">＋ Novo agendamento</div>
+    <div class="grid g2">
+      <label class="campo"><span>Paciente</span><input value="Silva — João da Silva" /></label>
+      <label class="campo"><span>Para quem</span><select><option>Titular — João da Silva</option><option>Lucas (filho)</option></select></label>
+      <label class="campo"><span>Data e hora</span><input type="datetime-local" value="2026-06-16T15:00" /></label>
+      <label class="campo"><span>Duração</span><select><option>15 min</option><option selected>30 min</option><option>45 min</option><option>1 hora</option></select></label>
+    </div>
+    <label class="campo"><span>Motivo</span><input placeholder="Ex.: consulta de rotina" /></label>
+    <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Agendar</button></div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

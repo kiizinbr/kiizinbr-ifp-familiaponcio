@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A Ana vem amanhã? · Portal da Família</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="mobile" data-user="Sandra" data-cargo="Mãe da Ana" data-tela="diario">
+<span class="ribbon">Protótipo conceitual</span>
+<div class="phone-screen">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h" style="margin-bottom:14px">
+    <div>
+      <h2 style="font-size:20px">Confirmar presença</h2>
+      <div class="desc">Ana Poncio · Berçário II</div>
+    </div>
+  </div>
+
+  <!-- pergunta grande -->
+  <div class="card" style="margin-bottom:18px;background:var(--unidade-suave);border-color:transparent;text-align:center">
+    <span class="crest" style="width:56px;height:65px;color:var(--dourado);display:inline-flex;margin-bottom:10px"><span class="foto" style="font-size:20px">AP</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+    <h2 style="font-size:24px;margin:0 0 4px;color:var(--tinta)">A Ana vem amanhã?</h2>
+    <div class="desc" style="font-size:15px">Quinta-feira, 18 de junho</div>
+  </div>
+
+  <!-- 2 botões ENORMES -->
+  <button class="btn" style="width:100%;height:96px;background:var(--ok);color:#fff;border-radius:18px;flex-direction:column;gap:4px;margin-bottom:14px;box-shadow:var(--shadow-sm)" aria-label="Sim, a Ana vai amanhã">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px"><path d="M20 6 9 17l-5-5"/></svg>
+    <span style="font-size:20px;font-weight:700">Sim, vai!</span>
+    <span style="font-size:12px;font-weight:500;opacity:.9">Confirmar presença</span>
+  </button>
+
+  <button class="btn btn-danger" style="width:100%;height:96px;border-radius:18px;flex-direction:column;gap:4px;margin-bottom:18px;box-shadow:var(--shadow-sm)" aria-label="Não, a Ana vai faltar" onclick="document.getElementById('motivos').style.display='block';this.scrollIntoView({behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    <span style="font-size:20px;font-weight:700">Não, vai faltar</span>
+    <span style="font-size:12px;font-weight:500;opacity:.9">Avisar a unidade</span>
+  </button>
+
+  <!-- escolher motivo (aparece ao clicar em faltar) -->
+  <div id="motivos" class="card" style="display:none;margin-bottom:18px;border:1px solid var(--erro)">
+    <div class="sec-tit" style="margin-bottom:8px">Por que a Ana vai faltar?</div>
+    <p class="desc" style="margin:0 0 12px;font-size:13px">Toque no motivo. É só um toque, sem precisar escrever.</p>
+    <div class="list-row" style="cursor:pointer"><div class="li-main"><div class="li-t">🤒 Está doente</div><div class="li-s">Febre, resfriado, mal-estar</div></div><span class="btn btn-ghost" style="padding:6px 10px">›</span></div>
+    <div class="list-row" style="cursor:pointer"><div class="li-main"><div class="li-t">🏥 Consulta médica</div><div class="li-s">Vai ao médico ou exame</div></div><span class="btn btn-ghost" style="padding:6px 10px">›</span></div>
+    <div class="list-row" style="cursor:pointer"><div class="li-main"><div class="li-t">👪 Vai viajar com a família</div><div class="li-s">Compromisso de família</div></div><span class="btn btn-ghost" style="padding:6px 10px">›</span></div>
+    <div class="list-row" style="cursor:pointer"><div class="li-main"><div class="li-t">📝 Outro motivo</div><div class="li-s">Conte para a unidade (opcional)</div></div><span class="btn btn-ghost" style="padding:6px 10px">›</span></div>
+    <button class="btn btn-danger" style="width:100%;margin-top:14px;justify-content:center;height:54px;font-size:16px">Confirmar falta</button>
+  </div>
+
+  <!-- próximos dias -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg> Próximos dias</div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">SEX</div><div style="font-size:10px;color:#9a8f84">19/06</div></div>
+    <div class="li-main"><div class="li-t">Sexta-feira</div><div class="li-s">Aguardando sua confirmação</div></div>
+    <span class="pill pill-unid">Confirmar</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">SEG</div><div style="font-size:10px;color:#9a8f84">22/06</div></div>
+    <div class="li-main"><div class="li-t">Segunda-feira</div><div class="li-s">Presença já confirmada por você</div></div>
+    <span class="pill pill-ok">Vai</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:#9a8f84">TER</div><div style="font-size:10px;color:#9a8f84">23/06</div></div>
+    <div class="li-main"><div class="li-t">Terça-feira</div><div class="li-s">Falta avisada · consulta médica</div></div>
+    <span class="pill pill-warn">Falta</span>
+  </div>
+
+  <p class="desc" style="text-align:center;margin-top:18px;font-size:12px">Confirmar ajuda a unidade a organizar o lanche e as atividades do dia. Obrigada! 💛</p>
+
+  <a class="btn btn-outline" href="familia-diario.html" style="width:100%;justify-content:center;margin-top:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg> Voltar ao diário</a>
+
+</div>
+<script src="casa-shell.js"></script>
+</body>
+</html>

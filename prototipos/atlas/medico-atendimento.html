@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atendimento · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="prontuarios" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Prancha de atendimento</h2>
+      <div class="desc">João da Silva · 8 anos · IFP-2026-900014 · sala 2</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost">Pausar</button>
+      <button class="btn btn-gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l4 4 5-6 5 6 4-4v10H3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Selar atendimento
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTA de alergia -->
+  <div style="display:flex;align-items:center;gap:12px;background:var(--erro-bg);color:var(--erro);border:1px solid rgba(179,38,30,.3);border-radius:14px;padding:13px 16px;margin-bottom:18px;font-weight:600">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;flex:0 0 auto"><path d="M12 3 1 21h22L12 3zM12 9v5M12 17.5v.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>Alergia grave: <b>Dipirona</b> — prescrição deste fármaco bloqueada no sistema. Doença crônica: Asma (bombinha 2x/dia).</div>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal: stepper + nota SOAP -->
+    <div>
+      <!-- STEPPER S / O / A / P -->
+      <div class="card" style="margin-bottom:16px;display:flex;gap:0;padding:0;overflow:hidden">
+        <div style="flex:1;text-align:center;padding:14px 8px;background:var(--unidade);color:#fff">
+          <div style="font-size:20px;font-weight:700">S</div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase">Subjetivo ✓</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:14px 8px;background:var(--unidade-suave);color:var(--unidade-escuro);border-left:1px solid #fff">
+          <div style="font-size:20px;font-weight:700">O</div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase">Objetivo · atual</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:14px 8px;color:#9a8f84;border-left:1px solid var(--linha)">
+          <div style="font-size:20px;font-weight:700">A</div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase">Avaliação</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:14px 8px;color:#9a8f84;border-left:1px solid var(--linha)">
+          <div style="font-size:20px;font-weight:700">P</div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase">Plano</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1zM8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          O · Objetivo (exame físico)
+        </div>
+        <label class="campo"><span>Achados ao exame</span><textarea rows="4">Bom estado geral, hidratado, corado. Ausculta pulmonar com sibilos esparsos em bases. Sem sinais de desconforto respiratório agudo. Oroscopia sem alterações.</textarea></label>
+        <div class="grid g2">
+          <label class="campo"><span>Hipótese diagnóstica</span><input value="Asma — controle de rotina" /></label>
+          <label class="campo"><span>CID-10</span><input value="J45.0 — Asma predominantemente alérgica" /></label>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <button class="btn btn-ghost">‹ Voltar (Subjetivo)</button>
+          <button class="btn btn-primary">Próximo (Avaliação) ›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- coluna lateral: vitais + pré-consulta + paciente -->
+    <div>
+      <!-- VITAIS -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sinais vitais <span class="pill pill-unid" style="margin-left:auto">Enf. Cláudia · 14:10</span>
+        </div>
+        <div class="grid g2" style="gap:10px">
+          <div style="background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:11px 13px">
+            <div style="font-size:21px;color:var(--tinta);font-weight:700">98 / 62</div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a8f84">PA (mmHg)</div>
+          </div>
+          <div style="background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:11px 13px">
+            <div style="font-size:21px;color:var(--tinta);font-weight:700">96 bpm</div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a8f84">FC</div>
+          </div>
+          <div style="background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:11px 13px">
+            <div style="font-size:21px;color:var(--tinta);font-weight:700">36,7 °C</div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a8f84">Temperatura</div>
+          </div>
+          <div style="background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:11px 13px">
+            <div style="font-size:21px;color:var(--tinta);font-weight:700">97%</div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a8f84">SatO₂ · 26 kg</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- paciente -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">JS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+          <div>
+            <div style="font-weight:700;color:var(--tinta)">João da Silva</div>
+            <div class="desc">8 anos · pediátrico · dose p/ 26 kg</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">
+          <span class="pill pill-warn">⚠ Alergia: Dipirona</span>
+          <span class="pill pill-unid">Asma</span>
+          <span class="pill">💊 Bombinha 2x/dia</span>
+        </div>
+        <div class="sec-tit" style="margin-top:4px">Últimos atendimentos</div>
+        <ul class="tl">
+          <li><div class="tx">Consulta clínica — tosse · retorno em 30 dias · Dr. Marcos Lima</div><div class="tt">12/03</div></li>
+          <li><div class="tx">Mutirão odontológico — restauração no dente 16 · Dra. Beatriz Nunes</div><div class="tt">02/02</div></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

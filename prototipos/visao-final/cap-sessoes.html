@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sessões Práticas · Banco de Modelos</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="sessoes" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Sessões Práticas</h2>
+      <div class="desc">O Banco de Modelos do Centro · a comunidade ganha cuidado gratuito, o aluno ganha prática real</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-outline">＋ Cadastrar voluntário</button>
+      <button class="btn btn-gold">＋ Agendar sessão</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="card kpi"><span class="k-label">Sessões hoje</span><div class="k-val">4</div></div>
+    <div class="card kpi"><span class="k-label">Confirmadas</span><div class="k-val">2</div></div>
+    <div class="card kpi"><span class="k-label">Buscando modelo</span><div class="k-val">1</div><div class="k-delta">precisa casar</div></div>
+    <div class="card kpi"><span class="k-label">Concluídas no mês</span><div class="k-val">38</div><div class="k-delta k-up">+9 vs anterior</div></div>
+  </div>
+
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Agenda de hoje · matching modelo ↔ aluno</div>
+
+  <!-- sessão confirmada -->
+  <div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+    <div style="min-width:160px"><div style="font-weight:600;color:var(--tinta)">18:30 · Corte masculino</div><div class="desc">BB-2026-1 · Barbeiro</div></div>
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:300px">
+      <span class="crest" style="width:38px;height:44px;flex:0 0 auto"><span class="foto" style="font-size:12px">MP</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div><div class="desc" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em">Aprendiz</div><div style="font-weight:600;color:var(--tinta);font-size:13px">Marcos Pereira</div></div>
+      <span style="color:#c9bfb4;font-size:18px">↔</span>
+      <span class="crest" style="width:38px;height:44px;flex:0 0 auto"><span class="foto" style="font-size:12px">AF</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div><div class="desc" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em">Modelo voluntário</div><div style="font-weight:600;color:var(--tinta);font-size:13px">Antônio Ferreira · 92% match</div></div>
+    </div>
+    <div style="text-align:right"><span class="pill pill-ok">CONFIRMADA</span><div style="margin-top:8px"><button class="btn btn-ghost">Dar baixa</button></div></div>
+  </div>
+
+  <!-- buscando modelo -->
+  <div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap;border-left:4px solid var(--unidade)">
+    <div style="min-width:160px"><div style="font-weight:600;color:var(--tinta)">19:10 · Barba</div><div class="desc">BB-2026-1 · Barbeiro</div></div>
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:300px">
+      <span class="crest" style="width:38px;height:44px;flex:0 0 auto"><span class="foto" style="font-size:12px">DC</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div><div class="desc" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em">Aprendiz</div><div style="font-weight:600;color:var(--tinta);font-size:13px">Diego Costa</div></div>
+      <span style="color:#c9bfb4;font-size:18px">↔</span>
+      <button class="btn btn-outline" style="border-style:dashed;border-color:var(--unidade);color:var(--unidade-escuro)">＋ Casar modelo</button>
+    </div>
+    <div style="text-align:right"><span class="pill" style="background:#FCE9DD;color:#FF772E">BUSCANDO MODELO</span></div>
+  </div>
+
+  <!-- a confirmar -->
+  <div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+    <div style="min-width:160px"><div style="font-weight:600;color:var(--tinta)">18:30 · Corte feminino</div><div class="desc">CB-2026-1 · Cabeleireira</div></div>
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:300px">
+      <span class="crest" style="width:38px;height:44px;flex:0 0 auto"><span class="foto" style="font-size:12px">JA</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div><div class="desc" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em">Aprendiz</div><div style="font-weight:600;color:var(--tinta);font-size:13px">Joana Alves</div></div>
+      <span style="color:#c9bfb4;font-size:18px">↔</span>
+      <span class="crest" style="width:38px;height:44px;flex:0 0 auto"><span class="foto" style="font-size:12px">CM</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div><div class="desc" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em">Modelo voluntário</div><div style="font-weight:600;color:var(--tinta);font-size:13px">Dona Cleusa Martins · 90% match</div></div>
+    </div>
+    <div style="text-align:right"><span class="pill pill-warn">A CONFIRMAR</span><div style="margin-top:8px"><button class="btn btn-primary">Confirmar WhatsApp</button></div></div>
+  </div>
+
+  <!-- match transparente -->
+  <div class="card" style="margin-top:18px">
+    <div class="sec-tit">Match transparente · por que sugerimos este modelo</div>
+    <p class="desc" style="margin-top:-4px">Sem caixa-preta: o casamento soma <b>preferência de serviço</b> + <b>termo de imagem OK</b> + <b>disponibilidade/bairro</b>.</p>
+    <div class="grid g3">
+      <div class="card" style="box-shadow:none">
+        <div style="display:flex;align-items:center;gap:12px"><span class="crest" style="width:42px;height:48px"><span class="foto" style="font-size:13px">AF</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span><div style="flex:1"><div style="font-weight:600;color:var(--tinta)">Antônio Ferreira</div><div class="desc">58 anos · prefere Corte masculino · termo OK · Vila Nova</div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><span class="pill pill-unid">92% match</span><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Termo OK</span></div>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <div style="display:flex;align-items:center;gap:12px"><span class="crest" style="width:42px;height:48px"><span class="foto" style="font-size:13px">CM</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span><div style="flex:1"><div style="font-weight:600;color:var(--tinta)">Dona Cleusa Martins</div><div class="desc">64 anos · prefere Corte feminino · termo OK · Centro</div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><span class="pill pill-unid">90% match</span><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Termo OK</span></div>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <div style="display:flex;align-items:center;gap:12px"><span class="crest" style="width:42px;height:48px"><span class="foto" style="font-size:13px">PH</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span><div style="flex:1"><div style="font-weight:600;color:var(--tinta)">Pedro Henrique</div><div class="desc">23 anos · prefere Corte masculino · termo pendente · Vila Nova</div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><span class="pill" style="background:#FCE9DD;color:#C24D0F">45% match</span><span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Termo pendente</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- termo de uso de imagem selado -->
+  <div class="card" style="margin-top:18px;background:var(--papel)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <div class="sec-tit">Termo de Uso de Imagem</div>
+        <p style="font-size:13px;line-height:1.6;color:var(--corpo);max-width:520px">Os modelos voluntários autorizam o uso das imagens captadas durante as sessões práticas gratuitas do Centro de Capacitação, <b>para fins educativos e institucionais, sem qualquer finalidade comercial</b> — podendo revogar quando quiserem. O termo fica arquivado e selado na ficha do voluntário.</p>
+      </div>
+      <span class="coroa-seal cs-aprovado" style="flex:0 0 auto"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> 4 de 5 termos assinados</span>
+    </div>
+    <div style="margin-top:12px">
+      <div class="list-row"><div class="av">AF</div><div class="li-main"><div class="li-t">Antônio Ferreira</div><div class="li-s">Termo assinado · 3 sessões</div></div><span class="pill pill-ok">OK</span></div>
+      <div class="list-row"><div class="av">CM</div><div class="li-main"><div class="li-t">Dona Cleusa Martins</div><div class="li-s">Termo assinado · 5 sessões</div></div><span class="pill pill-ok">OK</span></div>
+      <div class="list-row"><div class="av">PH</div><div class="li-main"><div class="li-t">Pedro Henrique</div><div class="li-s">Termo pendente · 0 sessões</div></div><button class="btn btn-primary">Coletar termo</button></div>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

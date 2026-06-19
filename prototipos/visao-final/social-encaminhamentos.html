@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Encaminhamentos entre unidades · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="ponte" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Encaminhamentos entre unidades</h2>
+      <div class="desc">Cada encaminhamento é um objeto de workflow — origem, motivo e status acompanham a família pela Corte</div>
+    </div>
+    <a class="btn btn-primary" href="social-encaminhamentos.html">＋ Novo encaminhamento</a>
+  </div>
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <!-- KPIs do fluxo -->
+  <div class="grid g4" style="margin-bottom:22px">
+    <div class="card kpi"><div class="k-top"><span class="k-label">Pendentes p/ aceitar</span><span class="k-tend">Atenção</span></div><div class="k-val">5</div><div class="k-delta k-flat">aguardando unidade destino</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Aceitos esta semana</span><span class="k-tend">Em alta"</span></div><div class="k-val">12</div><div class="k-delta k-up">+4 vs. semana passada</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Tempo médio até aceite</span></div><div class="k-val">1,4d</div><div class="k-delta k-flat">da origem ao destino</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Recusados no mês</span></div><div class="k-val">2</div><div class="k-delta k-flat">com justificativa</div></div>
+  </div>
+
+  <!-- filtros -->
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px">
+    <span class="pill pill-warn">Pendentes (5)</span>
+    <span class="pill pill-unid">Aceitos</span>
+    <span class="pill pill-unid">Recusados</span>
+    <span class="desc" style="margin:0 0 0 auto">Origem → destino · ordenado por urgência</span>
+  </div>
+
+  <!-- card de encaminhamento: workflow -->
+  <div class="card" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;border-left:4px solid var(--ambar)">
+    <div class="av" style="flex:0 0 auto">FS</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:600;color:var(--tinta);font-size:14px">Família Silva</span>
+        <span class="pill pill-unid">Centro Médico</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" style="color:#9a8f84"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span class="pill pill-unid">Serviço Social</span>
+      </div>
+      <div class="li-s" style="margin-top:6px">IFP-2026-000312 · De: <b>Dr. Marcos Lima</b> · há 2 horas</div>
+      <p class="desc" style="margin:8px 0 0"><b>Motivo:</b> João (8) com asma recorrente; suspeita de gatilho ambiental na moradia. Solicita avaliação socioeconômica e possível inclusão da mãe na Capacitação.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:0 0 auto;align-items:flex-end">
+      <span class="pill pill-warn">Pendente · Urgente</span>
+      <a class="btn btn-primary" href="social-ficha-detalhe.html" style="padding:8px 12px">Abrir ficha</a>
+      <button class="btn btn-gold" style="padding:8px 12px">Aceitar</button>
+      <button class="btn btn-ghost" style="padding:8px 12px">Recusar</button>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;border-left:4px solid var(--ambar)">
+    <div class="av" style="flex:0 0 auto">FN</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:600;color:var(--tinta);font-size:14px">Família Nunes</span>
+        <span class="pill pill-unid">Recreativo</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" style="color:#9a8f84"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span class="pill pill-unid">Serviço Social</span>
+      </div>
+      <div class="li-s" style="margin-top:6px">IFP-2026-000451 · De: <b>Prof. Carla Dias</b> · ontem</div>
+      <p class="desc" style="margin:8px 0 0"><b>Motivo:</b> Aluna relata que o irmão mais velho (14) está fora da escola. Sugere avaliar a família para reforço educacional e vaga no Esportivo.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:0 0 auto;align-items:flex-end">
+      <span class="pill pill-unid">Pendente · Normal</span>
+      <a class="btn btn-primary" href="social-ficha-detalhe.html" style="padding:8px 12px">Abrir ficha</a>
+      <button class="btn btn-gold" style="padding:8px 12px">Aceitar</button>
+      <button class="btn btn-ghost" style="padding:8px 12px">Recusar</button>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;border-left:4px solid var(--ambar)">
+    <div class="av" style="flex:0 0 auto">FC</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:600;color:var(--tinta);font-size:14px">Família Costa</span>
+        <span class="pill pill-unid">Capacitação</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" style="color:#9a8f84"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span class="pill pill-unid">Centro Médico</span>
+      </div>
+      <div class="li-s" style="margin-top:6px">IFP-2026-000388 · De: <b>Tânia Moraes</b> · há 3 dias</div>
+      <p class="desc" style="margin:8px 0 0"><b>Motivo:</b> Aluna do curso de Costura relata dores crônicas que atrapalham a frequência. Encaminha para avaliação médica antes de remarcar as aulas.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:0 0 auto;align-items:flex-end">
+      <span class="pill pill-unid">Pendente · Normal</span>
+      <a class="btn btn-primary" href="social-ficha-detalhe.html" style="padding:8px 12px">Abrir ficha</a>
+      <button class="btn btn-gold" style="padding:8px 12px">Aceitar</button>
+      <button class="btn btn-ghost" style="padding:8px 12px">Recusar</button>
+    </div>
+  </div>
+
+  <!-- aceitos / em andamento -->
+  <div class="sec-tit" style="margin-top:26px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Aceitos e em andamento</div>
+
+  <div class="list-row">
+    <div class="av">FA</div>
+    <div class="li-main"><div class="li-t">Família Almeida <span style="font-weight:400;color:#9a8f84;font-size:12px">· Esportivo → Serviço Social</span></div><div class="li-s">IFP-2026-000444 · aceito por Joana Lima há 1 dia · agendada visita domiciliar</div></div>
+    <span class="pill pill-ok">Aceito</span>
+    <a class="btn btn-ghost" href="social-agenda.html" style="padding:8px 12px">Ver agenda →</a>
+  </div>
+  <div class="list-row">
+    <div class="av">FP</div>
+    <div class="li-main"><div class="li-t">Família Pereira <span style="font-weight:400;color:#9a8f84;font-size:12px">· Serviço Social → Centro Médico</span></div><div class="li-s">IFP-2026-000433 · aceito por Enf. Cláudia Rocha há 2 dias · consulta marcada</div></div>
+    <span class="pill pill-ok">Aceito</span>
+    <a class="btn btn-ghost" href="social-ficha-detalhe.html" style="padding:8px 12px">Abrir ficha →</a>
+  </div>
+  <div class="list-row" style="opacity:.7">
+    <div class="av">FT</div>
+    <div class="li-main"><div class="li-t">Família Teixeira <span style="font-weight:400;color:#9a8f84;font-size:12px">· Serviço Social → Capacitação</span></div><div class="li-s">IFP-2026-000453 · recusado por Tânia Moraes · motivo: sem turma disponível neste ciclo</div></div>
+    <span class="pill pill-warn">Recusado</span>
+    <button class="btn btn-ghost" style="padding:8px 12px">Reencaminhar</button>
+  </div>
+
+  <!-- nota da corte -->
+  <div class="card" style="background:var(--unidade-suave);border:0;font-size:13px;color:var(--unidade-escuro);display:flex;gap:12px;align-items:center;margin-top:22px;max-width:920px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" style="flex:0 0 auto"><path d="M4 21V5a2 2 0 0 1 2-2h7l1 2h5v11h-6l-1-2H6"/></svg>
+    Encaminhar não é mandar e-mail: cria um vínculo rastreável entre unidades. A família é vista de ponta a ponta, e ninguém se perde entre o Médico, o Social e a Capacitação.
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

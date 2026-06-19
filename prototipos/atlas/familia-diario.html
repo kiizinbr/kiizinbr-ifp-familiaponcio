@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diário do dia · Portal da Família</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="mobile" data-user="Sandra" data-cargo="Mãe da Ana" data-tela="diario">
+<span class="ribbon">Protótipo conceitual</span>
+<div class="phone-screen">
+
+  <!-- cabeçalho da tela -->
+  <div class="page-h" style="margin-bottom:14px">
+    <div>
+      <h2 style="font-size:20px">Diário do dia</h2>
+      <div class="desc">Ana Poncio · Berçário II</div>
+    </div>
+  </div>
+
+  <!-- seletor de data enxuto -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+    <button class="btn btn-outline" style="padding:8px 11px" aria-label="Dia anterior">‹</button>
+    <button class="btn btn-primary" style="padding:8px 14px;flex:1">Hoje · 17/06</button>
+    <button class="btn btn-outline" style="padding:8px 11px" aria-label="Próximo dia">›</button>
+  </div>
+
+  <!-- resumo do dia -->
+  <div class="card" style="margin-bottom:16px;background:var(--unidade-suave);border-color:transparent">
+    <div class="sec-tit" style="margin-bottom:8px">Como foi o dia da Ana</div>
+    <p class="desc" style="margin:0;color:var(--corpo)">A Ana teve um ótimo dia! Comeu bem, dormiu tranquila e participou da rodinha de música. Está com bom humor e bastante disposição. 💛</p>
+    <div style="font-size:11px;color:#9a8f84;margin-top:10px">Registrado por Tia Marta · Berçário II · 16:45</div>
+  </div>
+
+  <!-- alimentação -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v1a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M9 12h.01M15 12h.01"/></svg> Alimentação</div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">08:30</div></div>
+    <div class="li-main"><div class="li-t">Café da manhã</div><div class="li-s">Mingau de aveia e mamão · comeu tudo</div></div>
+    <span class="pill pill-ok">Comeu tudo</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">11:30</div></div>
+    <div class="li-main"><div class="li-t">Almoço</div><div class="li-s">Arroz, feijão, frango desfiado e legumes</div></div>
+    <span class="pill pill-unid">Comeu metade</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">15:00</div></div>
+    <div class="li-main"><div class="li-t">Lanche da tarde</div><div class="li-s">Banana amassada e suco natural de laranja</div></div>
+    <span class="pill pill-ok">Comeu tudo</span>
+  </div>
+
+  <!-- sono -->
+  <div class="sec-tit" style="margin-top:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> Sono</div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">12:15</div><div style="font-size:10px;color:#9a8f84">13:50</div></div>
+    <div class="li-main"><div class="li-t">Soneca da tarde</div><div class="li-s">Dormiu tranquila por 1h35 no berço</div></div>
+    <span class="pill pill-ok">Tranquilo</span>
+  </div>
+
+  <!-- higiene -->
+  <div class="sec-tit" style="margin-top:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M7 22v-2M17 22v-2M9 12v3a3 3 0 0 0 6 0v-3"/></svg> Higiene</div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">10:00</div></div>
+    <div class="li-main"><div class="li-t">Troca de fralda</div><div class="li-s">Troca de rotina · tudo normal</div></div>
+    <span class="pill pill-ok">Normal</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">14:00</div></div>
+    <div class="li-main"><div class="li-t">Troca de fralda</div><div class="li-s">Troca após a soneca · tudo normal</div></div>
+    <span class="pill pill-ok">Normal</span>
+  </div>
+
+  <!-- atividades -->
+  <div class="sec-tit" style="margin-top:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Atividades</div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">09:15</div></div>
+    <div class="li-main"><div class="li-t">Rodinha de música</div><div class="li-s">Cantou e bateu palmas · adorou a música da arca</div></div>
+    <span class="pill pill-unid">Participou</span>
+  </div>
+  <div class="list-row">
+    <div style="text-align:center;width:54px;flex:0 0 auto"><div style="font-size:15px;font-weight:700;color:var(--unidade)">16:00</div></div>
+    <div class="li-main"><div class="li-t">Pintura com guache</div><div class="li-s">Atividade sensorial · explorou as cores com as mãos</div></div>
+    <span class="pill pill-unid">Participou</span>
+  </div>
+
+  <!-- recado para casa -->
+  <div class="card" style="margin-top:18px;border:1px solid var(--unidade)">
+    <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Recado para casa</div>
+    <p style="margin:0;font-size:13px;color:var(--corpo)">A fralda está acabando, por favor enviem um pacote novo amanhã. Obrigada! 😊</p>
+  </div>
+
+</div>
+<script src="casa-shell.js"></script>
+</body>
+</html>

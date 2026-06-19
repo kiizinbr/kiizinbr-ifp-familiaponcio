@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BB-2026-1 · Barbeiro · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="turmas" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>BB-2026-1 · Barbeiro</h2>
+      <div class="desc">Seg/Qua/Sex 18h · Salão-Escola · Prof. Rafael Dias</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn btn-outline" href="cap-chamada.html">Diário / Chamada</a>
+      <button class="btn btn-gold">Certificar turma</button>
+    </div>
+  </div>
+
+  <!-- cabeçalho da turma -->
+  <div class="card" style="display:flex;align-items:center;gap:18px;margin-bottom:16px;flex-wrap:wrap">
+    <span class="juba-ring" style="width:72px;height:72px;flex:0 0 auto"><svg width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="23.6" transform="rotate(-90 36 36)"/></svg><span class="num">88%</span></span>
+    <div style="flex:1;min-width:220px">
+      <div class="pn" style="font-size:15px;color:var(--tinta);font-weight:600">14/16 vagas · frequência 71% · evasão 19%</div>
+      <span class="pill pill-warn" style="display:inline-block;margin-top:8px">ATENÇÃO</span>
+      <div class="desc" style="margin-top:8px">Módulo atual: Cortes masculinos · 2 alunos em risco de evasão</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary">＋ Matricular</button>
+      <button class="btn btn-danger">Encerrar turma</button>
+    </div>
+  </div>
+
+  <!-- alunos -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Alunos da turma</div>
+  <div class="grid g2" style="margin-bottom:22px">
+    <div class="list-row"><div class="av">MP</div><div class="li-main"><div class="li-t">Marcos Pereira</div><div class="li-s">Família Pereira · frequência 84%</div></div><span class="pill pill-ok">em dia</span></div>
+    <div class="list-row" style="border-left:4px solid var(--erro)"><div class="av">DC</div><div class="li-main"><div class="li-t">Diego Costa</div><div class="li-s">Família Costa · frequência 52%</div></div><span class="pill pill-warn">risco</span></div>
+    <div class="list-row"><div class="av">TA</div><div class="li-main"><div class="li-t">Tiago Alves</div><div class="li-s">Família Alves · frequência 90%</div></div><span class="pill pill-ok">em dia</span></div>
+    <div class="list-row" style="border-left:4px solid var(--erro)"><div class="av">BM</div><div class="li-main"><div class="li-t">Bruno Mendes</div><div class="li-s">Família Mendes · frequência 61%</div></div><span class="pill pill-warn">risco</span></div>
+    <div class="list-row"><div class="av">WL</div><div class="li-main"><div class="li-t">Wesley Lima</div><div class="li-s">Família Lima · frequência 77%</div></div><span class="pill pill-ok">em dia</span></div>
+    <div class="list-row"><div class="av">IS</div><div class="li-main"><div class="li-t">Igor Santos</div><div class="li-s">Família Santos · frequência 88%</div></div><span class="pill pill-ok">em dia</span></div>
+  </div>
+
+  <!-- heatmap de frequência -->
+  <div class="card">
+    <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg> Mapa de presença · últimas 8 aulas</div>
+    <div style="overflow-x:auto">
+      <table class="tabela" style="font-size:11px">
+        <thead><tr><th>Aluno</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>Marcos Pereira</td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td><b style="color:var(--tinta)">84%</b></td></tr>
+          <tr><td>Diego Costa</td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td><b style="color:var(--erro)">52%</b></td></tr>
+          <tr><td>Tiago Alves</td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td><b style="color:var(--tinta)">90%</b></td></tr>
+          <tr><td>Bruno Mendes</td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td><b style="color:var(--erro)">61%</b></td></tr>
+          <tr><td>Wesley Lima</td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td><b style="color:var(--tinta)">77%</b></td></tr>
+          <tr><td>Igor Santos</td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:#FCEDEC"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td style="text-align:center"><span style="display:inline-block;width:15px;height:15px;border-radius:4px;background:var(--unidade)"></span></td><td><b style="color:var(--tinta)">88%</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="desc" style="margin-top:8px"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--unidade);vertical-align:middle"></span> presente &nbsp; <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#FCEDEC;vertical-align:middle"></span> falta</div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

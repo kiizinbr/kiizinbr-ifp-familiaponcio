@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fila · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="fila" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Fila de atendimento</h2>
+      <div class="desc">Tempo real · Centro Médico · atualizado há 30 s</div>
+    </div>
+    <button class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Chamar próximo
+    </button>
+  </div>
+
+  <!-- KANBAN 4 colunas -->
+  <div class="grid g4" style="align-items:start">
+
+    <!-- AGUARDANDO -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px">
+        <span class="sec-tit" style="margin:0">Aguardando</span>
+        <span class="pill" style="background:#fff">4</span>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid #9a8f84">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">RO</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Rosa Oliveira</div></div>
+        <div class="desc" style="font-size:12px">Pré-natal · senha A-12 · 29 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill">espera 22 min</span></div>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid #9a8f84">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">PA</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Pedro Alves</div></div>
+        <div class="desc" style="font-size:12px">Clínica geral · senha A-13 · 51 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill">espera 15 min</span></div>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid #9a8f84">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">MF</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Marta Freitas</div></div>
+        <div class="desc" style="font-size:12px">Odontologia · senha A-14 · 38 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill">espera 9 min</span></div>
+      </div>
+    </div>
+
+    <!-- TRIAGEM -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px">
+        <span class="sec-tit" style="margin:0">Triagem</span>
+        <span class="pill pill-warn">2</span>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--ambar)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">LF</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Lucas Ferreira</div></div>
+        <div class="desc" style="font-size:12px">Febre há 2 dias · 6 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-warn">amarelo</span><span class="pill">Enf. Cláudia</span></div>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--ambar)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">CB</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Carla Brito</div></div>
+        <div class="desc" style="font-size:12px">Cefaleia · PA a aferir · 44 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-ok">verde</span><span class="pill">Enf. Cláudia</span></div>
+      </div>
+    </div>
+
+    <!-- EM ATENDIMENTO -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px">
+        <span class="sec-tit" style="margin:0">Em atendimento</span>
+        <span class="pill pill-unid">3</span>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--unidade)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">JS</span><div style="font-weight:600;color:var(--tinta);font-size:13px">João da Silva</div></div>
+        <div class="desc" style="font-size:12px">Sala 2 · Dr. Marcos · 8 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-warn">⚠ Dipirona</span><span class="pill">12 min</span></div>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--unidade)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">PO</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Pedro Oliveira</div></div>
+        <div class="desc" style="font-size:12px">Sala 3 · Dra. Beatriz · 6 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-unid">Odonto</span><span class="pill">8 min</span></div>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--unidade)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">HR</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Helena Ramos</div></div>
+        <div class="desc" style="font-size:12px">Sala 1 · Dra. Helena · 35 anos</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-unid">Pediatria</span><span class="pill">4 min</span></div>
+      </div>
+    </div>
+
+    <!-- CONCLUÍDO -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px">
+        <span class="sec-tit" style="margin:0">Concluído</span>
+        <span class="pill pill-ok">26</span>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--ok)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">MO</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Maria Oliveira</div></div>
+        <div class="desc" style="font-size:12px">Retorno · selado 13:48</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-ok">selado</span></div>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:10px;border-left:4px solid var(--ok)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="av" style="width:34px;height:34px;background:var(--unidade-suave);color:var(--unidade-escuro);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">PS</span><div style="font-weight:600;color:var(--tinta);font-size:13px">Pedro Santos</div></div>
+        <div class="desc" style="font-size:12px">1ª consulta · selado 13:20</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="pill pill-ok">selado</span></div>
+      </div>
+      <div class="card" style="padding:13px;text-align:center;color:#9a8f84;border-left:4px solid var(--ok);font-size:12px">+ 24 atendimentos concluídos hoje</div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

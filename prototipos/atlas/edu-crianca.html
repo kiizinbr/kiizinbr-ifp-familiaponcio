@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Perfil da criança · Centro Educacional</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="educacional" data-tela="criancas" data-user="Prof. Carla Mendes" data-cargo="Centro Educacional" data-ini="CM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Perfil da criança</h2>
+      <div class="desc">Ficha vinculada à Ficha Cidadã da família · Centro Educacional</div>
+    </div>
+    <button class="btn btn-outline">Ver diário completo</button>
+  </div>
+
+  <!-- cabeçalho da criança -->
+  <div class="card" style="display:flex;align-items:center;gap:18px;margin-bottom:20px">
+    <span class="crest" style="width:62px;height:72px"><span class="foto" style="font-size:20px">AS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+    <div style="flex:1">
+      <div style="font-size:20px;font-weight:600;color:var(--tinta)">Ana Silva <span class="muted" style="font-weight:400;font-size:14px">· 5 anos</span></div>
+      <div class="desc">Sala Bem-te-vi · Maternal I · matrícula EDU-2026-0142 · Família Silva</div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span class="pill pill-unid">turno integral</span>
+        <span class="pill pill-ok">frequência 94%</span>
+        <span class="pill pill-warn">⚠ tem alergia</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTA: alergias / saúde -->
+  <div class="card" style="background:var(--erro-bg);border:1px solid rgba(179,38,30,.25);margin-bottom:18px">
+    <div class="sec-tit" style="color:var(--erro)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Alergias e cuidados de saúde</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--papel);border:1px solid rgba(179,38,30,.4);color:var(--erro);font-weight:600;font-size:13px;padding:7px 13px;border-radius:999px">⚠ Alergia a amendoim (grave)</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--papel);border:1px solid rgba(179,38,30,.4);color:var(--erro);font-weight:600;font-size:13px;padding:7px 13px;border-radius:999px">⚠ Intolerância à lactose</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--papel);border:1px solid rgba(194,77,15,.4);color:var(--ambar);font-weight:600;font-size:13px;padding:7px 13px;border-radius:999px">💊 Bombinha de asma — usar se necessário</span>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--erro);font-weight:600">A cozinha recebe estes alertas automaticamente · cardápio sempre adaptado para esta criança.</div>
+  </div>
+
+  <div class="grid g-50">
+
+    <!-- autorizados a buscar -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87"/></svg> Autorizados a buscar</div>
+
+      <div class="list-row">
+        <div class="av">SS</div>
+        <div class="li-main"><div class="li-t">Sandra Silva</div><div class="li-s">Mãe · RG 22.345.678-9</div></div>
+        <span class="pill pill-ok">autorizado</span>
+      </div>
+      <div class="list-row">
+        <div class="av">RS</div>
+        <div class="li-main"><div class="li-t">Roberto Silva</div><div class="li-s">Pai · RG 18.901.234-5</div></div>
+        <span class="pill pill-ok">autorizado</span>
+      </div>
+      <div class="list-row">
+        <div class="av">MA</div>
+        <div class="li-main"><div class="li-t">Marta Andrade</div><div class="li-s">Avó materna · RG 9.876.543-2</div></div>
+        <span class="pill pill-ok">autorizado</span>
+      </div>
+
+      <!-- restrição judicial em vermelho -->
+      <div class="list-row" style="background:var(--erro-bg);border-radius:11px;border:1px solid rgba(179,38,30,.25)">
+        <div class="av" style="background:var(--erro-bg);color:var(--erro)">!</div>
+        <div class="li-main"><div class="li-t" style="color:var(--erro)">Carlos Pereira</div><div class="li-s" style="color:var(--erro)">⚖ Restrição judicial — NÃO entregar a criança · medida protetiva</div></div>
+        <span class="coroa-seal cs-bloq"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Bloqueado</span>
+      </div>
+
+      <button class="btn btn-ghost" style="margin-top:12px">＋ Adicionar autorizado</button>
+    </div>
+
+    <!-- autorizações de imagem -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg> Autorizações de imagem</div>
+      <p class="desc" style="margin-top:0">Definidas pela família na assinatura da matrícula · podem ser revogadas a qualquer momento.</p>
+
+      <!-- toggle 1: ligado -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--linha)">
+        <div>
+          <div style="font-weight:600;color:var(--tinta)">Foto no diário da família</div>
+          <div class="desc" style="font-size:12px">Fotos do dia a dia visíveis só para a própria família</div>
+        </div>
+        <span style="position:relative;width:46px;height:26px;border-radius:999px;background:var(--unidade);flex:0 0 auto"><span style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:var(--papel)"></span></span>
+      </div>
+
+      <!-- toggle 2: ligado -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--linha)">
+        <div>
+          <div style="font-weight:600;color:var(--tinta)">Uso em mural interno da unidade</div>
+          <div class="desc" style="font-size:12px">Painéis e murais dentro do Centro Educacional</div>
+        </div>
+        <span style="position:relative;width:46px;height:26px;border-radius:999px;background:var(--unidade);flex:0 0 auto"><span style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:var(--papel)"></span></span>
+      </div>
+
+      <!-- toggle 3: desligado -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+        <div>
+          <div style="font-weight:600;color:var(--tinta)">Divulgação pública / redes sociais</div>
+          <div class="desc" style="font-size:12px;color:var(--erro)">Não autorizado — não usar em redes ou site</div>
+        </div>
+        <span style="position:relative;width:46px;height:26px;border-radius:999px;background:var(--linha);flex:0 0 auto"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--papel);box-shadow:0 1px 3px rgba(0,0,0,.2)"></span></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- presença recente -->
+  <div class="card" style="margin-top:18px">
+    <div class="sec-tit">Presença recente</div>
+    <ul class="tl">
+      <li><div class="tx">Presente · entrou 07:50, saiu 17:20 · almoçou bem (cardápio sem amendoim)</div><div class="tt">hoje</div></li>
+      <li><div class="tx">Presente · participou da atividade de pintura</div><div class="tt">ontem</div></li>
+      <li><div class="tx">Falta avisada · consulta no Centro Médico</div><div class="tt">15/06</div></li>
+      <li><div class="tx">Presente · dia tranquilo</div><div class="tt">12/06</div></li>
+    </ul>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

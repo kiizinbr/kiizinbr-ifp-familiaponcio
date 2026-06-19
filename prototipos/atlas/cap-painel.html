@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="painel" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Centro de Capacitação</h2>
+      <div class="desc">Ano letivo 2026 · turmas ativas e saúde das turmas num olhar</div>
+    </div>
+    <button class="btn btn-gold">＋ Abrir nova turma</button>
+  </div>
+
+  <!-- destaque -->
+  <div class="card" style="margin-bottom:18px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;background:linear-gradient(120deg,#fff,var(--papel))">
+    <span class="juba-ring" style="width:92px;height:92px;flex:0 0 auto">
+      <svg width="92" height="92"><circle cx="46" cy="46" r="40" fill="none" stroke="var(--linha)" stroke-width="6"/><circle cx="46" cy="46" r="40" fill="none" stroke="var(--dourado)" stroke-width="6" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="32.7" transform="rotate(-90 46 46)"/></svg>
+      <span class="num">87%</span>
+    </span>
+    <div style="flex:1;min-width:240px">
+      <div style="font-size:21px;color:var(--tinta);font-weight:500">O Centro abriu <b style="font-weight:700">540 vagas gratuitas</b> em 9 cursos este semestre.</div>
+      <div class="desc">fila de interesse: 12 famílias · evasão média 6% · frequência média 84%</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="card kpi"><div class="k-top"><span class="k-label">Turmas em andamento</span><span class="k-tend">Em alta</span></div><div class="k-val">18</div><div class="k-delta k-up">+3 vs semestre anterior</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Alunos matriculados</span><span class="k-tend">Em alta</span></div><div class="k-val">540</div><div class="k-delta k-up">+62 no semestre</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Certificados no semestre</span></div><div class="k-val">137</div><div class="k-delta k-up">+18% vs anterior</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Lista de espera</span></div><div class="k-val">12</div><div class="k-delta">famílias na fila de interesse</div></div>
+  </div>
+
+  <div class="grid g-60-40" style="margin-bottom:18px">
+    <!-- saúde das turmas -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Saúde das turmas</div>
+      <div class="grid g2">
+        <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+          <span class="juba-ring" style="width:54px;height:54px"><svg width="54" height="54"><circle cx="27" cy="27" r="22" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="27" cy="27" r="22" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="40.1" transform="rotate(-90 27 27)"/></svg><span class="num">71%</span></span>
+          <div class="pinfo"><div class="pn">Barbeiro</div><div class="pm">BB-2026-1 · 14/16 vagas · evasão 19%</div><span class="pstatus" style="background:#FCE9DD;color:#C24D0F">ATENÇÃO</span></div>
+        </div>
+        <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+          <span class="juba-ring" style="width:54px;height:54px"><svg width="54" height="54"><circle cx="27" cy="27" r="22" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="27" cy="27" r="22" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="29" transform="rotate(-90 27 27)"/></svg><span class="num">79%</span></span>
+          <div class="pinfo"><div class="pn">Manicure &amp; Design</div><div class="pm">MN-2026-1 · 13/16 vagas · evasão 12%</div><span class="pstatus" style="background:#FCE9DD;color:#C24D0F">ATENÇÃO</span></div>
+        </div>
+        <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+          <span class="juba-ring" style="width:54px;height:54px"><svg width="54" height="54"><circle cx="27" cy="27" r="22" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="27" cy="27" r="22" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="16.6" transform="rotate(-90 27 27)"/></svg><span class="num">88%</span></span>
+          <div class="pinfo"><div class="pn">Corte e Costura</div><div class="pm">CC-2026-1 · 18/20 vagas · evasão 5%</div><span class="pstatus" style="background:var(--unidade-suave);color:var(--unidade-escuro)">SAUDÁVEL</span></div>
+        </div>
+        <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+          <span class="juba-ring" style="width:54px;height:54px"><svg width="54" height="54"><circle cx="27" cy="27" r="22" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="27" cy="27" r="22" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="13.8" transform="rotate(-90 27 27)"/></svg><span class="num">90%</span></span>
+          <div class="pinfo"><div class="pn">Informática Básica</div><div class="pm">INF-2026-1 · 16/20 vagas · evasão 4%</div><span class="pstatus" style="background:var(--unidade-suave);color:var(--unidade-escuro)">SAUDÁVEL</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- trilha do ano letivo -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg> Trilha do ano letivo</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--linha)"><span style="width:30px;height:30px;border-radius:50%;background:var(--unidade);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600">1</span><div style="flex:1"><b style="color:var(--tinta)">Matrículas</b></div><b style="color:var(--tinta);font-size:18px">540</b></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--linha)"><span style="width:30px;height:30px;border-radius:50%;background:var(--unidade);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600">2</span><div style="flex:1"><b style="color:var(--tinta)">Em curso</b></div><b style="color:var(--tinta);font-size:18px">488</b></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 0"><span style="width:30px;height:30px;border-radius:50%;background:var(--unidade);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600">3</span><div style="flex:1"><b style="color:var(--tinta)">Conclusão &amp; certificado</b></div><b style="color:var(--tinta);font-size:18px">137</b></div>
+    </div>
+  </div>
+
+  <div class="grid g-50">
+    <!-- fila de interesse -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg> Fila de interesse</div>
+      <div class="list-row"><div class="av">OL</div><div class="li-main"><div class="li-t">Família Oliveira</div><div class="li-s">Informática Básica · IFP-2026-000401 · há 6 dias</div></div><button class="btn btn-ghost">Alocar</button></div>
+      <div class="list-row"><div class="av">PE</div><div class="li-main"><div class="li-t">Família Pereira</div><div class="li-s">Corte e Costura · IFP-2026-000433 · há 4 dias</div></div><button class="btn btn-ghost">Alocar</button></div>
+      <div class="list-row"><div class="av">ME</div><div class="li-main"><div class="li-t">Família Mendes</div><div class="li-s">Barbeiro · IFP-2026-000440 · há 2 dias</div></div><button class="btn btn-ghost">Alocar</button></div>
+    </div>
+
+    <!-- atividade recente -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Atividade recente</div>
+      <ul class="tl">
+        <li><div class="tx">Turma de Costura Industrial formou 28 alunas</div><div class="tt">ontem</div></li>
+        <li><div class="tx">Prof. Rafael confirmou 6 sessões práticas de barbeiro</div><div class="tt">hoje, 08h</div></li>
+        <li><div class="tx">3 novas famílias na fila de interesse</div><div class="tt">esta semana</div></li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

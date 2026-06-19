@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapa Territorial · Impacto por bairro</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="impacto" data-user="Erick Ramos" data-cargo="Presidencia" data-ini="ER">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Mapa Territorial</h2>
+      <div class="desc">De onde vêm as famílias · concentração por bairro (agregado) · maio/2026</div>
+    </div>
+    <span class="coroa-seal cs-aprovado">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      Sem endereço individual
+    </span>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- heatmap SVG -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg> Concentração por região</div>
+      <div class="desc" style="margin-bottom:14px">Quanto mais escura a célula, mais famílias acolhidas vêm daquela área. Estrela = sede do Instituto.</div>
+      <svg viewBox="0 0 360 260" style="width:100%;height:auto;display:block;border-radius:14px;overflow:hidden;background:var(--papel)">
+        <!-- grade de calor 6x4 -->
+        <g stroke="#fff" stroke-width="2">
+          <!-- linha 1 -->
+          <rect x="0" y="0" width="60" height="65" fill="var(--tinta)" opacity="0.18"/>
+          <rect x="60" y="0" width="60" height="65" fill="var(--tinta)" opacity="0.42"/>
+          <rect x="120" y="0" width="60" height="65" fill="var(--tinta)" opacity="0.88"/>
+          <rect x="180" y="0" width="60" height="65" fill="var(--tinta)" opacity="1"/>
+          <rect x="240" y="0" width="60" height="65" fill="var(--tinta)" opacity="0.55"/>
+          <rect x="300" y="0" width="60" height="65" fill="var(--tinta)" opacity="0.30"/>
+          <!-- linha 2 -->
+          <rect x="0" y="65" width="60" height="65" fill="var(--tinta)" opacity="0.30"/>
+          <rect x="60" y="65" width="60" height="65" fill="var(--tinta)" opacity="0.70"/>
+          <rect x="120" y="65" width="60" height="65" fill="var(--tinta)" opacity="0.95"/>
+          <rect x="180" y="65" width="60" height="65" fill="var(--tinta)" opacity="0.78"/>
+          <rect x="240" y="65" width="60" height="65" fill="var(--tinta)" opacity="0.48"/>
+          <rect x="300" y="65" width="60" height="65" fill="var(--tinta)" opacity="0.22"/>
+          <!-- linha 3 -->
+          <rect x="0" y="130" width="60" height="65" fill="var(--tinta)" opacity="0.40"/>
+          <rect x="60" y="130" width="60" height="65" fill="var(--tinta)" opacity="0.85"/>
+          <rect x="120" y="130" width="60" height="65" fill="var(--tinta)" opacity="0.60"/>
+          <rect x="180" y="130" width="60" height="65" fill="var(--tinta)" opacity="0.35"/>
+          <rect x="240" y="130" width="60" height="65" fill="var(--tinta)" opacity="0.28"/>
+          <rect x="300" y="130" width="60" height="65" fill="var(--tinta)" opacity="0.15"/>
+          <!-- linha 4 -->
+          <rect x="0" y="195" width="60" height="65" fill="var(--tinta)" opacity="0.20"/>
+          <rect x="60" y="195" width="60" height="65" fill="var(--tinta)" opacity="0.32"/>
+          <rect x="120" y="195" width="60" height="65" fill="var(--tinta)" opacity="0.50"/>
+          <rect x="180" y="195" width="60" height="65" fill="var(--tinta)" opacity="0.24"/>
+          <rect x="240" y="195" width="60" height="65" fill="var(--tinta)" opacity="0.16"/>
+          <rect x="300" y="195" width="60" height="65" fill="var(--tinta)" opacity="0.10"/>
+        </g>
+        <!-- sede do instituto (estrela dourada) -->
+        <g transform="translate(210,97)">
+          <circle r="16" fill="#fff" opacity="0.85"/>
+          <path d="M0,-10 2.9,-3 10,-3 4.3,1.5 6.5,8.5 0,4.5 -6.5,8.5 -4.3,1.5 -10,-3 -2.9,-3 Z" fill="var(--dourado)" stroke="#fff" stroke-width="1"/>
+        </g>
+        <!-- rótulos de bairro -->
+        <text x="200" y="38" fill="#fff" font-size="10" font-family="sans-serif" text-anchor="middle" font-weight="600">Jd. Acácias</text>
+        <text x="120" y="168" fill="#fff" font-size="10" font-family="sans-serif" text-anchor="middle" font-weight="600">V. Esperança</text>
+      </svg>
+      <!-- legenda de intensidade -->
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <span class="desc" style="margin:0;font-size:11px">Menos famílias</span>
+        <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;flex:1;min-width:140px;max-width:240px">
+          <span style="flex:1;background:var(--tinta);opacity:0.15"></span>
+          <span style="flex:1;background:var(--tinta);opacity:0.35"></span>
+          <span style="flex:1;background:var(--tinta);opacity:0.55"></span>
+          <span style="flex:1;background:var(--tinta);opacity:0.75"></span>
+          <span style="flex:1;background:var(--tinta);opacity:1"></span>
+        </div>
+        <span class="desc" style="margin:0;font-size:11px">Mais famílias</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--corpo)"><span style="display:inline-block;width:10px;height:10px;background:var(--dourado);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);vertical-align:middle"></span> Sede do Instituto</span>
+      </div>
+    </div>
+
+    <!-- top bairros -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Top bairros</div>
+      <div class="bar-row"><div class="bl"><span>Jardim das Acácias</span><b>312 (25%)</b></div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Vila Esperança</span><b>274 (22%)</b></div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Centro</span><b>198 (16%)</b></div><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Parque São Lucas</span><b>161 (13%)</b></div><div class="bar-track"><div class="bar-fill" style="width:52%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Cohab Norte</span><b>143 (11%)</b></div><div class="bar-track"><div class="bar-fill" style="width:46%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Outros bairros</span><b>160 (13%)</b></div><div class="bar-track"><div class="bar-fill" style="width:51%"></div></div></div>
+
+      <div style="height:1px;background:var(--linha);margin:16px 0"></div>
+      <div class="desc" style="font-size:13px;line-height:1.6"><b style="color:var(--tinta)">Jardim das Acácias</b> e <b style="color:var(--tinta)">Vila Esperança</b> somam quase metade das famílias. São candidatos naturais a um <b style="color:var(--tinta)">posto avançado</b> ou linha de transporte.</div>
+    </div>
+
+  </div>
+
+  <!-- oportunidade de expansão -->
+  <div class="card" style="margin-top:22px;border-left:4px solid var(--dourado)">
+    <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg> Áreas com demanda reprimida</div>
+    <table class="tabela">
+      <thead><tr><th>Região</th><th>Famílias atendidas</th><th>Distância da sede</th><th>Potencial</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:var(--tinta)">Cohab Norte</b></td><td>143</td><td>4,2 km</td><td><span class="pill pill-warn">transporte difícil</span></td></tr>
+        <tr><td><b style="color:var(--tinta)">Vila São Jorge</b></td><td>38</td><td>6,8 km</td><td><span class="pill pill-warn">subatendida</span></td></tr>
+        <tr><td><b style="color:var(--tinta)">Recanto Feliz</b></td><td>22</td><td>5,1 km</td><td><span class="pill">explorar</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+    <a href="presidencia-familias.html" class="btn btn-outline">Ver perfil das famílias</a>
+    <a href="presidencia-impacto.html" class="btn btn-ghost">Voltar ao Impacto</a>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

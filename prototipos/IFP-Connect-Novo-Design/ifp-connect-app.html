@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR" data-salao="corte" data-motion="on">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IFP Connect · Demo (direção CASA)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<clipPath id="ogival" clipPathUnits="objectBoundingBox"><path d="M0.5,0.04 C0.80,0.04 0.94,0.18 0.94,0.40 C0.94,0.70 0.74,0.92 0.5,1 C0.26,0.92 0.06,0.70 0.06,0.40 C0.06,0.18 0.20,0.04 0.5,0.04 Z"/></clipPath>
+</defs></svg>
+
+<div class="watermark leao" id="wm"></div>
+
+<!-- ============ LOGIN ============ -->
+<div class="login" id="login">
+  <div class="login-marca">
+    <div class="leao-hero leao" id="leao-hero"></div>
+    <h1>Instituto<br>Família Poncio</h1>
+    <div class="prod">IFP Connect</div>
+    <div class="frase">Um leão, uma ficha, quatro frentes. Cada pessoa no seu trono — a mesma casa, a mesma alma.</div>
+    <div class="selo-dem">Ambiente de demonstração · dados fictícios · v0.1</div>
+  </div>
+  <div class="login-entrar" id="login-entrar">
+    <h2>Entrar como</h2>
+    <div class="sub">Escolha um perfil para demonstrar o sistema (passe o mouse para ver a cor da unidade tingir a casa).</div>
+    <div class="persona-grid" id="persona-grid"></div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL (desktop personas) ============ -->
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="tb-marca">
+      <span class="medalhao"><span class="leao" id="tb-leao"></span></span>
+      <div class="tb-nome"><div class="b">IFP Connect</div><div class="s" id="tb-sub">Corte · Presidência</div></div>
+    </div>
+    <div class="tb-busca" onclick="buscaFamilia()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="busca" placeholder="Buscar família, protocolo, beneficiário…" onkeydown="if(event.key==='Enter')buscaFamilia()"></div>
+    <div class="tb-right">
+      <div class="salao-switch hidden" id="salao-switch"></div>
+      <div class="sino" onclick="abrirSino()" title="Notificações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="badge">3</span></div>
+      <div class="tb-user" onclick="toggleUserMenu(event)">
+        <span class="crest"><span class="foto" id="tb-user-ini">ER</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+        <div><div class="un" id="tb-user-nome">Erick Ramos</div><div class="uc" id="tb-user-cargo">Presidência</div></div>
+      </div>
+    </div>
+  </header>
+  <nav class="rail" id="rail"></nav>
+  <main class="main">
+    <div class="bcrumb" id="bcrumb"></div>
+    <div id="content"></div>
+  </main>
+</div>
+
+<!-- TABLET (Dr. Marcos) -->
+<div class="tablet-wrap" id="tablet-wrap"><div class="tablet" id="tablet"></div></div>
+<!-- PHONE (Sandra) -->
+<div class="phone-wrap" id="phone-wrap">
+  <div class="phone-side">
+    <h3>App do Responsável</h3>
+    <p>É a mesma plataforma — mas para a Sandra é um app de celular, caloroso e sem jargão. Ela só vê a própria família.</p>
+    <button class="btn btn-ghost" onclick="trocarPerfil()" style="margin-top:14px">↩ Trocar de perfil</button>
+  </div>
+  <div class="phone" id="phone"></div>
+</div>
+
+<div class="usermenu hidden" id="usermenu"></div>
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"><svg viewBox="0 0 24 18"><path d="M2 9l6 6L22 2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="toast-msg"></span></div>
+
+<script src="app.js"></script>
+</body>
+</html>

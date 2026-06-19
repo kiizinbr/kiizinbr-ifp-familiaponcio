@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="social">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elegibilidades · Serviço Social</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="social" data-tela="elegibilidade" data-user="Joana Lima" data-cargo="Serviço Social" data-ini="JL">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Elegibilidades · Família Silva</h2>
+      <div class="desc">A chave-mestra que abre a porta de cada unidade — conceder acende a coroa e a unidade passa a ver o beneficiário</div>
+    </div>
+    <a class="btn btn-ghost" href="social-ficha-detalhe.html">‹ Voltar à ficha</a>
+  </div>
+
+  <!-- matriz membro x unidade -->
+  <div class="card" style="padding:8px 14px;margin-bottom:18px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Membro</th><th>Centro Médico</th><th>Capacitação</th><th>Recreativo</th><th>Esportivo</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="crest" style="width:36px;height:42px"><span class="foto" style="font-size:12px">MS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+              <div><b style="color:var(--tinta)">Maria Silva</b><div style="font-size:11px;color:#9a8f84">34 · Titular</div></div>
+            </div>
+          </td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aprovado</span></td>
+          <td><button class="btn btn-gold" style="padding:7px 11px;font-size:11px">＋ Conceder</button></td>
+          <td><span style="color:#9a8f84;font-size:12px">—</span></td>
+          <td><span style="color:#9a8f84;font-size:12px">—</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="crest" style="width:36px;height:42px"><span class="foto" style="font-size:12px">JS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+              <div><b style="color:var(--tinta)">João Silva</b><div style="font-size:11px;color:#9a8f84">8 · Filho</div></div>
+            </div>
+          </td>
+          <td><span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em análise</span><br><button class="btn btn-gold" style="padding:6px 10px;font-size:11px;margin-top:6px">Conceder</button></td>
+          <td><span style="color:#9a8f84;font-size:12px">—</span></td>
+          <td><span style="color:#9a8f84;font-size:12px">—</span></td>
+          <td><button class="btn btn-gold" style="padding:7px 11px;font-size:11px">＋ Conceder</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="crest" style="width:36px;height:42px"><span class="foto" style="font-size:12px">AS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+              <div><b style="color:var(--tinta)">Ana Silva</b><div style="font-size:11px;color:#9a8f84">5 · Filha</div></div>
+            </div>
+          </td>
+          <td><button class="btn btn-gold" style="padding:7px 11px;font-size:11px">＋ Conceder</button></td>
+          <td><span style="color:#9a8f84;font-size:12px">—</span></td>
+          <td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Aprovado</span><br><button class="btn btn-ghost" style="padding:6px 10px;font-size:11px;margin-top:6px">Revogar</button></td>
+          <td><span style="color:#9a8f84;font-size:12px">—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- nota da corte -->
+  <div class="card" style="background:var(--unidade-suave);border:0;font-size:13px;color:var(--unidade-escuro);display:flex;gap:12px;align-items:center;max-width:920px">
+    <svg viewBox="0 0 24 18" fill="currentColor" width="22" style="flex:0 0 auto"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg>
+    Ao conceder, o dado atravessa a casa: aparece no painel da unidade, na prancha do profissional, no celular da família e no agregado da Presidência — sem e-mail, sem planilha.
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

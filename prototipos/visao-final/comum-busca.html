@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Busca · IFP Connect</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="" data-user="Joana Martins" data-cargo="Serviço Social" data-ini="JM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Resultados da busca</h2>
+      <div class="desc">23 resultados para <b style="color:var(--tinta)">“Silva”</b> · em famílias, beneficiários e protocolos</div>
+    </div>
+  </div>
+
+  <!-- campo de busca -->
+  <label class="campo" style="max-width:560px">
+    <span>Buscar na Corte</span>
+    <input value="Silva" placeholder="Família, beneficiário, protocolo, CPF…" />
+  </label>
+
+  <!-- filtros por tipo -->
+  <div style="display:flex;gap:8px;margin:6px 0 22px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="padding:8px 14px">Tudo · 23</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Famílias · 4</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Beneficiários · 11</button>
+    <button class="btn btn-outline" style="padding:8px 14px">Protocolos · 8</button>
+  </div>
+
+  <!-- FAMÍLIAS -->
+  <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round" stroke-linejoin="round"/></svg> Famílias</div>
+
+  <div class="list-row">
+    <div class="av">FS</div>
+    <div class="li-main"><div class="li-t">Família Silva</div><div class="li-s">Ficha Cidadã IFP-2026-000401 · 4 membros · titular João da Silva</div></div>
+    <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Elegível</span>
+  </div>
+  <div class="list-row">
+    <div class="av">SP</div>
+    <div class="li-main"><div class="li-t">Família Silva Pereira</div><div class="li-s">Ficha Cidadã IFP-2026-000433 · 3 membros · titular Marta Silva Pereira</div></div>
+    <span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em análise</span>
+  </div>
+
+  <!-- BENEFICIÁRIOS -->
+  <div class="sec-tit" style="margin-top:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8" stroke-linecap="round" stroke-linejoin="round"/></svg> Beneficiários</div>
+
+  <div class="list-row">
+    <div class="av">JS</div>
+    <div class="li-main"><div class="li-t">João da Silva <span style="font-weight:400;color:#9a8f84;font-size:12px">· 42 anos · titular</span></div><div class="li-s">Centro Médico · Capacitação (Barbeiro) · IFP-2026-000401</div></div>
+    <span class="pill pill-unid" style="background:#E2F8F6;color:#0E9A95">Médico</span>
+  </div>
+  <div class="list-row">
+    <div class="av">JS</div>
+    <div class="li-main"><div class="li-t">João Silva <span style="font-weight:400;color:#9a8f84;font-size:12px">· 8 anos · filho</span></div><div class="li-s">Centro Médico · alerta clínico: asma · IFP-2026-000401</div></div>
+    <span class="pill pill-unid" style="background:#E2F8F6;color:#0E9A95">Médico</span>
+  </div>
+  <div class="list-row">
+    <div class="av">AS</div>
+    <div class="li-main"><div class="li-t">Ana Silva <span style="font-weight:400;color:#9a8f84;font-size:12px">· 5 anos · filha</span></div><div class="li-s">Centro Educacional · turma Maternal II · IFP-2026-000401</div></div>
+    <span class="pill pill-unid" style="background:#DCEFED;color:#005C59">Educacional</span>
+  </div>
+  <div class="list-row">
+    <div class="av">MS</div>
+    <div class="li-main"><div class="li-t">Marta Silva Pereira <span style="font-weight:400;color:#9a8f84;font-size:12px">· 37 anos · titular</span></div><div class="li-s">Capacitação · turma Costura Industrial · IFP-2026-000433</div></div>
+    <span class="pill pill-unid" style="background:#FCE9DD;color:#C24D0F">Capacitação</span>
+  </div>
+
+  <!-- PROTOCOLOS -->
+  <div class="sec-tit" style="margin-top:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h5" stroke-linecap="round" stroke-linejoin="round"/></svg> Protocolos</div>
+
+  <div class="list-row">
+    <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="li-main"><div class="li-t">IFP-2026-000401 · Família Silva</div><div class="li-s">Solicitação: Centro Médico + Educacional · aberto em 12/06/2026</div></div>
+    <span class="pill pill-ok">Concedido</span>
+  </div>
+  <div class="list-row">
+    <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="li-main"><div class="li-t">IFP-2026-000433 · Família Silva Pereira</div><div class="li-s">Solicitação: Capacitação · aguardando triagem do Serviço Social</div></div>
+    <span class="pill pill-warn">Pendente</span>
+  </div>
+
+  <div class="desc" style="text-align:center;margin-top:24px;font-size:12px">Mostrando os 8 mais relevantes · <a href="#" style="font-weight:600;color:var(--unidade)">ver todos os 23 resultados</a></div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

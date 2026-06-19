@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log de acessos (LGPD) · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="auditoria" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Auditoria e acessos</h2>
+      <div class="desc">Trilha de auditoria LGPD · todo toque em dado sensível fica registrado · retenção de 5 anos</div>
+    </div>
+    <button class="btn btn-outline">⤓ Exportar log (CSV)</button>
+  </div>
+
+  <!-- KPIs do dia -->
+  <div class="grid g4" style="margin-bottom:22px">
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Eventos hoje</span></div>
+      <div class="k-val">1.284</div>
+      <div class="k-delta k-flat">registrados nas últimas 24h</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Acessos a dado sensível</span></div>
+      <div class="k-val">312</div>
+      <div class="k-delta k-flat">prontuários e fichas</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Tentativas negadas</span><span class="k-tend" style="background:var(--erro-bg);color:var(--erro)">Atenção</span></div>
+      <div class="k-val">7</div>
+      <div class="k-delta k-flat">fora de escopo de perfil</div>
+    </div>
+    <div class="card kpi">
+      <div class="k-top"><span class="k-label">Exportações</span></div>
+      <div class="k-val">3</div>
+      <div class="k-delta k-flat">relatórios baixados</div>
+    </div>
+  </div>
+
+  <!-- filtros -->
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+    <label class="campo" style="margin:0;min-width:240px;flex:1"><span>Buscar usuário ou entidade</span><input placeholder="Nome, e-mail, protocolo…" /></label>
+    <label class="campo" style="margin:0;min-width:160px"><span>Ação</span><select><option>Todas as ações</option><option>Login</option><option>Visualização</option><option>Edição</option><option>Concessão de acesso</option><option>Exportação</option><option>Acesso negado</option></select></label>
+    <label class="campo" style="margin:0;min-width:150px"><span>Período</span><select><option>Hoje</option><option>Últimos 7 dias</option><option>Últimos 30 dias</option><option>Personalizado</option></select></label>
+  </div>
+
+  <!-- tabela de eventos -->
+  <div class="card" style="padding:8px 10px 4px">
+    <table class="tabela">
+      <thead>
+        <tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Entidade afetada</th><th>Origem (IP)</th><th>Resultado</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>17/06 · 09:41:08</td>
+          <td><b style="color:var(--tinta)">Dr. Marcos Alves</b><div style="font-size:11px;color:#9a8f84">Profissional · Médico</div></td>
+          <td><span class="pill" style="background:rgba(16,194,187,.14);color:#0E9A95;border-color:transparent">Visualização</span></td>
+          <td>Prontuário · João Silva (IFP-2026-900001)</td>
+          <td>10.0.2.34</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 09:38:55</td>
+          <td><b style="color:var(--tinta)">Sandra Campos</b><div style="font-size:11px;color:#9a8f84">Serviço Social</div></td>
+          <td><span class="pill" style="background:rgba(201,150,47,.16);color:#8a6516;border-color:transparent">Concessão de acesso</span></td>
+          <td>Elegibilidade · Família Silva → Centro Médico</td>
+          <td>10.0.1.12</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 09:30:02</td>
+          <td><b style="color:var(--tinta)">Raquel Souza</b><div style="font-size:11px;color:#9a8f84">Gestão · Centro Médico</div></td>
+          <td><span class="pill">Edição</span></td>
+          <td>Agenda · realocação de horário (IFP-2026-900002)</td>
+          <td>10.0.2.07</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 09:22:47</td>
+          <td><b style="color:var(--tinta)">Carlos Ferreira</b><div style="font-size:11px;color:#9a8f84">Profissional · Esportivo</div></td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">Acesso negado</span></td>
+          <td>Prontuário · Maria Oliveira (outra unidade)</td>
+          <td>10.0.4.51</td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">Negado</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 09:15:30</td>
+          <td><b style="color:var(--tinta)">Erick Ramos</b><div style="font-size:11px;color:#9a8f84">Administração</div></td>
+          <td><span class="pill">Exportação</span></td>
+          <td>Relatório de impacto · maio/2026 (CSV)</td>
+          <td>10.0.0.5</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 08:42:11</td>
+          <td><b style="color:var(--tinta)">Erick Ramos</b><div style="font-size:11px;color:#9a8f84">Administração</div></td>
+          <td><span class="pill">Login</span></td>
+          <td>Sessão · autenticação por senha + 2FA</td>
+          <td>10.0.0.5</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 08:31:59</td>
+          <td><b style="color:var(--tinta)">Tânia Moraes</b><div style="font-size:11px;color:#9a8f84">Gestão · Capacitação</div></td>
+          <td><span class="pill" style="background:rgba(255,119,46,.14);color:#C24D0F;border-color:transparent">Edição</span></td>
+          <td>Turma · matrícula (Curso Informática Básica)</td>
+          <td>10.0.3.22</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 08:05:14</td>
+          <td><b style="color:var(--tinta)">Paula Lima</b><div style="font-size:11px;color:#9a8f84">Família</div></td>
+          <td><span class="pill" style="background:rgba(0,117,113,.14);color:#005C59;border-color:transparent">Visualização</span></td>
+          <td>Diário da creche · Ana Lima (própria filha)</td>
+          <td>177.92.x.x (app)</td>
+          <td><span class="pill pill-ok">Permitido</span></td>
+        </tr>
+        <tr>
+          <td>17/06 · 07:58:40</td>
+          <td><b style="color:var(--tinta)">conta desconhecida</b><div style="font-size:11px;color:#9a8f84">tentativa de login</div></td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">Acesso negado</span></td>
+          <td>Sessão · senha incorreta (3ª tentativa)</td>
+          <td>189.45.x.x</td>
+          <td><span class="pill" style="background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.3)">Negado</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px">
+    <div class="desc">Mostrando 9 de 1.284 eventos de hoje · os registros são imutáveis</div>
+    <div class="periodo"><button>‹</button><span class="pl">Página 1 de 143</span><button>›</button></div>
+  </div>
+
+  <!-- nota LGPD -->
+  <div class="card" style="margin-top:22px;background:var(--unidade-suave);border:0;font-size:13px;color:var(--unidade-escuro);display:flex;gap:10px;align-items:center;max-width:780px">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="flex:0 0 auto"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+    Conformidade LGPD · toda leitura e escrita de dado pessoal é registrada com usuário, ação, entidade, data/hora e IP. A trilha é imutável e fica disponível ao Encarregado (DPO) para responder a titulares e à ANPD.
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

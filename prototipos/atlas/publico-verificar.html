@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verificar certificado · Instituto Família Poncio</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="publico" data-tela="verificar">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="site-main">
+
+  <section class="site-hero">
+    <div class="eyebrow">Verificação pública</div>
+    <h1>Confira a validade<br>de um certificado.</h1>
+    <p>Empregadores e instituições podem confirmar aqui, em segundos, se um certificado emitido pelo Centro de Capacitação é autêntico. Digite o código impresso no documento.</p>
+  </section>
+
+  <!-- campo de verificação -->
+  <section class="site-sec" style="max-width:760px">
+    <div class="card">
+      <label class="campo"><span>Código de verificação</span>
+        <input value="IFP-CERT-2026-04821" placeholder="Ex.: IFP-CERT-2026-00000" style="font-size:16px;letter-spacing:.04em" />
+      </label>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px">Verificar certificado</button>
+      <p class="desc" style="text-align:center;margin-top:10px">O código fica no rodapé do certificado, ao lado do QR Code.</p>
+    </div>
+  </section>
+
+  <!-- resultado: VÁLIDO -->
+  <section class="site-sec" style="max-width:760px;padding-top:0">
+    <div class="card" style="border:1px solid rgba(201,150,47,.55);border-top:5px solid var(--dourado)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="crest" style="width:46px;height:53px">
+            <span class="foto" style="font-size:15px">MA</span>
+            <svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg>
+          </span>
+          <div>
+            <div class="li-t" style="font-size:18px">Maria Aparecida dos Santos</div>
+            <div class="li-s">CPF ***.456.789-** · aluna do Centro de Capacitação</div>
+          </div>
+        </div>
+        <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Certificado válido</span>
+      </div>
+
+      <div class="grid g2" style="margin-top:22px">
+        <div>
+          <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a8f84;font-weight:600">Curso</div>
+          <div class="li-t" style="margin-top:3px">Padaria Artesanal</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a8f84;font-weight:600">Carga horária</div>
+          <div class="li-t" style="margin-top:3px">120 horas</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a8f84;font-weight:600">Conclusão</div>
+          <div class="li-t" style="margin-top:3px">15 de maio de 2026</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a8f84;font-weight:600">Aproveitamento</div>
+          <div class="li-t" style="margin-top:3px">Aprovada · média 9,2</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a8f84;font-weight:600">Código do certificado</div>
+          <div class="li-t" style="margin-top:3px">IFP-CERT-2026-04821</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a8f84;font-weight:600">Emissão</div>
+          <div class="li-t" style="margin-top:3px">20 de maio de 2026</div>
+        </div>
+      </div>
+
+      <ul class="tl" style="margin-top:22px">
+        <li><div class="tx">Documento emitido pelo Instituto Família Poncio</div><div class="tt">Centro de Capacitação · CNPJ 12.345.678/0001-90</div></li>
+        <li><div class="tx">Assinado digitalmente pela coordenação pedagógica</div><div class="tt">Profa. Helena Martins · 20/05/2026 14:32</div></li>
+        <li><div class="tx">Registro localizado na base oficial do Instituto</div><div class="tt">Última verificação: agora</div></li>
+      </ul>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <a class="btn btn-outline" href="#">Baixar comprovante de validade</a>
+        <a class="btn btn-ghost" href="#">Verificar outro código</a>
+      </div>
+    </div>
+
+    <p class="desc" style="text-align:center;margin-top:18px">Encontrou alguma divergência? <a href="publico-contato.html" style="color:var(--tinta);font-weight:600">Avise o Instituto.</a></p>
+  </section>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas de Telas · IFP Connect (Design CASA)</title>
+<link rel="stylesheet" href="casa.css" />
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:48px 30px 80px}
+.hero{text-align:center;margin-bottom:14px}
+.hero .med{width:64px;height:64px;margin:0 auto 14px}
+.hero .med .leao{width:44px;height:44px}
+.hero h1{font-size:34px;color:var(--tinta);font-weight:700;margin:0;letter-spacing:-.01em}
+.hero p{color:#9a8f84;margin:8px 0 0;font-size:15px}
+.legenda{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:22px 0 8px;font-size:11px;color:#9a8f84}
+.legenda b{color:var(--tinta)}
+.resumo{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+.resumo .chip{background:#fff;border:1px solid var(--linha);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--tinta)}
+.grupo{margin-top:30px}
+.grupo-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.grupo-h .dot{width:12px;height:12px;border-radius:3px;background:var(--unidade)}
+.grupo-h h2{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta);font-weight:600;margin:0}
+.grupo-h .cnt{font-size:11px;color:#9a8f84;margin-left:auto}
+.telas{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tela{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--linha);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .2s;position:relative;border-left:3px solid var(--unidade)}
+.tela.ok{cursor:pointer}.tela.ok:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.tela.soon{opacity:.62}
+.tela .tn{font-weight:600;color:var(--tinta);font-size:13.5px;line-height:1.25}
+.tela .badges{display:flex;gap:6px;flex-wrap:wrap}
+.bdg{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:999px;border:1px solid}
+.b-react{background:rgba(26,122,74,.1);color:var(--ok);border-color:rgba(26,122,74,.3)}
+.b-react-p{background:#fff;color:#9a8f84;border-color:var(--linha)}
+.b-casa{background:var(--unidade-suave);color:var(--unidade-escuro);border-color:transparent}
+.b-novo{background:var(--ambar-bg);color:var(--ambar);border-color:rgba(194,77,15,.3)}
+.tela .st{font-size:10px;color:#9a8f84;margin-top:auto}
+.tela .pri{position:absolute;top:12px;right:12px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#bcae9f}
+.pri.alta{color:var(--ambar)}
+</style>
+</head>
+<body>
+<span class="watermark leao"><span class="brandmark"></span></span>
+<div class="wrap">
+  <div class="hero">
+    <span class="medalhao med"><span class="leao"><span class="brandmark"></span></span></span>
+    <h1>Atlas de Telas · IFP Connect</h1>
+    <p>Blueprint visual no padrão CASA — o front de todas as páginas do sistema.</p>
+    <div class="legenda">
+      <span><b class="b-react" style="padding:2px 6px;border-radius:4px">React</b> já existe em código</span>
+      <span><b style="color:var(--unidade-escuro)">CASA</b> desenhada no protótipo</span>
+      <span><b style="color:var(--ambar)">Novo</b> a criar do zero</span>
+    </div>
+    <div class="resumo" id="resumo"></div>
+  </div>
+  <div id="grupos"></div>
+</div>
+<script src="casa-shell.js"></script>
+<script>
+const COR={corte:'#752C05',social:'#C9962F',medico:'#10C2BB',capacitacao:'#FF772E',recreativo:'#007571',esportivo:'#9A3D0B',admin:'#4A4A49'};
+// r/c: e=existe, p=parcial, n=nao | ok:true => link clicável
+const GRUPOS=[
+ {g:'🌍 Site público (institucional)',cor:'corte',telas:[
+  {n:'Landing institucional',f:'publico-landing.html',r:'n',c:'n',p:'alta',ok:true},
+  {n:'As 4 Unidades (vitrine)',f:'publico-unidades.html',r:'n',c:'n',p:'alta'},
+  {n:'Como ser atendido',f:'publico-como-ser-atendido.html',r:'n',c:'n',p:'media'},
+  {n:'Doe / Apoie',f:'publico-doe.html',r:'n',c:'n',p:'media'},
+  {n:'Seja voluntário',f:'publico-voluntario.html',r:'n',c:'n',p:'media'},
+  {n:'Transparência',f:'publico-transparencia.html',r:'n',c:'n',p:'baixa'},
+  {n:'Contato / Onde estamos',f:'publico-contato.html',r:'n',c:'n',p:'baixa'},
+  {n:'Verificar certificado (QR)',f:'publico-verificar.html',r:'e',c:'n',p:'alta'},
+ ]},
+ {g:'🔐 Auth / Comum',cor:'corte',telas:[
+  {n:'Login',f:'auth-login.html',r:'e',c:'p',p:'alta'},
+  {n:'Recuperar / redefinir senha',f:'auth-recuperar-senha.html',r:'n',c:'n',p:'alta'},
+  {n:'Primeiro acesso (convite)',f:'auth-primeiro-acesso.html',r:'n',c:'n',p:'media'},
+  {n:'Home / Hub por perfil',f:'auth-hub.html',r:'e',c:'n',p:'alta'},
+  {n:'Switcher de unidade',f:'auth-switcher.html',r:'p',c:'p',p:'alta'},
+  {n:'Perfil / Minha conta',f:'comum-perfil.html',r:'n',c:'n',p:'media'},
+  {n:'Central de notificações',f:'comum-notificacoes.html',r:'n',c:'p',p:'baixa'},
+  {n:'Busca global (resultados)',f:'comum-busca.html',r:'n',c:'p',p:'baixa'},
+  {n:'Acesso negado (403)',f:'comum-403.html',r:'n',c:'n',p:'media'},
+ ]},
+ {g:'👑 Presidência / Executivo',cor:'corte',telas:[
+  {n:'Sala de Comando (painel)',f:'../home-poslogin-casa.html',r:'n',c:'e',p:'alta',ok:true},
+  {n:'Unidades (visão agregada)',f:'presidencia-unidades.html',r:'n',c:'e',p:'media'},
+  {n:'Impacto (12 meses)',f:'presidencia-impacto.html',r:'n',c:'e',p:'media'},
+  {n:'Famílias (agregado)',f:'presidencia-familias.html',r:'n',c:'e',p:'media'},
+  {n:'Relatórios (PDF selado)',f:'presidencia-relatorios.html',r:'n',c:'e',p:'media'},
+ ]},
+ {g:'🤝 Serviço Social',cor:'social',telas:[
+  {n:'Início / Dashboard',f:'social-inicio.html',r:'e',c:'n',p:'alta'},
+  {n:'Fichas Cidadãs (lista)',f:'social-fichas.html',r:'e',c:'e',p:'alta'},
+  {n:'Nova Ficha (wizard 5 etapas)',f:'social-ficha-nova.html',r:'e',c:'n',p:'alta'},
+  {n:'Ficha — detalhe da família',f:'social-ficha-detalhe.html',r:'e',c:'e',p:'alta'},
+  {n:'Elegibilidades por membro',f:'social-elegibilidade.html',r:'p',c:'e',p:'alta'},
+  {n:'Fila de Triagem',f:'social-triagem.html',r:'n',c:'e',p:'alta'},
+  {n:'Ponte da Corte',f:'social-ponte.html',r:'n',c:'e',p:'media'},
+  {n:'Agenda Geral transversal',f:'social-agenda.html',r:'n',c:'p',p:'baixa'},
+ ]},
+ {g:'🩺 Centro Médico',cor:'medico',telas:[
+  {n:'Painel do dia',f:'medico-painel.html',r:'e',c:'e',p:'alta'},
+  {n:'Agenda do dia',f:'medico-agenda.html',r:'e',c:'e',p:'alta',ok:true},
+  {n:'Prontuário SOAP',f:'medico-atendimento.html',r:'e',c:'e',p:'alta'},
+  {n:'Fila de espera (Kanban)',f:'medico-fila.html',r:'n',c:'e',p:'media'},
+  {n:'Beneficiários aprovados',f:'medico-beneficiarios.html',r:'n',c:'e',p:'media'},
+  {n:'Equipe / Profissionais',f:'medico-equipe.html',r:'n',c:'e',p:'baixa'},
+  {n:'Indicadores / Saúde pop.',f:'medico-indicadores.html',r:'n',c:'e',p:'media'},
+  {n:'Triagem de Enfermagem',f:'medico-triagem.html',r:'n',c:'e',p:'media'},
+  {n:'Odontologia (odontograma)',f:'medico-odonto.html',r:'n',c:'e',p:'baixa'},
+ ]},
+ {g:'🎓 Capacitação',cor:'capacitacao',telas:[
+  {n:'Painel',f:'cap-painel.html',r:'e',c:'e',p:'alta'},
+  {n:'Turmas (lista)',f:'cap-turmas.html',r:'e',c:'e',p:'alta'},
+  {n:'Turma — detalhe',f:'cap-turma.html',r:'e',c:'e',p:'alta'},
+  {n:'Chamada da aula',f:'cap-chamada.html',r:'e',c:'e',p:'alta'},
+  {n:'Catálogo de cursos',f:'cap-cursos.html',r:'n',c:'e',p:'media'},
+  {n:'Detalhe do curso (trilha)',f:'cap-curso.html',r:'n',c:'e',p:'baixa'},
+  {n:'Matrículas (ficha)',f:'cap-matriculas.html',r:'p',c:'e',p:'media'},
+  {n:'Sessões / Banco de modelos',f:'cap-sessoes.html',r:'n',c:'e',p:'media'},
+  {n:'Certificados (QR)',f:'cap-certificados.html',r:'p',c:'e',p:'media'},
+  {n:'Indicadores (funil)',f:'cap-indicadores.html',r:'n',c:'e',p:'media'},
+ ]},
+ {g:'🍼 Educacional / Creche',cor:'recreativo',telas:[
+  {n:'Painel do dia',f:'edu-painel.html',r:'e',c:'n',p:'alta'},
+  {n:'Turma do dia (check-in/out)',f:'edu-turma.html',r:'e',c:'n',p:'alta'},
+  {n:'Comunicados',f:'edu-comunicados.html',r:'e',c:'n',p:'alta'},
+  {n:'Perfil da Criança',f:'edu-crianca.html',r:'e',c:'n',p:'alta'},
+  {n:'Indicadores das turmas',f:'edu-indicadores.html',r:'n',c:'n',p:'baixa'},
+ ]},
+ {g:'⚽ Esportivo / Recreativo',cor:'esportivo',telas:[
+  {n:'Painel',f:'esp-painel.html',r:'n',c:'n',p:'media'},
+  {n:'Turmas / Atividades',f:'esp-turmas.html',r:'n',c:'n',p:'media'},
+  {n:'Chamada / Frequência',f:'esp-chamada.html',r:'n',c:'n',p:'baixa'},
+  {n:'Indicadores',f:'esp-indicadores.html',r:'n',c:'n',p:'baixa'},
+ ]},
+ {g:'👪 Portal Família (mobile)',cor:'recreativo',telas:[
+  {n:'Diário da criança',f:'familia-diario.html',r:'e',c:'n',p:'alta'},
+  {n:'Comunicados',f:'familia-comunicados.html',r:'e',c:'n',p:'alta'},
+  {n:'Minhas crianças',f:'familia-criancas.html',r:'e',c:'n',p:'alta'},
+  {n:'Ficha da criança',f:'familia-ficha.html',r:'e',c:'n',p:'alta'},
+  {n:'Agenda da família',f:'familia-agenda.html',r:'n',c:'e',p:'media'},
+  {n:'Certificados da família',f:'familia-certificados.html',r:'n',c:'e',p:'media'},
+ ]},
+ {g:'⚙️ Administração / Plataforma',cor:'admin',telas:[
+  {n:'Usuários e perfis (RBAC)',f:'admin-usuarios.html',r:'n',c:'n',p:'alta'},
+  {n:'Gestão de unidades',f:'admin-unidades.html',r:'n',c:'n',p:'media'},
+  {n:'Auditoria / LGPD',f:'admin-auditoria.html',r:'n',c:'n',p:'media'},
+  {n:'Configurações',f:'admin-config.html',r:'n',c:'n',p:'baixa'},
+ ]},
+];
+
+function badge(r,c){
+ let h='';
+ if(r==='e')h+='<span class="bdg b-react">React</span>';
+ else if(r==='p')h+='<span class="bdg b-react-p">React parcial</span>';
+ if(c==='e')h+='<span class="bdg b-casa">CASA</span>';
+ if(r==='n'&&c==='n')h+='<span class="bdg b-novo">Novo</span>';
+ return h;
+}
+let total=0,prontas=0,novas=0;
+document.getElementById('grupos').innerHTML=GRUPOS.map(grp=>{
+ const cor=COR[grp.cor];
+ const telas=grp.telas.map(t=>{
+   total++; prontas++; if(t.r==='n'&&t.c==='n')novas++;
+   const inner=`<div class="tn">${t.n}</div><div class="badges">${badge(t.r,t.c)}</div><div class="st">▸ abrir tela</div><span class="pri ${t.p}">${t.p}</span>`;
+   return `<a class="tela ok" href="${t.f}" target="_blank">${inner}</a>`;
+ }).join('');
+ return `<section class="grupo" style="--unidade:${cor}"><div class="grupo-h"><span class="dot"></span><h2>${grp.g}</h2><span class="cnt">${grp.telas.length} telas</span></div><div class="telas">${telas}</div></section>`;
+}).join('');
+document.getElementById('resumo').innerHTML=`<span class="chip">${total} telas no total</span><span class="chip">${prontas} prontas p/ ver</span><span class="chip">${novas} a criar do zero</span>`;
+</script>
+</body>
+</html>

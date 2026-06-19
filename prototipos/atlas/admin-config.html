@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Configurações da instituição · Administração</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="admin" data-tela="config" data-user="Erick Ramos" data-cargo="Administração" data-ini="ER">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Configurações da instituição</h2>
+      <div class="desc">Dados gerais, segurança e integrações da plataforma IFP Connect</div>
+    </div>
+    <button class="btn btn-primary">Salvar tudo</button>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal -->
+    <div>
+
+      <!-- Dados gerais -->
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+          Dados gerais
+        </div>
+        <div class="grid g2">
+          <label class="campo"><span>Razão social</span><input value="Instituto Família Pôncio" /></label>
+          <label class="campo"><span>CNPJ</span><input value="12.345.678/0001-90" /></label>
+          <label class="campo"><span>E-mail institucional</span><input value="contato@ifp.org.br" /></label>
+          <label class="campo"><span>Telefone</span><input value="(43) 3322-0000" /></label>
+        </div>
+        <label class="campo"><span>Endereço</span><input value="Rua das Acácias, 250 · Centro · Londrina/PR" /></label>
+        <div class="grid g2">
+          <label class="campo"><span>Encarregado de dados (DPO)</span><input value="Erick Ramos" /></label>
+          <label class="campo"><span>Fuso horário</span><select><option selected>America/Sao_Paulo (GMT-3)</option><option>UTC</option></select></label>
+        </div>
+      </div>
+
+      <!-- Segurança -->
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Segurança e acesso
+        </div>
+
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="li-main"><div class="li-t">Autenticação em 2 fatores (2FA)</div><div class="li-s">Obrigatória para perfis de gestão e administração</div></div>
+          <span class="pill pill-ok">Ativada</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="li-main"><div class="li-t">Expiração de senha</div><div class="li-s">Solicitar troca a cada 90 dias</div></div>
+          <span class="pill pill-ok">Ativada</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="li-main"><div class="li-t">Bloqueio por inatividade</div><div class="li-s">Suspender conta após 90 dias sem acesso</div></div>
+          <span class="pill pill-ok">Ativada</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:14px">
+          <div class="li-main"><div class="li-t">Encerramento automático de sessão</div><div class="li-s">Após período de inatividade na tela</div></div>
+          <span class="pill pill-warn">Desativada</span>
+        </div>
+
+        <div class="grid g2">
+          <label class="campo"><span>Tamanho mínimo da senha</span><input type="number" value="10" /></label>
+          <label class="campo"><span>Tempo de sessão (minutos)</span><input type="number" value="30" /></label>
+        </div>
+      </div>
+
+      <!-- Integrações -->
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+          Integrações
+        </div>
+
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">@</div>
+          <div class="li-main"><div class="li-t">Servidor de e-mail (SMTP)</div><div class="li-s">smtp.ifp.org.br · envio de comunicados e confirmações</div></div>
+          <span class="pill pill-ok">Conectado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">WA</div>
+          <div class="li-main"><div class="li-t">WhatsApp (API oficial)</div><div class="li-s">Lembretes de consulta e avisos da creche</div></div>
+          <span class="pill pill-ok">Conectado</span>
+        </div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="av">$</div>
+          <div class="li-main"><div class="li-t">Doações (gateway de pagamento)</div><div class="li-s">Pix e cartão na página pública de apoio</div></div>
+          <span class="pill pill-warn">Pendente</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="av">BI</div>
+          <div class="li-main"><div class="li-t">Exportação para BI</div><div class="li-s">Painel de indicadores externo (somente leitura)</div></div>
+          <span class="pill">Não configurado</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- coluna lateral -->
+    <div>
+
+      <div class="card">
+        <div class="sec-tit">Identidade da plataforma</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          <span class="medalhao" style="width:64px;height:64px"><span class="leao" style="width:44px;height:44px"><span class="brandmark"></span></span></span>
+          <div>
+            <div style="font-weight:600;color:var(--tinta)">IFP Connect</div>
+            <div class="desc">conceito CASA · tema da Corte</div>
+          </div>
+        </div>
+        <label class="campo"><span>Nome de exibição</span><input value="IFP Connect" /></label>
+        <label class="campo"><span>Cor da Corte (marca)</span><input value="#752C05" /></label>
+        <button class="btn btn-outline" style="width:100%">Trocar logotipo</button>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">Conformidade LGPD</div>
+        <ul class="tl">
+          <li><div class="tx">Política de privacidade publicada</div><div class="tt">v3 · atualizada em 02/2026</div></li>
+          <li><div class="tx">Retenção de logs de auditoria</div><div class="tt">5 anos (imutável)</div></li>
+          <li><div class="tx">Base legal dos dados de saúde</div><div class="tt">tutela da saúde · consentimento</div></li>
+          <li><div class="tx">Canal do titular (DPO)</div><div class="tt">dpo@ifp.org.br</div></li>
+        </ul>
+        <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em conformidade</span>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="sec-tit">Manutenção</div>
+        <div class="list-row" style="box-shadow:none;margin-bottom:8px">
+          <div class="li-main"><div class="li-t">Backup do banco de dados</div><div class="li-s">diário · 03:00 (último: hoje, ok)</div></div>
+          <span class="pill pill-ok">Ativo</span>
+        </div>
+        <div class="list-row" style="box-shadow:none">
+          <div class="li-main"><div class="li-t">Modo manutenção</div><div class="li-s">bloqueia o acesso público durante atualizações</div></div>
+          <span class="pill">Desligado</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;border:1px solid rgba(179,38,30,.3)">
+        <div class="sec-tit" style="color:var(--erro)">Zona de risco</div>
+        <p class="desc" style="margin-top:0">Ações irreversíveis. Exigem confirmação dupla e ficam registradas na auditoria.</p>
+        <button class="btn btn-danger" style="width:100%">Anonimizar dados de teste</button>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

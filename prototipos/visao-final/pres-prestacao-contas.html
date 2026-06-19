@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="corte">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prestação de Contas · Sumário por IA</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="presidencia" data-tela="relatorios" data-user="Erick Ramos" data-cargo="Presidencia" data-ini="ER">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Prestação de Contas</h2>
+      <div class="desc">Sumário executivo escrito por IA a partir dos números reais · para doadores e editais</div>
+    </div>
+    <div class="periodo"><button>‹</button><span class="pl">1º semestre 2026</span><button>›</button></div>
+  </div>
+
+  <!-- passo a passo -->
+  <div class="grid g3" style="margin-bottom:22px">
+    <div class="card" style="text-align:center"><div style="font-size:22px;color:var(--dourado);font-weight:700">1</div><div class="li-t" style="margin-top:4px">Selecione o período</div><div class="desc" style="font-size:12px">jan → jun/2026 selecionado</div></div>
+    <div class="card" style="text-align:center;border-color:var(--dourado)"><div style="font-size:22px;color:var(--dourado);font-weight:700">2</div><div class="li-t" style="margin-top:4px">IA redige o sumário</div><div class="desc" style="font-size:12px">a partir dos dados selados</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:22px;color:#bcae9f;font-weight:700">3</div><div class="li-t" style="margin-top:4px">Gere o PDF</div><div class="desc" style="font-size:12px">leão · gráficos · texto</div></div>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- preview do relatório -->
+    <div>
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Pré-visualização do relatório</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="background:#fff;padding:28px 26px;border-bottom:1px solid var(--linha)">
+          <!-- cabeçalho com leão -->
+          <div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--tinta);padding-bottom:14px;margin-bottom:18px">
+            <span class="medalhao" style="width:48px;height:48px;flex:0 0 auto"><span class="leao" style="width:32px;height:32px"><span class="brandmark"></span></span></span>
+            <div>
+              <div class="titulo" style="font-size:13px">Instituto Família Poncio</div>
+              <div class="muted" style="font-size:11px">Prestação de Contas · 1º semestre 2026</div>
+            </div>
+          </div>
+
+          <!-- sumário executivo da IA -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span class="pill" style="background:var(--unidade-suave);color:var(--unidade-escuro);border-color:transparent">✨ Sumário gerado por IA</span>
+          </div>
+          <div style="font-size:13px;line-height:1.7;color:var(--corpo)">
+            <p style="margin:0 0 10px">No primeiro semestre de 2026, o Instituto Família Poncio acolheu <b style="color:var(--tinta)">1.248 famílias</b>, alcançando <b style="color:var(--tinta)">4.612 pessoas</b> em situação de vulnerabilidade. O período marcou um crescimento de <b style="color:var(--tinta)">64%</b> no número de famílias acolhidas por mês em relação ao ano anterior.</p>
+            <p style="margin:0 0 10px">Destaca-se que <b style="color:var(--tinta)">41% das famílias</b> foram atendidas em mais de uma unidade, evidenciando a abordagem integral do Instituto. A Capacitação emitiu <b style="color:var(--tinta)">213 certificados</b> profissionalizantes, e o Centro Médico realizou o Mutirão de Inverno, atendendo 96 famílias em odontologia.</p>
+            <p style="margin:0">Cada real investido transformou trajetórias: o custo médio por família acolhida foi de <b style="color:var(--tinta)">R$ 184/mês</b>, abaixo da média do setor.</p>
+          </div>
+
+          <div style="height:1px;background:var(--linha);margin:18px 0"></div>
+
+          <!-- gráfico mini -->
+          <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Famílias acolhidas por mês</div>
+          <svg viewBox="0 0 320 80" style="width:100%;height:80px;display:block">
+            <polyline points="0,62 53,55 106,44 160,40 213,30 266,22 320,12" fill="none" stroke="var(--tinta)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="320" cy="12" r="4" fill="var(--dourado)" stroke="#fff" stroke-width="2"/>
+          </svg>
+
+          <div style="height:1px;background:var(--linha);margin:18px 0"></div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div class="muted" style="font-size:11px;line-height:1.5">Gerado em 18/06/2026<br>Protocolo IFP-PC-2026-S1 · dados anonimizados</div>
+            <span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Selado pela Corte</span>
+          </div>
+        </div>
+
+        <div style="padding:14px 18px;display:flex;gap:10px;justify-content:flex-end;background:var(--papel)">
+          <button class="btn btn-ghost">Reescrever sumário</button>
+          <button class="btn btn-gold"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Gerar PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- coluna de controle -->
+    <div>
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Números do período</div>
+      <div class="card" style="margin-bottom:16px">
+        <table class="tabela" style="font-size:12px">
+          <tbody>
+            <tr><td>Famílias acolhidas</td><td style="text-align:right"><b style="color:var(--tinta)">1.248</b></td></tr>
+            <tr><td>Pessoas impactadas</td><td style="text-align:right"><b style="color:var(--tinta)">4.612</b></td></tr>
+            <tr><td>Atendimentos realizados</td><td style="text-align:right"><b style="color:var(--tinta)">7.084</b></td></tr>
+            <tr><td>Certificados emitidos</td><td style="text-align:right"><b style="color:var(--tinta)">213</b></td></tr>
+            <tr><td>Custo médio / família</td><td style="text-align:right"><b style="color:var(--tinta)">R$ 184</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 4 2 6h10c0-2 2-3 2-6a7 7 0 0 0-7-7z"/><path d="M9 21h6"/></svg> Tom do sumário</div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--corpo)"><input type="radio" name="tom" checked> Para editais públicos (formal)</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--corpo)"><input type="radio" name="tom"> Para doadores (emocional)</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--corpo)"><input type="radio" name="tom"> Para imprensa (resumido)</label>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:14px">✨ Reescrever com IA</button>
+      </div>
+
+      <div class="desc" style="margin-top:12px;text-align:center">A IA só usa números já selados pela Corte. Nenhum dado individual entra no texto.</div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <a href="presidencia-relatorios.html" class="btn btn-outline" style="width:100%;justify-content:center">Voltar aos Relatórios</a>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

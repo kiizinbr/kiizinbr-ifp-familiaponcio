@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Equipe · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="equipe" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Equipe do Centro Médico</h2>
+      <div class="desc">Profissionais ativos · escala de hoje</div>
+    </div>
+    <button class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Convidar profissional
+    </button>
+  </div>
+
+  <!-- cards de profissionais com crest -->
+  <div class="grid g3">
+
+    <div class="card" style="text-align:center">
+      <span class="crest" style="width:64px;height:74px;margin:4px auto 12px;display:block"><span class="foto" style="font-size:20px">ML</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="font-weight:700;color:var(--tinta)">Dr. Marcos Lima</div>
+      <div class="desc">Clínico Geral · CRM 54.210</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+        <span class="pill pill-unid">Sala 2</span>
+        <span class="pill pill-ok">Em atendimento</span>
+      </div>
+      <div class="desc" style="font-size:12px">14 atendimentos hoje · agenda 92%</div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <span class="crest" style="width:64px;height:74px;margin:4px auto 12px;display:block"><span class="foto" style="font-size:20px">HR</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="font-weight:700;color:var(--tinta)">Dra. Helena Reis</div>
+      <div class="desc">Pediatria · CRM 61.044</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+        <span class="pill pill-unid">Sala 1</span>
+        <span class="pill pill-ok">Em atendimento</span>
+      </div>
+      <div class="desc" style="font-size:12px">9 atendimentos hoje · agenda 74%</div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <span class="crest" style="width:64px;height:74px;margin:4px auto 12px;display:block"><span class="foto" style="font-size:20px">BN</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="font-weight:700;color:var(--tinta)">Dra. Beatriz Nunes</div>
+      <div class="desc">Odontologia · CRO 28.901</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+        <span class="pill pill-unid">Sala 3</span>
+        <span class="pill pill-ok">Em atendimento</span>
+      </div>
+      <div class="desc" style="font-size:12px">6 atendimentos hoje · agenda 61%</div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <span class="crest" style="width:64px;height:74px;margin:4px auto 12px;display:block"><span class="foto" style="font-size:20px">CC</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="font-weight:700;color:var(--tinta)">Enf. Cláudia Campos</div>
+      <div class="desc">Enfermagem · COREN 312.770</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+        <span class="pill pill-unid">Triagem</span>
+        <span class="pill pill-ok">Disponível</span>
+      </div>
+      <div class="desc" style="font-size:12px">21 triagens hoje · risco classificado</div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <span class="crest" style="width:64px;height:74px;margin:4px auto 12px;display:block"><span class="foto" style="font-size:20px">RS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="font-weight:700;color:var(--tinta)">Raquel Souza</div>
+      <div class="desc">Gestão da unidade</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+        <span class="pill pill-unid">Coordenação</span>
+        <span class="pill pill-ok">Online</span>
+      </div>
+      <div class="desc" style="font-size:12px">Acompanhamento de KPIs e escala</div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <span class="crest" style="width:64px;height:74px;margin:4px auto 12px;display:block"><span class="foto" style="font-size:20px">TF</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+      <div style="font-weight:700;color:var(--tinta)">Thiago Farias</div>
+      <div class="desc">Recepção · acolhimento</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+        <span class="pill pill-unid">Balcão</span>
+        <span class="pill pill-ok">Disponível</span>
+      </div>
+      <div class="desc" style="font-size:12px">38 senhas emitidas hoje</div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

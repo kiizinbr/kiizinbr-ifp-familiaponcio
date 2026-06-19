@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="recreativo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ouvir o dia · Portal da Família</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="mobile" data-user="Sandra" data-cargo="Mãe da Ana" data-tela="diario">
+<span class="ribbon">Protótipo conceitual</span>
+<div class="phone-screen">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h" style="margin-bottom:14px">
+    <div>
+      <h2 style="font-size:20px">Ouvir o dia</h2>
+      <div class="desc">Ana Poncio · Berçário II · Hoje, 17/06</div>
+    </div>
+  </div>
+
+  <!-- botão GRANDE de play -->
+  <div class="card" style="margin-bottom:16px;background:var(--unidade-suave);border-color:transparent;text-align:center">
+    <p class="desc" style="margin:0 0 14px;color:var(--corpo);font-size:14px">Aperte o botão para ouvir como foi o dia da Ana. A gente conta tudo em voz alta para você. 💛</p>
+    <button id="btn-play" class="btn btn-gold" style="width:128px;height:128px;border-radius:50%;flex-direction:column;gap:6px;margin:0 auto;box-shadow:var(--shadow)" aria-label="Ouvir como foi o dia da Ana" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:44px;height:44px"><path d="M7 4v16l13-8z"/></svg>
+      <span style="font-size:14px;font-weight:700;letter-spacing:.02em">Ouvir o dia</span>
+    </button>
+    <div style="font-size:13px;color:var(--corpo);margin-top:14px;font-weight:600">Áudio de 1 minuto e 12 segundos</div>
+    <div style="font-size:11px;color:#9a8f84;margin-top:3px">Resumo gerado por voz a partir do diário da Tia Marta</div>
+  </div>
+
+  <!-- player com onda de áudio -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="sec-tit" style="margin-bottom:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></svg> Player</div>
+
+    <!-- onda de áudio estilizada (SVG) -->
+    <svg viewBox="0 0 320 56" preserveAspectRatio="none" style="width:100%;height:56px;display:block;margin-bottom:10px" role="img" aria-label="Onda do áudio do resumo do dia">
+      <g fill="var(--unidade)">
+        <rect x="4" y="22" width="5" height="12" rx="2.5"/><rect x="14" y="16" width="5" height="24" rx="2.5"/><rect x="24" y="10" width="5" height="36" rx="2.5"/><rect x="34" y="20" width="5" height="16" rx="2.5"/><rect x="44" y="6" width="5" height="44" rx="2.5"/><rect x="54" y="18" width="5" height="20" rx="2.5"/><rect x="64" y="24" width="5" height="8" rx="2.5"/><rect x="74" y="12" width="5" height="32" rx="2.5"/><rect x="84" y="8" width="5" height="40" rx="2.5"/><rect x="94" y="20" width="5" height="16" rx="2.5"/>
+      </g>
+      <g fill="var(--linha)">
+        <rect x="104" y="14" width="5" height="28" rx="2.5"/><rect x="114" y="22" width="5" height="12" rx="2.5"/><rect x="124" y="10" width="5" height="36" rx="2.5"/><rect x="134" y="18" width="5" height="20" rx="2.5"/><rect x="144" y="6" width="5" height="44" rx="2.5"/><rect x="154" y="24" width="5" height="8" rx="2.5"/><rect x="164" y="16" width="5" height="24" rx="2.5"/><rect x="174" y="12" width="5" height="32" rx="2.5"/><rect x="184" y="20" width="5" height="16" rx="2.5"/><rect x="194" y="8" width="5" height="40" rx="2.5"/><rect x="204" y="22" width="5" height="12" rx="2.5"/><rect x="214" y="14" width="5" height="28" rx="2.5"/><rect x="224" y="10" width="5" height="36" rx="2.5"/><rect x="234" y="20" width="5" height="16" rx="2.5"/><rect x="244" y="6" width="5" height="44" rx="2.5"/><rect x="254" y="24" width="5" height="8" rx="2.5"/><rect x="264" y="16" width="5" height="24" rx="2.5"/><rect x="274" y="12" width="5" height="32" rx="2.5"/><rect x="284" y="18" width="5" height="20" rx="2.5"/><rect x="294" y="22" width="5" height="12" rx="2.5"/><rect x="304" y="14" width="5" height="28" rx="2.5"/><rect x="314" y="24" width="3" height="8" rx="1.5"/>
+      </g>
+    </svg>
+
+    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--unidade);margin-bottom:14px">
+      <span>0:21</span><span style="color:#9a8f84">1:12</span>
+    </div>
+
+    <!-- controles grandes -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:18px">
+      <button class="btn btn-outline" style="width:60px;height:60px;border-radius:50%;padding:0;justify-content:center" aria-label="Voltar 15 segundos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px"><path d="M11 4 7 8l4 4M7 8h7a4 4 0 0 1 0 8h-1"/></svg>
+      </button>
+      <button class="btn btn-gold" style="width:78px;height:78px;border-radius:50%;padding:0;justify-content:center;box-shadow:var(--shadow-sm)" aria-label="Pausar áudio">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:30px;height:30px"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      </button>
+      <button class="btn btn-outline" style="width:60px;height:60px;border-radius:50%;padding:0;justify-content:center" aria-label="Avançar 15 segundos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px"><path d="M13 4l4 4-4 4M17 8h-7a4 4 0 0 0 0 8h1"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- acessibilidade -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="sec-tit" style="margin-bottom:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 9l8 2 8-2M12 11v6M9 22l3-5 3 5"/></svg> Mais fácil de usar</div>
+    <div class="list-row">
+      <div class="li-main"><div class="li-t">Velocidade da voz</div><div class="li-s">Mais devagar, no seu tempo</div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:13px">0,75×</button><button class="btn btn-primary" style="padding:6px 12px;font-size:13px">1×</button></div>
+    </div>
+    <div class="list-row">
+      <div class="li-main"><div class="li-t">Ler o texto na tela</div><div class="li-s">Mostrar tudo escrito, palavra por palavra</div></div>
+      <span class="pill pill-ok">Ligado</span>
+    </div>
+    <div class="list-row">
+      <div class="li-main"><div class="li-t">Receber por áudio no WhatsApp</div><div class="li-s">Todo dia, às 18h, a gente te manda</div></div>
+      <span class="pill pill-unid">Ativar</span>
+    </div>
+  </div>
+
+  <!-- transcrição -->
+  <div class="card" style="margin-bottom:16px;background:var(--unidade-suave);border-color:transparent">
+    <div class="sec-tit" style="margin-bottom:8px">O que o áudio está dizendo</div>
+    <p class="desc" style="margin:0;color:var(--corpo);font-size:13.5px;line-height:1.6">"Oi, Dona Sandra! A Ana teve um ótimo dia hoje. No café da manhã ela comeu todo o mingau de aveia com mamão. No almoço comeu metade do prato. De tarde tirou uma soneca tranquila de uma hora e meia. Ela participou da rodinha de música, cantou e bateu palminha. Saiu daqui de bom humor. Ah, e a fralda está acabando — manda um pacote novo amanhã, tá? Um beijo da Tia Marta!"</p>
+    <div style="font-size:11px;color:#9a8f84;margin-top:10px">Voz gerada por IA · texto fiel ao diário · 16:50</div>
+  </div>
+
+  <a class="btn btn-outline" href="familia-diario.html" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg> Ver o diário escrito</a>
+
+</div>
+<script src="casa-shell.js"></script>
+</body>
+</html>

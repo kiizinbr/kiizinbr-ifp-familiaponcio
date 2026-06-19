@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="capacitacao">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Indicadores &amp; Impacto · Centro de Capacitação</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="capacitacao" data-tela="indicadores" data-user="Tânia Reis" data-cargo="Capacitação" data-ini="TR">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Indicadores &amp; Impacto</h2>
+      <div class="desc">Centro de Capacitação · semestre 1/2026</div>
+    </div>
+    <button class="btn btn-outline">Exportar relatório</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="card kpi"><div class="k-top"><span class="k-label">Ocupação</span><span class="k-tend">Em alta</span></div><div class="k-val">87%</div><div class="k-delta k-up">+4 pts no semestre</div></div>
+    <div class="card kpi"><span class="k-label">Frequência média</span><div class="k-val">84%</div><div class="k-delta k-up">+2 pts</div></div>
+    <div class="card kpi"><span class="k-label">Evasão</span><div class="k-val">6%</div><div class="k-delta k-up">-2 pts (melhorou)</div></div>
+    <div class="card kpi"><span class="k-label">Taxa de destino</span><div class="k-val">64%</div><div class="k-delta">concluintes que seguem p/ trabalho</div></div>
+  </div>
+
+  <div class="grid g-50">
+    <!-- funil capacitar -> empregar -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Funil capacitar → empregar</div>
+      <p class="desc" style="margin-top:-4px">Do interesse à colocação: cada etapa mostra quantos seguem adiante.</p>
+
+      <div class="bar-row"><div class="bl"><span>Matrículas</span><b>540</b></div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Em curso ativo</span><b>488</b></div><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Concluintes / mês</span><b>38</b></div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Certificados</span><b>31</b></div><div class="bar-track"><div class="bar-fill" style="width:32%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Banco de Talentos</span><b>24</b></div><div class="bar-track"><div class="bar-fill" style="width:25%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Encaminhados ao mercado</span><b>15</b></div><div class="bar-track"><div class="bar-fill" style="width:16%"></div></div></div>
+
+      <div class="desc" style="margin-top:10px">Taxa de conclusão do ciclo: <b style="color:var(--tinta)">64%</b> das matrículas chegam ao certificado dentro do ano letivo.</div>
+    </div>
+
+    <!-- ocupação por curso -->
+    <div class="card">
+      <div class="sec-tit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Ocupação por curso</div>
+      <div class="bar-row"><div class="bl"><span>Corte e Costura</span><b>90%</b></div><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Padaria &amp; Confeitaria</span><b>85%</b></div><div class="bar-track"><div class="bar-fill" style="width:85%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Cabeleireira</span><b>82%</b></div><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Informática Básica</span><b>80%</b></div><div class="bar-track"><div class="bar-fill" style="width:80%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Manicure &amp; Design</span><b>79%</b></div><div class="bar-track"><div class="bar-fill" style="width:79%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Massoterapia</span><b>74%</b></div><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Barbeiro</span><b>71%</b></div><div class="bar-track"><div class="bar-fill" style="width:71%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Maquiagem</span><b>70%</b></div><div class="bar-track"><div class="bar-fill" style="width:70%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Design Gráfico</span><b>66%</b></div><div class="bar-track"><div class="bar-fill" style="width:66%"></div></div></div>
+    </div>
+  </div>
+
+  <!-- taxa de conclusão por turma -->
+  <div class="card" style="margin-top:18px">
+    <div class="sec-tit">Taxa de conclusão por turma · ciclo 2025/2</div>
+    <div class="grid g3">
+      <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+        <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="15.3" transform="rotate(-90 32 32)"/></svg><span class="num">91%</span></span>
+        <div class="pinfo"><div class="pn">Costura Industrial</div><div class="pm">28 de 31 concluíram</div><span class="pstatus" style="background:var(--unidade-suave);color:var(--unidade-escuro)">EXCELENTE</span></div>
+      </div>
+      <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+        <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="32.2" transform="rotate(-90 32 32)"/></svg><span class="num">81%</span></span>
+        <div class="pinfo"><div class="pn">Informática Básica</div><div class="pm">22 de 27 concluíram</div><span class="pstatus" style="background:var(--unidade-suave);color:var(--unidade-escuro)">BOM</span></div>
+      </div>
+      <div class="card pulso" style="--u:var(--unidade);box-shadow:none">
+        <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="55" transform="rotate(-90 32 32)"/></svg><span class="num">68%</span></span>
+        <div class="pinfo"><div class="pn">Barbeiro 2025/2</div><div class="pm">17 de 25 concluíram</div><span class="pstatus" style="background:#FCE9DD;color:#C24D0F">ATENÇÃO</span></div>
+      </div>
+    </div>
+    <div class="desc" style="margin-top:12px">Turmas com prática externa (modelos) têm maior evasão — o cruzamento com o Serviço Social aponta transporte e cuidado dos filhos como causas-raiz, tratadas pela Ponte da Corte.</div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

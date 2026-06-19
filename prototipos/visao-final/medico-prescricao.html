@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prescrição · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="prontuarios" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Prescrição estruturada</h2>
+      <div class="desc">João da Silva · 8 anos · IFP-2026-900014 · sala 2 · 26 kg</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <a class="btn btn-ghost" href="medico-atendimento.html">‹ Voltar à prancha</a>
+      <button class="btn btn-gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l4 4 5-6 5 6 4-4v10H3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Assinar e selar receita
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTA de alergia (faixa de segurança no topo) -->
+  <div style="display:flex;align-items:center;gap:12px;background:var(--erro-bg);color:var(--erro);border:1px solid rgba(179,38,30,.3);border-radius:14px;padding:13px 16px;margin-bottom:18px;font-weight:600">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;flex:0 0 auto"><path d="M12 3 1 21h22L12 3zM12 9v5M12 17.5v.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>Alergia grave registrada: <b>Dipirona</b> (anafilaxia em 2024). O sistema bloqueia a prescrição deste fármaco e correlatos.</div>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal: buscar medicamento + itens da receita -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-4.3-4.3M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Buscar no catálogo
+        </div>
+        <label class="campo"><span>Medicamento</span><input value="Dipiro" placeholder="Digite o princípio ativo ou nome comercial" /></label>
+        <!-- resultado do catálogo: o item perigoso aparece marcado -->
+        <div style="display:flex;align-items:center;gap:12px;border:2px solid var(--erro);background:var(--erro-bg);border-radius:12px;padding:11px 13px;margin-bottom:8px;cursor:not-allowed">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--erro)" stroke-width="2" style="width:20px;height:20px;flex:0 0 auto"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14" stroke-linecap="round"/></svg>
+          <div style="flex:1"><div style="font-weight:700;color:var(--erro)">Dipirona sódica 500 mg/mL · gotas</div><div class="desc" style="font-size:12px;color:var(--erro)">Bloqueado para este paciente — alergia grave</div></div>
+          <span class="pill" style="background:#fff;border-color:rgba(179,38,30,.3);color:var(--erro)">conflito</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--linha);background:#fff;border-radius:12px;padding:11px 13px;cursor:pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" style="width:20px;height:20px;flex:0 0 auto"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="flex:1"><div style="font-weight:700;color:var(--tinta)">Paracetamol 200 mg/mL · gotas</div><div class="desc" style="font-size:12px">Alternativa segura · antitérmico/analgésico</div></div>
+          <span class="pill pill-ok">liberado</span>
+        </div>
+      </div>
+
+      <!-- Itens já prescritos (fluxo NORMAL) -->
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1zM8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Receita em montagem
+        </div>
+        <!-- item 1 -->
+        <div class="list-row">
+          <div class="av" style="background:var(--ok);color:#fff">1</div>
+          <div class="li-main"><div class="li-t">Paracetamol 200 mg/mL · gotas</div><div class="li-s">13 gotas (1 gota/kg) · via oral · de 6/6 h · por 3 dias se febre &gt; 37,8 °C</div></div>
+          <span class="pill pill-ok">dose p/ 26 kg ✓</span>
+        </div>
+        <!-- item 2 -->
+        <div class="list-row">
+          <div class="av" style="background:var(--unidade);color:#fff">2</div>
+          <div class="li-main"><div class="li-t">Salbutamol spray 100 mcg</div><div class="li-s">2 jatos · via inalatória · de 8/8 h · uso contínuo (asma)</div></div>
+          <span class="pill pill-unid">crônico</span>
+        </div>
+        <div class="sec-tit" style="margin-top:18px">Adicionar item · dose / via / duração</div>
+        <div class="grid g2">
+          <label class="campo"><span>Medicamento</span><input value="Paracetamol 200 mg/mL gotas" /></label>
+          <label class="campo"><span>Via</span><select><option>Oral</option><option>Inalatória</option><option>Intramuscular</option><option>Endovenosa</option><option>Tópica</option></select></label>
+        </div>
+        <div class="grid g3">
+          <label class="campo"><span>Dose</span><input value="13 gotas" /></label>
+          <label class="campo"><span>Intervalo</span><input value="6/6 h" /></label>
+          <label class="campo"><span>Duração</span><input value="3 dias" /></label>
+        </div>
+        <label class="campo"><span>Orientação ao paciente</span><textarea rows="2">Administrar somente se febre acima de 37,8 °C. Não exceder 5 doses ao dia. Retornar se febre persistir por mais de 72 h.</textarea></label>
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <button class="btn btn-ghost">Limpar</button>
+          <button class="btn btn-primary">+ Adicionar à receita</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- coluna lateral: paciente + verificador de segurança -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <span class="crest" style="width:46px;height:53px"><span class="foto" style="font-size:15px">JS</span><svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none"><path d="M50,4 C78,4 94,22 94,42 C94,74 74,96 50,112 C26,96 6,74 6,42 C6,22 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></svg></span>
+          <div>
+            <div style="font-weight:700;color:var(--tinta)">João da Silva</div>
+            <div class="desc">8 anos · pediátrico · dose p/ 26 kg</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <span class="pill pill-warn">⚠ Alergia: Dipirona</span>
+          <span class="pill pill-unid">Asma</span>
+          <span class="pill">💊 Bombinha 2x/dia</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Verificador de segurança
+        </div>
+        <div style="padding:11px;border-radius:11px;background:rgba(26,122,74,.1);color:var(--ok);font-size:13px;margin-bottom:8px;font-weight:600;display:flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:0 0 auto"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg> Doses pediátricas conferidas por peso</div>
+        <div style="padding:11px;border-radius:11px;background:rgba(26,122,74,.1);color:var(--ok);font-size:13px;margin-bottom:8px;font-weight:600;display:flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:0 0 auto"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg> Sem interações entre os itens atuais</div>
+        <div style="padding:11px;border-radius:11px;background:var(--erro-bg);color:var(--erro);font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:0 0 auto"><path d="M12 3 1 21h22L12 3zM12 9v5M12 17.5v.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 1 fármaco bloqueado por alergia (Dipirona)</div>
+        <div class="sec-tit" style="margin-top:16px">Trilha de auditoria</div>
+        <ul class="tl">
+          <li><div class="tx">Receita aberta por Dra. Ana Souza</div><div class="tt">14:22</div></li>
+          <li><div class="tx">Paracetamol adicionado · dose validada</div><div class="tt">14:24</div></li>
+          <li><div class="tx" style="color:var(--erro);font-weight:600">Tentativa de Dipirona bloqueada (HTTP 409)</div><div class="tt">14:25</div></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== ESTADO DE BLOQUEIO (modal 409) ===================== -->
+  <div style="position:fixed;inset:0;background:rgba(43,33,24,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50">
+    <div class="card" style="max-width:520px;width:100%;border:2px solid var(--erro);box-shadow:var(--shadow);padding:0;overflow:hidden">
+      <!-- faixa de erro -->
+      <div style="background:var(--erro);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:26px;height:26px;flex:0 0 auto"><path d="M12 3 1 21h22L12 3zM12 9v5M12 17.5v.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><div style="font-weight:700;font-size:16px">Prescrição bloqueada · 409</div><div style="font-size:12px;opacity:.85">Validação de segurança no servidor</div></div>
+      </div>
+      <div style="padding:20px">
+        <p style="margin:0 0 14px;color:var(--corpo);font-size:14px;line-height:1.5">Você tentou prescrever <b style="color:var(--erro)">Dipirona sódica</b> para um paciente com alergia <b>GRAVE</b> a este princípio ativo. Esta ação foi <b>recusada pelo servidor</b> e registrada.</p>
+        <!-- a alergia em destaque -->
+        <div style="background:var(--erro-bg);border:1px solid rgba(179,38,30,.3);border-radius:12px;padding:14px;margin-bottom:16px">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--erro);font-weight:700;margin-bottom:6px">Alergia em ficha</div>
+          <div style="font-weight:700;color:var(--erro);font-size:18px">Dipirona — anafilaxia (GRAVE)</div>
+          <div class="desc" style="font-size:12px;color:var(--erro)">Registrada em 11/08/2024 por Dr. Marcos Lima · confirmada pela responsável</div>
+        </div>
+        <label class="campo"><span>Justificativa clínica obrigatória (override auditado)</span><textarea rows="3" placeholder="Descreva a justificativa clínica. Esta sobreposição exige co-assinatura da coordenação médica e fica registrada com seu CRM, data e hora."></textarea></label>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#9a8f84;margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex:0 0 auto"><path d="M12 1l3 6 6 .9-4.5 4.3L18 19l-6-3-6 3 1.5-6.8L3 7.9 9 7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Override registra: CRM, IP, data/hora, justificativa e exige 2ª assinatura.
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <a class="btn btn-primary" href="medico-prescricao.html">Voltar e usar alternativa segura</a>
+          <button class="btn btn-danger">Solicitar override auditado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

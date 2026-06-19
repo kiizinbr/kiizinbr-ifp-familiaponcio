@@ -1,0 +1,81 @@
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" role="img" aria-label="Leao coroado heraldico">
+  <g fill="currentColor">
+    <!-- Moldura ogival externa (escudo de arco apontado) -->
+    <path d="M120 8
+             C152 8 196 18 208 30
+             C212 90 206 158 168 200
+             C150 220 134 230 120 232
+             C106 230 90 220 72 200
+             C34 158 28 90 32 30
+             C44 18 88 8 120 8 Z"/>
+  </g>
+  <!-- Recorte interno (papel) que deixa so o aro da moldura -->
+  <g fill="#FAF7F2">
+    <path d="M120 22
+             C148 22 186 31 196 41
+             C199 94 194 152 160 189
+             C144 207 132 216 120 218
+             C108 216 96 207 80 189
+             C46 152 41 94 44 41
+             C54 31 92 22 120 22 Z"/>
+  </g>
+  <g fill="currentColor">
+    <!-- Coroa de 3 pontas (status / CoroaSeal) -->
+    <path d="M84 64
+             L96 48 L108 62 L120 42 L132 62 L144 48 L156 64
+             C150 72 132 76 120 76
+             C108 76 90 72 84 64 Z"/>
+    <circle cx="96" cy="48" r="5"/>
+    <circle cx="120" cy="42" r="5.5"/>
+    <circle cx="144" cy="48" r="5"/>
+
+    <!-- Juba: petalas radiais grossas em torno da face -->
+    <path d="M120 72
+             C150 72 176 92 178 122
+             C178 130 174 137 168 141
+             C176 146 180 156 176 166
+             C170 162 162 160 156 161
+             C162 170 162 182 154 190
+             C150 182 144 177 138 175
+             C140 186 134 197 122 200
+             C124 190 122 182 118 177
+             L122 177
+             C114 184 102 184 94 178
+             C100 174 104 168 105 162
+             C96 167 84 165 78 156
+             C86 154 92 150 95 145
+             C85 146 76 140 74 130
+             C82 132 89 131 94 128
+             C84 122 80 110 84 99
+             C90 104 97 106 103 105
+             C92 96 90 82 96 72
+             C102 80 110 84 116 84
+             C108 78 105 70 108 62
+             C113 70 117 73 120 72 Z"/>
+  </g>
+  <!-- Face do leao (espaco negativo em papel) -->
+  <g fill="#FAF7F2">
+    <path d="M120 86
+             C140 86 154 102 154 124
+             C154 144 140 162 120 168
+             C100 162 86 144 86 124
+             C86 102 100 86 120 86 Z"/>
+  </g>
+  <g fill="currentColor">
+    <!-- Olhos -->
+    <path d="M104 116 C108 110 116 110 119 116 C115 119 108 119 104 116 Z"/>
+    <path d="M121 116 C124 110 132 110 136 116 C132 119 125 119 121 116 Z"/>
+    <!-- Focinho + nariz (forma de coracao invertido = simpatia) -->
+    <path d="M120 128
+             C126 128 132 132 132 139
+             C132 145 127 150 120 154
+             C113 150 108 145 108 139
+             C108 132 114 128 120 128 Z"/>
+    <!-- Linha do nariz/boca para dar leitura felina -->
+    <path d="M120 154 C118 160 114 162 109 162 C113 158 116 156 120 154 Z"/>
+    <path d="M120 154 C122 160 126 162 131 162 C127 158 124 156 120 154 Z"/>
+    <!-- Orelhas integradas no topo da face -->
+    <path d="M93 104 C90 96 92 90 99 88 C100 95 99 101 96 106 Z"/>
+    <path d="M147 104 C150 96 148 90 141 88 C140 95 141 101 144 106 Z"/>
+  </g>
+</svg>

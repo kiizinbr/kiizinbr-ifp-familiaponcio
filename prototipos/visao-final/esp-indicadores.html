@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="esportivo">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Indicadores esportivos · Centro Esportivo</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="esportivo" data-tela="indicadores" data-user="Sensei Marcos" data-cargo="Centro Esportivo" data-ini="SM">
+<span class="ribbon">Prototipo conceitual</span>
+<main class="conteudo">
+
+  <div class="page-h">
+    <div>
+      <h2>Indicadores esportivos</h2>
+      <div class="desc">Graduações, evolução de atletas e frequência média · período: Jan a Jun/2026</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <select style="padding:9px 12px;border:1px solid var(--linha);border-radius:10px;background:#fff;color:var(--corpo)"><option>1º semestre 2026</option><option>2º semestre 2025</option><option>Ano de 2025</option></select>
+      <button class="btn btn-outline">Exportar PDF</button>
+    </div>
+  </div>
+
+  <!-- KPIs de topo -->
+  <div class="grid g4">
+    <div class="card kpi"><div class="k-top"><span class="k-label">Graduações no semestre</span><span class="k-tend">Em alta</span></div><div class="k-val">94</div><div class="k-delta k-up">+22% vs semestre anterior</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Frequência média geral</span><span class="k-tend">Estável</span></div><div class="k-val">84%</div><div class="k-delta k-up">+3% vs semestre anterior</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Taxa de evolução</span><span class="k-tend">Em alta</span></div><div class="k-val">71%</div><div class="k-delta k-up">atletas que subiram de grau</div></div>
+    <div class="card kpi"><div class="k-top"><span class="k-label">Evasão</span><span class="k-tend">Atenção</span></div><div class="k-val">6%</div><div class="k-delta k-flat">-2% vs semestre anterior</div></div>
+  </div>
+
+  <div class="grid g-60-40" style="margin-top:22px">
+
+    <!-- evolução de graduações por mês (barras) -->
+    <div class="card">
+      <div class="sec-tit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+        Graduações concedidas por mês
+      </div>
+      <div class="bar-row"><div class="bl"><span>Janeiro</span><b>9</b></div><div class="bar-track"><div class="bar-fill" style="width:32%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Fevereiro</span><b>11</b></div><div class="bar-track"><div class="bar-fill" style="width:39%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Março</span><b>14</b></div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Abril</span><b>17</b></div><div class="bar-track"><div class="bar-fill" style="width:61%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Maio</span><b>16</b></div><div class="bar-track"><div class="bar-fill" style="width:57%"></div></div></div>
+      <div class="bar-row"><div class="bl"><span>Junho</span><b>27</b></div><div class="bar-track"><div class="bar-fill" style="width:96%"></div></div></div>
+      <p class="desc" style="margin-top:10px">Pico em junho: exame de faixa do 1º semestre concentrou 27 graduações (14 Kids e 13 adultos/juvenis).</p>
+    </div>
+
+    <!-- distribuição de faixas (anéis) -->
+    <div class="card">
+      <div class="sec-tit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 7v6l8 4 8-4V7"/></svg>
+        Frequência média por modalidade
+      </div>
+      <div style="display:flex;gap:16px;align-items:center;justify-content:space-around;flex-wrap:wrap;margin:6px 0 4px">
+        <div style="text-align:center">
+          <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="15.3"/></svg><span class="num">91%</span></span>
+          <div class="desc" style="margin-top:6px">Jiu-Jitsu</div>
+        </div>
+        <div style="text-align:center">
+          <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="30.5"/></svg><span class="num">82%</span></span>
+          <div class="desc" style="margin-top:6px">Futsal</div>
+        </div>
+        <div style="text-align:center">
+          <span class="juba-ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--linha)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--unidade)" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="44.1"/></svg><span class="num">74%</span></span>
+          <div class="desc" style="margin-top:6px">Vôlei</div>
+        </div>
+      </div>
+      <ul class="tl" style="margin-top:14px">
+        <li><div class="tx">Jiu-Jitsu é a modalidade mais assídua da unidade</div><div class="tt">91% de presença média</div></li>
+        <li><div class="tx">Vôlei adulto puxa a média para baixo — turno noturno</div><div class="tt">ação: avaliar horário alternativo</div></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- distribuição de atletas por graduação (Jiu-Jitsu) -->
+  <div class="card" style="margin-top:22px">
+    <div class="sec-tit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+      Distribuição de atletas por graduação · Jiu-Jitsu
+    </div>
+    <div class="grid g2">
+      <div>
+        <div class="bar-row"><div class="bl"><span>Faixa Branca (adulto)</span><b>132</b></div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Faixa Azul</span><b>41</b></div><div class="bar-track"><div class="bar-fill" style="width:27%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Faixa Roxa</span><b>12</b></div><div class="bar-track"><div class="bar-fill" style="width:8%"></div></div></div>
+      </div>
+      <div>
+        <div class="bar-row"><div class="bl"><span>Faixa Cinza (Kids)</span><b>58</b></div><div class="bar-track"><div class="bar-fill" style="width:39%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Faixa Amarela (Juvenil)</span><b>44</b></div><div class="bar-track"><div class="bar-fill" style="width:29%"></div></div></div>
+        <div class="bar-row"><div class="bl"><span>Faixa Laranja (Juvenil)</span><b>19</b></div><div class="bar-track"><div class="bar-fill" style="width:13%"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- atletas em destaque (evolução) -->
+  <div class="card" style="margin-top:22px">
+    <div class="sec-tit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M12 11v8M8 19h8"/><circle cx="12" cy="7" r="4"/></svg>
+      Atletas em destaque no semestre
+    </div>
+    <table class="tabela">
+      <thead><tr><th>Atleta</th><th>Turma</th><th>Graduação atual</th><th>Frequência</th><th>Evolução</th></tr></thead>
+      <tbody>
+        <tr><td>Lucas Ferreira</td><td>JJ Adulto</td><td>Branca · 3 graus</td><td>96%</td><td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Apto à azul</span></td></tr>
+        <tr><td>Sofia Andrade</td><td>JJ Kids</td><td>Cinza/Branca</td><td>98%</td><td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Graduada em jun</span></td></tr>
+        <tr><td>Mateus Carvalho</td><td>JJ Juvenil</td><td>Amarela</td><td>89%</td><td><span class="coroa-seal cs-analise"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Em avaliação</span></td></tr>
+        <tr><td>Beatriz Rocha</td><td>JJ Competição</td><td>Azul · 1 grau</td><td>93%</td><td><span class="coroa-seal cs-aprovado"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Pódio estadual</span></td></tr>
+        <tr><td>Diego Gomes</td><td>JJ Adulto</td><td>Branca · 4 graus</td><td>67%</td><td><span class="coroa-seal cs-bloq"><svg viewBox="0 0 24 18" fill="currentColor"><path d="M3 5l4 4 5-6 5 6 4-4v10H3z"/></svg> Frequência baixa</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

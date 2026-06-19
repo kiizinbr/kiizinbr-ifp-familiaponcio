@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-salao="medico">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atestado e Receita · Centro Médico</title>
+<link rel="stylesheet" href="casa.css" />
+</head>
+<body data-tipo="interno" data-modulo="medico" data-tela="prontuarios" data-user="Dra. Ana Souza" data-cargo="Centro Médico" data-ini="AS">
+<span class="ribbon">Protótipo conceitual</span>
+<main class="conteudo">
+
+  <div class="card" style="background:var(--ambar-bg);border-color:transparent;margin-bottom:16px;display:flex;gap:10px;align-items:center"><span class="pill pill-warn">✨ Proposto</span><span class="desc" style="margin:0">Feature nova do roadmap — ainda não construída.</span></div>
+
+  <div class="page-h">
+    <div>
+      <h2>Atestado e receita em PDF</h2>
+      <div class="desc">Documento oficial do Instituto Família Pôncio · com QR de verificação pública</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <a class="btn btn-ghost" href="medico-atendimento.html">‹ Voltar à prancha</a>
+      <button class="btn btn-gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Gerar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="grid g-60-40">
+
+    <!-- coluna principal: formulário do documento -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1zM8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Tipo e dados do documento
+        </div>
+        <div class="grid g2">
+          <label class="campo"><span>Tipo de documento</span><select><option>Atestado médico</option><option>Receita simples</option><option>Declaração de comparecimento</option><option>Relatório médico</option></select></label>
+          <label class="campo"><span>Validade (dias)</span><input value="3" /></label>
+        </div>
+        <div class="grid g2">
+          <label class="campo"><span>Paciente</span><input value="Maria Aparecida dos Santos" /></label>
+          <label class="campo"><span>Prontuário</span><input value="IFP-2026-900037" /></label>
+        </div>
+        <label class="campo"><span>CID-10 (opcional)</span><input value="J06.9 — Infecção aguda das vias aéreas superiores" /></label>
+        <label class="campo"><span>Texto do atestado</span><textarea rows="4">Atesto, para os devidos fins, que a paciente acima esteve sob meus cuidados nesta data, necessitando de afastamento de suas atividades laborais por 3 (três) dias, a contar de 19/06/2026, por motivo de doença.</textarea></label>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#9a8f84">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex:0 0 auto"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Assinado digitalmente com o CRM da médica responsável.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-tit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v8m-4-4h8M3 4h18v16H3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Documentos emitidos hoje
+        </div>
+        <table class="tabela">
+          <thead><tr><th>Documento</th><th>Paciente</th><th>Código</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Atestado · 2 dias</td><td>Pedro Alves</td><td>IFP-DOC-7741</td><td><span class="pill pill-ok">verificável</span></td></tr>
+            <tr><td>Receita simples</td><td>Rosa Oliveira</td><td>IFP-DOC-7742</td><td><span class="pill pill-ok">verificável</span></td></tr>
+            <tr><td>Declaração comparec.</td><td>Marta Freitas</td><td>IFP-DOC-7743</td><td><span class="pill pill-ok">verificável</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- coluna lateral: PREVIEW do documento -->
+    <div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="background:var(--unidade-suave);color:var(--unidade-escuro);padding:8px 14px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700">Pré-visualização · A4</div>
+        <!-- folha do documento -->
+        <div style="background:#fff;padding:22px;margin:14px;border:1px solid var(--linha);border-radius:8px;box-shadow:var(--shadow-sm)">
+          <!-- cabeçalho com selo do leão -->
+          <div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--dourado);padding-bottom:12px;margin-bottom:14px">
+            <span style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px var(--dourado);color:var(--dourado);flex:0 0 auto">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px"><path d="M12 2c-1 2-3 2-3 2s1 1 1 3c-2 1-4 3-4 6 0 4 3 7 9 7s7-2 7-5c0-2-1-3-2-4 1-1 1-3 0-4-1 1-2 1-2 1s0-3-2-4c-1 1-2 1-2 1s.5-1 0-2Z"/></svg>
+            </span>
+            <div><div style="font-weight:700;color:var(--tinta);font-size:13px">Instituto Família Pôncio</div><div style="font-size:10px;color:#9a8f84">Centro Médico · CNES 99.99.99</div></div>
+          </div>
+          <div style="text-align:center;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--unidade);font-size:13px;margin-bottom:12px">Atestado médico</div>
+          <p style="font-size:11px;color:var(--corpo);line-height:1.6;margin:0 0 10px">Atesto que a Sra. <b>Maria Aparecida dos Santos</b> esteve sob cuidados médicos nesta data, necessitando afastamento de 3 (três) dias por motivo de doença (CID J06.9).</p>
+          <div style="font-size:10px;color:#9a8f84;margin-bottom:14px">Aparecida de Goiânia, 19 de junho de 2026.</div>
+          <!-- assinatura + QR -->
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-top:1px solid var(--linha);padding-top:12px">
+            <div>
+              <div style="font-weight:600;color:var(--tinta);font-size:12px">Dra. Ana Souza</div>
+              <div style="font-size:10px;color:#9a8f84">CRM-GO 54321 · assinado digital</div>
+            </div>
+            <!-- QR de verificação -->
+            <div style="text-align:center">
+              <div style="width:62px;height:62px;background:linear-gradient(45deg,var(--tinta) 25%,#fff 25%,#fff 50%,var(--tinta) 50%,var(--tinta) 75%,#fff 75%);background-size:9px 9px;border:3px solid var(--tinta);border-radius:6px"></div>
+              <div style="font-size:8px;color:#9a8f84;margin-top:3px">verifique.ifp.org.br</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="sec-tit">Verificação pública</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="width:34px;height:34px;border-radius:50%;background:rgba(26,122,74,.1);color:var(--ok);display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div class="desc" style="font-size:12px">Qualquer pessoa pode escanear o QR e confirmar autenticidade, validade e CRM sem expor dados clínicos.</div>
+        </div>
+        <div style="font-size:11px;color:#9a8f84;font-family:monospace;background:var(--papel);border:1px solid var(--linha);border-radius:8px;padding:8px 10px">IFP-DOC-7744 · hash a3f9…c1e8</div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+<script src="casa-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="pt-BR" data-salao="medico" data-motion="on">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IFP Connect · CASA — Prancha de Atendimento Médico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Jost = substituto geométrico próximo da Garet (caixa-alta + tracking = "livro nobre") -->
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   IFP CONNECT — Direção "CASA" (Heráldica Editorial + Coração de Lar)
+   Protótipo da tela flagship: Prancha de Atendimento Médico (tablet)
+   Só segue cores + logo da marca. Tudo o resto é autoral.
+   ============================================================ */
+
+:root{
+  --papel:#FAF7F2;        /* fundo de papel (rejeita o branco-clínico) */
+  --tinta:#752C05;        /* marrom de encadernação = tinta da marca */
+  --corpo:#4A4A49;        /* texto/dados */
+  --branco:#FFFFFF;       /* superfícies elevadas */
+  --dourado:#C9962F;      /* selo-coroa "liberado" (derivado do laranja-médio) */
+  --erro:#B3261E;
+  --erro-bg:#FCEDEC;
+  --ambar:#C24D0F;
+  --ambar-bg:#FBEEE3;
+
+  /* a cor da UNIDADE é arquitetura de navegação, não decoração */
+  --unidade:#10C2BB;
+  --unidade-escuro:#0E9B95;
+  --unidade-suave:#E6FAF8;
+  --shadow: 0 18px 50px -20px rgba(117,44,5,.30);
+  --shadow-sm: 0 6px 18px -10px rgba(117,44,5,.35);
+}
+/* MULTI-TEMA: a cor troca conforme o salão (data-salao) — CSS vars puro */
+html[data-salao="medico"]      { --unidade:#10C2BB; --unidade-escuro:#0E9B95; --unidade-suave:#E6FAF8; }
+html[data-salao="capacitacao"] { --unidade:#FF772E; --unidade-escuro:#C24D0F; --unidade-suave:#FCE9DD; }
+html[data-salao="esportivo"]   { --unidade:#9A3D0B; --unidade-escuro:#752C05; --unidade-suave:#F3E5DC; }
+html[data-salao="educacional"] { --unidade:#007571; --unidade-escuro:#005C59; --unidade-suave:#DFF0EE; }
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Jost',system-ui,Segoe UI,Roboto,sans-serif;
+  color:var(--corpo);
+  background:var(--papel);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+  padding:28px 16px 60px;
+}
+/* JUBA — anéis concêntricos como marca-d'água atrás de tudo (3% opacidade) */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    repeating-radial-gradient(circle at 50% 12%,
+      rgba(117,44,5,.035) 0 1px, transparent 1px 26px);
+}
+.titulo{font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--tinta)}
+.label{font-weight:600;text-transform:uppercase;letter-spacing:.10em;font-size:11px;color:var(--corpo);opacity:.75}
+
+/* ---------- Barra de DEMO (controles do protótipo) ---------- */
+.demo-bar{
+  position:relative;z-index:3;max-width:960px;margin:0 auto 16px;
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+}
+.demo-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta);opacity:.7;font-weight:600}
+.salao-switch{display:flex;gap:6px;background:var(--branco);padding:5px;border-radius:999px;box-shadow:var(--shadow-sm);border:1px solid rgba(117,44,5,.08)}
+.salao-switch button{
+  border:0;background:transparent;cursor:pointer;font-family:inherit;
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--corpo);padding:7px 12px;border-radius:999px;transition:all .25s ease;
+}
+.salao-switch button[aria-pressed="true"]{background:var(--unidade);color:#fff;box-shadow:var(--shadow-sm)}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta);cursor:pointer;user-select:none}
+.toggle input{appearance:none;width:34px;height:18px;border-radius:999px;background:#d8cfc6;position:relative;cursor:pointer;transition:background .25s}
+.toggle input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .25s}
+.toggle input:checked{background:var(--unidade)}
+.toggle input:checked::after{left:18px}
+
+/* ---------- PRANCHA (o "tablet") ---------- */
+.prancha{
+  position:relative;z-index:2;max-width:960px;margin:0 auto;
+  background:var(--branco);border-radius:26px;overflow:hidden;
+  box-shadow:var(--shadow);border:1px solid rgba(117,44,5,.07);
+  transition:box-shadow .3s ease;
+}
+
+/* ---------- CABEÇALHO-JUBA (recolore pela unidade) ---------- */
+.cabecalho{
+  position:relative;color:#fff;padding:18px 22px;
+  background:
+    repeating-radial-gradient(circle at 50% -30%, rgba(255,255,255,.16) 0 1px, transparent 1px 13px),
+    linear-gradient(120deg,var(--unidade),var(--unidade-escuro));
+  display:flex;align-items:center;gap:14px;transition:background .35s ease;
+}
+.emblema{width:42px;height:48px;flex:0 0 auto;color:#fff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
+.cab-tit{flex:1;min-width:0}
+.cab-tit .salao-nome{font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:14px;line-height:1.1}
+.cab-tit .salao-sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.85;margin-top:3px}
+.cab-meta{display:flex;align-items:center;gap:16px;font-size:12px;letter-spacing:.04em}
+.cab-meta .pac{font-weight:600}
+.cab-meta .clock{display:inline-flex;align-items:center;gap:5px;opacity:.95}
+.icon-btn{background:rgba(255,255,255,.16);border:0;color:#fff;width:34px;height:34px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn:hover{background:rgba(255,255,255,.28)}
+
+.corpo{padding:20px 22px 8px}
+
+/* ---------- RESUMO CLÍNICO VIVO ---------- */
+.resumo{
+  display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;
+  background:var(--papel);border:1px solid rgba(117,44,5,.09);border-radius:18px;padding:16px 18px;
+  position:relative;
+}
+.resumo::before{ /* leve acento ogival no topo, na cor da unidade */
+  content:"";position:absolute;top:-1px;left:24px;width:54px;height:6px;border-radius:0 0 40% 40%;background:var(--unidade);
+}
+/* CrestAvatar — moldura ogival via clip-path */
+.crest{width:96px;height:112px;position:relative;flex:0 0 auto}
+.crest .foto{
+  width:100%;height:100%;
+  -webkit-clip-path:url(#ogival);clip-path:url(#ogival);
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255,255,255,.5), transparent 60%),
+    linear-gradient(150deg,var(--unidade),var(--unidade-escuro));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:600;font-size:30px;letter-spacing:.06em;
+}
+.crest .moldura{position:absolute;inset:0;color:var(--tinta);pointer-events:none}
+.crest .coroa-mini{position:absolute;top:-9px;left:50%;transform:translateX(-50%);color:var(--dourado);width:26px;height:20px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
+
+.ident h1{font-size:19px;margin:2px 0 4px;color:var(--tinta);font-weight:600;letter-spacing:.01em}
+.ident .sub{font-size:13px;color:var(--corpo)}
+/* CoroaSeal — a coroa É o status (cor + forma + RÓTULO sempre) */
+.coroa-seal{display:inline-flex;align-items:center;gap:7px;margin-top:9px;padding:5px 11px 5px 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(201,150,47,.14);color:#8a6516;border:1px solid rgba(201,150,47,.5)}
+.coroa-seal svg{width:17px;height:14px;color:var(--dourado)}
+.coroa-seal.sealing svg{animation:selar .7s ease}
+@keyframes selar{0%{transform:scale(.6) rotate(-8deg);opacity:.3}60%{transform:scale(1.25) rotate(4deg)}100%{transform:scale(1)}}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid transparent;letter-spacing:.02em}
+.chip svg{width:14px;height:14px}
+.chip.alergia{background:var(--erro-bg);color:var(--erro);border-color:rgba(179,38,30,.25)}
+.chip.cronico{background:var(--ambar-bg);color:var(--ambar);border-color:rgba(194,77,15,.25)}
+.chip.med{background:#fff;color:var(--corpo);border-color:rgba(117,44,5,.18)}
+.chip.neutro{background:#fff;color:var(--corpo);border-color:rgba(117,44,5,.12)}
+.social{display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 12px;border-radius:12px;background:rgba(194,77,15,.08);color:var(--ambar);font-size:12.5px;border:1px dashed rgba(194,77,15,.35)}
+.social svg{width:16px;height:16px;flex:0 0 auto}
+
+/* ---------- STEPPER (PranchaFlow) ---------- */
+.stepper{display:flex;gap:4px;margin:22px 2px 14px;justify-content:space-between}
+.step{flex:1;background:transparent;border:0;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:7px;padding:0}
+.step .dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid #d8cfc6;color:#b3a89d;background:#fff;transition:all .25s ease;position:relative}
+.step .nome{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#b3a89d;transition:color .25s}
+.step[data-state="done"] .dot{background:var(--unidade);border-color:var(--unidade);color:#fff}
+.step[data-state="done"] .nome{color:var(--corpo)}
+.step[data-state="current"] .dot{border-color:var(--unidade);color:var(--unidade);box-shadow:0 0 0 4px var(--unidade-suave)}
+.step[data-state="current"] .nome{color:var(--tinta)}
+/* linha conectora */
+.stepper{position:relative}
+.step:not(:last-child)::after{content:"";position:absolute}
+
+/* ---------- CARTÃO EM FOCO ---------- */
+.card-foco{background:#fff;border:1px solid rgba(117,44,5,.1);border-radius:18px;padding:0;overflow:hidden;min-height:248px;position:relative}
+.card-foco .topo-ogival{height:7px;background:var(--unidade)}
+.passo{display:none;padding:20px 20px 22px;animation:fade .3s ease}
+.passo.ativo{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.passo-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.passo-head .titulo{font-size:14px}
+.btn-voz{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--unidade);color:var(--unidade-escuro);background:var(--unidade-suave);padding:7px 13px;border-radius:999px;font-family:inherit;font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.btn-voz svg{width:14px;height:14px}
+.btn-voz.rec{background:var(--erro-bg);border-color:var(--erro);color:var(--erro)}
+.btn-voz.rec svg{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.35}}
+textarea,select,input[type=text]{
+  width:100%;font-family:inherit;font-size:14px;color:var(--corpo);
+  border:1px solid rgba(117,44,5,.18);border-radius:12px;padding:12px 13px;background:var(--papel);resize:vertical;
+}
+textarea:focus,select:focus,input:focus{outline:2px solid var(--unidade);outline-offset:1px;border-color:transparent}
+.atalhos{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.atalho{font-family:inherit;cursor:pointer;background:#fff;border:1px solid rgba(117,44,5,.18);color:var(--tinta);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:500;transition:all .2s}
+.atalho:hover{background:var(--unidade);color:#fff;border-color:var(--unidade)}
+.atalhos-lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--corpo);opacity:.7;margin-top:16px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.vital{background:var(--papel);border:1px solid rgba(117,44,5,.12);border-radius:12px;padding:10px 12px}
+.vital .v{font-size:20px;font-weight:600;color:var(--tinta)}
+.vital .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+.toggle-chip{font-family:inherit;cursor:pointer;border:1px solid rgba(117,44,5,.18);background:#fff;color:var(--corpo);border-radius:10px;padding:9px 12px;font-size:12.5px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all .2s}
+.toggle-chip[aria-pressed="true"]{border-color:var(--unidade);background:var(--unidade-suave);color:var(--unidade-escuro);font-weight:600}
+.lista-med{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.med-item{display:flex;align-items:center;justify-content:space-between;background:var(--papel);border:1px solid rgba(117,44,5,.12);border-radius:10px;padding:9px 12px;font-size:13px}
+.med-item button{border:0;background:transparent;color:var(--erro);cursor:pointer;font-size:16px;line-height:1}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.add-row select{flex:1}
+.btn-mini{font-family:inherit;cursor:pointer;background:var(--tinta);color:#fff;border:0;border-radius:10px;padding:0 16px;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.selo-box{text-align:center;padding:10px 6px}
+.selo-box p{font-size:13px;color:var(--corpo);margin:8px auto 18px;max-width:420px;line-height:1.5}
+.recap{text-align:left;background:var(--papel);border:1px solid rgba(117,44,5,.12);border-radius:12px;padding:12px 14px;margin:0 auto 18px;max-width:440px;font-size:13px}
+.recap b{color:var(--tinta);font-weight:600}
+.btn-selar{font-family:inherit;cursor:pointer;background:linear-gradient(120deg,var(--dourado),#a87a1f);color:#fff;border:0;border-radius:14px;padding:15px 28px;font-weight:600;font-size:13px;letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm)}
+.btn-selar svg{width:18px;height:15px}
+
+/* ---------- AÇÕES (voltar/próximo) ---------- */
+.acoes{display:flex;gap:12px;margin:16px 0 4px}
+.btn{font-family:inherit;cursor:pointer;border-radius:13px;padding:13px 18px;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;border:1px solid transparent;flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.btn svg{width:15px;height:15px}
+.btn-ghost{background:#fff;border-color:rgba(117,44,5,.2);color:var(--tinta)}
+.btn-ghost:hover{background:var(--papel)}
+.btn-ghost:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--unidade);color:#fff;flex:2}
+.btn-primary:hover{background:var(--unidade-escuro)}
+
+/* ---------- RODAPÉ — Ponte da Corte ---------- */
+.rodape{display:flex;gap:12px;flex-wrap:wrap;background:var(--papel);border-top:1px solid rgba(117,44,5,.1);padding:16px 22px;margin-top:14px}
+.btn-ponte{flex:1;min-width:220px;font-family:inherit;cursor:pointer;background:#fff;border:1.5px dashed var(--ambar);color:var(--ambar);border-radius:13px;padding:13px 16px;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:9px}
+.btn-ponte:hover{background:var(--ambar-bg)}
+.btn-ponte svg{width:17px;height:17px}
+.btn-pausar{font-family:inherit;cursor:pointer;background:transparent;border:1px solid rgba(117,44,5,.2);color:var(--corpo);border-radius:13px;padding:13px 18px;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px}
+
+/* ---------- MODAL Ponte ---------- */
+.overlay{position:fixed;inset:0;background:rgba(74,30,5,.45);display:none;align-items:center;justify-content:center;z-index:30;padding:20px;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--papel);border-radius:20px;max-width:440px;width:100%;box-shadow:var(--shadow);overflow:hidden;animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:none;opacity:1}}
+.modal-head{background:var(--ambar);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:10px}
+.modal-head svg{width:20px;height:20px}
+.modal-head .titulo{color:#fff;font-size:13px}
+.modal-body{padding:18px 20px 20px}
+.modal-body p{font-size:12.5px;color:var(--corpo);margin:0 0 14px}
+.tipos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tipo{font-family:inherit;cursor:pointer;border:1px solid rgba(194,77,15,.4);background:#fff;color:var(--ambar);border-radius:999px;padding:8px 13px;font-size:12px;font-weight:500;transition:all .2s}
+.tipo[aria-pressed="true"]{background:var(--ambar);color:#fff}
+.modal-acoes{display:flex;gap:10px;margin-top:6px}
+
+/* ---------- TOAST ---------- */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120%);z-index:40;background:var(--tinta);color:#fff;padding:14px 20px;border-radius:14px;box-shadow:var(--shadow);font-size:13px;max-width:90vw;display:flex;align-items:center;gap:12px;transition:transform .4s cubic-bezier(.2,.9,.3,1.2)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast svg{width:20px;height:17px;color:var(--dourado);flex:0 0 auto}
+
+/* ---------- reduzir movimento ---------- */
+html[data-motion="off"] *{transition:none !important;animation:none !important}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+
+@media (max-width:680px){
+  .resumo{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .resumo::before{display:none}
+  .chips,.social{justify-content:center}
+  .grid2{grid-template-columns:1fr}
+  .step .nome{display:none}
+  .cab-meta{display:none}
+}
+.rodape-nota{position:relative;z-index:2;max-width:960px;margin:14px auto 0;font-size:11px;color:var(--corpo);opacity:.6;text-align:center;letter-spacing:.04em}
+</style>
+</head>
+<body>
+
+<!-- ===== SVG defs (clipPath ogival, emblema, ícones) ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <clipPath id="ogival" clipPathUnits="objectBoundingBox">
+      <path d="M0.5,0.02 C0.80,0.02 0.97,0.22 0.97,0.50 C0.97,0.82 0.74,0.98 0.5,1 C0.26,0.98 0.03,0.82 0.03,0.50 C0.03,0.22 0.20,0.02 0.5,0.02 Z"/>
+    </clipPath>
+
+    <!-- emblema: moldura ogival + coroa + juba (aproximação do leão coroado) -->
+    <symbol id="emblema-leao" viewBox="0 0 100 116">
+      <path d="M50,4 C78,4 94,26 94,52 C94,86 70,108 50,114 C30,108 6,86 6,52 C6,26 22,4 50,4 Z"
+            fill="none" stroke="currentColor" stroke-width="5"/>
+      <!-- coroa -->
+      <path d="M34,30 L40,20 L50,28 L60,20 L66,30 Z" fill="currentColor"/>
+      <circle cx="40" cy="18" r="2.4" fill="currentColor"/><circle cx="50" cy="25" r="2.4" fill="currentColor"/><circle cx="60" cy="18" r="2.4" fill="currentColor"/>
+      <!-- juba (arcos concêntricos) -->
+      <path d="M28,52 A22,22 0 0 1 72,52" fill="none" stroke="currentColor" stroke-width="4"/>
+      <path d="M33,56 A17,17 0 0 1 67,56" fill="none" stroke="currentColor" stroke-width="4"/>
+      <!-- rosto -->
+      <circle cx="42" cy="58" r="3" fill="currentColor"/><circle cx="58" cy="58" r="3" fill="currentColor"/>
+      <path d="M50,64 L46,70 L50,73 L54,70 Z" fill="currentColor"/>
+      <path d="M44,78 Q50,84 56,78" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="ic-crown" viewBox="0 0 24 18"><path d="M2,15 L4,5 L9,10 L12,2 L15,10 L20,5 L22,15 Z" fill="currentColor"/></symbol>
+    <symbol id="ic-crown-line" viewBox="0 0 24 18"><path d="M2,15 L4,5 L9,10 L12,2 L15,10 L20,5 L22,15 Z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="ic-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-mic" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-alert" viewBox="0 0 24 24"><path d="M12 3 1 21h22L12 3zM12 9v5M12 17.5v.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-pill" viewBox="0 0 24 24"><path d="M10 4 4 10a4 4 0 0 0 6 6l6-6a4 4 0 0 0-6-6zM7 7l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.5-9C1 9 2.5 5 6.5 5 9 5 12 8 12 8s3-3 5.5-3C21.5 5 23 9 21.5 12 19 16.4 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 18"><path d="M2 9l6 6L22 2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-ogival" viewBox="0 0 100 116"><path d="M50,4 C78,4 94,26 94,52 C94,86 70,108 50,114 C30,108 6,86 6,52 C6,26 22,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/></symbol>
+  </defs>
+</svg>
+
+<!-- ===== DEMO BAR ===== -->
+<div class="demo-bar">
+  <span class="demo-tag">IFP Connect · direção "CASA" · protótipo</span>
+  <div class="salao-switch" role="group" aria-label="Trocar salão (recolore o sistema)">
+    <button data-salao="medico" aria-pressed="true">Médico</button>
+    <button data-salao="capacitacao" aria-pressed="false">Capacitação</button>
+    <button data-salao="esportivo" aria-pressed="false">Esportivo</button>
+    <button data-salao="educacional" aria-pressed="false">Recreativo</button>
+  </div>
+  <label class="toggle"><input type="checkbox" id="motion-toggle" checked> Movimento</label>
+</div>
+
+<!-- ===== PRANCHA ===== -->
+<main class="prancha">
+  <!-- CABEÇALHO-JUBA -->
+  <header class="cabecalho">
+    <svg class="emblema" aria-hidden="true"><use href="#emblema-leao"/></svg>
+    <div class="cab-tit">
+      <div class="salao-nome" id="salao-nome">Salão Médico</div>
+      <div class="salao-sub">Atendimento · Família Silva</div>
+    </div>
+    <div class="cab-meta">
+      <span class="pac">João, 8a</span>
+      <span class="clock"><svg width="13" height="13"><use href="#ic-clock"/></svg> 14:20</span>
+    </div>
+    <button class="icon-btn" aria-label="Menu"><svg width="18" height="18"><use href="#ic-menu"/></svg></button>
+  </header>
+
+  <div class="corpo">
+    <!-- RESUMO CLÍNICO VIVO -->
+    <section class="resumo" aria-label="Resumo clínico vivo">
+      <div class="crest" title="Moldura ogival (CrestAvatar)">
+        <svg class="coroa-mini" id="coroa-mini" aria-hidden="true"><use href="#ic-crown"/></svg>
+        <div class="foto">JP</div>
+        <svg class="moldura" viewBox="0 0 100 116" preserveAspectRatio="none" aria-hidden="true"><use href="#ic-ogival"/></svg>
+      </div>
+      <div class="ident">
+        <h1>João Pereira da Silva</h1>
+        <div class="sub">8 anos · 26 kg · Família Silva</div>
+        <span class="coroa-seal" id="coroa-seal">
+          <svg id="coroa-seal-icon"><use href="#ic-crown"/></svg> <span id="coroa-seal-txt">Liberado p/ Médico</span>
+        </span>
+        <div class="chips">
+          <span class="chip alergia"><svg><use href="#ic-alert"/></svg> Alergia: Dipirona</span>
+          <span class="chip cronico">Asma</span>
+          <span class="chip med"><svg><use href="#ic-pill"/></svg> Bombinha 2x/dia</span>
+          <span class="chip neutro">Última consulta: 12/03</span>
+        </div>
+        <div class="social">
+          <svg><use href="#ic-flag"/></svg>
+          <span><b>Contexto social:</b> insegurança alimentar · família em 3 frentes do Instituto</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEPPER -->
+    <nav class="stepper" id="stepper" aria-label="Etapas do atendimento">
+      <button class="step" data-step="1"><span class="dot">1</span><span class="nome">Resumo</span></button>
+      <button class="step" data-step="2"><span class="dot">2</span><span class="nome">Queixa</span></button>
+      <button class="step" data-step="3"><span class="dot">3</span><span class="nome">Exame</span></button>
+      <button class="step" data-step="4"><span class="dot">4</span><span class="nome">Conduta</span></button>
+      <button class="step" data-step="5"><span class="dot">5</span><span class="nome">Selo</span></button>
+    </nav>
+
+    <!-- CARTÃO EM FOCO -->
+    <section class="card-foco" aria-live="polite">
+      <div class="topo-ogival"></div>
+
+      <!-- 1 RESUMO -->
+      <div class="passo" data-passo="1">
+        <div class="passo-head"><span class="titulo">Resumo do atendimento</span></div>
+        <p style="font-size:14px;line-height:1.6;margin:0 0 6px">Revise o <b>passaporte de saúde</b> do João acima — alergias, condições e contexto social vêm da <b>Ficha Cidadã</b> da família, sem você redigitar nada.</p>
+        <div class="atalhos-lbl">Motivo do encaminhamento</div>
+        <p style="font-size:14px;margin:8px 0 0">Tosse persistente há 3 dias · mãe relata piora à noite. Encaminhado pela recepção às 14:05.</p>
+        <div class="atalhos" style="margin-top:18px">
+          <span class="chip neutro">Triagem: Tª 37,8°C</span>
+          <span class="chip neutro">FC 96 bpm</span>
+          <span class="chip neutro">SatO₂ 97%</span>
+        </div>
+      </div>
+
+      <!-- 2 QUEIXA -->
+      <div class="passo ativo" data-passo="2">
+        <div class="passo-head">
+          <span class="titulo">Queixa principal</span>
+          <button class="btn-voz" id="btn-voz"><svg><use href="#ic-mic"/></svg> <span>Ditar voz</span></button>
+        </div>
+        <textarea id="queixa" rows="3" placeholder="Descreva a queixa…">Tosse seca há 3 dias, com piora à noite. Sem febre alta. </textarea>
+        <div class="atalhos-lbl">Atalhos da especialidade</div>
+        <div class="atalhos" id="atalhos-queixa">
+          <button class="atalho">Tosse</button>
+          <button class="atalho">Febre</button>
+          <button class="atalho">Falta de ar</button>
+          <button class="atalho">Dor de garganta</button>
+          <button class="atalho">Chiado no peito</button>
+        </div>
+      </div>
+
+      <!-- 3 EXAME -->
+      <div class="passo" data-passo="3">
+        <div class="passo-head"><span class="titulo">Exame físico</span></div>
+        <div class="atalhos-lbl" style="margin-top:0">Sistemas (toque para marcar)</div>
+        <div class="grid2" style="margin-top:10px">
+          <button class="toggle-chip" aria-pressed="false">Ausculta pulmonar <span>normal</span></button>
+          <button class="toggle-chip" aria-pressed="false">Orofaringe <span>normal</span></button>
+          <button class="toggle-chip" aria-pressed="false">Otoscopia <span>normal</span></button>
+          <button class="toggle-chip" aria-pressed="false">Hidratação <span>normal</span></button>
+        </div>
+        <div class="atalhos-lbl">Sinais vitais (pré-consulta da enfermagem)</div>
+        <div class="grid2" style="margin-top:10px">
+          <div class="vital"><div class="v">37,8°C</div><div class="k">Temperatura</div></div>
+          <div class="vital"><div class="v">97%</div><div class="k">Saturação O₂</div></div>
+        </div>
+      </div>
+
+      <!-- 4 CONDUTA -->
+      <div class="passo" data-passo="4">
+        <div class="passo-head"><span class="titulo">Conduta &amp; prescrição</span></div>
+        <div class="lista-med" id="lista-med">
+          <div class="med-item"><span>Salbutamol spray — 2 jatos 6/6h · 5 dias</span><button aria-label="remover">×</button></div>
+        </div>
+        <div class="add-row">
+          <select id="med-select">
+            <option>Dipirona (evitar — alergia!)</option>
+            <option selected>Prednisolona 3mg/ml — 1x/dia · 5 dias</option>
+            <option>Soro fisiológico nasal — livre demanda</option>
+            <option>Amoxicilina 250mg/5ml — 8/8h · 7 dias</option>
+          </select>
+          <button class="btn-mini" id="add-med">Adicionar</button>
+        </div>
+        <div class="grid2" style="margin-top:14px">
+          <button class="toggle-chip" aria-pressed="true">Atestado <span>2 dias</span></button>
+          <button class="toggle-chip" aria-pressed="true">Retorno <span>em 30 dias</span></button>
+        </div>
+      </div>
+
+      <!-- 5 SELO -->
+      <div class="passo" data-passo="5">
+        <div class="selo-box">
+          <span class="titulo" style="font-size:14px">Selar atendimento</span>
+          <p>Ao selar, o <b>SOAP</b>, o <b>CID-10</b> e a <b>assinatura digital</b> são montados nos bastidores. Receita e orientações vão em linguagem simples para o <b>celular do responsável</b>.</p>
+          <div class="recap">
+            <div><b>Queixa:</b> tosse seca, 3 dias, piora noturna</div>
+            <div><b>Conduta:</b> Salbutamol + Prednisolona · atestado 2 dias · retorno 30 dias</div>
+            <div><b>Elegibilidade:</b> <span style="color:#8a6516">♛ liberado p/ Médico</span></div>
+          </div>
+          <button class="btn-selar" id="btn-selar"><svg><use href="#ic-crown"/></svg> Selar atendimento</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- AÇÕES -->
+    <div class="acoes">
+      <button class="btn btn-ghost" id="btn-voltar" disabled><svg><use href="#ic-left"/></svg> Voltar</button>
+      <button class="btn btn-primary" id="btn-proximo">Próximo <svg><use href="#ic-right"/></svg></button>
+    </div>
+  </div>
+
+  <!-- RODAPÉ -->
+  <footer class="rodape">
+    <button class="btn-ponte" id="btn-ponte"><svg><use href="#ic-flag"/></svg> Ponte da Corte → avisar Serviço Social</button>
+    <button class="btn-pausar"><svg width="15" height="15"><use href="#ic-pause"/></svg> Pausar</button>
+  </footer>
+</main>
+
+<p class="rodape-nota">Protótipo conceitual · cores e logo da marca IFP · fonte Jost (substituta da Garet) · todos os dados são fictícios</p>
+
+<!-- ===== MODAL Ponte da Corte ===== -->
+<div class="overlay" id="overlay-ponte">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Ponte da Corte">
+    <div class="modal-head"><svg><use href="#ic-flag"/></svg><span class="titulo">Ponte da Corte → Serviço Social</span></div>
+    <div class="modal-body">
+      <p>Sinalize ao Serviço Social algo que percebeu no atendimento. Fecha o ciclo de cuidado integral do Instituto.</p>
+      <div class="tipos" id="tipos-ponte">
+        <button class="tipo" aria-pressed="false">Insegurança alimentar</button>
+        <button class="tipo" aria-pressed="false">Suspeita de negligência</button>
+        <button class="tipo" aria-pressed="false">Encaminhamento social</button>
+        <button class="tipo" aria-pressed="false">Falta recorrente</button>
+      </div>
+      <textarea rows="3" placeholder="Observação para o Serviço Social…">Criança chega com frequência sem ter se alimentado.</textarea>
+      <div class="modal-acoes">
+        <button class="btn btn-ghost" id="ponte-cancelar">Cancelar</button>
+        <button class="btn btn-primary" id="ponte-enviar">Enviar à Corte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"><svg><use href="#ic-check"/></svg><span id="toast-msg"></span></div>
+
+<script>
+(function(){
+  const root = document.documentElement;
+  const SALOES = {
+    medico:      {nome:'Salão Médico',      sub:'Atendimento · Família Silva'},
+    capacitacao: {nome:'Salão Capacitação', sub:'Diário de turma · Família Silva'},
+    esportivo:   {nome:'Salão Esportivo',   sub:'Chamada / graduação · Família Silva'},
+    educacional: {nome:'Salão Recreativo',  sub:'Rotina diária · Família Silva'},
+  };
+
+  // ---- trocar salão (multi-tema) ----
+  document.querySelectorAll('.salao-switch button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const s=b.dataset.salao;
+      root.dataset.salao=s;
+      document.querySelectorAll('.salao-switch button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+      document.getElementById('salao-nome').textContent=SALOES[s].nome;
+      document.querySelector('.salao-sub').textContent=SALOES[s].sub;
+      document.querySelector('.coroa-seal #coroa-seal-txt').textContent='Liberado p/ '+SALOES[s].nome.replace('Salão ','');
+    });
+  });
+
+  // ---- reduzir movimento ----
+  document.getElementById('motion-toggle').addEventListener('change',e=>{
+    root.dataset.motion = e.target.checked ? 'on' : 'off';
+  });
+
+  // ---- stepper ----
+  let atual=2; const TOTAL=5;
+  const steps=[...document.querySelectorAll('.step')];
+  const passos=[...document.querySelectorAll('.passo')];
+  const btnVoltar=document.getElementById('btn-voltar');
+  const btnProximo=document.getElementById('btn-proximo');
+  function render(){
+    steps.forEach(st=>{
+      const n=+st.dataset.step;
+      st.dataset.state = n<atual?'done':(n===atual?'current':'todo');
+      st.querySelector('.dot').innerHTML = n<atual ? '<svg width="13" height="11" style="color:#fff"><use href="#ic-check"/></svg>' : n;
+    });
+    passos.forEach(p=>p.classList.toggle('ativo', +p.dataset.passo===atual));
+    btnVoltar.disabled = atual===1;
+    if(atual===TOTAL){ btnProximo.style.display='none'; } else { btnProximo.style.display=''; btnProximo.innerHTML='Próximo <svg><use href="#ic-right"/></svg>'; }
+  }
+  steps.forEach(st=>st.addEventListener('click',()=>{atual=+st.dataset.step;render();}));
+  btnVoltar.addEventListener('click',()=>{if(atual>1){atual--;render();}});
+  btnProximo.addEventListener('click',()=>{if(atual<TOTAL){atual++;render();}});
+  render();
+
+  // ---- ditar voz (simulado) ----
+  const btnVoz=document.getElementById('btn-voz');
+  btnVoz.addEventListener('click',()=>{
+    const rec=btnVoz.classList.toggle('rec');
+    btnVoz.querySelector('span').textContent = rec ? 'Ouvindo…' : 'Ditar voz';
+    if(!rec){
+      const q=document.getElementById('queixa');
+      q.value += ' Refere melhora com a bombinha.';
+      toast('Trecho transcrito por voz.');
+    }
+  });
+
+  // ---- atalhos de queixa ----
+  document.getElementById('atalhos-queixa').addEventListener('click',e=>{
+    if(e.target.classList.contains('atalho')){
+      const q=document.getElementById('queixa');
+      q.value = (q.value.trim()+' '+e.target.textContent+'. ').replace(/\s+/g,' ');
+    }
+  });
+
+  // ---- toggle chips exame/conduta ----
+  document.querySelectorAll('.toggle-chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const on = c.getAttribute('aria-pressed')==='true';
+      c.setAttribute('aria-pressed', String(!on));
+      const sp=c.querySelector('span'); if(sp && (sp.textContent==='normal'||sp.textContent==='alterado')) sp.textContent = on?'normal':'alterado';
+    });
+  });
+
+  // ---- adicionar medicamento ----
+  document.getElementById('add-med').addEventListener('click',()=>{
+    const sel=document.getElementById('med-select');
+    const txt=sel.value;
+    if(txt.includes('Dipirona')){ toast('⚠ Dipirona bloqueada: paciente alérgico.'); return; }
+    const div=document.createElement('div');
+    div.className='med-item';
+    div.innerHTML='<span>'+txt+'</span><button aria-label="remover">×</button>';
+    document.getElementById('lista-med').appendChild(div);
+    toast('Medicamento adicionado à prescrição.');
+  });
+  document.getElementById('lista-med').addEventListener('click',e=>{
+    if(e.target.tagName==='BUTTON') e.target.closest('.med-item').remove();
+  });
+
+  // ---- selar atendimento ----
+  document.getElementById('btn-selar').addEventListener('click',()=>{
+    const seal=document.getElementById('coroa-seal');
+    seal.classList.remove('sealing'); void seal.offsetWidth; seal.classList.add('sealing');
+    toast('Atendimento selado — SOAP, CID-10 e assinatura digital gerados. Receita enviada ao PWA do responsável.');
+  });
+
+  // ---- Ponte da Corte ----
+  const overlay=document.getElementById('overlay-ponte');
+  document.getElementById('btn-ponte').addEventListener('click',()=>overlay.classList.add('open'));
+  document.getElementById('ponte-cancelar').addEventListener('click',()=>overlay.classList.remove('open'));
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open');});
+  document.getElementById('tipos-ponte').addEventListener('click',e=>{
+    if(e.target.classList.contains('tipo')) e.target.setAttribute('aria-pressed', e.target.getAttribute('aria-pressed')!=='true');
+  });
+  document.getElementById('ponte-enviar').addEventListener('click',()=>{
+    overlay.classList.remove('open');
+    toast('Sinalização enviada ao Serviço Social. Ciclo de cuidado registrado.');
+  });
+
+  // ---- toast ----
+  let toastT;
+  function toast(msg){
+    const t=document.getElementById('toast');
+    document.getElementById('toast-msg').textContent=msg;
+    t.classList.add('show');
+    clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3600);
+  }
+})();
+</script>
+</body>
+</html>
