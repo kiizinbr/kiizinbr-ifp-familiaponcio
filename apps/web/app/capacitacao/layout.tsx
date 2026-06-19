@@ -7,7 +7,7 @@ import { ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /capacitacao/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE"];
-const ROTAS_PRONTAS = ["/capacitacao", "/capacitacao/turmas"];
+const ROTAS_PRONTAS = ["/capacitacao", "/capacitacao/turmas", "/capacitacao/cursos"];
 
 export default async function CapacitacaoLayout({
   children,

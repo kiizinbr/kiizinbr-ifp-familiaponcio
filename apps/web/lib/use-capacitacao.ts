@@ -201,3 +201,75 @@ export function useEncerrarTurma() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
   });
 }
+
+// ============================================================
+// Cursos (gestão) — CRUD que alimenta o select de nova turma
+// ============================================================
+
+export type ModalidadeCurso = "PRATICO" | "TEORICO";
+
+export const MODALIDADE_LABEL: Record<ModalidadeCurso, string> = {
+  PRATICO: "Prático",
+  TEORICO: "Teórico",
+};
+
+export interface CursoGestao {
+  id: string;
+  nome: string;
+  modalidade: ModalidadeCurso;
+  cargaHorariaTotal: number;
+  presencaMinimaPct: number;
+  requerModelos: boolean;
+  ativo: boolean;
+  _count: { turmas: number };
+}
+
+export interface CriarCursoPayload {
+  nome: string;
+  modalidade: ModalidadeCurso;
+  cargaHorariaTotal: number;
+  presencaMinimaPct?: number;
+  requerModelos?: boolean;
+}
+
+export function useCursosGestao() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "cursos-gestao"],
+    queryFn: () => authFetch<{ items: CursoGestao[] }>("/capacitacao/cursos/todos"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useCriarCurso() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CriarCursoPayload) =>
+      authFetch<CursoGestao>("/capacitacao/cursos", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
+  });
+}
+
+export function useAtualizarCurso() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      dados,
+    }: {
+      id: string;
+      dados: Partial<CriarCursoPayload> & { ativo?: boolean };
+    }) =>
+      authFetch<CursoGestao>(`/capacitacao/cursos/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(dados),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
+  });
+}
