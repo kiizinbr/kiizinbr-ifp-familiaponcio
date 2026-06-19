@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { CalendarClock, ClipboardList, FilePlus2 } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
+import { PageHeader } from "@/components/casa";
 
 export const metadata = { title: "Serviço Social" };
 
@@ -33,22 +34,18 @@ export default async function ServicoSocialDashboard() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
-      <header className="mb-10">
-        <p className="text-xs uppercase tracking-widest text-ifp-orange">Serviço Social</p>
-        <h1 className="mt-1 text-3xl font-bold text-foreground">
-          Olá, {session?.user?.name ?? session?.user?.email}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Gerencie as Fichas Cidadãs e a elegibilidade das famílias nas 4 unidades.
-        </p>
-      </header>
+      <PageHeader
+        titulo={`Olá, ${session?.user?.name ?? session?.user?.email}`}
+        descricao="Gerencie as Fichas Cidadãs e a elegibilidade das famílias nas 4 unidades."
+      />
+      <div className="mb-10" />
 
       <section className="grid gap-4 md:grid-cols-3">
         {atalhos.map(({ href, titulo, descricao, Icone }) => (
           <Link
             key={href}
             href={href}
-            className="group rounded-lg border border-border bg-surface p-6 shadow-ifp-sm transition hover:border-ifp-orange hover:shadow-ifp-md"
+            className="group rounded-[18px] border border-border bg-surface p-5 shadow-[var(--ifp-shadow-casa-sm)] transition hover:border-ifp-orange hover:shadow-[var(--ifp-shadow-casa)]"
           >
             <Icone className="h-6 w-6 text-ifp-orange" />
             <h2 className="mt-3 text-lg font-semibold text-foreground">{titulo}</h2>
