@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * Detalhe da turma: progresso, alunos com presença%, aulas e encerramento
- * (emite certificados de quem atingiu a presença mínima do curso).
+ * Detalhe da turma: alunos com presença%, aulas e encerramento (emite
+ * certificados de quem atingiu a presença mínima). Permite matricular titular
+ * ou dependente, trancar/cancelar/reativar matrícula e abrir aula com data e
+ * conteúdo.
  */
 import { useState } from "react";
 import Link from "next/link";
@@ -10,9 +12,11 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Award,
+  Ban,
   CalendarPlus,
   ClipboardCheck,
   Lock,
+  RotateCcw,
   Search,
   Stamp,
   UserPlus,
@@ -25,11 +29,13 @@ import {
   type ResumoEncerramentoTurma,
 } from "@/lib/api";
 import {
+  useAlterarMatricula,
   useCriarAula,
   useEncerrarTurma,
   useFichasElegiveis,
   useMatricular,
   useTurma,
+  type AcaoMatricula,
 } from "@/lib/use-capacitacao";
 import { Alerta, Botao, Campo, Input, Spinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -38,23 +44,25 @@ function dataCurta(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
-/** Busca fichas APROVADAS na Capacitação e matricula (regra de ouro no backend). */
+/** Busca fichas APROVADAS e matricula o titular OU um dependente da família. */
 function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () => void }) {
   const [busca, setBusca] = useState("");
   const [aviso, setAviso] = useState<string | null>(null);
+  const [expandida, setExpandida] = useState<string | null>(null);
   const { data: resultados, isFetching } = useFichasElegiveis(busca);
   const matricular = useMatricular();
 
-  async function adicionar(fichaId: string, nome: string) {
+  async function adicionar(fichaId: string, membroId: string | undefined, nome: string) {
     setAviso(null);
     try {
-      const m = await matricular.mutateAsync({ turmaId, fichaId });
+      const m = await matricular.mutateAsync({ turmaId, fichaId, membroId });
       setAviso(
         m.status === "LISTA_ESPERA"
           ? `${nome} entrou na lista de espera (turma lotada).`
           : `${nome} matriculado(a)!`,
       );
       setBusca("");
+      setExpandida(null);
     } catch (e) {
       setAviso((e as Error).message || "Falha ao matricular.");
     }
@@ -89,18 +97,48 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
       {busca.trim().length >= 2 ? (
         <ul className="mt-2 divide-y divide-border rounded-md border border-border">
           {(resultados?.items ?? []).map((f) => (
-            <li key={f.id}>
+            <li key={f.id} className="px-3 py-2">
               <button
                 type="button"
-                disabled={matricular.isPending}
-                onClick={() => adicionar(f.id, f.nomeCompleto)}
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted disabled:opacity-50"
+                onClick={() => setExpandida((id) => (id === f.id ? null : f.id))}
+                className="flex w-full items-center justify-between text-left text-sm"
               >
                 <span className="font-medium text-foreground">{f.nomeCompleto}</span>
-                <span className="inline-flex items-center gap-1 text-xs text-primary">
-                  <UserPlus className="h-3.5 w-3.5" /> matricular
+                <span className="text-xs text-primary">
+                  {expandida === f.id ? "fechar" : "matricular →"}
                 </span>
               </button>
+              {expandida === f.id ? (
+                <div className="mt-2 space-y-1.5 border-t border-border pt-2">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Quem vai cursar?
+                  </p>
+                  <button
+                    type="button"
+                    disabled={matricular.isPending}
+                    onClick={() => adicionar(f.id, undefined, f.nomeCompleto)}
+                    className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted disabled:opacity-50"
+                  >
+                    <span>{f.nomeCompleto} <span className="text-xs text-muted-foreground">(titular)</span></span>
+                    <UserPlus className="h-3.5 w-3.5 text-primary" />
+                  </button>
+                  {f.membros.map((mb) => (
+                    <button
+                      key={mb.id}
+                      type="button"
+                      disabled={matricular.isPending}
+                      onClick={() => adicionar(f.id, mb.id, mb.nomeCompleto)}
+                      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted disabled:opacity-50"
+                    >
+                      <span>
+                        {mb.nomeCompleto}{" "}
+                        <span className="text-xs text-muted-foreground">({mb.parentesco.toLowerCase()})</span>
+                      </span>
+                      <UserPlus className="h-3.5 w-3.5 text-primary" />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </li>
           ))}
           {!isFetching && (resultados?.items ?? []).length === 0 ? (
@@ -110,21 +148,129 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
           ) : null}
         </ul>
       ) : null}
-      {aviso ? <div className="mt-3"><Alerta tipo={aviso.includes("Falha") || aviso.includes("não") ? "erro" : "info"}>{aviso}</Alerta></div> : null}
+      {aviso ? (
+        <div className="mt-3">
+          <Alerta tipo={aviso.includes("Falha") || aviso.includes("não") ? "erro" : "info"}>{aviso}</Alerta>
+        </div>
+      ) : null}
     </div>
+  );
+}
+
+/** Ações de trancar/cancelar/reativar de uma matrícula (turma em andamento). */
+function AcoesMatricula({ matriculaId, status }: { matriculaId: string; status: string }) {
+  const alterar = useAlterarMatricula();
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function aplicar(novo: AcaoMatricula, confirmar?: string) {
+    if (confirmar && !confirm(confirmar)) return;
+    setErro(null);
+    try {
+      await alterar.mutateAsync({ matriculaId, status: novo });
+    } catch (e) {
+      setErro((e as Error).message || "Falha.");
+    }
+  }
+
+  const btn =
+    "inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted disabled:opacity-50";
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {status === "ATIVA" ? (
+        <button className={btn} disabled={alterar.isPending} onClick={() => aplicar("TRANCADA")}>
+          <Lock className="h-3 w-3" /> Trancar
+        </button>
+      ) : null}
+      {status === "TRANCADA" ? (
+        <button className={btn} disabled={alterar.isPending} onClick={() => aplicar("ATIVA")}>
+          <RotateCcw className="h-3 w-3" /> Reativar
+        </button>
+      ) : null}
+      {status === "ATIVA" || status === "LISTA_ESPERA" || status === "TRANCADA" ? (
+        <button
+          className={cn(btn, "hover:border-danger/40 hover:text-danger")}
+          disabled={alterar.isPending}
+          onClick={() => aplicar("CANCELADA", "Cancelar a matrícula deste aluno?")}
+        >
+          <Ban className="h-3 w-3" /> Cancelar
+        </button>
+      ) : null}
+      {erro ? <span className="text-xs text-danger">{erro}</span> : null}
+    </div>
+  );
+}
+
+/** Abre uma aula com data e conteúdo, depois leva à chamada. */
+function NovaAula({ turmaId, onFechar }: { turmaId: string; onFechar: () => void }) {
+  const router = useRouter();
+  const criarAula = useCriarAula();
+  const hoje = new Date().toISOString().slice(0, 10);
+  const [data, setData] = useState(hoje);
+  const [conteudo, setConteudo] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function criar(e: React.FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    try {
+      const aula = await criarAula.mutateAsync({
+        turmaId,
+        dados: {
+          data: new Date(`${data}T12:00:00`).toISOString(),
+          ...(conteudo.trim() ? { conteudo: conteudo.trim() } : {}),
+        },
+      });
+      router.push(`/capacitacao/turmas/${turmaId}/aulas/${aula.id}`);
+    } catch (e) {
+      setErro((e as Error).message || "Falha ao criar aula.");
+    }
+  }
+
+  return (
+    <form
+      onSubmit={criar}
+      className="mt-3 space-y-3 rounded-lg border border-border bg-surface p-4 shadow-casa-sm"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Nova aula</h3>
+        <button type="button" onClick={onFechar} aria-label="Fechar" className="text-muted-foreground hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Campo label="Data da aula" htmlFor="data-aula" obrigatorio>
+          <Input id="data-aula" type="date" value={data} onChange={(e) => setData(e.target.value)} />
+        </Campo>
+        <Campo label="Conteúdo / tema" htmlFor="conteudo-aula" dica="Opcional.">
+          <Input
+            id="conteudo-aula"
+            value={conteudo}
+            onChange={(e) => setConteudo(e.target.value)}
+            placeholder="Ex.: Técnicas de corte"
+            maxLength={500}
+          />
+        </Campo>
+      </div>
+      {erro ? <Alerta tipo="erro">{erro}</Alerta> : null}
+      <div className="flex justify-end">
+        <Botao type="submit" carregando={criarAula.isPending}>
+          <CalendarPlus className="h-4 w-4" /> Abrir aula e fazer chamada
+        </Botao>
+      </div>
+    </form>
   );
 }
 
 export default function TurmaDetalhePage() {
   const { turmaId } = useParams<{ turmaId: string }>();
-  const router = useRouter();
   const { data: turma, isLoading, isError, error } = useTurma(turmaId);
-  const criarAula = useCriarAula();
   const encerrarTurma = useEncerrarTurma();
 
   const [resumo, setResumo] = useState<ResumoEncerramentoTurma | null>(null);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [matricularAberto, setMatricularAberto] = useState(false);
+  const [novaAulaAberta, setNovaAulaAberta] = useState(false);
 
   if (isLoading) return <main className="mx-auto max-w-4xl px-6 py-8"><Spinner /></main>;
   if (isError || !turma) {
@@ -138,19 +284,6 @@ export default function TurmaDetalhePage() {
   const encerrada = turma.status === "ENCERRADA";
   const minPct = turma.curso.presencaMinimaPct;
 
-  async function novaAula() {
-    setErroAcao(null);
-    try {
-      const aula = await criarAula.mutateAsync({
-        turmaId: turma!.id,
-        dados: { data: new Date().toISOString() },
-      });
-      router.push(`/capacitacao/turmas/${turma!.id}/aulas/${aula.id}`);
-    } catch (e) {
-      setErroAcao((e as Error).message || "Falha ao criar aula.");
-    }
-  }
-
   async function encerrar() {
     setErroAcao(null);
     if (!confirm(`Encerrar a turma ${turma!.codigo}? Certificados serão emitidos para quem atingiu ${minPct}% de presença. Esta ação é definitiva.`)) return;
@@ -163,15 +296,13 @@ export default function TurmaDetalhePage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
-      {/* cabeçalho */}
       <div className="rounded-lg border border-border bg-surface p-5 shadow-casa-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold text-foreground">{turma.curso.nome}</h1>
             <p className="text-sm text-muted-foreground">
               {turma.codigo} · {turma.diasHorario}
-              {turma.sala ? ` · ${turma.sala}` : ""} · Instrutor:{" "}
-              {turma.instrutor.user.nome}
+              {turma.sala ? ` · ${turma.sala}` : ""} · Instrutor: {turma.instrutor.user.nome}
             </p>
           </div>
           <span
@@ -202,7 +333,6 @@ export default function TurmaDetalhePage() {
       ) : null}
       {erroAcao ? <div className="mt-4"><Alerta>{erroAcao}</Alerta></div> : null}
 
-      {/* alunos */}
       <div className="mt-8 flex items-center justify-between">
         <h2 className="font-semibold text-foreground">Alunos ({turma.matriculas.length})</h2>
         {!encerrada && !matricularAberto ? (
@@ -232,12 +362,12 @@ export default function TurmaDetalhePage() {
                 </div>
                 <div className="text-xs text-muted-foreground">{m.ficha.protocolo}</div>
               </div>
-              <div className="w-28">
+              <div className="w-24">
                 <div className="flex items-baseline justify-between text-xs">
                   <span className={abaixo ? "font-semibold text-danger" : "font-semibold text-success"}>
                     {m.presencaPct}%
                   </span>
-                  <span className="text-muted-foreground">presença</span>
+                  <span className="text-muted-foreground">pres.</span>
                 </div>
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
                   <div
@@ -257,12 +387,12 @@ export default function TurmaDetalhePage() {
                   <Award className="h-3 w-3" /> Certificado
                 </Link>
               ) : null}
+              {!encerrada ? <AcoesMatricula matriculaId={m.id} status={m.status} /> : null}
             </li>
           );
         })}
       </ul>
 
-      {/* aulas */}
       <h2 className="mt-8 font-semibold text-foreground">Aulas ({turma.aulas.length})</h2>
       <ul className="mt-3 space-y-2">
         {turma.aulas.map((a) => (
@@ -294,8 +424,10 @@ export default function TurmaDetalhePage() {
           </li>
         ) : null}
       </ul>
+      {!encerrada && novaAulaAberta ? (
+        <NovaAula turmaId={turma.id} onFechar={() => setNovaAulaAberta(false)} />
+      ) : null}
 
-      {/* ações */}
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/capacitacao/turmas"
@@ -305,9 +437,11 @@ export default function TurmaDetalhePage() {
         </Link>
         {!encerrada ? (
           <div className="flex gap-2">
-            <Botao variante="outline" onClick={novaAula} carregando={criarAula.isPending}>
-              <CalendarPlus className="h-4 w-4" /> Nova aula (hoje)
-            </Botao>
+            {!novaAulaAberta ? (
+              <Botao variante="outline" onClick={() => setNovaAulaAberta(true)}>
+                <CalendarPlus className="h-4 w-4" /> Nova aula
+              </Botao>
+            ) : null}
             <Botao onClick={encerrar} carregando={encerrarTurma.isPending}>
               <Stamp className="h-4 w-4" /> Encerrar turma
             </Botao>

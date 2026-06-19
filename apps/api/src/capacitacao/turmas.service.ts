@@ -420,4 +420,122 @@ export class TurmasService {
       codigos: resultado.codigos,
     };
   }
+
+  /** Tranca, cancela ou reativa uma matrícula (remover/repor aluno na turma). */
+  async alterarMatricula(
+    user: AuthenticatedUser,
+    matriculaId: string,
+    novoStatus: StatusMatricula,
+  ) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+    const mat = await this.prisma.matricula.findUnique({
+      where: { id: matriculaId },
+      include: {
+        turma: { select: { id: true, profissionalId: true, status: true } },
+      },
+    });
+    if (!mat) throw new NotFoundException("Matrícula não encontrada");
+    this.profissionais.assertOwnership(mat.turma.profissionalId, profissional, user);
+
+    if (mat.turma.status === StatusTurma.ENCERRADA) {
+      throw new BadRequestException("A turma já foi encerrada.");
+    }
+    const permitidos: StatusMatricula[] = [
+      StatusMatricula.ATIVA,
+      StatusMatricula.TRANCADA,
+      StatusMatricula.CANCELADA,
+    ];
+    if (!permitidos.includes(novoStatus)) {
+      throw new BadRequestException("Use apenas ativar, trancar ou cancelar.");
+    }
+    if (mat.status === StatusMatricula.CONCLUIDA || mat.status === StatusMatricula.EVADIDA) {
+      throw new BadRequestException("Esta matrícula já foi finalizada.");
+    }
+    if (mat.status === novoStatus) return mat;
+
+    // Reativar precisa de vaga: lock da turma serializa contra matrículas concorrentes.
+    if (novoStatus === StatusMatricula.ATIVA) {
+      const atualizada = await this.prisma.$transaction(async (tx) => {
+        const [lock] = await tx.$queryRaw<{ vagasTotais: number }[]>`
+          SELECT "vagasTotais" FROM turmas WHERE id = ${mat.turma.id} FOR UPDATE
+        `;
+        if (!lock) throw new NotFoundException("Turma não encontrada");
+        const ativas = await tx.matricula.count({
+          where: { turmaId: mat.turma.id, status: StatusMatricula.ATIVA },
+        });
+        if (ativas >= lock.vagasTotais) {
+          throw new BadRequestException("Turma lotada — não há vaga para reativar.");
+        }
+        return tx.matricula.update({
+          where: { id: matriculaId },
+          data: { status: StatusMatricula.ATIVA, posicaoEspera: null },
+        });
+      });
+      this.audit.registrar({
+        userId: user.id,
+        acao: AcaoAuditoria.UPDATE,
+        entidade: "Matricula",
+        entidadeId: matriculaId,
+        metadados: { status: StatusMatricula.ATIVA },
+      });
+      return atualizada;
+    }
+
+    // Trancar/cancelar libera a vaga (zera posição de espera).
+    const atualizada = await this.prisma.matricula.update({
+      where: { id: matriculaId },
+      data: { status: novoStatus, posicaoEspera: null },
+    });
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "Matricula",
+      entidadeId: matriculaId,
+      metadados: { status: novoStatus },
+    });
+    return atualizada;
+  }
+
+  /** Certificados emitidos na unidade (consulta/segunda via). */
+  async certificados(user: AuthenticatedUser) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+    const items = await this.prisma.certificado.findMany({
+      where: { unidadeId: profissional.unidadeId },
+      orderBy: { emitidoEm: "desc" },
+      select: {
+        id: true,
+        codigoVerificacao: true,
+        cargaHorariaCumprida: true,
+        presencaPct: true,
+        emitidoEm: true,
+        matricula: {
+          select: {
+            ficha: { select: { nomeCompleto: true } },
+            membro: { select: { nomeCompleto: true } },
+            turma: { select: { codigo: true, curso: { select: { nome: true } } } },
+          },
+        },
+      },
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Certificado",
+      metadados: { contexto: "listagem", total: items.length },
+    });
+
+    return {
+      items: items.map((c) => ({
+        id: c.id,
+        codigoVerificacao: c.codigoVerificacao,
+        cargaHorariaCumprida: c.cargaHorariaCumprida,
+        presencaPct: Number(c.presencaPct),
+        emitidoEm: c.emitidoEm,
+        aluno: c.matricula.membro?.nomeCompleto ?? c.matricula.ficha.nomeCompleto,
+        curso: c.matricula.turma.curso.nome,
+        turma: c.matricula.turma.codigo,
+      })),
+    };
+  }
 }

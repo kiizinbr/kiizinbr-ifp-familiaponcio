@@ -273,3 +273,43 @@ export function useAtualizarCurso() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
   });
 }
+
+// ============================================================
+// Matrícula (trancar/cancelar/reativar) e certificados emitidos
+// ============================================================
+
+export type AcaoMatricula = "ATIVA" | "TRANCADA" | "CANCELADA";
+
+export function useAlterarMatricula() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ matriculaId, status }: { matriculaId: string; status: AcaoMatricula }) =>
+      authFetch<{ id: string; status: string }>(`/capacitacao/matriculas/${matriculaId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
+  });
+}
+
+export interface CertificadoEmitido {
+  id: string;
+  codigoVerificacao: string;
+  cargaHorariaCumprida: number;
+  presencaPct: number;
+  emitidoEm: string;
+  aluno: string;
+  curso: string;
+  turma: string;
+}
+
+export function useCertificados() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "certificados"],
+    queryFn: () => authFetch<{ items: CertificadoEmitido[] }>("/capacitacao/certificados"),
+    enabled: status === "authenticated",
+  });
+}

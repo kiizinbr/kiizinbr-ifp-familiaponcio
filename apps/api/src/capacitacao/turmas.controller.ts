@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -16,6 +17,7 @@ import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decora
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
+import { AlterarMatriculaDto } from "./dto/alterar-matricula.dto";
 import { CriarMatriculaDto } from "./dto/criar-matricula.dto";
 import { CriarTurmaDto } from "./dto/criar-turma.dto";
 import { TurmasService } from "./turmas.service";
@@ -50,6 +52,23 @@ export class TurmasController {
   @ApiOperation({ summary: "Fichas APROVADAS na Capacitação (form de matrícula)" })
   fichasElegiveis(@Query("q") q: string, @CurrentUser() user: AuthenticatedUser) {
     return this.turmas.fichasElegiveis(user, q);
+  }
+
+  @Get("certificados")
+  @ApiOperation({ summary: "Certificados emitidos na unidade (consulta/2ª via)" })
+  certificados(@CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.certificados(user);
+  }
+
+  @Patch("matriculas/:id")
+  @ApiOperation({ summary: "Tranca, cancela ou reativa uma matrícula" })
+  @ApiParam({ name: "id", description: "cuid da matrícula" })
+  alterarMatricula(
+    @Param("id") id: string,
+    @Body() dto: AlterarMatriculaDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.turmas.alterarMatricula(user, id, dto.status);
   }
 
   @Post("turmas")
