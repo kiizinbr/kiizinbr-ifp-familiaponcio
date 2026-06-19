@@ -8,7 +8,7 @@ import { ShellInterno } from "@/components/casa";
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL"];
 
 /** Rotas do médico que já existem (as demais aparecem como "em breve" no rail). */
-const ROTAS_PRONTAS = ["/medico/agenda"];
+const ROTAS_PRONTAS = ["/medico/agenda", "/medico/fila"];
 
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);

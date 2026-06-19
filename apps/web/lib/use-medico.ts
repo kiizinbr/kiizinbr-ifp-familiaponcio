@@ -4,7 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { useAuthFetch } from "./use-auth-fetch";
-import type { AgendaDia, AgendamentoResumo, Atendimento, FichaBuscaItem, Prancha } from "./api";
+import type {
+  AgendaDia,
+  AgendamentoResumo,
+  Atendimento,
+  FichaBuscaItem,
+  Prancha,
+  StatusAgendamento,
+} from "./api";
 
 // ============================================================
 // Payloads de entrada (espelham os DTOs do módulo medico no NestJS)
@@ -145,6 +152,30 @@ export function useEncerrarAtendimento() {
     mutationFn: (atendimentoId: string) =>
       authFetch<Atendimento>(`/medico/atendimentos/${atendimentoId}/encerrar`, {
         method: "POST",
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),
+  });
+}
+
+// ============================================================
+// Gestão do agendamento (confirmar / falta / cancelar / reagendar)
+// ============================================================
+
+export interface AtualizarAgendamentoPayload {
+  status?: StatusAgendamento;
+  inicioEm?: string;
+  fimEm?: string;
+  motivo?: string;
+}
+
+export function useAtualizarAgendamento() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dados }: { id: string; dados: AtualizarAgendamentoPayload }) =>
+      authFetch<AgendamentoResumo>(`/medico/agendamentos/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(dados),
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),
   });

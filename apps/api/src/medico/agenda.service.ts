@@ -307,4 +307,81 @@ export class AgendaService {
 
     return atendimento;
   }
+
+  /** Gestão do agendamento: confirmar, marcar falta, cancelar ou reagendar. */
+  async atualizarAgendamento(
+    user: AuthenticatedUser,
+    agendamentoId: string,
+    dto: {
+      status?: StatusAgendamento;
+      inicioEm?: string;
+      fimEm?: string;
+      motivo?: string;
+    },
+  ) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
+    const ag = await this.prisma.agendamento.findUnique({ where: { id: agendamentoId } });
+    if (!ag) throw new NotFoundException("Agendamento não encontrado");
+    this.profissionais.assertOwnership(ag.profissionalId, profissional, user);
+
+    if (
+      ag.status === StatusAgendamento.EM_ATENDIMENTO ||
+      ag.status === StatusAgendamento.CONCLUIDO
+    ) {
+      throw new BadRequestException(
+        "O atendimento já foi iniciado — não dá para alterar este agendamento.",
+      );
+    }
+
+    const data: Prisma.AgendamentoUpdateInput = {};
+
+    if (dto.status) {
+      const permitidos: StatusAgendamento[] = [
+        StatusAgendamento.AGENDADO,
+        StatusAgendamento.CONFIRMADO,
+        StatusAgendamento.FALTOU,
+        StatusAgendamento.CANCELADO,
+      ];
+      if (!permitidos.includes(dto.status)) {
+        throw new BadRequestException("Use apenas confirmar, falta, cancelar ou reagendar.");
+      }
+      data.status = dto.status;
+    }
+
+    if (dto.inicioEm || dto.fimEm) {
+      const inicio = dto.inicioEm ? new Date(dto.inicioEm) : ag.inicioEm;
+      const fim = dto.fimEm
+        ? new Date(dto.fimEm)
+        : dto.inicioEm
+          ? new Date(inicio.getTime() + 30 * 60 * 1000)
+          : ag.fimEm;
+      if (fim <= inicio) {
+        throw new BadRequestException("O fim do agendamento deve ser depois do início.");
+      }
+      data.inicioEm = inicio;
+      data.fimEm = fim;
+    }
+
+    if (dto.motivo !== undefined) data.motivo = dto.motivo;
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException("Nada para atualizar.");
+    }
+
+    const atualizado = await this.prisma.agendamento.update({
+      where: { id: agendamentoId },
+      data,
+      include: agendaInclude,
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "Agendamento",
+      entidadeId: agendamentoId,
+      metadados: { campos: Object.keys(dto) },
+    });
+
+    return atualizado;
+  }
 }

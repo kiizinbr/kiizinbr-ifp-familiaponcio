@@ -24,6 +24,7 @@ import {
 } from "@/lib/use-medico";
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
 import { PageHeader } from "@/components/casa";
+import { AcoesAgendamento } from "@/components/medico/acoes-agendamento";
 import { cn } from "@/lib/cn";
 import { idade } from "@/lib/idade";
 
@@ -304,7 +305,7 @@ export default function AgendaPage() {
 
       <ul className="mt-6 space-y-3">
         {data?.items.map((ag) => (
-          <li key={ag.id}>
+          <li key={ag.id} className="space-y-2">
             <Link
               href={`/medico/atendimento/${ag.id}`}
               className="group flex items-center gap-4 rounded-[18px] border border-border bg-surface p-4 shadow-[var(--ifp-shadow-casa-sm)] transition hover:shadow-[var(--ifp-shadow-casa)]"
@@ -342,6 +343,9 @@ export default function AgendaPage() {
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
             </Link>
+            <div className="px-4">
+              <AcoesAgendamento id={ag.id} status={ag.status} inicioEm={ag.inicioEm} />
+            </div>
           </li>
         ))}
       </ul>

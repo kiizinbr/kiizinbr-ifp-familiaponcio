@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { Perfil } from "@ifp/database";
 
@@ -7,6 +7,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
 import { AgendaService } from "./agenda.service";
+import { AtualizarAgendamentoDto } from "./dto/atualizar-agendamento.dto";
 import { CriarAgendamentoDto } from "./dto/criar-agendamento.dto";
 import { ListAgendaQuery } from "./dto/list-agenda.query";
 
@@ -49,6 +50,17 @@ export class AgendaController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.agenda.criarAgendamento(user, dto);
+  }
+
+  @Patch("agendamentos/:agendamentoId")
+  @ApiOperation({ summary: "Confirma, marca falta, cancela ou reagenda um agendamento" })
+  @ApiParam({ name: "agendamentoId", description: "cuid do agendamento" })
+  atualizarAgendamento(
+    @Param("agendamentoId") agendamentoId: string,
+    @Body() dto: AtualizarAgendamentoDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.agenda.atualizarAgendamento(user, agendamentoId, dto);
   }
 
   @Post("agendamentos/:agendamentoId/iniciar")
