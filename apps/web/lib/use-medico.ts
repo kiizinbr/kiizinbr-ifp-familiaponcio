@@ -388,3 +388,81 @@ export function useIndicadoresMedico() {
     enabled: status === "authenticated",
   });
 }
+
+// ============================================================
+// Equipe — cadastro de profissionais do Centro Médico
+// ============================================================
+
+export interface ProfissionalEquipe {
+  id: string;
+  especialidade: string | null;
+  registroConselho: string | null;
+  ufConselho: string;
+  ativo: boolean;
+  user: { id: string; nome: string; email: string };
+}
+
+export interface CandidatoEquipe {
+  id: string;
+  nome: string;
+  email: string;
+}
+
+export function useEquipe() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["medico", "equipe"],
+    queryFn: () => authFetch<{ items: ProfissionalEquipe[] }>("/medico/equipe"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useCandidatosEquipe() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["medico", "equipe", "candidatos"],
+    queryFn: () => authFetch<{ items: CandidatoEquipe[] }>("/medico/equipe/candidatos"),
+    enabled: status === "authenticated",
+  });
+}
+
+export interface VincularProfissionalPayload {
+  userId: string;
+  especialidade?: string;
+  registroConselho?: string;
+  ufConselho?: string;
+}
+
+export function useVincularProfissional() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: VincularProfissionalPayload) =>
+      authFetch<ProfissionalEquipe>("/medico/equipe", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["medico", "equipe"] }),
+  });
+}
+
+export function useEditarProfissional() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      dados,
+    }: {
+      id: string;
+      dados: { especialidade?: string; registroConselho?: string; ufConselho?: string; ativo?: boolean };
+    }) =>
+      authFetch<ProfissionalEquipe>(`/medico/equipe/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(dados),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["medico", "equipe"] }),
+  });
+}
