@@ -20,6 +20,7 @@ import { PerfisGuard } from "../auth/perfis.guard";
 import { AlterarMatriculaDto } from "./dto/alterar-matricula.dto";
 import { CriarMatriculaDto } from "./dto/criar-matricula.dto";
 import { CriarTurmaDto } from "./dto/criar-turma.dto";
+import { EditarTurmaDto } from "./dto/editar-turma.dto";
 import { TurmasService } from "./turmas.service";
 
 @ApiTags("capacitacao")
@@ -95,6 +96,17 @@ export class TurmasController {
   @ApiParam({ name: "id", description: "cuid da turma" })
   detalhe(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.turmas.detalhe(user, id);
+  }
+
+  @Patch("turmas/:id")
+  @ApiOperation({ summary: "Edita horário, sala ou vagas da turma" })
+  @ApiParam({ name: "id", description: "cuid da turma" })
+  editar(
+    @Param("id") id: string,
+    @Body() dto: EditarTurmaDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.turmas.editar(user, id, dto);
   }
 
   @Post("turmas/:id/encerrar")

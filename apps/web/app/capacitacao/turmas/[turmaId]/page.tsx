@@ -16,6 +16,7 @@ import {
   CalendarPlus,
   ClipboardCheck,
   Lock,
+  Pencil,
   RotateCcw,
   Search,
   Stamp,
@@ -27,10 +28,12 @@ import {
   STATUS_MATRICULA_LABEL,
   STATUS_TURMA_LABEL,
   type ResumoEncerramentoTurma,
+  type TurmaDetalhe,
 } from "@/lib/api";
 import {
   useAlterarMatricula,
   useCriarAula,
+  useEditarTurma,
   useEncerrarTurma,
   useFichasElegiveis,
   useMatricular,
@@ -262,6 +265,61 @@ function NovaAula({ turmaId, onFechar }: { turmaId: string; onFechar: () => void
   );
 }
 
+/** Form inline para editar horário, sala e vagas da turma. */
+function FormEditarTurma({ turma, onFechar }: { turma: TurmaDetalhe; onFechar: () => void }) {
+  const editar = useEditarTurma();
+  const [diasHorario, setDiasHorario] = useState(turma.diasHorario);
+  const [sala, setSala] = useState(turma.sala ?? "");
+  const [vagas, setVagas] = useState(String(turma.vagasTotais));
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function salvar(e: React.FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    const v = Number(vagas);
+    if (!Number.isInteger(v) || v < 1) {
+      setErro("Informe as vagas (mínimo 1).");
+      return;
+    }
+    try {
+      await editar.mutateAsync({
+        id: turma.id,
+        dados: { diasHorario: diasHorario.trim(), sala: sala.trim(), vagasTotais: v },
+      });
+      onFechar();
+    } catch (err) {
+      setErro((err as Error).message || "Falha ao salvar.");
+    }
+  }
+
+  return (
+    <form onSubmit={salvar} className="mt-3 space-y-3 rounded-lg border border-border bg-surface p-4 shadow-casa-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Editar turma</h3>
+        <button type="button" onClick={onFechar} aria-label="Fechar" className="text-muted-foreground hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Campo label="Dias e horário" htmlFor="ed-dias" obrigatorio>
+          <Input id="ed-dias" value={diasHorario} onChange={(e) => setDiasHorario(e.target.value)} />
+        </Campo>
+        <Campo label="Sala" htmlFor="ed-sala">
+          <Input id="ed-sala" value={sala} onChange={(e) => setSala(e.target.value)} />
+        </Campo>
+        <Campo label="Vagas" htmlFor="ed-vagas" obrigatorio>
+          <Input id="ed-vagas" type="number" min={1} max={100} value={vagas} onChange={(e) => setVagas(e.target.value)} />
+        </Campo>
+      </div>
+      {erro ? <Alerta tipo="erro">{erro}</Alerta> : null}
+      <div className="flex justify-end gap-2">
+        <Botao type="button" variante="ghost" onClick={onFechar} disabled={editar.isPending}>Cancelar</Botao>
+        <Botao type="submit" carregando={editar.isPending}>Salvar</Botao>
+      </div>
+    </form>
+  );
+}
+
 export default function TurmaDetalhePage() {
   const { turmaId } = useParams<{ turmaId: string }>();
   const { data: turma, isLoading, isError, error } = useTurma(turmaId);
@@ -271,6 +329,7 @@ export default function TurmaDetalhePage() {
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [matricularAberto, setMatricularAberto] = useState(false);
   const [novaAulaAberta, setNovaAulaAberta] = useState(false);
+  const [editando, setEditando] = useState(false);
 
   if (isLoading) return <main className="mx-auto max-w-4xl px-6 py-8"><Spinner /></main>;
   if (isError || !turma) {
@@ -305,16 +364,27 @@ export default function TurmaDetalhePage() {
               {turma.sala ? ` · ${turma.sala}` : ""} · Instrutor: {turma.instrutor.user.nome}
             </p>
           </div>
-          <span
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-semibold",
-              encerrada
-                ? "border-success/50 bg-success/10 text-success"
-                : "border-primary/60 bg-primary/10 text-primary",
-            )}
-          >
-            {STATUS_TURMA_LABEL[turma.status]}
-          </span>
+          <div className="flex items-center gap-2">
+            {!encerrada ? (
+              <button
+                type="button"
+                onClick={() => setEditando((v) => !v)}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted"
+              >
+                <Pencil className="h-3 w-3" /> Editar
+              </button>
+            ) : null}
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-semibold",
+                encerrada
+                  ? "border-success/50 bg-success/10 text-success"
+                  : "border-primary/60 bg-primary/10 text-primary",
+              )}
+            >
+              {STATUS_TURMA_LABEL[turma.status]}
+            </span>
+          </div>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
           <ClipboardCheck className="mr-1 inline h-4 w-4 text-primary" />
@@ -322,6 +392,7 @@ export default function TurmaDetalhePage() {
           {turma.curso.cargaHorariaTotal}h · presença mínima <strong>{minPct}%</strong>
         </p>
       </div>
+      {editando ? <FormEditarTurma turma={turma} onFechar={() => setEditando(false)} /> : null}
 
       {resumo ? (
         <div className="mt-4">

@@ -421,6 +421,55 @@ export class TurmasService {
     };
   }
 
+  /** Edita dados operacionais da turma (horário, sala, vagas). */
+  async editar(
+    user: AuthenticatedUser,
+    turmaId: string,
+    dto: { diasHorario?: string; sala?: string; vagasTotais?: number },
+  ) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+    const turma = await this.prisma.turma.findUnique({
+      where: { id: turmaId },
+      select: { id: true, profissionalId: true, status: true },
+    });
+    if (!turma) throw new NotFoundException("Turma não encontrada");
+    this.profissionais.assertOwnership(turma.profissionalId, profissional, user);
+    if (turma.status === StatusTurma.ENCERRADA) {
+      throw new BadRequestException("A turma já foi encerrada.");
+    }
+
+    if (dto.vagasTotais != null) {
+      const ativas = await this.prisma.matricula.count({
+        where: { turmaId, status: StatusMatricula.ATIVA },
+      });
+      if (dto.vagasTotais < ativas) {
+        throw new BadRequestException(
+          `Já há ${ativas} aluno(s) ativo(s) — as vagas não podem ser menores que isso.`,
+        );
+      }
+    }
+
+    const atualizada = await this.prisma.turma.update({
+      where: { id: turmaId },
+      data: {
+        ...(dto.diasHorario ? { diasHorario: dto.diasHorario } : {}),
+        ...(dto.sala !== undefined ? { sala: dto.sala } : {}),
+        ...(dto.vagasTotais != null ? { vagasTotais: dto.vagasTotais } : {}),
+      },
+      include: { curso: true, _count: { select: { matriculas: true, aulas: true } } },
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "Turma",
+      entidadeId: turmaId,
+      metadados: { campos: Object.keys(dto) },
+    });
+
+    return atualizada;
+  }
+
   /** Tranca, cancela ou reativa uma matrícula (remover/repor aluno na turma). */
   async alterarMatricula(
     user: AuthenticatedUser,

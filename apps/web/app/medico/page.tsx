@@ -1,9 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, CheckCircle2, Clock, Stethoscope } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  FileText,
+  ListOrdered,
+  Stethoscope,
+  Users,
+} from "lucide-react";
 
 import { useAgendaDoDia } from "@/lib/use-medico";
+
+const ATALHOS = [
+  {
+    href: "/medico/agenda",
+    titulo: "Agenda do dia",
+    desc: "Abrir a prancha, agendar pacientes e gerir o dia.",
+    icone: CalendarDays,
+  },
+  {
+    href: "/medico/fila",
+    titulo: "Fila do dia",
+    desc: "Quem está aguardando, em atendimento e concluído.",
+    icone: ListOrdered,
+  },
+  {
+    href: "/medico/beneficiarios",
+    titulo: "Beneficiários",
+    desc: "Pacientes elegíveis, ficha clínica, alergias e condições.",
+    icone: Users,
+  },
+  {
+    href: "/medico/prontuarios",
+    titulo: "Prontuários",
+    desc: "Histórico dos atendimentos que você selou.",
+    icone: FileText,
+  },
+];
 
 function Kpi({
   rotulo,
@@ -49,18 +85,22 @@ export default function MedicoHome() {
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link
-          href="/medico/agenda"
-          className="group rounded-lg border border-border bg-surface p-5 shadow-ifp-sm transition hover:shadow-casa-sm"
-        >
-          <CalendarDays className="h-6 w-6 text-primary" />
-          <h2 className="mt-3 font-semibold text-foreground group-hover:text-primary">
-            Agenda do dia
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Abrir a prancha de atendimento, agendar pacientes e acompanhar o dia.
-          </p>
-        </Link>
+        {ATALHOS.map((a) => {
+          const Icone = a.icone;
+          return (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="group rounded-lg border border-border bg-surface p-5 shadow-ifp-sm transition hover:shadow-casa-sm"
+            >
+              <Icone className="h-6 w-6 text-primary" />
+              <h2 className="mt-3 font-semibold text-foreground group-hover:text-primary">
+                {a.titulo}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">{a.desc}</p>
+            </Link>
+          );
+        })}
       </div>
     </main>
   );

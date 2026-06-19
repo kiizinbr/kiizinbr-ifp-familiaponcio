@@ -85,6 +85,13 @@ const turma = await req(instrutor, "POST", "/capacitacao/turmas", {
 caso("cria turma", 201, turma.status);
 const turmaId = turma.json?.id;
 
+const edicao = await req(instrutor, "PATCH", `/capacitacao/turmas/${turmaId}`, {
+  diasHorario: "Sex 16h",
+  vagasTotais: 8,
+});
+caso("edita turma (horário/vagas)", 200, edicao.status);
+caso("vagas atualizadas para 8", 8, edicao.json?.vagasTotais);
+
 const mat = await req(instrutor, "POST", `/capacitacao/turmas/${turmaId}/matriculas`, { fichaId });
 caso("matricula aluno", 201, mat.status);
 const matriculaId = mat.json?.id;

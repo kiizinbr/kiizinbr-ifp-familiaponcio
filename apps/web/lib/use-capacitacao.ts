@@ -202,6 +202,25 @@ export function useEncerrarTurma() {
   });
 }
 
+export interface EditarTurmaPayload {
+  diasHorario?: string;
+  sala?: string;
+  vagasTotais?: number;
+}
+
+export function useEditarTurma() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dados }: { id: string; dados: EditarTurmaPayload }) =>
+      authFetch<TurmaResumo>(`/capacitacao/turmas/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(dados),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["capacitacao"] }),
+  });
+}
+
 // ============================================================
 // Cursos (gestão) — CRUD que alimenta o select de nova turma
 // ============================================================
