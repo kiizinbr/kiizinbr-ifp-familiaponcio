@@ -73,3 +73,6 @@ data/
 test-results/
 playwright-report/
 docker-compose.override.yml
+
+# Worktrees/config locais do Claude Code (nao versionar)
+.claude/
