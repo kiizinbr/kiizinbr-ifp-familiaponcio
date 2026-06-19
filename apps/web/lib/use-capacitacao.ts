@@ -332,3 +332,21 @@ export function useCertificados() {
     enabled: status === "authenticated",
   });
 }
+
+export interface IndicadoresCapacitacao {
+  turmas: Record<string, number>;
+  matriculas: Record<string, number>;
+  certificados: number;
+  cursosAtivos: number;
+  taxaConclusao: number | null;
+}
+
+export function useIndicadoresCapacitacao() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "indicadores"],
+    queryFn: () => authFetch<IndicadoresCapacitacao>("/capacitacao/indicadores"),
+    enabled: status === "authenticated",
+  });
+}

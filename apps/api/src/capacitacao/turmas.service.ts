@@ -587,4 +587,41 @@ export class TurmasService {
       })),
     };
   }
+
+  /** Indicadores da unidade: turmas/matrículas por status, certificados, conclusão. */
+  async indicadores(user: AuthenticatedUser) {
+    const prof = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+    const unidadeId = prof.unidadeId;
+
+    const [turmasG, matriculasG, certificados, cursosAtivos] = await Promise.all([
+      this.prisma.turma.groupBy({
+        by: ["status"],
+        where: { unidadeId },
+        _count: { _all: true },
+        orderBy: { status: "asc" },
+      }),
+      this.prisma.matricula.groupBy({
+        by: ["status"],
+        where: { unidadeId },
+        _count: { _all: true },
+        orderBy: { status: "asc" },
+      }),
+      this.prisma.certificado.count({ where: { unidadeId } }),
+      this.prisma.curso.count({ where: { unidadeId, ativo: true } }),
+    ]);
+
+    const turmas: Record<string, number> = {};
+    for (const g of turmasG) turmas[g.status] = g._count._all;
+    const matriculas: Record<string, number> = {};
+    for (const g of matriculasG) matriculas[g.status] = g._count._all;
+
+    const concluidas = matriculas.CONCLUIDA ?? 0;
+    const evadidas = matriculas.EVADIDA ?? 0;
+    const taxaConclusao =
+      concluidas + evadidas > 0
+        ? Math.round((concluidas / (concluidas + evadidas)) * 100)
+        : null;
+
+    return { turmas, matriculas, certificados, cursosAtivos, taxaConclusao };
+  }
 }

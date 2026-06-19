@@ -49,6 +49,12 @@ export class TurmasController {
     return this.turmas.resumo(user);
   }
 
+  @Get("indicadores")
+  @ApiOperation({ summary: "Indicadores da unidade (turmas/alunos por status, conclusão)" })
+  indicadores(@CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.indicadores(user);
+  }
+
   @Get("fichas-elegiveis")
   @ApiOperation({ summary: "Fichas APROVADAS na Capacitação (form de matrícula)" })
   fichasElegiveis(@Query("q") q: string, @CurrentUser() user: AuthenticatedUser) {

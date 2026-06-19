@@ -12,6 +12,7 @@ const ROTAS_PRONTAS = [
   "/capacitacao/turmas",
   "/capacitacao/cursos",
   "/capacitacao/certificados",
+  "/capacitacao/indicadores",
 ];
 
 export default async function CapacitacaoLayout({

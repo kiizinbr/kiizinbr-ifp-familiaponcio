@@ -275,4 +275,43 @@ export class BeneficiariosService {
 
     return { items };
   }
+
+  /** Indicadores do consultório do profissional (totais, comparecimento, série). */
+  async indicadores(user: AuthenticatedUser) {
+    const prof = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
+
+    const [atendimentosSelados, agend, beneficiarios] = await Promise.all([
+      this.prisma.atendimento.count({
+        where: { profissionalId: prof.id, encerradoEm: { not: null } },
+      }),
+      this.prisma.agendamento.groupBy({
+        by: ["status"],
+        where: { profissionalId: prof.id },
+        _count: { _all: true },
+        orderBy: { status: "asc" },
+      }),
+      this.prisma.elegibilidadePorUnidade.count({
+        where: { unidadeId: prof.unidadeId, status: StatusElegibilidade.APROVADO },
+      }),
+    ]);
+
+    const porStatus: Record<string, number> = {};
+    for (const g of agend) porStatus[g.status] = g._count._all;
+    const concluidos = porStatus.CONCLUIDO ?? 0;
+    const faltas = porStatus.FALTOU ?? 0;
+    const taxaComparecimento =
+      concluidos + faltas > 0
+        ? Math.round((concluidos / (concluidos + faltas)) * 100)
+        : null;
+
+    const porMes = await this.prisma.$queryRaw<{ mes: string; total: number }[]>`
+      SELECT to_char(date_trunc('month', "encerradoEm"), 'YYYY-MM') AS mes, count(*)::int AS total
+      FROM atendimentos
+      WHERE "profissionalId" = ${prof.id} AND "encerradoEm" IS NOT NULL
+        AND "encerradoEm" >= now() - interval '6 months'
+      GROUP BY 1 ORDER BY 1
+    `;
+
+    return { atendimentosSelados, beneficiarios, porStatus, taxaComparecimento, porMes };
+  }
 }

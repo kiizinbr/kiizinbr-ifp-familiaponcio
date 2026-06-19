@@ -13,6 +13,7 @@ const ROTAS_PRONTAS = [
   "/medico/fila",
   "/medico/beneficiarios",
   "/medico/prontuarios",
+  "/medico/indicadores",
 ];
 
 function iniciais(nome: string) {

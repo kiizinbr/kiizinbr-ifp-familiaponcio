@@ -370,3 +370,21 @@ export function useAtualizarCondicao() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),
   });
 }
+
+export interface IndicadoresMedico {
+  atendimentosSelados: number;
+  beneficiarios: number;
+  porStatus: Record<string, number>;
+  taxaComparecimento: number | null;
+  porMes: { mes: string; total: number }[];
+}
+
+export function useIndicadoresMedico() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["medico", "indicadores"],
+    queryFn: () => authFetch<IndicadoresMedico>("/medico/indicadores"),
+    enabled: status === "authenticated",
+  });
+}

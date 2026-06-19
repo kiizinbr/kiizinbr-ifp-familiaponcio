@@ -30,6 +30,12 @@ export class BeneficiariosController {
     return this.beneficiarios.prontuarios(user);
   }
 
+  @Get("indicadores")
+  @ApiOperation({ summary: "Indicadores do consultório (totais, comparecimento, série)" })
+  indicadores(@CurrentUser() user: AuthenticatedUser) {
+    return this.beneficiarios.indicadores(user);
+  }
+
   @Get("beneficiarios/:fichaId")
   @ApiOperation({ summary: "Ficha clínica: alergias, condições e histórico de atendimentos" })
   @ApiParam({ name: "fichaId", description: "cuid da ficha" })

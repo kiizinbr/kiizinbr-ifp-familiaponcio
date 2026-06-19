@@ -96,6 +96,11 @@ const pront = await req(medico, "GET", "/medico/prontuarios");
 caso("lista prontuários", 200, pront.status);
 caso("prontuários têm items[]", true, Array.isArray(pront.json?.items));
 
+console.log("--- INDICADORES ---");
+const ind = await req(medico, "GET", "/medico/indicadores");
+caso("indicadores do médico", 200, ind.status);
+caso("indicadores têm porStatus", true, ind.json?.porStatus != null && typeof ind.json.porStatus === "object");
+
 console.log("--- TENANT / RBAC ---");
 const inexist = await req(medico, "GET", "/medico/beneficiarios/ficha-inexistente-xyz");
 caso("ficha inexistente (404 anti-enum)", 404, inexist.status);

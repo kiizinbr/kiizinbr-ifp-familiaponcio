@@ -119,6 +119,11 @@ const fam = await req(familia, "POST", "/capacitacao/cursos", {
 });
 caso("família não cria curso (RBAC)", 403, fam.status);
 
+console.log("--- INDICADORES ---");
+const ind = await req(instrutor, "GET", "/capacitacao/indicadores");
+caso("indicadores da capacitação", 200, ind.status);
+caso("indicadores têm turmas por status", true, ind.json?.turmas != null && typeof ind.json.turmas === "object");
+
 const total = resultados.length;
 const ok = resultados.filter(Boolean).length;
 console.log(`\n${ok}/${total}`);
