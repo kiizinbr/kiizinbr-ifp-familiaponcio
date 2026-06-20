@@ -503,7 +503,93 @@ export class PresidenciaService {
       })),
     };
   }
+
+  // ============================================================
+  // Prestação de contas — números reais de um período (sem IA)
+  // ============================================================
+  private resolverPeriodo(chave?: string): { chave: PeriodoChave; label: string; inicio: Date } {
+    const valida: PeriodoChave = chave === "mes" || chave === "ano" || chave === "12m" ? chave : "12m";
+    const agora = new Date();
+    let inicio: Date;
+    if (valida === "mes") {
+      inicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
+    } else if (valida === "ano") {
+      inicio = new Date(agora.getFullYear(), 0, 1);
+    } else {
+      // últimos 12 meses (início do mês de 11 meses atrás)
+      inicio = new Date(agora.getFullYear(), agora.getMonth() - 11, 1);
+    }
+    return { chave: valida, label: PERIODO_LABEL[valida], inicio };
+  }
+
+  /** Agrega os números de um período. SEM auditoria (uso interno do JSON e do PDF). */
+  async agregarPrestacao(chave?: string) {
+    const { chave: periodo, label, inicio } = this.resolverPeriodo(chave);
+
+    const [novasFichas, atendimentos, certificados, graduacoes, matCap, matEdu, matEsp] =
+      await this.prisma.$transaction([
+        this.prisma.fichaCidada.count({ where: { criadoEm: { gte: inicio } } }),
+        this.prisma.atendimento.count({ where: { encerradoEm: { gte: inicio } } }),
+        this.prisma.certificado.count({ where: { emitidoEm: { gte: inicio } } }),
+        this.prisma.graduacao.count({ where: { concedidaEm: { gte: inicio } } }),
+        this.prisma.matricula.count({ where: { criadoEm: { gte: inicio } } }),
+        this.prisma.matriculaInfantil.count({ where: { criadoEm: { gte: inicio } } }),
+        this.prisma.matriculaEsportiva.count({ where: { criadoEm: { gte: inicio } } }),
+      ]);
+
+    const [familiasAtendidas, fichasAtivas, membros] = await this.prisma.$transaction([
+      this.prisma.fichaCidada.count({
+        where: { ativa: true, elegibilidades: { some: { status: StatusElegibilidade.APROVADO } } },
+      }),
+      this.prisma.fichaCidada.count({ where: { ativa: true } }),
+      this.prisma.membroFamiliar.count({ where: { ficha: { ativa: true } } }),
+    ]);
+
+    // % de famílias atendidas em 2+ unidades (o diferencial — vai no relatório)
+    const dist = await this.prisma.$queryRaw<{ n_unidades: number; total: number }[]>`
+      SELECT n_unidades, count(*)::int AS total FROM (
+        SELECT f.id, count(DISTINCT e."unidadeId")::int AS n_unidades
+        FROM fichas_cidadas f
+        JOIN elegibilidades e ON e."fichaId" = f.id
+          AND e.status = 'APROVADO'::"StatusElegibilidade"
+        WHERE f.ativa = true
+        GROUP BY f.id
+      ) sub
+      GROUP BY n_unidades
+    `;
+    const familiasUnicas = dist.reduce((a, d) => a + d.total, 0);
+    const cross2mais = dist.filter((d) => d.n_unidades >= 2).reduce((a, d) => a + d.total, 0);
+    const cross2maisPct = familiasUnicas > 0 ? Math.round((cross2mais / familiasUnicas) * 100) : 0;
+
+    return {
+      periodo: { chave: periodo, label, inicio: inicio.toISOString() },
+      novas: { familias: novasFichas, matriculas: matCap + matEdu + matEsp },
+      realizados: { atendimentos, certificados, graduacoes },
+      base: {
+        familiasAtendidas,
+        pessoasImpactadas: fichasAtivas + membros,
+        familiasUnicas,
+        cross2mais,
+        cross2maisPct,
+      },
+    };
+  }
+
+  /** Versão com trilha LGPD (consumo via tela). */
+  async prestacaoContas(user: AuthenticatedUser, chave?: string) {
+    this.auditarLeitura(user, "prestacao-contas");
+    return this.agregarPrestacao(chave);
+  }
 }
+
+type PeriodoChave = "mes" | "ano" | "12m";
+const PERIODO_LABEL: Record<PeriodoChave, string> = {
+  mes: "Este mês",
+  ano: "Este ano",
+  "12m": "Últimos 12 meses",
+};
+
+export type PrestacaoContas = Awaited<ReturnType<PresidenciaService["agregarPrestacao"]>>;
 
 /** Linha de unidade no painel: por capacidade (creche/cursos/esporte) ou por volume (médico). */
 interface UnidadePulso {
