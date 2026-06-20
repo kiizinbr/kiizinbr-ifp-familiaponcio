@@ -28,7 +28,7 @@ export default function JornadaPresidenciaPage() {
       {data ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Kpi label="Famílias únicas" valor={data.familiasUnicas.toLocaleString("pt-BR")} />
+            <Kpi label="Famílias atendidas" valor={data.familiasUnicas.toLocaleString("pt-BR")} />
             <Kpi
               label="Em 2+ unidades"
               valor={data.cross2mais}

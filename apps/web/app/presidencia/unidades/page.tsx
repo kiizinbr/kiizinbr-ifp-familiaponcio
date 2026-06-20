@@ -12,7 +12,8 @@ import {
   type UnidadePulso,
 } from "@/lib/use-presidencia";
 
-function statusOcupacao(pct: number) {
+function statusOcupacao(pct: number | null) {
+  if (pct == null) return <Pill tom="neutro">Sem turmas</Pill>;
   if (pct >= 90) return <Pill tom="warn">Sob pressão</Pill>;
   if (pct >= 80) return <Pill tom="unidade">Saudável</Pill>;
   return <Pill tom="ok">Com folga</Pill>;
@@ -53,10 +54,14 @@ export default function UnidadesPresidenciaPage() {
                 <Pulso
                   key={u.tipo}
                   nome={u.nome}
-                  meta={`${u.ativos ?? 0}/${u.vagas ?? 0} vagas · fila ${u.listaEspera ?? 0}`}
+                  meta={
+                    (u.vagas ?? 0) > 0
+                      ? `${u.ativos ?? 0}/${u.vagas} vagas · fila ${u.listaEspera ?? 0}`
+                      : "sem turmas abertas"
+                  }
                   pct={u.ocupacaoPct ?? 0}
                   cor={UNIDADE_COR[u.tipo] ?? "var(--unidade)"}
-                  status={statusOcupacao(u.ocupacaoPct ?? 0)}
+                  status={statusOcupacao(u.ocupacaoPct)}
                 />
               ))}
             </div>

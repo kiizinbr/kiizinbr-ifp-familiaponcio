@@ -28,6 +28,7 @@ export class PrestacaoContasPdfService {
   async gerar(
     user: AuthenticatedUser,
     chave?: string,
+    origem?: { ip?: string | null; userAgent?: string | null },
   ): Promise<{ buffer: Buffer; filename: string }> {
     const data = await this.presidencia.agregarPrestacao(chave);
 
@@ -70,6 +71,7 @@ export class PrestacaoContasPdfService {
       day: "numeric",
       month: "long",
       year: "numeric",
+      timeZone: "America/Sao_Paulo",
     });
     doc
       .moveDown(0.2)
@@ -165,6 +167,8 @@ export class PrestacaoContasPdfService {
       acao: AcaoAuditoria.EXPORT,
       entidade: "PrestacaoContas",
       entidadeId: data.periodo.chave,
+      ip: origem?.ip,
+      userAgent: origem?.userAgent,
       metadados: { formato: "pdf", periodo: data.periodo.chave },
     });
 

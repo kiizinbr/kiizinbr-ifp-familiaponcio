@@ -93,8 +93,9 @@ ok(
 );
 const ocupacaoCoerente = uni.unidades
   .filter((u) => u.modo === "capacidade")
-  .every((u) => u.ocupacaoPct === (u.vagas > 0 ? Math.round((u.ativos / u.vagas) * 100) : 0));
-ok("ocupacaoPct = round(ativos/vagas) em cada unidade por capacidade", ocupacaoCoerente);
+  .every((u) => u.ocupacaoPct === ((u.vagas ?? 0) > 0 ? Math.round((u.ativos / u.vagas) * 100) : null));
+ok("ocupacaoPct = round(ativos/vagas), ou null sem turmas", ocupacaoCoerente);
+ok("unidade sem turma vira null (não 0% enganoso)", uni.unidades.filter((u) => u.modo === "capacidade" && (u.vagas ?? 0) === 0).every((u) => u.ocupacaoPct === null));
 ok("médico aparece no modo volume", uni.unidades.some((u) => u.tipo === "MEDICO" && u.modo === "volume"));
 
 console.log("--- IMPACTO ---");
@@ -103,6 +104,7 @@ ok("serieFamilias é array", Array.isArray(imp.serieFamilias));
 ok("serieAtendimentos é array", Array.isArray(imp.serieAtendimentos));
 ok("crescimentoPorUnidade é array", Array.isArray(imp.crescimentoPorUnidade));
 ok("kpi familiasAtendidas == resumo", imp.kpis.familiasAtendidas === resumo.familiasAtendidas);
+ok("séries têm 12 meses (generate_series preenche vazios)", imp.serieFamilias.length === 12 && imp.serieAtendimentos.length === 12);
 
 console.log("--- JORNADA (o diferencial) ---");
 const jor = (await req(presidencia, "GET", "/presidencia/jornada")).json;
@@ -114,7 +116,7 @@ ok("cross3mais consistente com a distribuição", jor.cross3mais === cross3);
 ok("cross2mais >= 3 (seed: João, Maria, Pedro)", jor.cross2mais >= 3);
 ok("cross3mais >= 2 (seed: João, Maria)", jor.cross3mais >= 2);
 ok("há ao menos uma ponte entre unidades", jor.pontes.length >= 1);
-ok("constelações anonimizadas (código #, sem nome)", jor.constelacoes.every((c) => /^#/.test(c.codigo) && !("nome" in c)));
+ok("constelações anonimizadas (código sequencial, sem nome/protocolo)", jor.constelacoes.every((c) => /^Família \d+$/.test(c.codigo) && !("nome" in c) && !("protocolo" in c)));
 
 console.log("--- PRESTAÇÃO DE CONTAS ---");
 caso("família bloqueada na prestação (403)", 403, (await req(familia, "GET", "/presidencia/prestacao-contas")).status);

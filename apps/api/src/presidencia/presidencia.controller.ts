@@ -1,5 +1,6 @@
-import { Controller, Get, Query, StreamableFile, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, Req, StreamableFile, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import type { Request } from "express";
 import { Perfil } from "@ifp/database";
 
 import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decorator";
@@ -67,8 +68,12 @@ export class PresidenciaController {
   async prestacaoContasPdf(
     @Query("periodo") periodo: string,
     @CurrentUser() user: AuthenticatedUser,
+    @Req() req: Request,
   ): Promise<StreamableFile> {
-    const { buffer, filename } = await this.prestacaoPdf.gerar(user, periodo);
+    const { buffer, filename } = await this.prestacaoPdf.gerar(user, periodo, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
     return new StreamableFile(buffer, {
       type: "application/pdf",
       disposition: `inline; filename="${filename}"`,

@@ -67,7 +67,7 @@ export class PresidenciaService {
         where: { ativa: true, elegibilidades: { some: { status: StatusElegibilidade.APROVADO } } },
       }),
       this.prisma.membroFamiliar.count({ where: { ficha: { ativa: true } } }),
-      this.prisma.fichaCidada.count({ where: { criadoEm: { gte: inicioMes } } }),
+      this.prisma.fichaCidada.count({ where: { ativa: true, criadoEm: { gte: inicioMes } } }),
       this.prisma.atendimento.count({ where: { encerradoEm: { gte: inicioMes } } }),
       this.prisma.matricula.count({ where: { status: StatusMatricula.ATIVA } }),
       this.prisma.matriculaInfantil.count({ where: { ativa: true } }),
@@ -105,7 +105,7 @@ export class PresidenciaService {
       await this.prisma.$transaction([
         this.prisma.fichaCidada.count({ where: { ativa: true } }),
         this.prisma.fichaCidada.count({ where: { ativa: false } }),
-        this.prisma.fichaCidada.count({ where: { criadoEm: { gte: inicioMes } } }),
+        this.prisma.fichaCidada.count({ where: { ativa: true, criadoEm: { gte: inicioMes } } }),
         this.prisma.membroFamiliar.count({ where: { ficha: { ativa: true } } }),
         this.prisma.fichaCidada.count({
           where: {
@@ -356,7 +356,8 @@ export class PresidenciaService {
     espera: number,
     beneficiarios: number,
   ): UnidadePulso {
-    const ocupacaoPct = vagas > 0 ? Math.round((ativos / vagas) * 100) : 0;
+    // vagas 0 = sem turma aberta → ocupação indefinida (não é "0% com folga")
+    const ocupacaoPct = vagas > 0 ? Math.round((ativos / vagas) * 100) : null;
     return {
       tipo: unidade.tipo,
       nome: unidade.nome,
@@ -378,19 +379,30 @@ export class PresidenciaService {
   async impacto(user: AuthenticatedUser) {
     this.auditarLeitura(user, "impacto");
 
+    // generate_series garante 12 meses (preenche meses sem dado com zero) —
+    // sem isso o gráfico "salta" meses vazios e engana a leitura.
     const serieFamilias = await this.prisma.$queryRaw<{ mes: string; total: number }[]>`
-      SELECT to_char(date_trunc('month', "criadoEm"), 'YYYY-MM') AS mes, count(*)::int AS total
-      FROM fichas_cidadas
-      WHERE "criadoEm" >= date_trunc('month', now()) - interval '11 months'
-      GROUP BY 1 ORDER BY 1
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(f.id)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - interval '11 months',
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN fichas_cidadas f ON date_trunc('month', f."criadoEm") = m.mes
+      GROUP BY m.mes ORDER BY m.mes
     `;
 
     const serieAtendimentos = await this.prisma.$queryRaw<{ mes: string; total: number }[]>`
-      SELECT to_char(date_trunc('month', "encerradoEm"), 'YYYY-MM') AS mes, count(*)::int AS total
-      FROM atendimentos
-      WHERE "encerradoEm" IS NOT NULL
-        AND "encerradoEm" >= date_trunc('month', now()) - interval '11 months'
-      GROUP BY 1 ORDER BY 1
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(a.id)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - interval '11 months',
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN atendimentos a
+        ON a."encerradoEm" IS NOT NULL
+        AND date_trunc('month', a."encerradoEm") = m.mes
+      GROUP BY m.mes ORDER BY m.mes
     `;
 
     // Novas famílias atendidas por unidade nos últimos 12 meses (volume de crescimento,
@@ -402,7 +414,7 @@ export class PresidenciaService {
       FROM elegibilidades e
       JOIN unidades u ON u.id = e."unidadeId"
       WHERE e.status = 'APROVADO'::"StatusElegibilidade"
-        AND e."criadoEm" >= now() - interval '12 months'
+        AND e."criadoEm" >= date_trunc('month', now()) - interval '11 months'
       GROUP BY u.tipo, u.nome
       ORDER BY total DESC
     `;
@@ -495,9 +507,10 @@ export class PresidenciaService {
         { unidades: 4, total: porN(4) },
       ],
       pontes: pontesRaw,
-      constelacoes: constelacoesRaw.map((c) => ({
-        // anonimização: só o sufixo do protocolo, nunca o nome do titular
-        codigo: `#${c.protocolo.slice(-4)}`,
+      constelacoes: constelacoesRaw.map((c, i) => ({
+        // anonimização total: código sequencial local, sem nenhum vínculo com o
+        // protocolo real (evita re-identificação por sufixo + nº pessoas + unidades)
+        codigo: `Família ${i + 1}`,
         pessoas: c.pessoas,
         unidades: c.unidades,
       })),
@@ -528,7 +541,7 @@ export class PresidenciaService {
 
     const [novasFichas, atendimentos, certificados, graduacoes, matCap, matEdu, matEsp] =
       await this.prisma.$transaction([
-        this.prisma.fichaCidada.count({ where: { criadoEm: { gte: inicio } } }),
+        this.prisma.fichaCidada.count({ where: { ativa: true, criadoEm: { gte: inicio } } }),
         this.prisma.atendimento.count({ where: { encerradoEm: { gte: inicio } } }),
         this.prisma.certificado.count({ where: { emitidoEm: { gte: inicio } } }),
         this.prisma.graduacao.count({ where: { concedidaEm: { gte: inicio } } }),
