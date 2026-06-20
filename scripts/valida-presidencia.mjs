@@ -39,6 +39,11 @@ async function req(token, method, path, body) {
   return { status: r.status, json };
 }
 
+async function reqRaw(token, path) {
+  const r = await fetch(`${API}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  return { status: r.status, contentType: r.headers.get("content-type") ?? "" };
+}
+
 const resultados = [];
 function caso(nome, esperado, obtido) {
   const ok = esperado === obtido;
@@ -110,6 +115,19 @@ ok("cross2mais >= 3 (seed: João, Maria, Pedro)", jor.cross2mais >= 3);
 ok("cross3mais >= 2 (seed: João, Maria)", jor.cross3mais >= 2);
 ok("há ao menos uma ponte entre unidades", jor.pontes.length >= 1);
 ok("constelações anonimizadas (código #, sem nome)", jor.constelacoes.every((c) => /^#/.test(c.codigo) && !("nome" in c)));
+
+console.log("--- PRESTAÇÃO DE CONTAS ---");
+caso("família bloqueada na prestação (403)", 403, (await req(familia, "GET", "/presidencia/prestacao-contas")).status);
+const pc = (await req(presidencia, "GET", "/presidencia/prestacao-contas?periodo=12m")).json;
+ok("tem periodo/novas/realizados/base", Boolean(pc.periodo && pc.novas && pc.realizados && pc.base));
+ok("periodo respeitado (12m)", pc.periodo.chave === "12m");
+ok("base.familiasAtendidas == resumo.familiasAtendidas", pc.base.familiasAtendidas === resumo.familiasAtendidas);
+ok("cross2maisPct entre 0 e 100", pc.base.cross2maisPct >= 0 && pc.base.cross2maisPct <= 100);
+const pcMes = (await req(presidencia, "GET", "/presidencia/prestacao-contas?periodo=mes")).json;
+ok("período mês <= 12m em novas famílias", pcMes.novas.familias <= pc.novas.familias);
+const pdf = await reqRaw(presidencia, "/presidencia/prestacao-contas/pdf?periodo=12m");
+caso("PDF responde 200", 200, pdf.status);
+ok("PDF é application/pdf", pdf.contentType.includes("application/pdf"));
 
 const total = resultados.length;
 const okc = resultados.filter(Boolean).length;
