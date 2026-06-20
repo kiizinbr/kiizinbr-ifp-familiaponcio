@@ -222,6 +222,9 @@ model FichaCidada {
   matriculasEsportivas    MatriculaEsportiva[]
   conversasFamilia        ConversaFamilia[]
 
+  // Painel da Presidência: contagens por ativa / novas por criadoEm
+  @@index([ativa])
+  @@index([criadoEm])
   @@map("fichas_cidadas")
 }
 
@@ -363,6 +366,10 @@ model ElegibilidadePorUnidade {
   unidade Unidade     @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
 
   @@unique([fichaId, unidadeId])
+  // Painel da Presidência: filtros por status / status+unidade / criadoEm
+  @@index([status])
+  @@index([status, unidadeId])
+  @@index([criadoEm])
   @@map("elegibilidades")
 }
 
@@ -523,6 +530,7 @@ model Atendimento {
 
   @@index([fichaId])
   @@index([unidadeId, iniciadoEm])
+  @@index([encerradoEm]) // séries/contagens de atendimentos selados (presidência)
   @@map("atendimentos")
 }
 
