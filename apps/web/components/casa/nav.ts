@@ -51,6 +51,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
     { href: "/presidencia/impacto", label: "Impacto", icon: BarChart3 },
     { href: "/presidencia/familias", label: "Famílias", icon: Users },
     { href: "/presidencia/jornada", label: "Jornada", icon: Network },
+    { href: "/presidencia/prestacao-contas", label: "Prestação", icon: ClipboardList },
     { href: "/presidencia/relatorios", label: "Relatórios", icon: FileText },
   ],
   medico: [

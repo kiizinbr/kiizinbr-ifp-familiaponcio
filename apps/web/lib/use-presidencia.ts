@@ -102,6 +102,33 @@ export const useUnidadesPresidencia = () => usePresidenciaQuery<UnidadesPresiden
 export const useImpactoPresidencia = () => usePresidenciaQuery<ImpactoPresidencia>("impacto");
 export const useJornadaPresidencia = () => usePresidenciaQuery<JornadaPresidencia>("jornada");
 
+export type PeriodoChave = "mes" | "ano" | "12m";
+
+export interface PrestacaoContas {
+  periodo: { chave: PeriodoChave; label: string; inicio: string };
+  novas: { familias: number; matriculas: number };
+  realizados: { atendimentos: number; certificados: number; graduacoes: number };
+  base: {
+    familiasAtendidas: number;
+    pessoasImpactadas: number;
+    familiasUnicas: number;
+    cross2mais: number;
+    cross2maisPct: number;
+  };
+}
+
+export function usePrestacaoContas(periodo: PeriodoChave) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["presidencia", "prestacao-contas", periodo],
+    queryFn: () =>
+      authFetch<PrestacaoContas>(`/presidencia/prestacao-contas?periodo=${periodo}`),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
+  });
+}
+
 // ============================================================
 // Rótulos e cores das unidades (paleta oficial dos tokens CASA)
 // ============================================================

@@ -14,6 +14,7 @@ const ROTAS_PRONTAS = [
   "/presidencia/impacto",
   "/presidencia/familias",
   "/presidencia/jornada",
+  "/presidencia/prestacao-contas",
 ];
 
 function iniciais(nome: string) {
