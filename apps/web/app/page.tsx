@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import {
   ArrowRight,
   Baby,
+  Crown,
   GraduationCap,
   HeartHandshake,
   Home,
@@ -21,6 +22,13 @@ const AREAS: {
   perfis: string[];
   icone: React.ReactNode;
 }[] = [
+  {
+    href: "/presidencia",
+    nome: "Sala de Comando",
+    descricao: "Painel da Presidência: impacto, famílias, unidades e jornada.",
+    perfis: ["SUPER_ADMIN", "PRESIDENCIA"],
+    icone: <Crown className="h-6 w-6" />,
+  },
   {
     href: "/servico-social",
     nome: "Serviço Social",

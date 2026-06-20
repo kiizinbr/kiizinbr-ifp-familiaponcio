@@ -50,6 +50,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
     { href: "/presidencia/unidades", label: "Unidades", icon: LayoutGrid },
     { href: "/presidencia/impacto", label: "Impacto", icon: BarChart3 },
     { href: "/presidencia/familias", label: "Famílias", icon: Users },
+    { href: "/presidencia/jornada", label: "Jornada", icon: Network },
     { href: "/presidencia/relatorios", label: "Relatórios", icon: FileText },
   ],
   medico: [
