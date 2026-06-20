@@ -7,6 +7,7 @@ import {
   Perfil,
   PrismaClient,
   SentidoCheck,
+  SituacaoMoradia,
   StatusAgendamento,
   StatusDiario,
   StatusElegibilidade,
@@ -91,6 +92,8 @@ async function main() {
   await seedEducacional();
   await seedEsportivo();
   await seedUsuariosErick();
+  await seedPresidencia();
+  await seedDadosPresidencia();
 }
 
 // ============================================================
@@ -157,6 +160,11 @@ async function seedUsuariosErick() {
       email: "erick.social@ifp.local",
       nome: "Erick (Serviço Social)",
       perfil: Perfil.SERVICO_SOCIAL,
+    },
+    {
+      email: "erick.presidencia@ifp.local",
+      nome: "Erick (Presidência)",
+      perfil: Perfil.PRESIDENCIA, // visão executiva: não precisa de lotação
     },
   ];
 
@@ -953,6 +961,133 @@ async function seedEducacional() {
       },
     });
     console.log("  ✓ Comunicado crítico sem leitura");
+  }
+}
+
+// ============================================================
+// Presidência — usuário da Sala de Comando (perfil PRESIDENCIA,
+// sem lotação) + enriquecimento dos dados agregados do painel.
+// ============================================================
+async function seedPresidencia() {
+  const senha = process.env.SEED_MEDICO_PASSWORD; // reusa a senha dev compartilhada
+  if (!senha) {
+    console.warn("  ! SEED_MEDICO_PASSWORD não definido — pulando usuário da Presidência.");
+    return;
+  }
+  const senhaHash = await hash(senha, 12);
+  const user = await prisma.user.upsert({
+    where: { email: "presidencia@ifp.local" },
+    update: { senhaHash, ativo: true },
+    create: { email: "presidencia@ifp.local", senhaHash, nome: "Presidência IFP", ativo: true },
+  });
+  await prisma.usuarioPerfil.upsert({
+    where: { userId_perfil: { userId: user.id, perfil: Perfil.PRESIDENCIA } },
+    update: {},
+    create: { userId: user.id, perfil: Perfil.PRESIDENCIA },
+  });
+  console.log("  ✓ Presidência (presidencia@ifp.local)");
+}
+
+/**
+ * Enriquece as fichas de exemplo com bairro, dados socioeconômicos e mais
+ * membros — para o painel da Presidência (Famílias/faixa etária) mostrar
+ * números reais em vez de telas vazias. Tudo idempotente.
+ */
+async function seedDadosPresidencia() {
+  const enriquecer: Array<{
+    cpf: string;
+    bairro: string;
+    socio: {
+      rendaFamiliarTotal: number;
+      rendaPerCapita: number;
+      recebeBolsaFamilia: boolean;
+      recebeBPC: boolean;
+      situacaoMoradia: SituacaoMoradia;
+      numeroPessoasMoradia: number;
+    };
+  }> = [
+    {
+      cpf: "11111111111", // João
+      bairro: "Jardim Gramacho",
+      socio: {
+        rendaFamiliarTotal: 1200,
+        rendaPerCapita: 300,
+        recebeBolsaFamilia: true,
+        recebeBPC: false,
+        situacaoMoradia: SituacaoMoradia.ALUGADA,
+        numeroPessoasMoradia: 4,
+      },
+    },
+    {
+      cpf: "22222222222", // Maria
+      bairro: "Centro",
+      socio: {
+        rendaFamiliarTotal: 2000,
+        rendaPerCapita: 500,
+        recebeBolsaFamilia: false,
+        recebeBPC: false,
+        situacaoMoradia: SituacaoMoradia.PROPRIA,
+        numeroPessoasMoradia: 4,
+      },
+    },
+    {
+      cpf: "33333333333", // Pedro
+      bairro: "Vila São Luís",
+      socio: {
+        rendaFamiliarTotal: 900,
+        rendaPerCapita: 450,
+        recebeBolsaFamilia: true,
+        recebeBPC: false,
+        situacaoMoradia: SituacaoMoradia.CEDIDA,
+        numeroPessoasMoradia: 2,
+      },
+    },
+    {
+      cpf: "44444444444", // Sandra
+      bairro: "Parque Lafaiete",
+      socio: {
+        rendaFamiliarTotal: 1500,
+        rendaPerCapita: 500,
+        recebeBolsaFamilia: true,
+        recebeBPC: false,
+        situacaoMoradia: SituacaoMoradia.ALUGADA,
+        numeroPessoasMoradia: 3,
+      },
+    },
+  ];
+
+  for (const e of enriquecer) {
+    const ficha = await prisma.fichaCidada.findUnique({ where: { cpf: e.cpf } });
+    if (!ficha) continue;
+    await prisma.fichaCidada.update({ where: { id: ficha.id }, data: { bairro: e.bairro } });
+    await prisma.dadosSocioeconomicos.upsert({
+      where: { fichaId: ficha.id },
+      update: e.socio,
+      create: { fichaId: ficha.id, ...e.socio },
+    });
+  }
+
+  // Membros extras → variedade de faixa etária no painel
+  await garantirMembro("22222222222", "Lucas Oliveira", new Date("2015-05-20"), Parentesco.FILHO);
+  await garantirMembro("33333333333", "Beatriz Santos", new Date("2008-09-12"), Parentesco.FILHA);
+  console.log("  ✓ Dados de presidência (bairros, socioeconômicos, membros)");
+}
+
+async function garantirMembro(
+  cpf: string,
+  nomeCompleto: string,
+  dataNascimento: Date,
+  parentesco: Parentesco,
+) {
+  const ficha = await prisma.fichaCidada.findUnique({ where: { cpf } });
+  if (!ficha) return;
+  const ja = await prisma.membroFamiliar.findFirst({
+    where: { fichaId: ficha.id, nomeCompleto },
+  });
+  if (!ja) {
+    await prisma.membroFamiliar.create({
+      data: { fichaId: ficha.id, nomeCompleto, dataNascimento, parentesco },
+    });
   }
 }
 
