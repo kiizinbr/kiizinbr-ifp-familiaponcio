@@ -54,6 +54,7 @@ Site público (vitrine)  →  /acesso (cards por unidade)  →  /login?unidade=<
 | **Reskin CASA de ~23 telas internas** | interno | Cada tela valida contra o Atlas |
 | **Segurança adversarial** (23 achados tratados) | interno | Parede tenant em 21 call-sites, audit READ, locks, timezone fixo |
 | **Migração Amplimed → IFP** (T1-T15, 47 profissionais) | gestão | Pronta na `main`, produção mirada p/ jun-2026 |
+| **Presidência / Sala de Comando (Fase 1)** (painel, famílias, unidades, impacto, jornada) | gestão | API `presidencia/` + web `/presidencia` · dado REAL cross-unidade · regressão 30/30 |
 | **Ambiente dev** (Docker WSL2: workstation + servidor CL-SRV-DC01) | interno | `ONDE-PARAMOS.md` |
 
 **Resumo:** as 4 verticais + Serviço Social + acesso + design system estão **vivos e testados**
@@ -98,7 +99,10 @@ Site público (vitrine)  →  /acesso (cards por unidade)  →  /login?unidade=<
 - **Fotos no diário** (com checagem AutorizacaoImagem + watermark).
 
 ### Gestão
-- **Presidência / Sala de Comando** — nenhuma tela em React (Atlas tem 5 desenhadas).
+- ~~**Presidência / Sala de Comando**~~ → **Fase 1 ENTREGUE** (19/06): painel, famílias, unidades,
+  impacto e jornada da família, com dado REAL cross-unidade. Falta a **Fase 2** (telas que
+  dependem de dado novo: custo/ROI, CRM de doadores, saúde populacional, prestação de contas e
+  histórias por IA) + a tela "Relatórios" (hoje "em breve" no rail).
 - **Admin / RBAC** — sem console de usuários/perfis/unidades/auditoria. Hoje é seed-dependente.
 
 ### Plataforma
