@@ -100,9 +100,10 @@ Site público (vitrine)  →  /acesso (cards por unidade)  →  /login?unidade=<
 
 ### Gestão
 - ~~**Presidência / Sala de Comando**~~ → **Fase 1 ENTREGUE** (19/06): painel, famílias, unidades,
-  impacto e jornada da família, com dado REAL cross-unidade. Falta a **Fase 2** (telas que
-  dependem de dado novo: custo/ROI, CRM de doadores, saúde populacional, prestação de contas e
-  histórias por IA) + a tela "Relatórios" (hoje "em breve" no rail).
+  impacto e jornada da família, com dado REAL cross-unidade. **Fase 2 em andamento:**
+  ~~Prestação de Contas~~ → ENTREGUE (números reais por período + PDF com selo CASA, sem IA).
+  Falta: resumo executivo por IA (liga ao pôr `ANTHROPIC_API_KEY`), custo/ROI, CRM de doadores,
+  saúde populacional, histórias por IA + a tela "Relatórios" (hoje "em breve" no rail).
 - **Admin / RBAC** — sem console de usuários/perfis/unidades/auditoria. Hoje é seed-dependente.
 
 ### Plataforma
