@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { CalendarClock, ClipboardList, FilePlus2 } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
-import { PageHeader } from "@/components/casa";
+import { PageHeader, SecTitle } from "@/components/casa";
+import { PainelInicioSocial } from "./_components/painel-inicio";
 
 export const metadata = { title: "Serviço Social" };
 
@@ -38,8 +39,11 @@ export default async function ServicoSocialDashboard() {
         titulo={`Olá, ${session?.user?.name ?? session?.user?.email}`}
         descricao="Gerencie as Fichas Cidadãs e a elegibilidade das famílias nas 4 unidades."
       />
-      <div className="mb-10" />
+      <div className="mb-8" />
 
+      <PainelInicioSocial />
+
+      <SecTitle>Atalhos rápidos</SecTitle>
       <section className="grid gap-4 md:grid-cols-3">
         {atalhos.map(({ href, titulo, descricao, Icone }) => (
           <Link
