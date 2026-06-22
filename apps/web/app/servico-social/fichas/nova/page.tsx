@@ -261,14 +261,17 @@ export default function NovaFichaPage() {
         };
         await upsertSocio.mutateAsync({ id: fichaId, dados });
       }
+
+      // Só navega quando TUDO deu certo — senão o operador sairia da tela sem ver
+      // que membros/dados socioeconômicos (renda/vulnerabilidades) não salvaram.
+      router.push(`/servico-social/fichas/${fichaId}`);
     } catch (e) {
-      // ficha criada, mas um dos complementos falhou
+      // Ficha criada, mas um complemento falhou: mantém o operador AQUI, com o
+      // aviso, para a perda parcial não passar como sucesso silencioso.
       setErroEnvio(
-        `A ficha foi criada, mas houve um erro ao salvar membros/dados: ${(e as Error).message}. Você pode completar pelo detalhe.`,
+        `A ficha foi criada, mas houve um erro ao salvar membros/dados: ${(e as Error).message}. Complete pelo detalhe ou tente de novo.`,
       );
     }
-
-    router.push(`/servico-social/fichas/${fichaId}`);
   }
 
   const temSocio = !!watch("rendaFamiliarTotal");
