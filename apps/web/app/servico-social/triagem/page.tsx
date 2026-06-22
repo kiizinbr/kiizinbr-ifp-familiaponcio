@@ -140,7 +140,7 @@ function NovaTriagemPanel({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t);
   }, [qInput]);
 
-  const { data: fichas, isFetching } = useFichas({ q, perPage: 6 });
+  const { data: fichas, isFetching, isError: erroBusca } = useFichas({ q, perPage: 6 });
   const mostrarResultados = !fichaId && q.trim().length >= 2;
 
   async function abrir() {
@@ -206,6 +206,10 @@ function NovaTriagemPanel({ onClose }: { onClose: () => void }) {
             <div className="mt-2 overflow-hidden rounded-md border border-border">
               {isFetching && !fichas ? (
                 <p className="px-3 py-2 text-xs text-muted-foreground">Buscando...</p>
+              ) : erroBusca ? (
+                <p className="px-3 py-2 text-xs text-danger">
+                  Não foi possível buscar agora — tente de novo.
+                </p>
               ) : !fichas || fichas.items.length === 0 ? (
                 <p className="px-3 py-2 text-xs text-muted-foreground">Nenhuma ficha encontrada.</p>
               ) : (
