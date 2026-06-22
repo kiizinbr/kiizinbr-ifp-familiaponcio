@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 
 import { AuthService } from "./auth.service";
 import { CurrentUser, type AuthenticatedUser } from "./current-user.decorator";
@@ -15,6 +16,9 @@ export class AuthController {
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
+  // Anti-brute-force: bem mais apertado que o teto global (120/min). 10 tentativas
+  // por minuto por IP barram credential-stuffing sem atrapalhar uso/regressão legítimos.
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @ApiOperation({ summary: "Login por e-mail e senha (retorna JWT)" })
   @ApiBody({ type: LoginDto })
   login(@Body() dto: LoginDto) {
