@@ -3,6 +3,8 @@
 **Data:** 2026-06-22 · **Branch:** `claude/continue-projetoifp-section-10-RKC1n`
 **Modo:** revisão estática (app não rodando) — 8 agentes ECC por dimensão + verificação adversarial de cada achado.
 **Resultado:** 31 achados confirmados → **P0=0 · P1=4 · P2=15 · P3=12**
+**Status:** os **4 P1 foram CORRIGIDOS e verificados** (commit `09dd655`) — ver "✅ Correção dos P1" no fim.
+Restam os P2/P3 + o contraste a11y do portal da família.
 
 > ⚠️ **Ressalva de cobertura:** o servidor aplicou rate-limit (não é limite de uso da conta) durante a fase
 > de verificação. As dimensões **a11y, test-gaps e silent-failures** tiveram muitas verificações abortadas, e
@@ -195,3 +197,24 @@ vulnerabilidade** (é só convenção diferente do endpoint de conversa, que usa
 - SOAP completo preenchendo→**selando** + bloqueio de prescrição por alergia (já coberto por testes em
   `ifp-prescricao-feature`, 16/16).
 - Race de matrícula na última vaga + idempotência de selo — melhor via script de carga que via clique.
+
+---
+
+# ✅ Correção dos P1 (2026-06-22 · commit `09dd655`)
+
+Todos os 4 P1 corrigidos com fix mínimo, **sem migração de schema**, e verificados ponta-a-ponta
+(`scripts/valida-fichas-cidadas.mjs` 8/8 + regressão educacional verde: tenant, educacional, mensagens 29/29).
+
+| P1 | Arquivo | Correção | Verificação |
+|---|---|---|---|
+| #1 prontuário órfão | `fichas-cidadas.service.ts` | `replaceMembros` reconcilia por identidade natural (CPF; ou nome+nascimento p/ menores); **409** ao remover membro com histórico; quem fica mantém o id | remover Ana→409; reconciliar→Ana mantém id + cria novo→200 |
+| #2 lista sem audit | `fichas-cidadas.{service,controller}.ts` | `findAll(query, leitorId)` grava audit READ `FichaCidada.lista` | audit gravado no banco c/ `userId` |
+| #3 dossiê sem audit | `educacional/criancas.service.ts` | `listarAutorizados` grava audit READ `ResponsavelAutorizado` | audit gravado c/ contexto |
+| #4 vigência timezone | `educacional/criancas.service.ts` + `dia-util.ts` (`fimDoDiaSP`) | `vigenteAte` salvo como fim do dia em America/Sao_Paulo | `2026-06-22` → `2026-06-23T02:59:59.999Z` |
+
+**Não-regressão verificada:** as 2 falhas em `valida-gestao-educacional` (16/18) são **pré-existentes** —
+o seed dá à `educadora@ifp.local` o perfil `GESTOR_UNIDADE`, então ela passa nos casos de RBAC que o teste
+esperava bloquear. Não tem relação com estes fixes (nenhum guard/perfil foi tocado). *Follow-up:* decidir se o
+seed deveria separar educadora de gestora, ou atualizar a expectativa do teste.
+
+**Pendências de pré-lançamento que sobram:** P2/P3 da Camada 1 + contraste a11y do portal da família.
