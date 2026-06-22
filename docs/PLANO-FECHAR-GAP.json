@@ -1,0 +1,783 @@
+{
+  "summary": "Planeja a construção das ~40 telas que faltam no IFP Connect (protótipo x app), area por area, com specs buildaveis",
+  "agentCount": 8,
+  "logs": [],
+  "result": {
+    "areas": [
+      {
+        "area": "Serviço Social (porta de entrada) — Triagem, Elegibilidade, Encaminhamentos e Agenda",
+        "resumo": "O Serviço Social dispõe de 6 telas no protótipo que ainda não existem no app React: (1) Triagem — fila com KPIs de prioridade; (2) Triagem-IA — assistência de Claude para análise de elegibilidade; (3) Elegibilidade — matriz membro×unidade para concessão de \"chave-mestra\"; (4) Encaminhamentos — workflow entre unidades (outro nome: \"ponte\"); (5) Ponte — sinalizações recebidas dos profissionais; (6) Agenda — visão transversal das 4 unidades. O core é nova — não existe módulo API servico-social nem models de Triagem, Encaminhamento, Ponte. Recomenda-se seguir a sequência de prioridade: Triagem (setup inicial de fila) → Elegibilidade (concessão de acesso) → Encaminhamentos+Ponte (workflow entre unidades) → Triagem-IA (valor agregado com Claude) → Agenda (visão operacional). Pré-requisitos: schema com Triagem, Encaminhamento, SinalizacaoPonte; API NestJS com guards padrão (JwtAuthGuard, PerfisGuard + @Perfis SERVICO_SOCIAL); Web Next com layout protegido e hooks react-query.",
+        "features": [
+          {
+            "tela": "social-triagem",
+            "oQueFaz": "Fila de famílias aguardando triagem, ordenadas por prioridade. Exibe KPIs (7 na fila, 3 prioritárias, 4 dias maior espera) e lista com status (Atenção/Prioridade/Insegurança/Na fila/Nova), tempo de espera e botão 'Iniciar triagem' que abre o fluxo de avaliação.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "model Triagem { id, fichaId, status (PENDENTE/EM_ANDAMENTO/CONCLUIDA), prioridade (BAIXA/MEDIA/ALTA/URGENTE), dataSolicitacao, diasEspera (calc), motivoSolicitacao?, criadoEm, atualizadoEm }; adiciona Triagem[] a FichaCidada",
+            "endpoints": [
+              "/servico-social/triagens (GET — lista com paginação, filtros status+prioridade)",
+              "/servico-social/triagens (POST — criar nova triagem)",
+              "/servico-social/triagens/:id (GET — detalhe)",
+              "/servico-social/triagens/:id/iniciar (PATCH — muda status para EM_ANDAMENTO)"
+            ],
+            "uiWeb": "app/servico-social/triagem/page.tsx (lista com KPIs em grid, ListRow com pills status+prioridade); components/casa reutilizados (PageHeader, ListRow, BadgeStatus); filtros básicos (status, prioridade)",
+            "dependencias": "nenhuma — é o ponto de entrada",
+            "riscos": "Ordem de priorização é crítica (pode gerar fila sem-ordem); recomenda regra clara nos KPIs (diasEspera DESC, prioridade DESC)"
+          },
+          {
+            "tela": "social-elegibilidade",
+            "oQueFaz": "Matriz membro × unidade (Centro Médico, Capacitação, Recreativo, Esportivo) onde a assistente social aprova/ajusta/revoga elegibilidades. Cada célula mostra status (Aprovado/Em análise/Sem indício) com botão de ação. A aprovação 'acende a coroa' e torna o beneficiário visível na unidade.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa ElegibilidadePorUnidade (já existe: status, avaliadoPor, avaliadoEm, motivo, reavaliarEm); melhora índices para queries por fichaId + ordenação por unidade",
+            "endpoints": [
+              "/servico-social/elegibilidades/:fichaId (GET — matriz membros×unidades com status)",
+              "/servico-social/elegibilidades/:fichaId/:unidadeSlug/aprovar (PATCH — aprova)",
+              "/servico-social/elegibilidades/:fichaId/:unidadeSlug/revogar (PATCH — revoga)",
+              "/servico-social/elegibilidades/:fichaId/listar (GET — lista todas)"
+            ],
+            "uiWeb": "app/servico-social/elegibilidades/:fichaId/page.tsx; components/elegibilidade-matriz.tsx (tabela Prisma com membro+unidade em colunas, pills CoroaSeal); botões Conceder/Revogar/Ajustar com mutation onSuccess invalidate",
+            "dependencias": "Triagem EM_ANDAMENTO ou CONCLUIDA (pré-requisito para avaliar elegibilidade)",
+            "riscos": "Auditoria: toda mudança de status entra em AuditLog (userId, avaliadoEm, motivo obrigatório em revogação); consentimento LGPD se membro < 18 (integrar com Consentimento)"
+          },
+          {
+            "tela": "social-encaminhamentos",
+            "oQueFaz": "Workflow de encaminhamentos entre unidades. Origem (ex: Centro Médico) envia sigilo, destino (ex: Serviço Social) recebe e pode Aceitar/Recusar. Acompanha status (Pendente/Aceito/Recusado) e timeline (quem aceitou, há quanto). KPIs: 5 pendentes, 12 aceitos semana, 1,4d tempo médio, 2 recusados mês.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "model Encaminhamento { id, fichaId, unidadeOrigemId, unidadeDestinoId, status (PENDENTE/ACEITO/RECUSADO), prioridade (URGENTE/NORMAL), motivo, justificativaResposta?, respondidoPor, respondidoEm, criadoPor, criadoEm, atualizadoEm }; índices por (unidadeOrigemId, status), (unidadeDestinoId, status)",
+            "endpoints": [
+              "/servico-social/encaminhamentos (GET — lista pendentes+aceitos, filtros status)",
+              "/servico-social/encaminhamentos (POST — criar novo de uma unidade p/ outra)",
+              "/servico-social/encaminhamentos/:id/aceitar (PATCH)",
+              "/servico-social/encaminhamentos/:id/recusar (PATCH — requer justificativaResposta)",
+              "/servico-social/encaminhamentos/:fichaId/historico (GET — timeline)"
+            ],
+            "uiWeb": "app/servico-social/encaminhamentos/page.tsx; components/encaminhamento-card.tsx (mostra origem→destino, pills prioridade, botões Aceitar/Recusar, timeline); KPIs em grid no topo; aba Pendentes/Aceitos/Recusados",
+            "dependencias": "Elegibilidade APROVADO na unidade origem (pré-requisito sensato: não encaminha quem não foi aprovado lá)",
+            "riscos": "Assincronia: origem envia, destino pode não receber (integrar notification/webhook); trilha de auditoria: quem aceitou/recusou fica registrado; timeout se não responder em 5 dias"
+          },
+          {
+            "tela": "social-ponte",
+            "oQueFaz": "Sinalizações enviadas PELOS profissionais (médico, educador, capacitação) AO Serviço Social. Ex: 'João (8) com asma — sugere avaliação social' (do médico) ou 'Irmão fora da escola — reforço educacional' (do educador). O social vê 2 pendentes, marca como Atendida. É um tipo especial de encaminhamento (entrada externa).",
+            "prioridade": "media",
+            "esforco": "M",
+            "schemaDelta": "model SinalizacaoPonte { id, fichaId, membroId?, unidadeOrigemId (quem sinalizou), tipo (ENCAMINHAMENTO/OBSERVACAO/ALERTA), prioridade (URGENTE/NORMAL), descricao, respondidoPor?, respondidoEm?, status (PENDENTE/ATENDIDA), criadoPor (userId profissional), criadoEm, atualizadoEm }; índices por (unidadeOrigemId, status), (status, criadoEm DESC)",
+            "endpoints": [
+              "/servico-social/ponte (GET — pendentes + atendidas recentes)",
+              "/servico-social/ponte/:id/marcar-atendida (PATCH)",
+              "/profissional/:id/sinalizar (POST — criado pelo médico/educador, enviado ao social)"
+            ],
+            "uiWeb": "app/servico-social/ponte/page.tsx; components/sinalizar-card.tsx (origem, prioridade pill, descrição, botão 'Atender'); seção 'Atendidas recentemente' com timeline. Integrar com shell da unidade origem (médico cria sinal; social consome em ponte).",
+            "dependencias": "Médico/Educador/Capacitação devem ter acesso a botão 'Sinalizar ao Social' em sua UI (não constrói aqui, pré-requisito da vertical)",
+            "riscos": "Sobrecarga: muitas sinalizações podem desorganizar fila; recomenda filtro por prioridade + data criação; LGPD: descrever sem copiar dados sensíveis (ref a ficha, não copiar prontuário)"
+          },
+          {
+            "tela": "social-triagem-ia",
+            "oQueFaz": "Ao iniciar triagem de uma família, IA lê o socioeconômico (renda, vulnerabilidades, composição familiar) E SUGERE elegibilidade por unidade (Centro Médico, Capacitação, Recreativo, Esportivo) com confiança calculada (%). Humano aprova/ajusta/recusa cada sugestão. Incluir aviso claro: 'IA sugere, decisão humana' + confiança %.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "model SugestaoElegibilidadeIA { id, fichaId, modeloUsado (claude-3-5-sonnet), dataGeracao, unidade, sugestao (ELEGIVEL/AVALIAR/SEM_INDICIO), confianca (0-100), justificativa (motivo curto), fichaCompletude (92%), armazenadoEm }; índices por fichaId",
+            "endpoints": [
+              "/servico-social/triagem/:fichaId/sugerir-ia (POST — chama Claude, salva em SugestaoElegibilidadeIA)",
+              "/servico-social/triagem/:fichaId/sugestoes-ia (GET — retorna histórico de sugestões)"
+            ],
+            "uiWeb": "app/servico-social/triagem/:fichaId/ia/page.tsx (modal ou page dedicada); exibir resumo socioeconômico lido pela IA + matriz com sugestões + confiança em JubaRing (% visual); botões Aprovar/Ajustar/Recusar por linha; nota de auditoria final",
+            "dependencias": "Triagem criada + dados socioeconômicos preenchidos (renda, membros, vulnerabilidades)",
+            "riscos": "LGPD/DADO_SENSIVEL: renda, nome e composição familiar vão para Claude API (Anthropic); recomenda tokenização (passar resumo, não dados brutos); triagem de confiança < 50% requer auditoria manual; erro na sugestão (ex: aprovação indevida) invalida caso — auditoria em AuditLog com userId+timestamp"
+          },
+          {
+            "tela": "social-agenda",
+            "oQueFaz": "Visão transversal de 4 unidades em um dia (ou semana). Painel superior com pulso das unidades (Centro Médico: 8 agendamentos-Sob pressão, Capacitação: 3 turmas-Saudável, etc). Depois lista de agendamentos/turmas do dia por unidade (horário, profissional, participantes, status).",
+            "prioridade": "baixa",
+            "esforco": "M",
+            "schemaDelta": "reusa Agendamento, Aula, TurmaEsportiva (já existem); melhora índices para queries por unidade + data (unidadeId, inicioEm DESC)",
+            "endpoints": [
+              "/servico-social/agenda?data=YYYY-MM-DD (GET — retorna KPIs + agendamentos do dia por unidade)",
+              "/servico-social/agenda/:unidadeSlug?data=YYYY-MM-DD (GET — detalhe de uma unidade no dia)"
+            ],
+            "uiWeb": "app/servico-social/agenda/page.tsx; components/pulso-card.tsx (4 cards com status Sob pressão/Saudável/Com folga); components/agenda-unidade.tsx (lista agendamentos da unidade com horário, prof, status pill); seletores de data (prev/hoje/próx); transversal a todas 4 unidades",
+            "dependencias": "Agendamentos/Aulas/Treinos já preenchidos nas verticais (médico, capacitação, educacional, esportivo)",
+            "riscos": "Performance: queryar 4 unidades + agendamentos no mesmo dia pode ser pesado; recomenda índices em (unidadeId, inicioEm) e cache de 15min; data futura nada para exibir é OK (padrão)"
+          }
+        ]
+      },
+      {
+        "area": "Médico Fase 2 (clínico)",
+        "resumo": "A área \"Médico Fase 2 (clínico)\" adiciona 6 telas essenciais ao fluxo clínico já existente (agenda, fila, prancha): (1) **Triagem de enfermagem** (captura vitais + classificação de risco para enfermeiros), (2) **Odontograma** (mapeamento visual de dentes + plano de tratamento para odontopediatria), (3) **Atestado e PDF** (gerador de documentos digitais assinados), (4) **Fila de chegada** (recepção marca presença + KPIs), e (5) **Resumo clínico por IA** (síntese de últimas consultas com Claude API para apoio à decisão). Há também (6) a tela **medico-triagem** (leitura de triagem) que reusa parcialmente a triagem-enfermagem. Ordem proposta: Triagem-Enfermagem (S — depende só de SinaisVitais), Fila-Chegada (M — reusa Agendamento), Atestado (M — novo model DocumentoEmitido), Odontograma (L — novo model DenteProcedimento), Resumo-IA (M — integração Claude + novo model ResumoPorIA). A tela Triagem é apenas leitura da triagem-enfermagem (risco baixo). Todos os endpoints seguem padrão NestJS com guards JwtAuthGuard + PerfisGuard, DTOs class-validator, AuditService.registrar, e queries paramétricos do Prisma. UI reutiliza CASA (ShellInterno, componentes em blocks.tsx). Riscos principais: LGPD (dados clínicos no resumo IA), segurança (assinatura digital em atestados), integração Claude API (tratamento de erros + custo).",
+        "features": [
+          {
+            "tela": "medico-triagem-enfermagem",
+            "oQueFaz": "Enfermeiro(a) aferiza sinais vitais de paciente na chegada, classifica risco (vermelho/amarelo/verde), registra queixa principal e observações. Vitais sobem automaticamente para prontuário do médico. Encaminha para fila ou retorna para recepção.",
+            "prioridade": "alta",
+            "esforco": "S",
+            "schemaDelta": "reusa SinaisVitais (aquerido queixaPrincipal field + dor 0-10 em campo novo dor); novo model ClassificacaoRisco (atendimentoId, nivel, criterios JSON, avaliadoEm, avaliadoPor)",
+            "endpoints": [
+              "POST /medico/atendimentos/:id/classificar-risco",
+              "GET /medico/atendimentos/:id/vitais-pendentes",
+              "PUT /medico/atendimentos/:id/vitais (já existe, reaproveita)"
+            ],
+            "uiWeb": "apps/web/app/medico/triagem-enfermagem/[agendamentoId]/page.tsx + componentes em /components/medico: CardVitais, EscalaDor, CardClassificacaoRisco (pills coloridos vermelho/amarelo/verde), CardAlertas (mostra alergias da ficha), CardResumoTimeline",
+            "dependencias": "reusa Agendamento + SinaisVitais; depende de atendimento já iniciado (POST /medico/agendamentos/:id/iniciar)",
+            "riscos": "LGPD: vitais são PII; AuditService deve registrar READ+UPDATE em sinais_vitais. Segurança: validar que enfermeiro tem acesso à unidade (PerfisGuard + tenant check). Erro: falha ao puxar alergias não deve bloquear preenchimento."
+          },
+          {
+            "tela": "medico-triagem",
+            "oQueFaz": "Médico visualiza resumo da triagem de enfermagem já realizada: sinais vitais preenchidos, classificação de risco, queixa, observações. Consulta apenas (sem edição). Botão para ir à prancha (SOAP).",
+            "prioridade": "media",
+            "esforco": "S",
+            "schemaDelta": "reusa ClassificacaoRisco (acima)",
+            "endpoints": [
+              "GET /medico/atendimentos/:id/resumo-triagem (retorna atendimento + sinais_vitais + classificacaoRisco)"
+            ],
+            "uiWeb": "apps/web/app/medico/triagem/[agendamentoId]/page.tsx (similar à triagem-enfermagem, mas readonly; reutiliza CardVitais, CardClassificacaoRisco, CardAlertas + link para prancha)",
+            "dependencias": "ClassificacaoRisco, SinaisVitais",
+            "riscos": "Nenhum relevante; é leitura."
+          },
+          {
+            "tela": "medico-fila-chegada",
+            "oQueFaz": "Recepção marca presença de agendados do dia (botão Marcar chegada → muda status de AGENDADO para EM_ATENDIMENTO ou TRIAGEM). Mostra KPIs (agendados hoje, presença confirmada %, aguardando triagem, faltas). Lista de agendados com status visual (aguardando, em triagem, em atendimento, faltou). Botão para ir à fila de atendimento.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa Agendamento (status já existe); novo field marcadoPresencaEm DateTime em Agendamento para auditoria",
+            "endpoints": [
+              "GET /medico/fila-chegada?data=YYYY-MM-DD (retorna lista com KPIs + agendamentos do dia ordenados por horário)",
+              "PATCH /medico/agendamentos/:id/marcar-chegada (atualiza status + registra marcadoPresencaEm)"
+            ],
+            "uiWeb": "apps/web/app/medico/fila-chegada/page.tsx + componentes: CardKPI (4 cards com números + tendência), ListaAgendados (list-row para cada agendado com cores by status), ButtonMarcarChegada com spinner",
+            "dependencias": "Agendamento, Profissional, FichaCidada (para nome + idade)",
+            "riscos": "Concorrência: dois usuários marcando chegada simultaneamente → usar updateMany condicional (pattern já usado em atendimentos.service). LGPD: registrar READ da lista (AuditService). Alertas dinâmicos: puxar alergias para cada linha reusa query — cache com React Query."
+          },
+          {
+            "tela": "medico-odonto",
+            "oQueFaz": "Odontólogo visualiza odontograma (grid 16 dentes superiores + 16 inferiores, código FDI) e registra procedimentos (cárie, restaurado, extraído, etc.). Pode clicar em dente para marcar faces (vestibular, lingual, oclusal, mesial, distal). Sidebar mostra plano de tratamento com 5+ procedimentos (concluído / a fazer). Selar atendimento ao fim.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "novo model DenteProcedimento (atendimentoId, codigoFDI 11-48 por schema FDI, tipo enum HIGIDO|CARIE|RESTAURADO|EXTRAIDO|INDICADO_EXTRACAO, faces JSON {vestibular,lingual,oclusal,mesial,distal}, registradoEm, updatedAt); novo model PlanoTratamentoDental (atendimentoId, progresso%, procedimentos em JSON array ou relação separada)",
+            "endpoints": [
+              "POST /medico/atendimentos/:id/dentes (upsert lista de DenteProcedimento)",
+              "GET /medico/atendimentos/:id/odontograma (retorna atendimento + dentes + plano)",
+              "POST /medico/atendimentos/:id/procedimentos-odonto (adiciona procedimento ao plano)"
+            ],
+            "uiWeb": "apps/web/app/medico/odonto/[agendamentoId]/page.tsx + componentes: GridOdontograma (grid 8x2 com tiles clicáveis para arcada sup/inf, cores por tipo), CardProcedimentoOdonto (face selector + tipo), CardPlanoTratamento (lista de 5 items com status pills), ProgressRing (% de conclusão)",
+            "dependencias": "reusa Atendimento, SinaisVitais",
+            "riscos": "UX: grid interativa pode ser lenta com state Redux — manter estado local. Validação: apenas odontólogo (PROFISSIONAL + especialidade odonto) pode escrever. LGPD: registrar criação de plano."
+          },
+          {
+            "tela": "medico-atestado",
+            "oQueFaz": "Médico gera atestado/receita em PDF com: tipo (atestado / receita simples / declaração / relatório), paciente, CID-10, dias de afastamento, texto livre, validade. Preview lado direito (layout A4 com cabeçalho do Instituto + selo dourado + assinado digitalmente com CRM). Botão gerar PDF + download. Tabela de documentos emitidos hoje (com QR de verificação pública).",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "novo model DocumentoEmitido (unidadeId, atendimentoId, fichaId, membroId, tipo enum ATESTADO|RECEITA|DECLARACAO|RELATORIO, cid10?, diasAfastamento?, textoDocumento, dataSaida, codigoVerificacao UUID, codigoQR string (gerado), assinadoPorId profissional.id, hashDocumento para verificação, criadoEm, atualizadoEm); novo model DocumentoVerificacao (codigoVerificacao, validadoEm DateTime, validadoVezes int para auditoria)",
+            "endpoints": [
+              "POST /medico/atendimentos/:id/documentos (cria registrograma + gera hash)",
+              "GET /medico/documentos/emitidos-hoje?unidadeId=X (lista para tabela)",
+              "GET /verificar-documento/:codigo (endpoint PUBLIC, sem auth — retorna apenas {valido, tipo, cid10, crm, dataEmissao, dataExpiração})"
+            ],
+            "uiWeb": "apps/web/app/medico/atestado/[agendamentoId]/page.tsx + componentes: FormDocumento (tipo select, dias input, textarea, CID-10 search), PreviewDocumento (iframe ou div mockup com header CASA colors + QR placeholder SVG), ButtonGerarPDF (chama lib html2pdf ou similar no cliente, ou POST + blob download). TabelaDocumentos com pills de status.",
+            "dependencias": "Atendimento, FichaCidada (nome + prontuário), Profissional (CRM + nome + assinatura digital — pode ser apenas texto ou imagem em s3), novo Enum TipoDocumento",
+            "riscos": "Segurança DIGITAL: assinatura requer PKI ou certificado digital brasileiro (ICP-Brasil) — MVP pode usar assinatura mock (texto + CRM + timestamp hash). LGPD: documertos emitidos vão para AuditLog + histórico permanente em documento_verificacao. Risco legal: atestado inválido causa problema no paciente — validação rigorosa (S + P preenchidos, CRM válido). QR gerado deve ser validável publicamente sem expor dados (apenas {valido, tipo, CRM, data}) — usar código criptografado ou UUID."
+          },
+          {
+            "tela": "medico-resumo-ia",
+            "oQueFaz": "Na abertura do prontuário (antes de SOAP), médico vê resumo gerado por IA: últimas consultas, condições crônicas, alergias (com ênfase em graves), pendências de retorno/vacinação, observações contextuais. Síntese em card com header azul (marca IA), aviso de responsabilidade (não é registro), botão Gerar de novo, botão Usar no SOAP. Sidebar com paciente, alergias destacadas, fontes (links para consultas anteriores), confiabilidade (% cobertura dos registros), timestamp.",
+            "prioridade": "media",
+            "esforco": "M",
+            "schemaDelta": "novo model ResumoPorIA (atendimentoId, fichaId, conteudoMarkdown string, ultimasConsultas JSON array, cronicasAtivas JSON array, alergias JSON array, pendencias JSON array, confiabilidadePercent int, geradoEm DateTime, modeloUsado string 'claude-3-5-sonnet-20241022', versaoPrompt int para evolução, custoTokens int para auditoria). Index: (atendimentoId, geradoEm DESC) para listagem + limpar antigos (guardar últimas 3 por atendimento).",
+            "endpoints": [
+              "POST /medico/atendimentos/:id/gerar-resumo-ia (chama Claude API, salva resultado, retorna ResumoPorIA)",
+              "GET /medico/atendimentos/:id/resumo-ia (retorna ResumoPorIA mais recente; 204 se não existe)",
+              "GET /medico/fichas/:fichaId/historico-resumos (lista últimos 5 por paciente, para auditoria)"
+            ],
+            "uiWeb": "apps/web/app/medico/resumo-ia/[agendamentoId]/page.tsx + componentes: CardResumoIA (header azul + aviso em amber + markdown renderizado), SidebarPaciente (crest + nome + age + pills de alergias/asma), CardFontesResumo (links clicáveis para consultas anteriores), ProgressBar confiabilidade, Button regenerar (POST novamente), ButtonUsarNoSOAP (navega para prancha pré-populando observações).",
+            "dependencias": "Atendimento + FichaCidada + Alergia + CondicaoCronica + últimas consultas (pode ser subquery complexa em Prisma). Depende de: (1) env var ANTHROPIC_API_KEY setada; (2) módulo de chamadas HTTP para Claude API (criar @ifp/anthropic-client ou usar fetch nativo); (3) rate limiting + cache (não gerar 2x no mesmo atendimento em < 5 min).",
+            "riscos": "LGPD CRÍTICO: conteúdo clínico completo vai para Claude API (Anthropic). Mitigação: (1) usar Claude (empresa séria com SOC 2 / GDPR compliance), (2) não enviar CPF/nome paciente em claro (usar ID anonimizado), (3) registrar em AuditLog cada chamada (acao: 'IA_SUMMARY' + metadata: {fichaId, conteudo_chars, resposta_chars}), (4) permitir médico deletar resumo se achar inadequado. Segurança: validar que médico é profissional e tem acesso ao atendimento (PerfisGuard + ownership check). Custo: cada POST custa ~2-5¢ (entrada 2K tokens + saída 500)— adicionar mensagem de aviso visual ('processando... 2-5 segundos'). Timeout: Claude pode demorar 10s+ em carga — usar Suspense/Skeleton. Falha: se Claude indisponível, mostrar aviso gentil sem bloquear atendimento (fallback para leitura manual)."
+          }
+        ]
+      },
+      {
+        "area": "Portal da Família — IFP Connect",
+        "resumo": "Sete telas faltam no Portal da Família (responsáveis acessando dados de seus filhos). Ordem sugerida prioriza MVP: (1) **Agenda** e **Ficha** são fundamentais (governance + confiança); (2) **Presença** + **Certificados** agregam valor operacional (confirmação de aula + comprovantes); (3) **Linha do Tempo**, **Áudio** e **Recebido** completam a narrativa (conteúdo emocional + transparência). Todas reutilizam schema existente (MembroFamiliar, CheckInOut, Certificado, Alergia, AutorizacaoImagem, ConversaFamilia). Nenhuma requer modelo novo. Risco: áudio (IA Claude) exige custo API + consentimento LGPD explícito; linhas-do-tempo podem ficar lentas com agregações complexas (mitigar com índices).",
+        "features": [
+          {
+            "tela": "familia-agenda",
+            "oQueFaz": "Calendário visual dos próximos 30 dias: agendamentos (saúde, esporte, reuniões), eventos e feriados da criança, agrupados por semana. Filtro por tipo (saúde, esporte, evento, aviso). Links para confirmação de presença + contato da unidade.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa Agendamento (fichaId, membroId, inicioEm, fimEm, profissionalId) + Evento (modelo novo simples: id, unidadeId, titulo, descricao, dataInicio, dataFim, tipo enum, criadoEm)",
+            "endpoints": [
+              "GET /familia/agenda/:membroId?dataInicio=YYYY-MM-DD&dataFim=YYYY-MM-DD",
+              "GET /familia/agenda/tipos (cache do enum de tipos de evento)",
+              "POST /familia/agenda/:agendamentoId/confirmar-presenca?vai=true|false&motivo=string"
+            ],
+            "uiWeb": "pages: familia/agenda/page.tsx | components: AgendaTimeline (blocos por semana), AgendaCard (item), AgendaFilterTabs, ConfirmarPresencaModal (com motivos pré-definidos tipo Presenca.familia-presenca.html). Reusar: Pill, CoroaSeal, CrestAvatar. Data-theme=educacional (amarelo-ouro).",
+            "dependencias": "nenhuma",
+            "riscos": "Performance: agregação semanal em client ou server? Usar server com cache de 10min. LGPD: logs de visualização de agenda (READ audit)."
+          },
+          {
+            "tela": "familia-ficha",
+            "oQueFaz": "Dados imutáveis da criança (nome, idade, foto, RG, matrícula): alergias com gravidade (GRAVE destacado em vermelho), condições crônicas, tipos sanguíneos. Quem pode buscar: lista de ResponsaveisAutorizados com status. Autorizações de imagem granulares (USO_INTERNO, REDES_IFP, IMPRENSA) — cada um toggleável. Modo leitura obrigatório (edição só via Serviço Social).",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa Alergia, CondicaoCronica, ResponsavelAutorizado, AutorizacaoImagem (tudo existe). Apenas: adicionar index em ResponsavelAutorizado.membroId para rápida listagem na ficha.",
+            "endpoints": [
+              "GET /familia/ficha/:membroId (criança + alergias + condições + autorizados + imagens)",
+              "GET /familia/ficha/:membroId/autorizados",
+              "GET /familia/ficha/:membroId/alergias",
+              "GET /familia/ficha/:membroId/autorizacoes-imagem"
+            ],
+            "uiWeb": "pages: familia/ficha/[membroId]/page.tsx | components: FichaHeader (crest + nome + idade), FichaAlergiasSection (cards com GravidadeAlergia -> pill style), FichaAutorizadosSection (lista + status), FichaAutorizacoesImagem (toggle/seal de aprovado/bloqueado). Reusar: CrestAvatar, CoroaSeal, Pill, AvIcon (para gravidade).",
+            "dependencias": "nenhuma",
+            "riscos": "LGPD crítico: alergias + autorizados = dados sensíveis de menores. Sempre READ audit. Imutabilidade: UI deve mostrar lock icon + tooltip 'edite via Serviço Social'."
+          },
+          {
+            "tela": "familia-certificados",
+            "oQueFaz": "Galeria por criança: certificados de conclusão de curso, graduação em esporte, participação em eventos. Cards com título, data de emissão, código único de verificação (QR/link público de validação). Botão 'Baixar PDF' (integração futura com gerador de PDF).",
+            "prioridade": "media",
+            "esforco": "S",
+            "schemaDelta": "reusa Certificado (matriculaId, emitidoEm, codigoVerificacao, presencaPct). Apenas: criar view/computed field para título + instituição (join via matricula -> curso/turmaEsportiva -> nome).",
+            "endpoints": [
+              "GET /familia/certificados/:membroId (lista de certificados da criança)",
+              "GET /familia/certificados/:certificadoId/validar (endpoint público: valida codigoVerificacao)",
+              "GET /familia/certificados/:certificadoId/pdf (gera PDF — fase 2: integração com puppeteer/weasyprint)"
+            ],
+            "uiWeb": "pages: familia/certificados/page.tsx | components: CertificadosGrid (grid ou lista), CertificadoCard (título, data, código, botão download), CertificadoModal (visualização + QR). Reusar: Pill (status tipo), Medalhao (ícone de troféu).",
+            "dependencias": "nenhuma (Certificado já existe vinculado via Matricula)",
+            "riscos": "PDF: custo + segurança de geração. Validação pública: LGPD (exposição de nomes/dados)? Usar codigoVerificacao anônimo, não expor ficha."
+          },
+          {
+            "tela": "familia-presenca",
+            "oQueFaz": "Confirmação rápida: 'A criança vem amanhã?' — botões SIM/NÃO enormes. Se NÃO, modal de motivos pré-definidos (doente, consulta, viagem, outro). Mostra próximos 3–5 dias com status da confirmação (aguardando, confirmado, falta). Confirmar presença reduz carga da unidade (lanche + atividade).",
+            "prioridade": "media",
+            "esforco": "S",
+            "schemaDelta": "modelo novo: **CheckInOutConfirmacao** — id, membroId, fichaId, unidadeId, data DATE, status enum (AGUARDANDO, CONFIRMADO, FALTA), motivo string nullable, respondidoEm datetime nullable, criadoEm. Único por (membroId, data). OU estender MatriculaInfantil com campo de confirmação de presença (mais simples, menos model sprawl).",
+            "endpoints": [
+              "GET /familia/presenca/:membroId?dataInicio=YYYY-MM-DD&dataFim=YYYY-MM-DD (próximos dias + status)",
+              "POST /familia/presenca/:membroId/confirmar { data: DATE, vai: boolean, motivo?: string } (idempotente por data)"
+            ],
+            "uiWeb": "pages: familia/presenca/page.tsx | components: PresencaPergunta (título + 2 botões gigantes), PresencaMotivos (modal com 4 options: doente, consulta, viagem, outro), PresencaProximos (lista de dias com status). Reusar: Pill, Button gigante (height: 96px).",
+            "dependencias": "nenhuma",
+            "riscos": "Fluxo modal pode confundir: ao clicar NÃO, aparecer motivos sem transição clara. UX: scroll suave + feedback visual. Dados: motivo é opcional, mas interface deve sugerir pelo menos um."
+          },
+          {
+            "tela": "familia-linha-tempo",
+            "oQueFaz": "Narrativa visual da jornada da criança no Instituto: marcos por unidade (creche: primeiros passos, vacinação; esporte: primeira aula, faixa earned; saúde: consultas). Cards por ano com data, título, descrição narrativa em tom quente. Filtro por unidade (Tudo, Creche, Médico, Esporte). Card de resumo: 'De um primeiro dia com choro a uma menina que canta e cresce saudável.'",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "modelo novo: **TimelineEvento** — id, membroId, fichaId, unidadeId, titulo STRING, descricao TEXT, tipo enum (EDUCACAO, SAUDE, ESPORTE, SOCIAL, MARCO_DESENVOLVIMENTO), dataOcorrencia datetime, fotoUrl nullable, iconeSvg nullable, criadoEm. Index: (membroId, dataOcorrencia DESC). Populado by scripts ou manuais + eventos 'auto' via services (DiarioDia.FECHADO -> educacao, Atendimento.ENCERRADO -> saude).",
+            "endpoints": [
+              "GET /familia/linha-tempo/:membroId?filtro=educacao|saude|esporte|social|todos (sorted by date DESC)",
+              "POST /familia/linha-tempo/:membroId { titulo, descricao, tipo, dataOcorrencia, fotoUrl } (admin/assistente social cria marcos)"
+            ],
+            "uiWeb": "pages: familia/linha-tempo/[membroId]/page.tsx | components: TimelineYear (seção por ano), TimelineCard (item), TimelineFilter (tabs), TimelineHero (resumo inicial). Usar vertical line (CSS border-left) ou SVG path. Reusar: Pill (tipo), CrestAvatar (foto).",
+            "dependencias": "presença de dados históricos (DiarioDia, Atendimento, CheckInOut, Certificado) — sem dados iniciais, linha fica vazia. Requer seed/população manual nos primeiros meses.",
+            "riscos": "Dados sensíveis (história de vida = PII amplificado): cada READ vai para audit. Performance: se 100+ eventos, carregar todos? Paginar com 'load more' ou lazy load. IA/automação: gerar descrições narrativas via Claude? (Fase 2, risco de alucinação)."
+          },
+          {
+            "tela": "familia-audio",
+            "oQueFaz": "Resumo do dia em áudio — texto do diário da criança lido em voz alta (síntese de fala). Play/pause/skip (±15s), controle de velocidade (0.75×, 1×, 1.5×), transcrição visível. Gerado via Claude API (text-to-speech futuro) ou integração com ElevenLabs. Botão 'Receber áudio no WhatsApp às 18h' (scheduling de delivery).",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "modelo novo: **DiarioAudio** — id, diarioDiaId, membroId, unidadeId, urlAudio STRING (S3/R2), duracao_segundos INT, geradoEm datetime, geradoPor STRING ('claude-api'|'elevenlabs'|manual), status enum (PENDENTE, PROCESSANDO, PRONTO, ERRO), custoApi DECIMAL nullable, criadoEm. Index: (membroId, criadoEm DESC). Transcrição = cópia do DiarioDia.registros em texto, não armazenada separadamente.",
+            "endpoints": [
+              "GET /familia/audio/:membroId?data=YYYY-MM-DD (retorna DiarioAudio.urlAudio + transcrição + metadados)",
+              "POST /familia/audio/:membroId/gerar { data: YYYY-MM-DD } (enfileira geração async via Bull/RabbitMQ)",
+              "POST /familia/audio/:membroId/agendar-whatsapp { horario: HH:mm, ativar: boolean } (schedules push notification)"
+            ],
+            "uiWeb": "pages: familia/audio/[membroId]/page.tsx | components: AudioPlayer (controls gigantes: play, -15s, +15s, speed selector), AudioWaveform (SVG bars animado), AudioSettings (velocidade, legendas on/off, WhatsApp schedule), AudioTranscript (scrollable text com speaker icon). Reusar: Pill, Button.",
+            "dependencias": "Claude API (Anthropic) ou ElevenLabs: integração no backend em serviço AsyncAudioService. Custo: ~$0.002–0.01 por áudio (100s = ~$0.005 na Claude). Requer cronjob para gerar áudios ao fechar diário OU sob demanda.",
+            "riscos": "LGPD CRÍTICO: dados de menores em texto + síntese = PII amplificada. Consentimento: UI deve exigir opt-in explícito por responsável. Qualidade de síntese: teste de inteligibilidade (sotaque, prosódia para PT-BR). Custo API: sem limite = risco financeiro (adicionar quota, capping). Alucinação: IA não deve inventar fatos, usar template: 'Oi Dona X! Hoje foi... [texto exato diário].'."
+          },
+          {
+            "tela": "familia-recebido",
+            "oQueFaz": "Resumo visual de benefícios que a família já recebeu do Instituto: contadores (7 consultas, 3 crianças atendidas, 12 benefícios totais), seções por pillar (Educação: vagas creche+escola, Saúde: consultas+vacinas, Esporte: aulas+faixa, Social: cestas+cursos). Links para detalhar (agenda, certificados). Card final: 'Você faz parte' (mensagem de pertencimento).",
+            "prioridade": "baixa",
+            "esforco": "M",
+            "schemaDelta": "reusa: Matricula (educação), Agendamento (saúde), MatriculaEsportiva (esporte), CheckInOut (presença), Certificado (conclusão), nenhum modelo novo. Apenas: criar VIEWs ou cached queries para contadores rápidos (presidência + família ambos precisam desses KPIs).",
+            "endpoints": [
+              "GET /familia/recebido/:fichaId (resume contadores + lista de benefícios por categoria)",
+              "GET /familia/recebido/:fichaId/resumo (apenas KPIs para card de topo)"
+            ],
+            "uiWeb": "pages: familia/recebido/page.tsx | components: RecebidoHero (contadores em cards KPI), RecebidoSection (por pillar: educacao, saude, esporte, social), RecebidoItem (linha com ícone + status), RecebidoBelongingCard (card final com mensagem). Reusar: Pill, Medalhao, Button (links para detalhe).",
+            "dependencias": "popula-se automaticamente dos dados existentes (leitura, sem escrita). Se nenhuma matrícula/agendamento, seção fica vazia — isso é ok (família nova).",
+            "riscos": "Nenhum risco significativo: leitura pura, dados baixa sensibilidade (contadores públicos). Performance: se família tem 50+ consultas, paginação. UX: textos aquecidos (tom de reconhecimento, gratidão) — não administrativa/fria."
+          }
+        ]
+      },
+      {
+        "area": "Presidência (analytics + IA)",
+        "resumo": "A área Presidência faltam 6 telas de relatórios e analytics, divididas em 2 grupos: (1) telas de Dashboard/Analytics: mapa-territorial, saude-populacional, custo-beneficiario, crm-doadores, relatorios — todas leitura pura, agregadas, anônimas, com dados já no banco; (2) telas com IA: historias-ia — gera narrativas via Claude API a partir de trajetos reais anonimizados. Ordem sugerida: (A) mapa-territorial (pré-requisito visual), (B) saude-populacional, (C) custo-beneficiario (ambas dashboard de números), (D) relatorios (lista + PDF), (E) historias-ia (integração Claude), (F) crm-doadores (captação, funil, renovações). A maioria reutiliza o schema existente (agregações cross-unidade); só historias-ia precisa de campos novos (IA metadata, consentimento).",
+        "features": [
+          {
+            "tela": "pres-mapa-territorial",
+            "oQueFaz": "Heatmap de concentração de famílias por bairro (6x4 grid com opacidade). Lista top 6 bairros com volume e %, legenda de intensidade, tabela de 'Áreas com demanda reprimida' (distância + potencial). Entrada: agregação de (ficha.bairro, count) cross-unidade. Saída: mapa visual + table de oportunidades.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa FichaCidada (bairro já existe, agregação simples)",
+            "endpoints": [
+              "GET /presidencia/mapa-territorial → { heatmap: {bairro: string, familias: number, lat?: number, lng?: number}, topBairros: {bairro, total, pct}[], demandaReprimida: {regiao, atendidas, distancia_km, potencial}[] }"
+            ],
+            "uiWeb": "apps/web/app/presidencia/mapa-territorial/page.tsx · Card + SecTitle + SVG heatmap 6x4 + bar-row para top bairros · legenda de intensidade · tabela CASA (Regiao/Famílias/Distância/Potencial) · reutilizar componentes de presidencia/_components (SerieMensal, Barras se aplicável)",
+            "dependencias": "nenhuma (leitura pura de FichaCidada)",
+            "riscos": "LGPD: dados de bairro são pseudoanônimos; relatório final não expõe endereço individual (só agregado por bairro, ok). Precisão geocódigo dos bairros (se houver lat/lng) — usar apenas o nome."
+          },
+          {
+            "tela": "pres-saude-populacional",
+            "oQueFaz": "Dashboard de saúde pública agregada: KPIs de cobertura (pessoas acompanhadas, odontologia %, vacinação %, HAS controlada %), agravos mais comuns (bar com top 6), faixas etárias (distribuição), tabela de cobertura preventiva (pré-natal, puericultura, Hiperdia, bucal escolar com elegíveis/cobertos/%), alerta de Hiperdia baixa com botão 'Planejar campanha'.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa Atendimento (tipo_agravo ou diagnóstico) + Elegibilidade (status APROVADO = coberto) + DadosSocioeconomicos (se houver saúde) · NOVO CAMPO opcional: Atendimento.agravo_icd10 (string, p/ agrupar agravos)",
+            "endpoints": [
+              "GET /presidencia/saude-populacional → { kpis: {pessoasAcompanhadas, cobertura_odonto_pct, vacinacao_pct, has_controlada_pct}, agravosComuns: {agravo, total, pct}[], faixasEtarias: {faixa, total, pct}[], cobertura_preventiva: {programa, elegiveis, cobertos, pct}[] }"
+            ],
+            "uiWeb": "apps/web/app/presidencia/saude-populacional/page.tsx · KPI 4-colunas (pessoas, odonto%, vacinação%, HAS%) · Card SecTitle com bar-row para agravos · Card com faixas etárias (bar-row com 0-6, 7-17, 18-39, 40-59, 60+) · tabela CASA de cobertura preventiva · Card alerta amarelo com botão 'Planejar campanha' (link para impacto ou modal futuro)",
+            "dependencias": "saude-populacional é visualização pura; nenhuma dependência de outras telas",
+            "riscos": "LGPD/Saúde: dados clínicos agregados (anônimos, sem ID individual). Diagnósticos devem ser genéricos (hipertensão, diabetes, cárie, etc.) e nunca expor paciente. Nota de disclaimer: 'Visão desidentificada de saúde pública'."
+          },
+          {
+            "tela": "pres-custo-beneficiario",
+            "oQueFaz": "KPIs de eficiência financeira: Custo/família (R$/mês), Custo/consulta, Custo/certificado, Custo/pessoa impactada. Argumento de doador: 'cada real rende mais aqui'. Barras de custo por unidade (Recreativo, Centro Médico, Esportivo, Capacitação). Tabela 'Retorno social' (resultado vs. custo IFP vs. valor mercado vs. múltiplo). Composição 'Onde vai cada real' (82% atividade-fim, 11% estrutura, 5% admin, 2% captação). Seletor de período (Maio/2026 anterior/próximo).",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "NOVO MODEL: CustoAnalise {id, unidadeId?, periodo DATE, custoFamilia DECIMAL, custoPorConsulta DECIMAL, custoPorCertificado DECIMAL, custoPorPessoa DECIMAL} · OU precompute via VIEW SQL (agregando atendimentos, certificados, orçamento mensalizado). Se banco não tiver orçamento, usar dummy/estimado com aviso.",
+            "endpoints": [
+              "GET /presidencia/custo-beneficiario?periodo=mes|ano|12m → { kpis: {custoFamilia, custoConsulta, custoCertificado, custoPessoa}, porUnidade: {unidade, custo}[], retornoSocial: {resultado, custoIfp, valorMercado, multiplo}[], composicao: {categoria, pct}[] }"
+            ],
+            "uiWeb": "apps/web/app/presidencia/custo-beneficiario/page.tsx · PageHeader com ControlePeriodo (botão </>mes/ano/12m) · KPI 4-colunas · Card com bar-row para custo por unidade · Card com tabela 'Retorno social' (colunas: Resultado, Custo IFP, Valor mercado, Retorno em pill) · Card 4 quadrados mostrando 82% / 11% / 5% / 2% com pill e desc · Card de argumento para doador (dourado border-left).",
+            "dependencias": "depende de dados de orçamento/custo estar no banco (OU ser mockado com aviso); não bloqueia outras telas",
+            "riscos": "Financeiro: se orçamento não tiver granularidade por unidade, será estimado. Comunicação clara de que é argumento ilustrativo. Não expor custos operacionais de profissional individual (sempre agregado)."
+          },
+          {
+            "tela": "pres-relatorios",
+            "oQueFaz": "Hub de relatórios selados (PDF com selo coroa CASA): lista à esquerda mostrando relatórios do período com status (Selado/Em revisão), preview à direita com miniatura do PDF (cabeçalho, KPIs do mês, dados anonimizados, protocolo, selo CASA). Botão topo 'Gerar Relatório da Corte'. Ações: Filtrar por período, Ver arquivados, Compartilhar, Baixar PDF.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "NOVO MODEL: RelatorioPDF {id, unidadeId?, titulo STRING, periodo DATE, status ENUM(Selado|Em_revisao|Rejeitado), protocolo STRING, conteudo BYTES (PDF), geradoEm DATETIME, geradoPor PROFISSIONAL_ID, assinatura DIGITAL (JSON), auditoria AUDIT_ID} · tabela relatorio_pdf_audit para trilha de acesso",
+            "endpoints": [
+              "GET /presidencia/relatorios → lista com filtros",
+              "GET /presidencia/relatorios/:id → JSON meta + preview (HTML ou data-url base64 do PDF thumb)",
+              "POST /presidencia/relatorios → gera novo PDF (chama prestacao-contas + PDF service, selação)",
+              "GET /presidencia/relatorios/:id/pdf → download binário com headers de segurança"
+            ],
+            "uiWeb": "apps/web/app/presidencia/relatorios/page.tsx · grid 60/40 · esquerda: list-row para cada relatório (avatar RC/IM/MU/CA, título, período, páginas, famílias) com CoroaSeal status · botões filtro/arquivados · direita: Card preview com PDF head (cabeçalho com medalha, título, dados resumidos, selo, protocolo) · botões Compartilhar + Baixar PDF · usar PrestacaoContasPdfService (já existe no NestJS)",
+            "dependencias": "depende de /presidencia/prestacao-contas (endpoint já existe) + PrestacaoContasPdfService (já existe)",
+            "riscos": "LGPD: PDF contém dados anonimizados. Trilha de acesso obrigatória via AuditService. Assinatura digital (selo CASA) para garantir integridade. URL de compartilhamento deve ter token temporal (não expor arquivo indefinidamente)."
+          },
+          {
+            "tela": "pres-historias-ia",
+            "oQueFaz": "Galeria de histórias de impacto geradas por Claude API a partir de dados anônimos (trajetória de família real, nomes trocados, consentimento validado). Cards mostram: avatar inicial (2 letras), título, descrição (parágrafo 1-2 frases), tags de unidades, seal 'Consentida', botões 'Usar em captação' e 'Copiar texto'. KPIs: total gerado, com consentimento, usadas em captação (R$). Botão topo 'Gerar nova história'. Card final vazio (dashed) com prompt 'Gerar nova história por IA'.",
+            "prioridade": "alta",
+            "esforco": "L",
+            "schemaDelta": "NOVO MODEL: HistoriaIA {id, familiaAnonimizada STRING (código, não protocolo), titulo STRING, narrativa TEXT (saída do Claude), unidades ENUM[] (agregado de elegibilidades da família), consentimento BOOLEAN, dataConsentimento DATE, geradaEm DATETIME, geradaPor USER_ID, usadaEmCaptacao BOOLEAN, dataUsoCapTacao DATE?, contatoEmail? STRING (encrypted), versaoPrompt INT (para rastreabilidade do modelo IA)} · tabela historia_ia_audit com ação/user/timestamp",
+            "endpoints": [
+              "GET /presidencia/historias-ia → {total, comConsentimento, usadasCapacao, stories: {id, titulo, narrativa, unidades[], consentida, usada}[]}",
+              "POST /presidencia/historias-ia/gerar → (auth + rate-limit) chama Claude API via endpoint dedicado, retorna nova história ou erro",
+              "PATCH /presidencia/historias-ia/:id/usar-captacao → marca como usada, registra data",
+              "GET /presidencia/historias-ia/:id/texto → retorna narrativa plana (p/ copiar)"
+            ],
+            "uiWeb": "apps/web/app/presidencia/historias-ia/page.tsx · PageHeader + botão 'Gerar nova história' (dourado) · KPI 3-colunas (geradas, consentimento, usadas) · Grid 2 colunas de Cards: avatar + título + desc + tags(unidades) + seal consentida + botões (Usar captação, Copiar texto) · Card final vazio com ícone lâmpada + CTA 'Gerar agora' · usar CrestAvatar para iniciais · link 'Usar em captação' → /presidencia/crm-doadores (ou modal futura)",
+            "dependencias": "historias-ia depende de Claude API key configurada em .env (ANTHROPIC_API_KEY) e endpoint NestJS dedicado para chamar Claude. Risco: rate-limit, quota, latência. Integração testada com mock primeiro.",
+            "riscos": "IA/LGPD CRÍTICO: (1) Claude nunca vê dado individual — entrada é agregado anônimo (trajetória: elegibilidades por unidade, faixa etária, programa) com nomes gerados pela IA. (2) Consentimento obrigatório: endpoint de geração só funciona se family.consentimento_comunicacao=true (ou novo campo). (3) Revisão humana antes de publicar (status draft/revisar/aprovado). (4) Armazenar versão do prompt + modelo Claude usado para auditoria. (5) Rate-limit para não abusar quota. (6) Erro se Claude recusar (conteúdo inadequado): fallback para template manual."
+          },
+          {
+            "tela": "pres-crm-doadores",
+            "oQueFaz": "CRM de doadores: KPIs de captação (receita recorrente/mês, doadores ativos, ticket médio, renovações em risco). Funil visual: 1240 leads → 386 doação única → 412 recorrentes → 38 padrinhos (R$500+/mês). Barras de doações por programa (Centro Médico 37%, Capacitação 27%, etc). Tabela 'Próximas renovações' com avatar, nome, valor/mês, vencimento, dias restantes, pill status. Botão 'Enviar lembretes de renovação'. Tabela final 'Padrinhos e parceiros' com Doador/Tipo/Valor mês/Desde/Programa/Status.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "NOVO MODEL: DoadorCRM {id, nome STRING, tipo ENUM(Pessoa_Fisica|Empresa), email STRING, telefone? STRING, valor_mensal DECIMAL, programa ENUM[], data_inicio DATE, proxima_renovacao DATE, status ENUM(Ativo|Em_risco|Inativo), cartao_expira? DATE, origem_lead STRING, consentimento_contato BOOLEAN, notasCRM TEXT?} · tabela doador_crm_audit com ação/valor_anterior/novo_valor/user/timestamp",
+            "endpoints": [
+              "GET /presidencia/crm-doadores → {kpis: {receita_recorrente, doadores_ativos, ticket_medio, renovacoes_risco}, funil: {leads, doacao_unica, recorrentes, padrinhos}, doacoesPorPrograma: {programa, valor, pct}[], proximasRenovacoes: {doador_id, nome, valor, vencimento, dias_restantes, status}[], top_doadores: {doador_id, nome, tipo, valor, desde, programa, status}[]}",
+              "POST /presidencia/crm-doadores → criar novo doador",
+              "PATCH /presidencia/crm-doadores/:id → atualizar doador (status, valor, cartao)",
+              "POST /presidencia/crm-doadores/:id/enviar-lembrete → envia notificação (email/SMS) de renovação"
+            ],
+            "uiWeb": "apps/web/app/presidencia/crm-doadores/page.tsx · PageHeader + botão 'Novo doador' (dourado) · KPI 4-colunas · Grid 2-colunas: (esq) bar-row doações por programa; (dir) lista de próximas renovações (list-row com avatar, titulo, desc, pill status) com botão 'Enviar lembretes'. Tabela final CASA: Doador/Tipo/Valor/Desde/Programa/Status com pill. Links: 'Usar história na captação' → /presidencia/historias-ia, 'Gerar prestação' → /presidencia/prestacao-contas",
+            "dependencias": "crm-doadores pode ser construída independente; referencia historias-ia e prestacao-contas para ações de navegação",
+            "riscos": "LGPD/Email: dados de doador (nome, email, telefone) são PII. Criptografar em repouso (ou usar campo encrypted Prisma). Consentimento_contato obrigatório antes de enviar emails. Logs de notificação para auditoria. Não expor cartão (apenas últimos 4 dígitos + data expiração)."
+          }
+        ]
+      },
+      {
+        "area": "Admin / Plataforma",
+        "resumo": "Cinco telas admin ainda sem construção no app React, todas com padrão NestJS+Prisma já definido no monorepo. Prioridade: 1) admin-usuarios (já existe, falta-faltam admin-config, admin-auditoria, admin-unidades), 2) admin-notificacao e admin-auto-provisionamento (features propostas, complexidade M/L com integração WhatsApp/email), 3) admin-entrega-comunicados (complexidade M com rastreamento de leitura). Ordem sugerida segue dependências e valor operacional: config (base), auditoria (compliance LGPD), unidades (gestão), notificação (kernel para as demais), auto-provisionamento (automação), entrega-comunicados (UX das famílias).",
+        "features": [
+          {
+            "tela": "admin-config",
+            "oQueFaz": "Painel de configurações da instituição com dados gerais (razão social, CNPJ, endereço, DPO), segurança (2FA, expiração senha, bloqueio inatividade, timeout sessão, mín caracteres), integrações (SMTP, WhatsApp, gateway doações, BI), identidade visual (logo, cor da marca), conformidade LGPD (política, retenção logs, base legal, canal DPO) e manutenção (backup automático, modo manutenção, zona de risco com anonimização). Densidade alta: 6 cards com grids, seleções, toggles.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "Reusa User (para DPO). Novos modelos: ConfigPlataforma (razaoSocial, cnpj, endereco, telefone, email, dpoId, fusoHorario, nomeExibicao, corMarca, logoUrl, backupHora, modoPauseAte); IntegracaoSMTP (host, port, user, password, ativo); IntegracaoWhatsApp (token, numEmpresa, ativo); IntegracaoGatewayPagamento (tipo, chave, ativo); PolíticaPrivacidade (versao, conteudo, dataPub); RegrasSeguranca (mínSenha, tempoSessaoMin, expiracaoSenhaD, bloqueioInativ, retenção LogsAnos, 2faObrigatório).",
+            "endpoints": [
+              "GET /admin/config — retorna ConfigPlataforma + status integrações",
+              "PATCH /admin/config — atualiza dados gerais, segurança, identidade (múltiplos updates com transação)",
+              "POST /admin/integrações/testar — valida SMTP, WhatsApp, gateway antes de salvar",
+              "GET /admin/conformidade-lgpd — retorna status políticas, retenção, canal DPO",
+              "POST /admin/manutencao/anonimizar — [risco] anonimiza dados de teste (requer confirmação dupla + auditoria)"
+            ],
+            "uiWeb": "Page: /admin/config (novo). Componentes CASA: PageHeader (título+desc+botão Salvar), Card (6 blocos), Campo (inputs de razão, CNPJ, endereço, etc.), Select (fuso, status), Checkbox (toggles de segurança), Pill (status integrações), avatar do logo com botão trocar. Tela de risco com botão danger. Previsualização de logo lado a lado.",
+            "dependencias": "Nenhuma — primeira tela de config (será referenciada por notificacao). Requer acesso SUPER_ADMIN.",
+            "riscos": "LGPD (dados sensíveis de instituição — DPO, conformidade); segurança (credenciais SMTP/WhatsApp/gateway — nunca logar); anonimização é irreversível — exigir dupla confirmação + auditoria detalhada (quem, quando, por quê)."
+          },
+          {
+            "tela": "admin-auditoria",
+            "oQueFaz": "Trilha LGPD com KPIs do dia (eventos, acessos a sensível, tentativas negadas, exportações) + tabela com filtros (usuário/entidade, ação, período) mostrando quando/quem/ação/entidade/IP/resultado + nota compliance. Densidade alta: 4 KPI cards, filtros acima da tabela, 10+ linhas com status badges, paginação.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "Reusa AuditLog (já existe no schema). Novos: view ou consulta agregada para KPIs (contagem por ação, por resultado, agrupado por período).",
+            "endpoints": [
+              "GET /admin/audit?acao=&usuario=&periodo=&page=&limit= — lista AuditLogs com agregações (filtro dinâmico, paginação)",
+              "GET /admin/audit/kpis — retorna { eventosHoje, acessosSensivel, tentativasNegadas, exportacoes } (últimas 24h)",
+              "POST /admin/audit/exportar — gera CSV da trilha (últimos 30 dias por padrão, período customizável)"
+            ],
+            "uiWeb": "Page: /admin/auditoria. Componentes CASA: PageHeader (título+desc+botão Exportar), KpiCard (4 cards de métrica), Campo (filtros de usuário, ação, período), Select (períodos pré-definidos), Tabela (quando, usuário, ação com Pill colorida, entidade, IP, resultado), Pagination (‹ › Página X de Y). Nota azul em rodapé sobre compliance LGPD.",
+            "dependencias": "Nenhuma — leitura pura do AuditLog existente. Acesso SUPER_ADMIN.",
+            "riscos": "LGPD (dados de trilha são sensíveis — apenas admin pode ver). Exportação de CSV fica registrada como evento EXPORT na auditoria (trilha da trilha)."
+          },
+          {
+            "tela": "admin-unidades",
+            "oQueFaz": "CRUD de unidades: cards visuais das 4 unidades com progresso de capacidade (juba-ring 87%, 64%, 92%, 54%), tabela com colunas (unidade, salão/slug, cor, gestor, capacidade, status) + linhas com botão Editar, modal/form de edição (nome, slug, cor hex, gestor select, vagas total, status, descrição). Densidade alta: cards + tabela + form.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "Reusa Unidade (existente). Adicionar: cor (string hex, default por tipo), descricaoPublica (text, para página pública), vagasTotal (int, default 320), gestor FK opcional a Profissional (para facilitar CRUD).",
+            "endpoints": [
+              "GET /admin/unidades — lista com { id, tipo, nome, slug, cor, vagasTotal, vagasOcupadas (contagem), status, gestorId }",
+              "PATCH /admin/unidades/:id — atualiza nome, cor, vagasTotal, status, descricaoPublica, gestor",
+              "POST /admin/unidades — cria nova unidade (raro, estrutura é fixa, mas permite para expansão futura)",
+              "GET /admin/unidades/:id/capacidade — retorna ocupação atual (matriculas ativas / turmas / vagas)"
+            ],
+            "uiWeb": "Page: /admin/unidades. Componentes CASA: PageHeader (título+desc+botão Nova unidade), Card + juba-ring para progresso de cada unidade (4 colunas grid), Tabela com botão Editar por linha, Modal/Card de edição (form: nome, slug, cor hex com color picker, gestor select, vagas, status select, textarea descrição). Botões de ação (Cancelar, Salvar alterações).",
+            "dependencias": "Nenhuma — CRUD isolado. Requer SUPER_ADMIN.",
+            "riscos": "Segurança: slug é identificador de tenant — renomeação exige migração de data. Cor e gestão são operacionais (risco baixo). Auditoria: cada PATCH fica registrado (quem, quando)."
+          },
+          {
+            "tela": "admin-notificacao",
+            "oQueFaz": "Camada de notificação: templates WhatsApp Business (comunicado_geral, lembrete_consulta, fechamento_diario, otp_login, convite_familia, etc.) com status (Aprovado, Em revisão Meta, Não configurado), tabela de eventos que disparam (Comunicado publicado, 24h antes consulta, diário fechado, OTP, acesso provisionado) + template + canal + status (Ligado/Desligado). Lado: canais de envio (WhatsApp, E-mail SMTP, SMS), variáveis disponíveis ({{nome}}, {{crianca}}, {{data}}, etc.), preview em estilo WhatsApp. Proposto (marca ✨), requer WhatsApp API e configuração Meta.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "Novos modelos: TemplateNotificacao (nome_id string única, corpo text, variáveisRequeridas json, status enum RASCUNHO/PENDENTE_APROVACAO/APROVADO/REJEITADO, criadoEm, aprovadoEm, aprovadoPor userId); CanalNotificacao (tipo enum WHATSAPP/EMAIL/SMS, ativo, configJson para credenciais); EventoDispara (tipo string, template FK, canais json array, ativoEm datetime, desativoEm, criadoEm); RegistroNotificacao (tipo historicizado: telefoneDestino, templateId, canalUsado, statusEntrega enum PENDENTE/ENTREGUE/FALHA, tentativas, ultimaTentativaEm, criadoEm).",
+            "endpoints": [
+              "GET /admin/notificacoes/templates — lista templates com status",
+              "POST /admin/notificacoes/templates — cria novo template (rascunho)",
+              "PATCH /admin/notificacoes/templates/:id — atualiza corpo + variáveis (rascunho só)",
+              "POST /admin/notificacoes/templates/:id/submeter — envia para fila de aprovação Meta",
+              "GET /admin/notificacoes/canais — lista canais configurados + status",
+              "PATCH /admin/notificacoes/canais/:tipo — atualiza credenciais/status",
+              "POST /admin/notificacoes/canais/testar/:tipo — valida credencial antes de salvar",
+              "GET /admin/notificacoes/eventos — lista eventos + template associado + canais + status",
+              "PATCH /admin/notificacoes/eventos/:id — ativa/desativa gatilho automático",
+              "GET /admin/notificacoes/registros?tipo=&periodo=&status= — histórico de envios (último 30 dias)"
+            ],
+            "uiWeb": "Page: /admin/notificacao. Componentes CASA: Alert com badge ✨ Proposto no topo. PageHeader. Grid 60-40: 1) Cards de templates com Pill de status + botão Novo template, 2) Tabela de eventos (evento, template, canais com Pill, status toggle). Lado: Cards de canais com Pill/status, editor de variáveis (pills {{var}}), preview WhatsApp estilizado. Modal de edição de template com textarea, inputs de corpo/variáveis, botão submeter.",
+            "dependencias": "Depende de admin-config (credenciais SMTP já lá). Integração WhatsApp API real. Acesso SUPER_ADMIN.",
+            "riscos": "Integração: WhatsApp Business oficial exige aprovação Meta, certificados HTTPS, webhook de status. Dados sensíveis: números de telefone em RegistroNotificacao — LGPD, auditoria. Templates com variáveis: validar que não escapam dados ({{nome}} simples, não {{ficha->json}})."
+          },
+          {
+            "tela": "admin-auto-provisionamento",
+            "oQueFaz": "Fluxo automático de criar RESPONSAVEL_FAMILIAR e disparar convite WhatsApp ao aprovar elegibilidade (Serviço Social). Mostra: 1) KPIs (provisionados mês, aceitos, aguardando, falhas), 2) Fila de provisionamentos (tabela: responsável, elegibilidade aprovada em, conta criada status, convite WhatsApp status + reenviar), 3) Detalhe do convite (Marta Aparecida: conta criada, convite disparado, entregue, aguardando aceitação, expira em 7d), 4) Regra do gatilho (toggle criar-ao-aprovar, canal de convite, validade link). Proposto (marca ✨), automático via job/scheduler.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "Novos modelos: ProvisionamentoAcesso (status enum PENDENTE/CONTA_CRIADA/CONVITE_ENVIADO/ACEITO/EXPIROU, fichaId, usuarioCriadoId, elegibilidadeId, conviteToken string unico, conviteTokenExpiráEm datetime, conviteLinkAcessoEm nullable, criadoEm, atualizadoEm); ConfigAutoProvisionamento (ativoEm boolean, criaConta boolean, canalPrimario enum, canalFallback enum, validadeLinkDias int default 7, templateConvite string id). Job recorrente (scheduler NestJS) que monitora ElegibilidadePorUnidade.status=APROVADO e ausência de ProvisionamentoAcesso associado → cria User + ProvisionamentoAcesso + dispara notificação.",
+            "endpoints": [
+              "GET /admin/auto-provisionamento — retorna ConfigAutoProvisionamento + KPIs",
+              "PATCH /admin/auto-provisionamento/config — ativa/desativa, define canal, validade link",
+              "GET /admin/auto-provisionamento/fila?status=&periodo= — lista ProvisionamentoAcesso com paginação",
+              "POST /admin/auto-provisionamento/:id/reenviar — reenvia convite WhatsApp",
+              "GET /admin/auto-provisionamento/:id/detalhe — retorna histórico do convite (criado, enviado, lido, aceito)",
+              "GET /admin/auto-provisionamento/metricas — { provisionadosMes, convitesAceitos, %), aguardando, falhas }"
+            ],
+            "uiWeb": "Page: /admin/auto-provisionamento. Componentes CASA: Alert com ✨ Proposto. PageHeader. Diagram/constel: ícones com setas (Aprovação SS → Cria User → Convite WA → Família no app). KpiCard (4 métricas). Tabela (responsável com avatar, elegibilidade em, conta criada Pill, convite status + botão Reenviar/Ver ficha). Modal detalhe convite (timeline com li: conta criada, convite disparado, entregue, aguardando aceitação com data/hora, botão Reenviar/Copiar link). Card de regra (toggles, select canal, input dias). Selo coroa (Fluxo auditado · LGPD).",
+            "dependencias": "Depende de admin-notificacao (templates + canais). Integração WhatsApp (real). Job scheduler NestJS. Acesso SUPER_ADMIN.",
+            "riscos": "Automação: job pode disparar duplicatas se scheduler falhar/retry — usar idempotência (upsert com elegibilidadeId). Dados sensíveis: números telefone no ProvisionamentoAcesso — LGPD, retenção 5 anos. Links de convite: expiração e revogação — após aceitar ou expirar, link fica inválido (não reutilizável)."
+          },
+          {
+            "tela": "admin-entrega-comunicados",
+            "oQueFaz": "Rastreamento de entrega e leitura de comunicados críticos da creche. Foco: um comunicado (card de foco com progresso 74% leu, 19% entregue não leu, 7% falha) + barras stacked mostrando distribuição. Ação: reenvio em lote a quem não confirmou leitura (botões WhatsApp, E-mail, ambos). Tabela com abas (Não confirmaram 29, Confirmaram 81, Falha 8) listando família, criança, entrega (Whatsapp/E-mail/Falha), leitura (Não leu/Leu em), botão Reenviar ou Corrigir nº. Proposto (marca ✨), vinculado à camada de notificação.",
+            "prioridade": "media",
+            "esforco": "M",
+            "schemaDelta": "Reusa Comunicado (critico boolean já existe). Novos modelos: RegistroComunicadoEntrega (comunicadoId, fichaId, canal enum WHATSAPP/EMAIL, statusEntrega enum PENDENTE/ENTREGUE/FALHA, tentativas int, ultimaTentativaEm, criadoEm); ComunicadoLeitura já existe mas falta campo dataEntrega para sequência temporal. Adicionar a ComunicadoLeitura: entregaEm datetime, canalEntrega enum.",
+            "endpoints": [
+              "GET /admin/comunicados/:id/entrega — retorna status entrega + leitura com contagens (leu, entregue-não-leu, falha)",
+              "GET /admin/comunicados/:id/entrega/detalhes?aba=nao-confirmaram&page= — lista RegistroComunicadoEntrega + ComunicadoLeitura join",
+              "POST /admin/comunicados/:id/reenviar-em-lote — reenvio para quem status=ENTREGUE && !lidoEm ou status=FALHA, por canal(is)",
+              "PATCH /admin/comunicados/:id/entrega/:fichaId/corrigir-numero — atualiza telefone (para falhas de envio)",
+              "GET /admin/comunicados?criticos=true — lista comunicados críticos com progresso (para selecionar qual rastrear)"
+            ],
+            "uiWeb": "Page: /admin/entrega-comunicados. Componentes CASA: Alert com ✨ Proposto. PageHeader (título+desc+botão Reenviar a quem não leu). Card de foco (comunicado, badge CRÍTICO, título, meta, juba-ring com %), barras stacked (Leram 81 verde, Entregue 21 laranja, Falha 8 vermelho). Card ação (29 sem confirmação, botões de reenvio por canal). Abas (Não confirmaram, Confirmaram, Falha). Tabela (família avatar, criança, entrega Pill colorida, leitura status, botão Reenviar/Corrigir nº). Paginação.",
+            "dependencias": "Depende de admin-notificacao (canais + templates). Reusa Comunicado (educacional). Acesso SUPER_ADMIN ou GESTOR_UNIDADE (própria unidade).",
+            "riscos": "LGPD: números de telefone em RegistroComunicadoEntrega — auditoria detalhada (quem reenviu, quando, por quê). Reenvio em lote pode gerar duplicatas — garantir idempotência (check if já entregue antes de reenviar). Dados de leitura: crítico = comunicado importante (recesso, avisos) — rastreamento cuidadoso."
+          }
+        ]
+      },
+      {
+        "area": "Cross-cutting / Comum / Auth",
+        "resumo": "A área de autenticação e comum do IFP Connect necessita de 6 telas/features que já existem no protótipo mas faltam no app React: 1) Recuperar Senha (auth) — fluxo de reset por email com link de 30min; 2) Switcher de Unidade (auth) — seleção de qual sala entrar após login; 3) Busca Global (comum) — search cross-tenant em famílias, beneficiários, protocolos com facetas por tipo; 4) Central de Notificações (comum) — inbox de comunicados, ponte da corte, alertas do sistema com marcar como lida; 5) Perfil de Usuário (comum) — minha conta com dados pessoais, alterar senha, perfis/unidades, preferências e sessões ativas; 6) Erro 403 (comum) — página de acesso negado com diagnóstico e sugestões. Ordem sugerida: 1) Recuperar Senha (bloqueante para onboarding); 2) Switcher (essencial pós-login); 3) Perfil (CRUD de conta); 4) Notificações (infra de eventos); 5) Busca Global (complexa, usa índices); 6) 403 (simples, finaliza ciclo). Todos reutilizam Guards JWT, PERFIS_PERMITIDOS, Prisma, e pattern CASA existente.",
+        "features": [
+          {
+            "tela": "auth-recuperar-senha",
+            "oQueFaz": "Fluxo de recuperação de senha por email institucional. Usuário insere seu email, recebe link de reset válido por 30 minutos, clica no link (em email) e é levado a uma página de redefinição com token no URL. Após nova senha, retorna ao login.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "Model PasswordReset { id, userId, token, tokenHash, expiresAt, usedAt } com unique(userId, token) e índice em (expiresAt)",
+            "endpoints": [
+              "POST /auth/recuperar-senha — { email: string } → { ok: true, mensagem: 'Link enviado' }",
+              "POST /auth/validar-token-reset — { token: string } → { valid: boolean, email?: string }",
+              "POST /auth/redefinir-senha — { token: string, novaSenha: string } → { ok: true }"
+            ],
+            "uiWeb": "Página /recuperar-senha com: campo de email, botão enviar (async), alerta de sucesso com dica de spam. Componentes: Campo, Botao, Alerta (CASA). Hook novo: useRecuperarSenha() em lib/use-auth.ts com useMutation. Next: GET /reset/[token] para validação do link (page.tsx simples que redireciona a /redefinir-senha?t=...), POST handler em route.ts para validar token e gerar JWT efêmera.",
+            "dependencias": "nenhuma — padrão autossuficiente",
+            "riscos": "SEGURANÇA: token no URL (GET /reset/[token]) expõe em logs/histórico; mitigar com JWT curta vida (5min) + rate-limit em /validar-token-reset (3 tentativas/min). LGPD: garantir auditoria de tentativas de reset (AuditService.registrar com acao: 'password-reset')."
+          },
+          {
+            "tela": "auth-switcher",
+            "oQueFaz": "Após login bem-sucedido, se o usuário tem acesso a N unidades (N>1), exibe cards de seleção: qual salão entrar. Se N=1, redireciona direto. Card mostra: ícone da unidade, nome, descrição, botão 'Entrar'. Ao clicar, seta unidade ativa na sessão e redireciona ao destino (painel/hub da unidade).",
+            "prioridade": "alta",
+            "esforco": "S",
+            "schemaDelta": "reusa User, UsuarioUnidade, Unidade — nenhum novo model",
+            "endpoints": [
+              "POST /auth/selecionar-unidade — { unidadeId: string } → { redirectUrl: string, user: {...}, unidade: {...} } (atualiza unidade ativa na sessão JWT)"
+            ],
+            "uiWeb": "Página /selecionar-unidade com grid de cards CASA (reusa pattern de /acesso). Componentes: Card pulso com medalhao + pinfo, botão primário 'Entrar'. Estado: lista de UsuarioUnidade do usuário autenticado (via useSession + authFetch GET /auth/me com include unidades). SPA: redirect automático se só 1 unidade, senão mostra grid. Layout limpo (data-tipo='limpo', não usa Shell). Hook: useSelecionarUnidade() mutação que POST e atualiza sessão.",
+            "dependencias": "auth-login — deve existir previamente; segue padrão de fluxo de autenticação",
+            "riscos": "nenhum relevante — apenas seleção de contexto já autorizado. AUDITORIA: registrar qual unidade foi selecionada (integrar em AuditService com acao: 'selecionou-unidade', metadados: { unidadeId })."
+          },
+          {
+            "tela": "comum-perfil",
+            "oQueFaz": "Minha conta — dashboard com: foto/crest do usuário, dados pessoais (nome, CPF, email inst., telefone, matrícula, admissão — alguns read-only), seção alterar senha (3 campos: senha atual, nova, confirmar), perfis & unidades (pills, read-only — 'quem libera é gestão'), preferências (dropdown unidade padrão ao logar, checkboxes notif por email, resumo diário, 2FA/SMS), sessão ativa (device, localização, botão 'encerrar outras'). Topbar com botão 'Salvar alterações'.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "Model UserPreferences { userId, unidadeInitialId?, emailNotifications: boolean, dailyDigest: boolean, twoFactorEnabled: boolean, updatedAt } com FK userId unique. Estender User com field twoFactorSecret?: string.",
+            "endpoints": [
+              "GET /users/me/perfil — retorna User + Perfis + Unidades + UserPreferences + Sessões Ativas",
+              "PATCH /users/me/dados-pessoais — { nome?, telefone?, email? } → User atualizado",
+              "PATCH /users/me/preferencias — { unidadeInitialId?, emailNotifications?, dailyDigest?, twoFactorEnabled? } → UserPreferences",
+              "DELETE /users/me/outras-sessoes — limpa ultimoLogin em User, encerra jwt anteriores (via Redis blacklist)"
+            ],
+            "uiWeb": "Página /perfil com layout 2-col CASA (grid g-60-40). Coluna esquerda: Card com crest avatar + nome/cargo/status; Card dados pessoais com grid de Campos (alguns disabled); Card alterar senha (reusa TrocarSenha, sem senha provisória). Coluna direita: Card perfis (pills read-only); Card preferências (Campo select + 3 checkboxes); Card sessão (list-row do device atual + botão danger 'Encerrar'). Componentes CASA: Campo, Input, Select, Botao, Card, CrestAvatar, CoroaSeal, Pills. Hook: usePerfilUsuario() (GET), useSalvarPerfil() (PATCH múltiplos), useEncerrarOutrasSessoes() (DELETE). Reusa pattern de /admin/usuarios (gestão).",
+            "dependencias": "trocar-senha — reutiliza lógica de validação de senha; deveria estar implementado",
+            "riscos": "SEGURANÇA: PATCH /users/me/email sem re-validação é arriscado (impersonação); exigir verificação em 2 etapas (enviar link de confirmação). LGPD: qualquer alteração em dados sensíveis (email, telefone) deve registrar via AuditService. 2FA: implementação inicial pode ser SMS (não há em schema); propor verificação por código gerado (TOTP com qrcode)."
+          },
+          {
+            "tela": "comum-notificacoes",
+            "oQueFaz": "Central de notificações — inbox com 4 categorias filtrávei: Comunicados Críticos (avisos da Presidência, border-left vermelho), Ponte da Corte (sinalizações inter-departamentos, border azul), Sistema (certificados emitidos, sessão nova, novos registros), e Todas. Cada notif tem: avatar/ícone, título, descr., status (lida/não lida), timestamp relativo (há X min/h/dias). Header com contador '3 não lidas' + botão 'Marcar todas como lidas'. List rows com pill de status colorida.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "Model Notificacao { id, userId, tipo: enum(COMUNICADO, PONTE, SISTEMA), titulo, descricao, metadados?: json, lida: boolean, criadoEm, leidaEm? } com indices (userId, lida), (userId, criadoEm). Opcionalidade: Model ComunicadoNotificacao (bridge para comunicados existentes) e PonteNotificacao (FK para sinalizações).",
+            "endpoints": [
+              "GET /notificacoes — filtro: ?tipo=TODAS|COMUNICADO|PONTE|SISTEMA, ?lida=true|false, retorna paginado com count de não lidas",
+              "PATCH /notificacoes/:id/marcar-lida — { lida: boolean } → Notificacao",
+              "PATCH /notificacoes/marcar-todas-lidas — {} → { updated: number }"
+            ],
+            "uiWeb": "Página /notificacoes com Header (h2, desc com count, botão 'Marcar todas'). Filtros horizontais: button chips (Todas, Não lidas, Comunicado, Ponte, Sistema) com badge de count. List de notificacoes: cada linha tem border-left colorido (erro=vermelho, unidade=azul, sistema=cinza), avatar/icon, li-main (título + desc pequena), status pill (Lida/Não lida) + timestamp small. Componentes CASA: página-h, pill, list-row, botão. Hook novo: useNotificacoes({ tipo?, lida? }) com useQuery e paginação (tanstack/react-query com InfiniteQuery). Real-time (futuro): SSE ou WebSocket em lib/notifications.ts. Integração: em Shell.tsx, Badge no ícone Bell vinculado ao count de não lidas.",
+            "dependencias": "nenhuma bloqueante, mas aumenta valor se acoplada a: comunicados (educacional), ponte da corte (presidência), eventos do sistema",
+            "riscos": "PERFORMANCE: N usuários × M notificações pode ser lento; usar paginação cursor-based e índices em (userId, criadoEm DESC). LGPD: notificações podem conter dados sensíveis de outras unidades; validar que userId pode ler cada notificação (RLS no Postgres futuro). IA: se houver sumarização por IA, marcar risco de dados sensíveis na prompt para Claude API."
+          },
+          {
+            "tela": "comum-busca",
+            "oQueFaz": "Busca global transversal — usuário digita query na topbar (Família, beneficiário, protocolo, CPF), retorna resultados em 3 categorias: Famílias (FichaCidada + avatar + status elegibilidade com seal), Beneficiários (MembroFamiliar + foto/avatar + módulo + alerts), Protocolos (Agendamento/Atendimento + status com pill). Cada resultado é clicável. Facetas de filtro: [Tudo · N] [Famílias · N] [Beneficiários · N] [Protocolos · N]. Relevância por texto vs. CPF. Respeita RLS (só vê o que tem permissão).",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "reusa FichaCidada, MembroFamiliar, Agendamento (via FichaCidada). Opcional: Model SearchIndex { id, entidade: enum, entidadeId, searchText, criadoEm } para desnormalizar e indexar busca full-text (Postgres GIN). Sem SearchIndex, usar ILIKE com OR.",
+            "endpoints": [
+              "GET /busca?q=<query>&tipo=TUDO|FAMILIAS|BENEFICIARIOS|PROTOCOLOS&unidadeId=<optional> → { familias: [], beneficiarios: [], protocolos: [], total: number }. Query responde a: nome, cpf (exato), protocolo (IFP-YYYY-NNNNNN). RLS: filtra por UsuarioUnidade do user autenticado ou PERFIS_PERMITIDOS (SERVICO_SOCIAL='chave-mestra' vê tudo)."
+            ],
+            "uiWeb": "Página /busca com: header page-h (h2 'Resultados da busca', desc '23 resultados para \"Silva\"'). Campo de busca reutilizável (input.tsx com icone Search) — IMPORTANTE: integrar em Shell.tsx como campo na topbar que redireciona ou abre modal. Filtros com chips (buttons: 'Tudo · 23', 'Famílias · 4', etc.). Seções por tipo com sec-tit + SVG icons (família, pessoa, protocolo). List-rows de resultados com: avatar (initiais ou crest), li-main (título + descr.), seal/pill de status (elegibilidade, módulo, estado protocolo). Componentes CASA reutilizados: sec-tit, list-row, pill, coroa-seal. Hook: useBusca({ q, tipo }) com useQuery (debounce 300ms). Integração em topbar: busca em tempo real (dropdown) ou redirect to /busca?q=....",
+            "dependencias": "nenhuma — isola bem; para RLS transversal, depende de confirmar Guards em cada endpoint (PerfisGuard + tenant via user.unidades)",
+            "riscos": "SEGURANÇA: ILIKE na query bruta é vulnerability a injection; usar parametrização Prisma ($1) ou prepared statements. PERFORMANCE: ILIKE em nomes sem índice GIST/GIN fica O(n); usar SearchIndex denormalizado ou Elasticsearch (out of scope v1). LGPD: busca pode expor CPF de terceiros; validar q contém apenas CPF do próprio usuário, ou aplicar mascaramento (últimos 5 dígitos apenas). Dados sensíveis em resultados (alerta clínico na busca): marcar conforme direção do projeto."
+          },
+          {
+            "tela": "comum-403",
+            "oQueFaz": "Página de erro 403 Acesso Negado — exibida quando usuário não tem PERFIS_PERMITIDOS para rota (middleware de layout ou Guard JwtAuthGuard). Mostra: número grande '403', título 'Esta porta não é sua', descrição explicativa, links de ação (botão 'Voltar ao início', botão outline 'Minha conta'), código de incidente (ACL-403-7F2A) para auditoria. Layout limpo (não mostra Shell).",
+            "prioridade": "baixa",
+            "esforco": "S",
+            "schemaDelta": "nenhum — reutiliza AuditLog existente (registra tentativa via AuditService com acao: READ, entidade: 'Access', metadados: { denied: true, recurso, perfisRequeridos }).",
+            "endpoints": [
+              "nenhum — é página estática/renderizada pelo middleware de autorização. GET /alguma-rota-protegida sem perfis → middleware retorna 403, cliente navega para /403?code=<incident-id>"
+            ],
+            "uiWeb": "Página /403 (ou _error.tsx se usar error boundary) com layout centrado (min-h-screen flex center). Card com: medalhao + leao brandmark, número grande '403', title, description (p class='desc'), grid de botões (btn primary 'Voltar', btn outline 'Conta'). Componentes CASA: Card, Botao, Medalhao, Brandmark. Sem Hook — SSR pura. Integração: middleware.ts detecta status 403 e chama rewrite para /403 OR error.tsx captura em layout e mostra; passar code query param para auditoria (render em desc pequeno).",
+            "dependencias": "middleware de autorização (PerfisGuard, RLS) — deveria estar em lugar; esta tela é apenas apresentação",
+            "riscos": "nenhum crítico — é página passiva. Boa prática: não expor detalhes da estrutura de permissões (ex.: 'você precisa de GESTOR_UNIDADE'); usar frases genéricas ('Serviço Social autorizou')."
+          }
+        ]
+      },
+      {
+        "area": "Educacional + Esporte (gaps)",
+        "resumo": "Das 6 telas de protótipo que faltam construir (edu-fotos-diario, edu-diario-lote, edu-indicadores, edu-resumo-ia, esp-frequencia, esp-indicadores), a ordem recomendada é: (1) esp-frequencia [M] — base de presença para indicadores, (2) edu-diario-lote [L] — grade de lançamento em lote com tags reutilizáveis, (3) edu-fotos-diario [M] — validação de autorização + watermark, (4) edu-resumo-ia [L+IA] — geração de texto via Claude API (entrada: tags; saída: resumo afetuoso), (5) edu-indicadores [M] — dashboard de frequência/evasão (reusa dados de DiarioDia), (6) esp-indicadores [M] — KPIs de graduações e frequência (reusa TreinoEsportivo + PresencaTreino). Riscos principais: (LGPD) diários selados são imutáveis pós-fechamento; (IA) texto gerado exige revisão do educador antes de envio; (integrações) watermark requer library ou S3; autorizações de imagem devem ser checadas ANTES de anexar fotos. Schema: reusa DiarioDia/RegistroRotina/AutorizacaoImagem (educacional); TreinoEsportivo/PresencaTreino (esportivo). Nenhum modelo novo necessário — só endpoints API e telas Next.",
+        "features": [
+          {
+            "tela": "esp-frequencia",
+            "oQueFaz": "Chamada de atleta por treino: lista turma com toggle presença/falta/justificada (3 estados), resumo em KPIs (presentes, faltas, atrasos, freq %), salvar encerra os registros (imutável como edu). Molde: cap-chamada (Aula → TreinoEsportivo; Presenca → PresencaTreino).",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa TreinoEsportivo + PresencaTreino (já existem em schema)",
+            "endpoints": [
+              "GET /esportivo/turmas/:id/treinos/:treinoId — detalhe do treino com atletas + presencas atuais",
+              "PUT /esportivo/turmas/:id/treinos/:treinoId/chamada — lança chamada em lote (array de {matriculaId, status}), seta encerradoEm"
+            ],
+            "uiWeb": "pages: app/esportivo/turmas/[turmaId]/treinos/[treinoId]/page.tsx | componentes: ListRow (avatar+nome+faixa+freq%), KPI (presentes/faltas), toggle buttons (Presente/Atrasado/Falta justificada/Falta), save button (Salvar chamada). Reusar CrestAvatar, Kpi blocks da CASA.",
+            "dependencias": "TreinoEsportivo + PresencaTreino model (já existem); TurmasEsportivasService + TreinosService",
+            "riscos": "Chamada encerrada é imutável — cliente deve confirmar ANTES de salvar. Sem IA/segurança crítica."
+          },
+          {
+            "tela": "edu-diario-lote",
+            "oQueFaz": "Grid de lançamento em lote de tags por sala: mostra % de diários com 3 registros (alimentação/sono/atividade), oferece 6 botões de tag (🍎 Comeu tudo, 😴 Dormiu, 🎨 Fez atividade, etc.) para aplicar a todos os presentes de uma vez, lista pendentes com status visual (fechado/revisando/completar). Reusa RegistroRotina.tipo (enum TipoRegistroRotina).",
+            "prioridade": "alta",
+            "esforco": "L",
+            "schemaDelta": "reusa DiarioDia + RegistroRotina (já existem); pode adicionar campo em DiarioDia para 'dataResumoGerado' se quiser rastrear quando IA foi rodada",
+            "endpoints": [
+              "GET /educacional/turmas/:turmaId/diarios/:data — lista diários da sala naquele dia com status de cada criança (aberto/revisando/fechado)",
+              "POST /educacional/turmas/:turmaId/diarios/:data/registrar-lote — aplica um RegistroRotina (tipo+descricao) em todas as crianças presentes do dia"
+            ],
+            "uiWeb": "pages: app/educacional/turmas/[turmaId]/diarios/[data]/lote/page.tsx | componentes: JubaRing (% progresso), grid de buttons (6 tags com emoji), tabela (criança x alimentacao x sono x atividade) com pills de status, sidebar de pendências. Reusar CoroaSeal (status fechado/revisando), ListRow.",
+            "dependencias": "DiarioDia + RegistroRotina model; TurmasInfantisService + RotinaService; edu-fotos-diario (link de acesso)",
+            "riscos": "Aplicar tag em lote pode gerar registros duplicados se não guardar mutex por turma+data+tipo. LGPD: cada registro é auditado (AuditService.registrar)."
+          },
+          {
+            "tela": "edu-fotos-diario",
+            "oQueFaz": "Upload + validação de fotos por criança: antes de salvar, checa AutorizacaoImagem (3 escopos: USO_INTERNO/REDES_IFP/SEM_AUT — bloqueada se sem aut ou restrição judicial). Fotos liberadas recebem watermark IFP. Grid mostra thumbs com pill de escopo e status (✓ watermark/bloqueada/borrada). Atachado a DiarioDia após revisar.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa AutorizacaoImagem + DiarioDia; adicionar campo em DiarioDia: 'fotosAnexadas: String[]' (URLs S3 com watermark) ou tabela nova FotosDiario(diarioId, url, crianca, escopo) para auditoria",
+            "endpoints": [
+              "POST /educacional/turmas/:turmaId/diarios/:data/fotos/verificar — valida um array de {membroId, fotoUrl} contra AutorizacaoImagem; retorna {liberado, escopo, requerWatermark}",
+              "POST /educacional/turmas/:turmaId/diarios/:data/fotos/anexar — anexa fotos LIBERADAS ao diario (update DiarioDia.fotosAnexadas), gera AuditLog"
+            ],
+            "uiWeb": "pages: app/educacional/turmas/[turmaId]/diarios/[data]/fotos/page.tsx | componentes: card de upload (drag-drop ou input file), grid g4 (thumbs com CrestAvatar blur ou locked overlay), pills pill-ok/pill-unid/pill-erro para escopo, warning card (2 bloqueadas), save button com contagem (4 liberadas, 2 bloqueadas). Reusar CrestAvatar.",
+            "dependencias": "AutorizacaoImagem + DiarioDia model; CriancasService (para validar autorizações); lib de upload (S3/R2); watermark library (sharp ou jimp, opcional no início)",
+            "riscos": "LGPD crítica: fotos SEM_AUT devem ser descartadas (nunca salvas). Restrição judicial (face borrada) deve ser aplicada via server-side. Watermark: se S3, pode ser feito no servidor antes de salvar. Sem IA, mas validação complexa."
+          },
+          {
+            "tela": "edu-resumo-ia",
+            "oQueFaz": "Geração de resumo afetuoso do dia via Claude API: entrada = tags do RegistroRotina (🍎 comeu, 😴 dormiu 1h20, etc.) + linha do tempo; saída = texto 1 parágrafo em tom carinhoso. Educadora SEMPRE revisa (checkbox 'Li e revisei') antes de 🔒 selar para a família. Oferece 4 botões de regeração (↺ de novo, 🙂 mais curto, 💛 mais afetuoso, 📋 mais objetivo). Fila de resumos a revisar de toda turma.",
+            "prioridade": "media",
+            "esforco": "L",
+            "schemaDelta": "reusa DiarioDia + RegistroRotina; adicionar em DiarioDia: 'resumoGerado: String' (texto), 'statusResumo: enum' (RASCUNHO_GERADO / REVISANDO / SELADO), 'resumoSelhadoEm: DateTime', 'resumoSelhadoPor: String'",
+            "endpoints": [
+              "POST /educacional/turmas/:turmaId/diarios/:membroId/:data/gerar-resumo — toma tags do dia, chama Claude API, retorna {resumo, tone_hint: 'carinhoso'}",
+              "PUT /educacional/turmas/:turmaId/diarios/:membroId/:data/atualizar-resumo — atualiza texto ANTES de selar (educadora corrige)",
+              "POST /educacional/turmas/:turmaId/diarios/:membroId/:data/selar-resumo — seta status=SELADO + fechadoEm + fechadoPor, envia para família"
+            ],
+            "uiWeb": "pages: app/educacional/turmas/[turmaId]/diarios/[membroId]/resumo-ia/page.tsx | componentes: textarea (resumo editável), 4 buttons (↺/🙂/💛/📋), checkbox revisor, CoroaSeal com status (✨ rascunho / 🔒 selado), tabela de fila (status coluna). Reusar Card blocks, Spinner.",
+            "dependencias": "DiarioDia + RegistroRotina model; Claude API (Anthropic SDK: @anthropic-ai/sdk); ANTHROPIC_API_KEY env var; prompt engineering (incluir tags no contexto sem inventar). RotinaService para fetch tags.",
+            "riscos": "RISCO IA CRÍTICO: texto gerado pode inventar eventos (IA confabulation). MITIGAÇÃO obrigatória: prompt explícito 'nunca invente evento'; educadora DEVE revisar antes de selar (CheckBox + audit). LGPD: entrada (tags de criança) é sensível — log todo call à Claude. Custo: ~100-200 tokens por resumo, ~20 crianças/dia = 4000 tokens/dia."
+          },
+          {
+            "tela": "edu-indicadores",
+            "oQueFaz": "Dashboard de saúde das turmas educacionais: KPIs (frequência média em alta/estável, taxa evasão, ocupação vagas, em risco), barras por sala (frequência %), barras de evasão, tabela detalhe (sala x freq x evasão x saúde), botão 'Sinalizar risco ao Serviço Social' (bulk action). Dados agrupados por DiarioDia.data + MatriculaInfantil.",
+            "prioridade": "media",
+            "esforco": "M",
+            "schemaDelta": "reusa DiarioDia + MatriculaInfantil; pode adicionar campos agregados em DiarioDia: 'presenteData: Boolean' (snapshot do dia para cálculo rápido de freq) ou query computada em tempo real",
+            "endpoints": [
+              "GET /educacional/indicadores — retorna {frequenciaMedia, taxaEvasao, ocupacaoVagas, emRisco: count, byTurma: [{turma, freq%, evasao%, saude}]}. Filtro: ?mes=2026-06&unidade=...",
+              "GET /educacional/indicadores/em-risco — lista crianças com 3+ faltas seguidas (JOIN DiarioDia WHERE presenteData=false)",
+              "POST /educacional/indicadores/sinalizar-risco — cria bulks de SituacaoRisco ou apenas registra AuditLog para Serviço Social acompanhar"
+            ],
+            "uiWeb": "pages: app/educacional/indicadores/page.tsx | componentes: 4x Kpi cards (freq%, taxa, ocup%, risco#), BarChart (freq% por sala), BarChart (evasão%), Tabela (sala x faixa x matriculados x freq x evasão x saude-pill). Reusar Kpi block, bar-row divs.",
+            "dependencias": "DiarioDia + MatriculaInfantil model; TurmasInfantisService para query agregada. Possível: usar SQL view ou calcular em memória com Prisma groupBy.",
+            "riscos": "Performance: agregação em tempo real sobre múltiplas crianças pode ser lenta. MITIGAÇÃO: cache com revalidate=3600 (Next.js ISR) ou job noturno que pre-computa. Sem IA/LGPD crítica."
+          },
+          {
+            "tela": "esp-frequencia",
+            "oQueFaz": "Idêntico a esp-frequencia (acima) — duplicado para esporte. Chamada de atleta: toggle presença/falta/justificada, salva encerra treino. Diferença: age sobre TreinoEsportivo (não educacional) e PresencaTreino (não RegistroRotina).",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "reusa TreinoEsportivo + PresencaTreino (já existem); opcional: adicionar 'conteudo: String' em TreinoEsportivo se quiser registrar tema do treino",
+            "endpoints": [
+              "GET /esportivo/turmas/:turmaId/treinos/:treinoId — detalhe com atletas + status presença atual",
+              "PUT /esportivo/turmas/:turmaId/treinos/:treinoId/chamada — lança presencas em lote, encerra treino"
+            ],
+            "uiWeb": "pages: app/esportivo/turmas/[turmaId]/treinos/[treinoId]/page.tsx | componentes: ListRow, KPI, toggle buttons, save. Idem educacional mas para atletas.",
+            "dependencias": "TreinoEsportivo + PresencaTreino; TreinosService",
+            "riscos": "Nenhum especial — padrão igual educacional."
+          },
+          {
+            "tela": "esp-indicadores",
+            "oQueFaz": "Dashboard esportivo: KPIs (graduações semestre, freq média geral, taxa evolução, evasão), gráfico barras graduações/mês, donuts freq% por modalidade, distribuição atletas por faixa (barras stacked), tabela destaque (atleta top com freq high + evolução). Dados agrupados por Graduacao + PresencaTreino + TreinoEsportivo.",
+            "prioridade": "media",
+            "esforco": "M",
+            "schemaDelta": "reusa Graduacao + PresencaTreino + TreinoEsportivo + TurmaEsportiva; pode adicionar índice em Graduacao.concedidaEm para queries rápidas",
+            "endpoints": [
+              "GET /esportivo/indicadores — retorna {graduacoes#, freqMedia%, taxaEvolucao%, evasao%, byMes: [{mes, count}], byModalidade: [{nome, freq%}], byGraduacao: [{nivel, count}]}. Filtro: ?semestre=2026-1&unidade=...",
+              "GET /esportivo/indicadores/atletas-destaque — lista top 5 com alta freq + evolução + pódios"
+            ],
+            "uiWeb": "pages: app/esportivo/indicadores/page.tsx | componentes: 4x Kpi cards, LineChart ou BarChart (graduações/mês), 3x JubaRing donuts (freq% modalidade), grid de bar-rows (distribuição por faixa), Tabela destaque. Reusar Kpi, JubaRing blocks.",
+            "dependencias": "Graduacao + PresencaTreino + TreinoEsportivo model; GraduacoesService + TreinosService para query. Charting: recharts ou native SVG bars (molde existente no proto).",
+            "riscos": "Performance agregação similar a edu. Cache recomendado. Sem IA/LGPD crítica."
+          }
+        ]
+      },
+      {
+        "area": "Site Público (páginas) — IFP Connect",
+        "resumo": "O site público do Instituto Família Poncio precisa de 5 telas one-page documentadas no protótipo (publico-doe, publico-transparencia, publico-voluntario, publico-contato, publico-como-ser-atendido) mas ausentes no app React/Next.js 14. Estas são telas SEM autenticação, sem tenant_id (não multi-tenant), com formulários de contato/captação simples que geram leads para revisão manual (não integram com Ficha Cidadã ainda). Recomenda-se criar um route group /site para isolá-las, reusar componentes CASA existentes, criar DTOs class-validator para validação, e endpoints público:// em NestJS para receber formulários. Prioridade ALTA para instituição: transparência e captação são pilares de operação. Esforço MÉDIO por tela (M). Não há risco LGPD crítico (dados públicos ou leads não sensíveis), mas contato requer rate-limit + honeypot. Marque cada feature com seus padrões de código já estabelecidos (useAuthFetch → não se aplica aqui; usar fetch direto).",
+        "features": [
+          {
+            "tela": "site-doe",
+            "oQueFaz": "Landing de doações: hero com pitch, 4 cards KPI de impacto (R$30→consulta; R$80→refeição; R$150→curso; R$250→kimono), seletor de valor (6 opções + outro), tipo de doação (mensal/única), checkbox de recibo, botão CTA que leva a checkout externo (Stripe/PagSeguro — TBD). Painé de 3 stats (92% programas, 1.342 famílias, 14 anos) + link para transparência. Sem validação complexa — apenas submit do formulário enriquecido.",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "nova tabela 'SolicitacaoDoacao' com: id (cuid), email, telefone, valor (Decimal 10,2), tipo (MENSAL/UNICA), querRecibo (bool), querPublicizar (bool), status (PENDENTE/PROCESSADA/REJEITADA), processadoEm, criadoEm. Sem FK para FichaCidada.",
+            "endpoints": [
+              "POST /publico/doacoes — recebe SolicitacaoDoacaoDto, grava, retorna {ok, sessionId} para redirecionar ao checkout"
+            ],
+            "uiWeb": "app/site/doe/page.tsx (use client + hero.tsx CASA + Kpi + Pill + ListRow). Reusar Card, SecTitle, Kpi do @/components/casa. Form com 3 campos (email, tel, valor) + 2 selects (tipo, recibo) + botão primário. Stats em grid g3 estilo protótipo.",
+            "dependencias": "nenhuma — página independente, sem autenticação, sem integração com fichas",
+            "riscos": "checkout externo TBD — concordar com Erick qual provedor (Stripe possui transação anônima + webhook). Rate-limit: max 10 submissões/IP/hora para evitar spam/scraping."
+          },
+          {
+            "tela": "site-transparencia",
+            "oQueFaz": "Relatório de impacto 2025 + uso de recursos: 4 cards KPI (1.342 famílias +12%, 18.760 atendimentos +9%, 213 certificados +18%, 96.400 refeições +1%) com delta e tendência. 5 barras horizontais de orçamento (72% programas, 14% equipe, 8% infraestrutura, 4% admin, 2% captação). Box de origem de recursos (41% pessoa física, 34% empresas, 17% editais, 8% eventos). Tabela de 5 relatórios (2025 auditado, 2024 auditado, Q1 2026 em revisão) com links de download e selos CoroaSeal (aprovado/análise).",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "nova tabela 'RelatorioImpacto' com: id (cuid), ano (int), mes (int, nullable), nome (str), tipo (ANUAL/TRIMESTRAL), urlPdf (str), statusAuditoria (AUDITADO/ANALISE), auditadoEm (DateTime nullable), criadoEm. Tabela 'KpiImpacto' com: id (cuid), ano (int), label (str), valor (int), deltaNumerico (int), deltaPercentual (Decimal 5,2), tendencia (str ENUM: 'ALTA'|'ESTAVEL'|'BAIXA'), criadoEm. Sem FK para tenant.",
+            "endpoints": [
+              "GET /publico/transparencia/kpis — retorna array KpiImpacto{label,valor,delta,tendencia} para ano em query (default=2025)",
+              "GET /publico/transparencia/relatorios — retorna array RelatorioImpacto{nome,tipo,url,status,auditadoEm}"
+            ],
+            "uiWeb": "app/site/transparencia/page.tsx (use client). Hero padrão (eyebrow, h1, p). Grid g4 de Kpi. Card com 5 bar-row (reusar .bar-track/.bar-fill do protótipo em Tailwind). Card com lista tl de origem. Card com tabela (thead/tbody, cell, CoroaSeal, botão Baixar/Em breve). Sem forms, apenas exibição estática.",
+            "dependencias": "nenhuma — dados estáticos, admin preenche via painel separado (TBD)",
+            "riscos": "PDF URLs: armazenar em CDN ou bucket S3, nunca em repo. Disponibilizar via presigned URL se acesso auditado. Validar que PDFs não contêm dados sensíveis (LGPD): revisar com Erick antes de publicar."
+          },
+          {
+            "tela": "site-voluntario",
+            "oQueFaz": "Captura interesse em voluntariado: formulário de 7 campos (nome, tel/WA, email, área de interesse = select de 7 opções, disponibilidade = select de 5 opções, textarea 'conte sobre vc', checkbox de concordância). Lado direito: 4 cards de áreas que precisam (Saúde urgente, Educadores aberto, Creche aberto, Admin aberto com pill status). Destaque especial: banco de modelos (sessões práticas de cabeleireiro/manicure/estética, cadastro separado com botão 'Entrar no banco de modelos').",
+            "prioridade": "media",
+            "esforco": "M",
+            "schemaDelta": "nova tabela 'InteresseVoluntario' com: id (cuid), nome (str), telefone (str), email (str), areaInteresse (ENUM: SAUDE|EDUCACAO|CRECHE|ESPORTE|SERVICO_SOCIAL|ADMIN_CAPTACAO|BANCO_MODELOS), disponibilidade (ENUM: MANHA|TARDE|NOITE|FINS_SEMANA|PONTUAL), apresentacao (text), concordaContatato (bool), status (PENDENTE/REVISADO), processadoEm (DateTime nullable), criadoEm. Tabela 'InteresseBancoModelos' com: id (cuid), nome (str), telefone (str), email (str), tipo (CABELO|UNHAS|MAQUIAGEM), ativo (bool), criadoEm.",
+            "endpoints": [
+              "POST /publico/voluntario — recebe InteresseVoluntarioDto, valida concordância, grava, retorna {ok, msg}",
+              "POST /publico/banco-modelos — recebe InteresseBancoModelosDto, grava, retorna {ok} + opcionalmente envia email automático para fila"
+            ],
+            "uiWeb": "app/site/voluntario/page.tsx (use client). Hero padrão. Grid g-50 (lado esquerdo: Card com form 7 campos, lado direito: 4 ListRow de áreas + 1 Card destaque banco de modelos com botão gold). Form do banco de modelos pode ser modal ou seção colapsável. Reusar Pill (warn, unidade, ok), ListRow, Card, SecTitle.",
+            "dependencias": "nenhuma — captação de leads, sem integração com fichas",
+            "riscos": "Whatsapp opt-in (wppOptIn bool): apenas enviar mensagens se marcado. Rate-limit: max 5 submissões/IP/dia. Honeypot: campo invisível 'website' (spam bots preenchem). Email: validar com regex simples; não enviar confirmação automática (apenas log para revisão)."
+          },
+          {
+            "tela": "site-contato",
+            "oQueFaz": "Página de contato com 3 seções: [esquerda] endereço + mapa placeholder + botões 'Abrir no mapa' / 'Como chegar'; 4 linhas de contato (Serviço Social tel, WA, Email, Doações tel/email com pills status; [direita] formulário de contato (nome, tel, email, assunto = select de 5 opções, textarea msg) + card com horário de funcionamento (seg-sex 7:30-17h, sab 8-12, dom fechado emergências by WA).",
+            "prioridade": "alta",
+            "esforco": "M",
+            "schemaDelta": "nova tabela 'MensagemContato' com: id (cuid), nome (str), telefone (str), email (str), assunto (ENUM: ATENDIMENTO_SOCIAL|DOACOES|VOLUNTARIO|IMPRENSA|OUTRO), corpo (text), lido (bool default false), respondidoEm (DateTime nullable), criadoEm. Opcionalmente adicionar 'respondidoPor' (userId) se quiser rastrear resposta.",
+            "endpoints": [
+              "POST /publico/mensagens-contato — recebe MensagemContatoDto (valida email, nome min 2, tel padrão), grava, retorna {ok} + envia email para contato@ifp.org.br + manda para fila de revisão"
+            ],
+            "uiWeb": "app/site/contato/page.tsx (use client). Hero padrão. Grid g-50. [esquerda] Card com endereço (parse endereço em <p>, div placeholder map com SVG icon + dashed border), 2 botões outline/ghost. 4 ListRow com avatares (SS, WA, @, DO) + títulos/subtítulos + Pill status. [direita] Card com form (nome, tel, email, select assunto, textarea), botão primary. Card horários com lista tl. Reusar Card, ListRow, Pill, SecTitle.",
+            "dependencias": "nenhuma — captação de leads",
+            "riscos": "Email de confirmação: não enviar (evita double-opt-in complexity). Rate-limit: max 3 mensagens/IP/dia. Honeypot: campo 'company' invisível. Spam: se corpo contém URLs, marcar status=SUSPEITA para revisão manual. Armazenar IP + user-agent para análise de abuso."
+          },
+          {
+            "tela": "site-como-ser-atendido",
+            "oQueFaz": "Página educativa do fluxo de acolhimento: 4 cards step-by-step numerados (1 procure SS, 2 ficha cidadã, 3 avaliação elegibilidade, 4 acompanhamento). Lista de 5 documentos a levar (RG/CNH, CPF, comprovante residência, comprovante renda, cartão SUS). Card de prazos típicos com 4 bar-row (abertura mesma hora, centro médico 5 dias, curso próxima turma, creche lista espera). Seção FAQ com 4 cards Q&A (é gratuito? preciso morar perto? posso usar mais de uma unidade? quanto tempo dura?). CTA final botão primário 'Falar com Serviço Social'.",
+            "prioridade": "alta",
+            "esforco": "S",
+            "schemaDelta": "reusa FichaCidada + ElegibilidadePorUnidade — nenhum novo modelo. Dados são informativos, derivados da documentação operacional do Instituto.",
+            "endpoints": [
+              "nenhum endpoint — página 100% estática, apenas exibição de conteúdo. Botão CTA 'Falar com Serviço Social' linka para /site/contato"
+            ],
+            "uiWeb": "app/site/como-ser-atendido/page.tsx (use client). Hero padrão. Grid g4 de 4 cards numerados (div com fontSize:34px gold text, SecTitle, desc padrão). Grid g-60-40: [esquerda] Card com ul tl (5 items com tx/tt), [direita] Card com 4 bar-row (reusar padrão Transparência). Grid g2 de 4 cards FAQ (li-t título bold, desc texto). Div centered com botão primário linkando /site/contato. Reusar Card, SecTitle, Pill.",
+            "dependencias": "nenhuma — conteúdo estático",
+            "riscos": "nenhum — página informativa sem coleta de dados ou integração"
+          }
+        ]
+      }
+    ]
+  }
+}
