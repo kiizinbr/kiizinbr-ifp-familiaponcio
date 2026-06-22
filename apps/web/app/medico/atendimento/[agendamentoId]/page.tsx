@@ -15,6 +15,7 @@ import { Alerta, Botao, Campo, Input, Spinner, Textarea } from "@/components/ui"
 import { CrestAvatar } from "@/components/casa";
 import { ChipClinico } from "@/components/medico/chip-clinico";
 import { PranchaStepper, PASSOS_PRANCHA } from "@/components/medico/prancha-stepper";
+import { PrescricaoBloco } from "@/components/medico/prescricao-bloco";
 import { idade } from "@/lib/idade";
 
 // ------------------------------------------------------------
@@ -353,6 +354,10 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
                 ⚠ A conduta menciona <strong>{alertaAlergia}</strong> — o paciente tem alergia
                 registrada a essa substância. Confira antes de selar.
               </Alerta>
+            ) : null}
+
+            {atendimento ? (
+              <PrescricaoBloco atendimentoId={atendimento.id} readOnly={ro} />
             ) : null}
           </section>
         ) : null}

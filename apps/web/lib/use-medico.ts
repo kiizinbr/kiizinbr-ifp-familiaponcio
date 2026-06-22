@@ -177,6 +177,58 @@ export function useEncerrarAtendimento() {
 }
 
 // ============================================================
+// Prescrição (com bloqueio de alergia server-side)
+// ============================================================
+
+export interface PrescricaoItemInput {
+  medicamento: string;
+  posologia: string;
+}
+
+/** Conflito devolvido no corpo do 409 (ApiError.body.conflitos). */
+export interface ConflitoAlergia {
+  medicamento: string;
+  alergiaId: string;
+  alergiaDescricao: string;
+  gravidade: GravidadeAlergia | null;
+}
+
+export interface PrescricaoEmitida {
+  id: string;
+  observacoes: string | null;
+  alergiaOverride: boolean;
+  alergiaOverrideMotivo: string | null;
+  emitidaEm: string;
+  itens: {
+    id: string;
+    medicamento: string;
+    posologia: string;
+    conflitoAlergia: boolean;
+  }[];
+}
+
+export interface EmitirPrescricaoPayload {
+  atendimentoId: string;
+  itens: PrescricaoItemInput[];
+  observacoes?: string;
+  /** Só presente quando o médico justifica prescrever apesar do conflito. */
+  override?: { motivo: string };
+}
+
+export function useEmitirPrescricao() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ atendimentoId, ...body }: EmitirPrescricaoPayload) =>
+      authFetch<PrescricaoEmitida>(`/medico/atendimentos/${atendimentoId}/prescricoes`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),
+  });
+}
+
+// ============================================================
 // Gestão do agendamento (confirmar / falta / cancelar / reagendar)
 // ============================================================
 

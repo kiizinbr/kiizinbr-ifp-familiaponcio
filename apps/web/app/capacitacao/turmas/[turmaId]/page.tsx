@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import {
+  ApiError,
   STATUS_MATRICULA_LABEL,
   STATUS_TURMA_LABEL,
   type ResumoEncerramentoTurma,
@@ -55,10 +56,15 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
   const { data: resultados, isFetching } = useFichasElegiveis(busca);
   const matricular = useMatricular();
 
-  async function adicionar(fichaId: string, membroId: string | undefined, nome: string) {
+  async function adicionar(
+    fichaId: string,
+    membroId: string | undefined,
+    nome: string,
+    consentimentoTitular?: boolean,
+  ) {
     setAviso(null);
     try {
-      const m = await matricular.mutateAsync({ turmaId, fichaId, membroId });
+      const m = await matricular.mutateAsync({ turmaId, fichaId, membroId, consentimentoTitular });
       setAviso(
         m.status === "LISTA_ESPERA"
           ? `${nome} entrou na lista de espera (turma lotada).`
@@ -67,6 +73,24 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
       setBusca("");
       setExpandida(null);
     } catch (e) {
+      // Menor de 18: o servidor exige o consentimento do responsável (LGPD).
+      if (
+        e instanceof ApiError &&
+        e.status === 400 &&
+        (e.body as { code?: string })?.code === "CONSENTIMENTO_NECESSARIO" &&
+        !consentimentoTitular
+      ) {
+        const ok = window.confirm(
+          `${nome} é menor de 18 anos. O responsável (titular) autoriza esta matrícula? ` +
+            `O consentimento ficará registrado (LGPD).`,
+        );
+        if (ok) {
+          await adicionar(fichaId, membroId, nome, true);
+          return;
+        }
+        setAviso("Matrícula de menor cancelada — falta o consentimento do responsável.");
+        return;
+      }
       setAviso((e as Error).message || "Falha ao matricular.");
     }
   }

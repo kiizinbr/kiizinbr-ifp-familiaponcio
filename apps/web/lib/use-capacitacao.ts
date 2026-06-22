@@ -139,14 +139,17 @@ export function useMatricular() {
       turmaId,
       fichaId,
       membroId,
+      consentimentoTitular,
     }: {
       turmaId: string;
       fichaId: string;
       membroId?: string;
+      /** Consentimento do responsável — exigido pelo servidor p/ matricular menor. */
+      consentimentoTitular?: boolean;
     }) =>
       authFetch<MatriculaTurma>(`/capacitacao/turmas/${turmaId}/matriculas`, {
         method: "POST",
-        body: JSON.stringify({ fichaId, membroId }),
+        body: JSON.stringify({ fichaId, membroId, consentimentoTitular }),
       }),
     onSuccess: (_d, { turmaId }) =>
       qc.invalidateQueries({ queryKey: ["capacitacao", "turma", turmaId] }),

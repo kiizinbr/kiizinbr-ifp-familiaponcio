@@ -47,27 +47,28 @@ model Unidade {
   criadoEm     DateTime    @default(now())
   atualizadoEm DateTime    @updatedAt
 
-  usuarios           UsuarioUnidade[]
-  elegibilidades     ElegibilidadePorUnidade[]
-  profissionais      Profissional[]
-  agendamentos       Agendamento[]
-  atendimentos       Atendimento[]
-  cursos             Curso[]
-  turmas             Turma[]
-  matriculas         Matricula[]
-  aulas              Aula[]
-  certificados       Certificado[]
-  turmasInfantis     TurmaInfantil[]
-  matriculasInfantis MatriculaInfantil[]
-  checksInOut        CheckInOut[]
-  diariosDia         DiarioDia[]
-  comunicados        Comunicado[]
+  usuarios             UsuarioUnidade[]
+  elegibilidades       ElegibilidadePorUnidade[]
+  profissionais        Profissional[]
+  agendamentos         Agendamento[]
+  atendimentos         Atendimento[]
+  cursos               Curso[]
+  turmas               Turma[]
+  matriculas           Matricula[]
+  aulas                Aula[]
+  certificados         Certificado[]
+  turmasInfantis       TurmaInfantil[]
+  matriculasInfantis   MatriculaInfantil[]
+  checksInOut          CheckInOut[]
+  diariosDia           DiarioDia[]
+  comunicados          Comunicado[]
   modalidades          Modalidade[]
   turmasEsportivas     TurmaEsportiva[]
   matriculasEsportivas MatriculaEsportiva[]
   graduacoes           Graduacao[]
   conversasFamilia     ConversaFamilia[]
   treinosEsportivos    TreinoEsportivo[]
+  prescricoes          Prescricao[]
 
   @@map("unidades")
 }
@@ -87,24 +88,24 @@ enum Perfil {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  senhaHash    String? // null se usar magic link / SSO
-  nome         String
-  cpf          String?   @unique
-  ativo        Boolean   @default(true)
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  senhaHash          String? // null se usar magic link / SSO
+  nome               String
+  cpf                String?   @unique
+  ativo              Boolean   @default(true)
   // Primeiro acesso: senha provisória definida pelo admin/gestor. Enquanto true,
   // o login obriga o usuário a trocar a senha antes de usar o sistema.
-  mustChangePassword Boolean @default(false)
-  ultimoLogin  DateTime?
-  criadoEm     DateTime  @default(now())
-  atualizadoEm DateTime  @updatedAt
+  mustChangePassword Boolean   @default(false)
+  ultimoLogin        DateTime?
+  criadoEm           DateTime  @default(now())
+  atualizadoEm       DateTime  @updatedAt
 
-  perfis        UsuarioPerfil[]
-  unidades      UsuarioUnidade[]
-  fichaCidada   FichaCidada?     @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
-  fichaCidadaId String?          @unique
-  profissional  Profissional?
+  perfis           UsuarioPerfil[]
+  unidades         UsuarioUnidade[]
+  fichaCidada      FichaCidada?      @relation("UserToFichaCidada", fields: [fichaCidadaId], references: [id])
+  fichaCidadaId    String?           @unique
+  profissional     Profissional?
   mensagensFamilia MensagemFamilia[]
 
   @@map("usuarios")
@@ -221,6 +222,7 @@ model FichaCidada {
   comunicadosLeituras     ComunicadoLeitura[]
   matriculasEsportivas    MatriculaEsportiva[]
   conversasFamilia        ConversaFamilia[]
+  prescricoes             Prescricao[]
 
   // Painel da Presidência: contagens por ativa / novas por criadoEm
   @@index([ativa])
@@ -270,6 +272,7 @@ model MembroFamiliar {
   diariosDia              DiarioDia[]
   matriculasEsportivas    MatriculaEsportiva[]
   conversa                ConversaFamilia?
+  prescricoes             Prescricao[]
 
   @@map("membros_familiares")
 }
@@ -463,8 +466,8 @@ model Profissional {
   criadoEm         DateTime @default(now())
   atualizadoEm     DateTime @updatedAt
 
-  user              User             @relation(fields: [userId], references: [id])
-  unidade           Unidade          @relation(fields: [unidadeId], references: [id])
+  user              User              @relation(fields: [userId], references: [id])
+  unidade           Unidade           @relation(fields: [unidadeId], references: [id])
   agendamentos      Agendamento[]
   atendimentos      Atendimento[]
   turmas            Turma[]
@@ -475,6 +478,7 @@ model Profissional {
   registrosRotina   RegistroRotina[]
   turmasEsportivas  TurmaEsportiva[]
   treinosEsportivos TreinoEsportivo[]
+  prescricoes       Prescricao[]
 
   @@map("profissionais")
 }
@@ -527,6 +531,7 @@ model Atendimento {
   profissional Profissional    @relation(fields: [profissionalId], references: [id])
   agendamento  Agendamento?    @relation(fields: [agendamentoId], references: [id])
   vitais       SinaisVitais?
+  prescricoes  Prescricao[]
 
   @@index([fichaId])
   @@index([unidadeId, iniciadoEm])
@@ -594,6 +599,54 @@ model CondicaoCronica {
 
   @@index([fichaId])
   @@map("condicoes_cronicas")
+}
+
+// ------------------------------------------------------------
+// Prescrição médica — com bloqueio de alergia SERVER-SIDE.
+// A checagem (medicamento × alergia ativa) roda no serviço usando
+// alergia-check.ts; prescrever apesar de conflito exige override
+// CONSCIENTE (motivo registrado). Prescrição emitida é imutável.
+// ------------------------------------------------------------
+model Prescricao {
+  id                    String   @id @default(cuid())
+  unidadeId             String
+  atendimentoId         String
+  fichaId               String
+  membroId              String?
+  profissionalId        String
+  observacoes           String?
+  // Trilha de segurança: prescreveu apesar de conflito de alergia?
+  // o override consciente fica registrado (quem e por quê).
+  alergiaOverride       Boolean  @default(false)
+  alergiaOverrideMotivo String?
+  emitidaEm             DateTime @default(now())
+  criadoEm              DateTime @default(now())
+  atualizadoEm          DateTime @updatedAt
+
+  unidade      Unidade          @relation(fields: [unidadeId], references: [id])
+  atendimento  Atendimento      @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  ficha        FichaCidada      @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro       MembroFamiliar?  @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  profissional Profissional     @relation(fields: [profissionalId], references: [id])
+  itens        PrescricaoItem[]
+
+  @@index([atendimentoId])
+  @@index([fichaId])
+  @@map("prescricoes")
+}
+
+model PrescricaoItem {
+  id              String   @id @default(cuid())
+  prescricaoId    String
+  medicamento     String // nome livre (v1) — futuro: ref. a dicionário de princípio ativo
+  posologia       String // ex.: "1 comp 8/8h por 5 dias"
+  conflitoAlergia Boolean  @default(false) // snapshot do alerta no momento (auditoria)
+  criadoEm        DateTime @default(now())
+
+  prescricao Prescricao @relation(fields: [prescricaoId], references: [id], onDelete: Cascade)
+
+  @@index([prescricaoId])
+  @@map("prescricao_itens")
 }
 
 // ============================================================
@@ -675,16 +728,19 @@ model Turma {
 }
 
 model Matricula {
-  id            String          @id @default(cuid())
-  unidadeId     String
-  turmaId       String
-  fichaId       String
-  membroId      String? // dependente matriculado
-  status        StatusMatricula @default(ATIVA)
-  posicaoEspera Int? // posição na lista de espera
-  criadoPor     String? // userId de quem matriculou
-  criadoEm      DateTime        @default(now())
-  atualizadoEm  DateTime        @updatedAt
+  id                     String          @id @default(cuid())
+  unidadeId              String
+  turmaId                String
+  fichaId                String
+  membroId               String? // dependente matriculado
+  status                 StatusMatricula @default(ATIVA)
+  posicaoEspera          Int? // posição na lista de espera
+  // LGPD: matrícula de menor de 18 exige consentimento do responsável (titular).
+  // Preenchido com o instante do consentimento; null para maiores de idade.
+  consentidoPorTitularEm DateTime?
+  criadoPor              String? // userId de quem matriculou
+  criadoEm               DateTime        @default(now())
+  atualizadoEm           DateTime        @updatedAt
 
   unidade     Unidade         @relation(fields: [unidadeId], references: [id])
   turma       Turma           @relation(fields: [turmaId], references: [id])
@@ -1022,11 +1078,11 @@ model MatriculaEsportiva {
   criadoEm      DateTime        @default(now())
   atualizadoEm  DateTime        @updatedAt
 
-  unidade    Unidade         @relation(fields: [unidadeId], references: [id])
-  turma      TurmaEsportiva  @relation(fields: [turmaId], references: [id])
-  ficha      FichaCidada     @relation(fields: [fichaId], references: [id])
-  membro     MembroFamiliar? @relation(fields: [membroId], references: [id])
-  graduacoes Graduacao[]
+  unidade         Unidade          @relation(fields: [unidadeId], references: [id])
+  turma           TurmaEsportiva   @relation(fields: [turmaId], references: [id])
+  ficha           FichaCidada      @relation(fields: [fichaId], references: [id])
+  membro          MembroFamiliar?  @relation(fields: [membroId], references: [id])
+  graduacoes      Graduacao[]
   presencasTreino PresencaTreino[]
 
   @@unique([turmaId, fichaId, membroId])

@@ -11,6 +11,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import type { UpdateSoapDto } from "./dto/update-soap.dto";
 import type { UpsertVitaisDto } from "./dto/upsert-vitais.dto";
+import type { CreatePrescricaoDto } from "./dto/create-prescricao.dto";
+import { verificarConflitoAlergia } from "./alergia-check";
 import { ProfissionaisService } from "./profissionais.service";
 
 const atendimentoInclude = {
@@ -166,5 +168,95 @@ export class AtendimentosService {
     });
 
     return selado;
+  }
+
+  /**
+   * Emite uma prescrição para o atendimento, com BLOQUEIO de alergia
+   * server-side (fonte da verdade). Política: se algum medicamento casa com
+   * uma alergia ATIVA do paciente e o corpo NÃO traz `override.motivo`,
+   * devolve 409 com a lista de conflitos (o front exige justificativa).
+   * Prescrever apesar do conflito grava `alergiaOverride` + motivo (auditoria).
+   */
+  async prescrever(user: AuthenticatedUser, id: string, dto: CreatePrescricaoDto) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.MEDICO);
+    const atendimento = await this.carregar(id);
+    this.profissionais.assertOwnership(atendimento.profissionalId, profissional, user);
+    this.assertEditavel(atendimento); // prescreve-se durante o atendimento aberto
+
+    // Alergias ATIVAS do PACIENTE deste atendimento: titular (membroId null)
+    // ou o dependente atendido (membroId preenchido).
+    const alergias = await this.prisma.alergia.findMany({
+      where: { ativa: true, fichaId: atendimento.fichaId, membroId: atendimento.membroId },
+      select: { id: true, descricao: true, gravidade: true },
+    });
+
+    const conflitos = verificarConflitoAlergia(
+      dto.itens.map((i) => ({ medicamento: i.medicamento })),
+      alergias,
+    );
+    const motivoOverride = dto.override?.motivo?.trim() || null;
+
+    // BLOQUEIO: conflito sem override consciente → 409 com a lista.
+    if (conflitos.length > 0 && !motivoOverride) {
+      throw new ConflictException({
+        code: "ALERGIA_CONFLITO",
+        message:
+          "Conflito de alergia: há medicamento prescrito que casa com uma alergia ATIVA do paciente. Para prescrever mesmo assim, justifique.",
+        conflitos,
+      });
+    }
+
+    const comConflito = conflitos.length > 0;
+    const medicamentosEmConflito = new Set(conflitos.map((c) => c.medicamento));
+
+    const prescricao = await this.prisma.$transaction(async (tx) => {
+      // Re-checa o selo sob lock — sem janela para prescrever em prontuário selado.
+      const [row] = await tx.$queryRaw<{ encerradoEm: Date | null }[]>`
+        SELECT "encerradoEm" FROM atendimentos WHERE id = ${id} FOR UPDATE
+      `;
+      if (!row) throw new NotFoundException("Atendimento não encontrado");
+      if (row.encerradoEm) throw new ConflictException(MSG_SELADO);
+
+      return tx.prescricao.create({
+        data: {
+          unidadeId: atendimento.unidadeId,
+          atendimentoId: id,
+          fichaId: atendimento.fichaId,
+          membroId: atendimento.membroId,
+          profissionalId: atendimento.profissionalId,
+          observacoes: dto.observacoes,
+          alergiaOverride: comConflito,
+          alergiaOverrideMotivo: comConflito ? motivoOverride : null,
+          itens: {
+            create: dto.itens.map((i) => ({
+              medicamento: i.medicamento,
+              posologia: i.posologia,
+              conflitoAlergia: medicamentosEmConflito.has(i.medicamento),
+            })),
+          },
+        },
+        include: { itens: true },
+      });
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.CREATE,
+      entidade: "Prescricao",
+      entidadeId: prescricao.id,
+      metadados: {
+        atendimentoId: id,
+        itens: dto.itens.length,
+        alergiaOverride: comConflito,
+        ...(comConflito
+          ? {
+              conflitos: conflitos.map((c) => c.alergiaDescricao),
+              motivoOverride,
+            }
+          : {}),
+      },
+    });
+
+    return prescricao;
   }
 }

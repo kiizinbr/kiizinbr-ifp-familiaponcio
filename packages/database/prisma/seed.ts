@@ -455,6 +455,28 @@ async function seedCapacitacao() {
     where: { cpf: { in: ["11111111111", "22222222222", "33333333333"] } },
     orderBy: { cpf: "asc" },
   });
+
+  // Dependente MENOR (15 anos) numa ficha elegível — fixture do consentimento (LGPD).
+  const fichaMenor = fichas.find((f) => f.cpf === "11111111111");
+  if (fichaMenor) {
+    const existe = await prisma.membroFamiliar.findFirst({
+      where: { fichaId: fichaMenor.id, nomeCompleto: "Lucas da Silva (menor)" },
+    });
+    if (!existe) {
+      const nasc = new Date();
+      nasc.setFullYear(nasc.getFullYear() - 15);
+      await prisma.membroFamiliar.create({
+        data: {
+          fichaId: fichaMenor.id,
+          nomeCompleto: "Lucas da Silva (menor)",
+          dataNascimento: nasc,
+          parentesco: "FILHO",
+        },
+      });
+    }
+    console.log("  ✓ Dependente menor Lucas (15) na capacitação — fixture consentimento");
+  }
+
   const matriculas = [];
   for (const ficha of fichas) {
     await prisma.elegibilidadePorUnidade.upsert({

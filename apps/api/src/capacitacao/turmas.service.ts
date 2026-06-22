@@ -209,6 +209,18 @@ export class TurmasService {
       );
     }
 
+    // LGPD: matrícula de MENOR (<18) exige o consentimento do responsável (titular).
+    const nascimento = await this.dataNascimentoDoAluno(dto.fichaId, dto.membroId);
+    const ehMenor = this.idadeEmAnos(nascimento) < 18;
+    if (ehMenor && !dto.consentimentoTitular) {
+      throw new BadRequestException({
+        code: "CONSENTIMENTO_NECESSARIO",
+        message:
+          "Matrícula de menor de 18 anos exige o consentimento do responsável (titular).",
+      });
+    }
+    const consentidoPorTitularEm = ehMenor ? new Date() : null;
+
     // Lock da linha da turma: matrículas concorrentes serializam aqui — mata o
     // overbooking (contagem sempre fresca), a posição de espera duplicada e a
     // matrícula dupla do titular (o unique composto não cobre membroId NULL).
@@ -249,6 +261,7 @@ export class TurmasService {
           membroId: dto.membroId,
           status: temVaga ? StatusMatricula.ATIVA : StatusMatricula.LISTA_ESPERA,
           posicaoEspera,
+          consentidoPorTitularEm,
           criadoPor: user.id,
         },
         include: {
@@ -263,10 +276,37 @@ export class TurmasService {
       acao: AcaoAuditoria.CREATE,
       entidade: "Matricula",
       entidadeId: matricula.id,
-      metadados: { turmaId, status: matricula.status },
+      metadados: { turmaId, status: matricula.status, menor: ehMenor },
     });
 
     return matricula;
+  }
+
+  /** Idade em anos completos na data de hoje. */
+  private idadeEmAnos(nascimento: Date): number {
+    const hoje = new Date();
+    let anos = hoje.getFullYear() - nascimento.getFullYear();
+    const m = hoje.getMonth() - nascimento.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) anos -= 1;
+    return anos;
+  }
+
+  /** Data de nascimento do aluno matriculado: o dependente (se membroId) ou o titular. */
+  private async dataNascimentoDoAluno(fichaId: string, membroId?: string): Promise<Date> {
+    if (membroId) {
+      const membro = await this.prisma.membroFamiliar.findFirst({
+        where: { id: membroId, fichaId },
+        select: { dataNascimento: true },
+      });
+      if (!membro) throw new NotFoundException("Dependente não encontrado nesta família.");
+      return membro.dataNascimento;
+    }
+    const ficha = await this.prisma.fichaCidada.findUnique({
+      where: { id: fichaId },
+      select: { dataNascimento: true },
+    });
+    if (!ficha) throw new NotFoundException("Ficha não encontrada.");
+    return ficha.dataNascimento;
   }
 
   async detalhe(user: AuthenticatedUser, id: string) {

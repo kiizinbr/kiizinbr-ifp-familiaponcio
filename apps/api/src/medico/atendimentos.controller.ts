@@ -19,6 +19,7 @@ import { PerfisGuard } from "../auth/perfis.guard";
 import { AtendimentosService } from "./atendimentos.service";
 import { UpdateSoapDto } from "./dto/update-soap.dto";
 import { UpsertVitaisDto } from "./dto/upsert-vitais.dto";
+import { CreatePrescricaoDto } from "./dto/create-prescricao.dto";
 
 @ApiTags("medico")
 @ApiBearerAuth()
@@ -59,5 +60,20 @@ export class AtendimentosController {
   @HttpCode(HttpStatus.OK)
   encerrar(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.atendimentos.encerrar(user, id);
+  }
+
+  @Post("atendimentos/:id/prescricoes")
+  @ApiOperation({
+    summary:
+      "Emite prescrição. Bloqueia (409 ALERGIA_CONFLITO) se houver medicamento que casa com alergia ATIVA do paciente sem override.motivo.",
+  })
+  @ApiParam({ name: "id", description: "cuid do atendimento" })
+  @HttpCode(HttpStatus.CREATED)
+  prescrever(
+    @Param("id") id: string,
+    @Body() dto: CreatePrescricaoDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.atendimentos.prescrever(user, id, dto);
   }
 }
