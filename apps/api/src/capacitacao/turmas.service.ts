@@ -402,6 +402,15 @@ export class TurmasService {
           esperaCanceladas++;
           continue;
         }
+        // Aluno TRANCADO quando a turma encerra não tem como retomar — vira
+        // CANCELADA (status terminal), senão fica órfão numa turma ENCERRADA.
+        if (mat.status === StatusMatricula.TRANCADA) {
+          await tx.matricula.update({
+            where: { id: mat.id },
+            data: { status: StatusMatricula.CANCELADA },
+          });
+          continue;
+        }
         if (mat.status !== StatusMatricula.ATIVA) continue;
         const pct = this.presencaPct(mat.presencas, aulasEncerradas);
 
