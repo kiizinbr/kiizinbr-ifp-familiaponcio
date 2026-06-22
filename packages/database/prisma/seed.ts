@@ -5,6 +5,7 @@ import {
   ModalidadeCurso,
   Parentesco,
   Perfil,
+  PrioridadeSinal,
   PrioridadeTriagem,
   PrismaClient,
   SentidoCheck,
@@ -12,11 +13,14 @@ import {
   StatusAgendamento,
   StatusDiario,
   StatusElegibilidade,
+  StatusEncaminhamento,
   StatusMatricula,
   StatusPresenca,
+  StatusSinalizacao,
   StatusTriagem,
   StatusTurma,
   TipoRegistroRotina,
+  TipoSinalizacao,
   TipoUnidade,
 } from "@prisma/client";
 
@@ -160,6 +164,82 @@ async function seedServicoSocial() {
     n++;
   }
   console.log(`  ✓ ${n} triagens de exemplo na fila do Serviço Social`);
+
+  // --- Encaminhamentos + sinalizações de Ponte de exemplo ---
+  const unidades = await prisma.unidade.findMany({ select: { id: true, slug: true } });
+  const unidPorSlug = new Map(unidades.map((u) => [u.slug, u.id]));
+  const joao = porCpf.get("11111111111");
+  const maria = porCpf.get("22222222222");
+  const pedro = porCpf.get("33333333333");
+  const medico = unidPorSlug.get("medico");
+  const capacitacao = unidPorSlug.get("capacitacao");
+  const esportivo = unidPorSlug.get("esportivo");
+  const educacional = unidPorSlug.get("educacional");
+
+  // Idempotência: zera encaminhamentos/sinalizações das fichas de exemplo.
+  if (ids.length) {
+    await prisma.encaminhamento.deleteMany({ where: { fichaId: { in: ids } } });
+    await prisma.sinalizacaoPonte.deleteMany({ where: { fichaId: { in: ids } } });
+  }
+
+  if (joao && maria && pedro && medico && capacitacao && esportivo && educacional) {
+    await prisma.encaminhamento.createMany({
+      data: [
+        {
+          fichaId: joao.id,
+          unidadeOrigemId: medico,
+          unidadeDestinoId: capacitacao,
+          status: StatusEncaminhamento.PENDENTE,
+          prioridade: PrioridadeSinal.NORMAL,
+          motivo: "Titular apto a curso de qualificação após alta clínica.",
+          criadoEm: diasAtras(3),
+        },
+        {
+          fichaId: maria.id,
+          unidadeOrigemId: medico,
+          unidadeDestinoId: esportivo,
+          status: StatusEncaminhamento.PENDENTE,
+          prioridade: PrioridadeSinal.URGENTE,
+          motivo: "Atividade física orientada por recomendação médica.",
+          criadoEm: diasAtras(1),
+        },
+        {
+          fichaId: pedro.id,
+          unidadeOrigemId: medico,
+          unidadeDestinoId: educacional,
+          status: StatusEncaminhamento.ACEITO,
+          prioridade: PrioridadeSinal.NORMAL,
+          motivo: "Vaga na creche para neto sob guarda.",
+          criadoEm: diasAtras(4),
+          respondidoEm: diasAtras(2),
+        },
+      ],
+    });
+
+    await prisma.sinalizacaoPonte.createMany({
+      data: [
+        {
+          fichaId: joao.id,
+          unidadeOrigemId: medico,
+          tipo: TipoSinalizacao.ALERTA,
+          prioridade: PrioridadeSinal.URGENTE,
+          descricao: "Paciente com asma e sem acompanhamento — sugere avaliação social.",
+          status: StatusSinalizacao.PENDENTE,
+          criadoEm: diasAtras(1),
+        },
+        {
+          fichaId: maria.id,
+          unidadeOrigemId: educacional,
+          tipo: TipoSinalizacao.OBSERVACAO,
+          prioridade: PrioridadeSinal.NORMAL,
+          descricao: "Família relatou dificuldade de transporte para a unidade.",
+          status: StatusSinalizacao.PENDENTE,
+          criadoEm: diasAtras(2),
+        },
+      ],
+    });
+    console.log("  ✓ 3 encaminhamentos + 2 sinalizações de Ponte de exemplo");
+  }
 }
 
 // ============================================================

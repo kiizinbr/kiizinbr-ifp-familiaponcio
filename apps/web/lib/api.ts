@@ -299,6 +299,105 @@ export interface ListaTriagens {
 }
 
 // ============================================================
+// Serviço Social — Encaminhamentos (entre unidades) e Ponte
+// (sinalizações dos profissionais ao Serviço Social)
+// ============================================================
+
+/** Prioridade binária compartilhada por encaminhamento e sinalização. */
+export type PrioridadeSinal = "NORMAL" | "URGENTE";
+export type StatusEncaminhamento = "PENDENTE" | "ACEITO" | "RECUSADO";
+export type StatusSinalizacao = "PENDENTE" | "ATENDIDA";
+export type TipoSinalizacao = "ENCAMINHAMENTO" | "OBSERVACAO" | "ALERTA";
+
+export const PRIORIDADE_SINAL_LABEL: Record<PrioridadeSinal, string> = {
+  NORMAL: "Normal",
+  URGENTE: "Urgente",
+};
+
+export const STATUS_ENCAMINHAMENTO_LABEL: Record<StatusEncaminhamento, string> = {
+  PENDENTE: "Pendente",
+  ACEITO: "Aceito",
+  RECUSADO: "Recusado",
+};
+
+export const STATUS_SINALIZACAO_LABEL: Record<StatusSinalizacao, string> = {
+  PENDENTE: "Pendente",
+  ATENDIDA: "Atendida",
+};
+
+export const TIPO_SINALIZACAO_LABEL: Record<TipoSinalizacao, string> = {
+  ENCAMINHAMENTO: "Encaminhamento",
+  OBSERVACAO: "Observação",
+  ALERTA: "Alerta",
+};
+
+/** Referências mínimas embutidas nas respostas (LGPD: select enxuto). */
+export interface FichaRef {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+}
+export interface UnidadeRef {
+  slug: string;
+  nome: string;
+}
+
+export interface Encaminhamento {
+  id: string;
+  fichaId: string;
+  status: StatusEncaminhamento;
+  prioridade: PrioridadeSinal;
+  motivo: string;
+  justificativaResposta: string | null;
+  respondidoPor: string | null;
+  respondidoEm: string | null;
+  criadoEm: string;
+  ficha: FichaRef;
+  unidadeOrigem: UnidadeRef;
+  unidadeDestino: UnidadeRef;
+}
+
+export interface EncaminhamentoKpis {
+  pendentes: number;
+  aceitosSemana: number;
+  recusadosMes: number;
+  tempoMedioDias: number;
+}
+
+export interface ListaEncaminhamentos {
+  items: Encaminhamento[];
+  kpis: EncaminhamentoKpis;
+  pagination: Paginacao;
+}
+
+export interface SinalizacaoPonte {
+  id: string;
+  fichaId: string;
+  membroId: string | null;
+  tipo: TipoSinalizacao;
+  prioridade: PrioridadeSinal;
+  descricao: string;
+  status: StatusSinalizacao;
+  respondidoPor: string | null;
+  respondidoEm: string | null;
+  criadoEm: string;
+  ficha: FichaRef;
+  membro: { id: string; nomeCompleto: string } | null;
+  unidadeOrigem: UnidadeRef;
+}
+
+export interface SinalizacaoKpis {
+  pendentes: number;
+  urgentes: number;
+}
+
+export interface ListaSinalizacoes {
+  items: SinalizacaoPonte[];
+  kpis: SinalizacaoKpis;
+  pagination: Paginacao;
+}
+
+// ============================================================
 // Centro Médico (Fase 1 — agenda + prancha de atendimento)
 // ============================================================
 

@@ -15,6 +15,7 @@ import {
   ListChecks,
   ListOrdered,
   Network,
+  Send,
   Settings,
   ShieldCheck,
   Stethoscope,
@@ -86,6 +87,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
     { href: "/servico-social/fichas", label: "Fichas", icon: FileText },
     { href: "/servico-social/triagem", label: "Triagem", icon: ListChecks },
     { href: "/servico-social/elegibilidade", label: "Elegib.", icon: ShieldCheck },
+    { href: "/servico-social/encaminhamentos", label: "Encaminh.", icon: Send },
     { href: "/servico-social/ponte", label: "Ponte", icon: Network },
   ],
   admin: [

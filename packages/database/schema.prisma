@@ -70,6 +70,10 @@ model Unidade {
   treinosEsportivos    TreinoEsportivo[]
   prescricoes          Prescricao[]
 
+  encaminhamentosOrigem  Encaminhamento[]   @relation("EncaminhamentoOrigem")
+  encaminhamentosDestino Encaminhamento[]   @relation("EncaminhamentoDestino")
+  sinalizacoesPonte      SinalizacaoPonte[] @relation("SinalizacaoOrigem")
+
   @@map("unidades")
 }
 
@@ -224,6 +228,8 @@ model FichaCidada {
   conversasFamilia        ConversaFamilia[]
   prescricoes             Prescricao[]
   triagens                Triagem[]
+  encaminhamentos         Encaminhamento[]
+  sinalizacoesPonte       SinalizacaoPonte[]
 
   // Painel da Presidência: contagens por ativa / novas por criadoEm
   @@index([ativa])
@@ -274,6 +280,7 @@ model MembroFamiliar {
   matriculasEsportivas    MatriculaEsportiva[]
   conversa                ConversaFamilia?
   prescricoes             Prescricao[]
+  sinalizacoesPonte       SinalizacaoPonte[]
 
   @@map("membros_familiares")
 }
@@ -684,6 +691,84 @@ model Triagem {
   @@index([status, prioridade])
   @@index([fichaId])
   @@map("triagens")
+}
+
+// ------------------------------------------------------------
+// Serviço Social — Encaminhamentos (workflow entre unidades) e
+// Ponte (sinalizações que os profissionais enviam ao Serviço Social)
+// ------------------------------------------------------------
+enum StatusEncaminhamento {
+  PENDENTE
+  ACEITO
+  RECUSADO
+}
+
+enum StatusSinalizacao {
+  PENDENTE
+  ATENDIDA
+}
+
+enum TipoSinalizacao {
+  ENCAMINHAMENTO
+  OBSERVACAO
+  ALERTA
+}
+
+// Prioridade binária compartilhada por Encaminhamento e SinalizacaoPonte.
+// Ordem ASC → orderBy desc traz URGENTE primeiro.
+enum PrioridadeSinal {
+  NORMAL
+  URGENTE
+}
+
+model Encaminhamento {
+  id                    String               @id @default(cuid())
+  fichaId               String
+  unidadeOrigemId       String
+  unidadeDestinoId      String
+  status                StatusEncaminhamento @default(PENDENTE)
+  prioridade            PrioridadeSinal      @default(NORMAL)
+  motivo                String
+  justificativaResposta String? // preenchida ao recusar
+  respondidoPor         String? // userId de quem aceitou/recusou
+  respondidoEm          DateTime?
+  criadoPor             String? // userId de quem encaminhou
+  criadoEm              DateTime             @default(now())
+  atualizadoEm          DateTime             @updatedAt
+
+  ficha          FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  unidadeOrigem  Unidade     @relation("EncaminhamentoOrigem", fields: [unidadeOrigemId], references: [id])
+  unidadeDestino Unidade     @relation("EncaminhamentoDestino", fields: [unidadeDestinoId], references: [id])
+
+  @@index([unidadeOrigemId, status])
+  @@index([unidadeDestinoId, status])
+  @@index([fichaId])
+  @@map("encaminhamentos")
+}
+
+model SinalizacaoPonte {
+  id              String            @id @default(cuid())
+  fichaId         String
+  membroId        String? // sinalização pode apontar para um membro específico
+  unidadeOrigemId String // unidade do profissional que sinalizou
+  tipo            TipoSinalizacao   @default(ENCAMINHAMENTO)
+  prioridade      PrioridadeSinal   @default(NORMAL)
+  descricao       String
+  status          StatusSinalizacao @default(PENDENTE)
+  respondidoPor   String? // userId do social que atendeu
+  respondidoEm    DateTime?
+  criadoPor       String? // userId do profissional que sinalizou
+  criadoEm        DateTime          @default(now())
+  atualizadoEm    DateTime          @updatedAt
+
+  ficha         FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro        MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  unidadeOrigem Unidade         @relation("SinalizacaoOrigem", fields: [unidadeOrigemId], references: [id])
+
+  @@index([unidadeOrigemId, status])
+  @@index([status, criadoEm])
+  @@index([fichaId])
+  @@map("sinalizacoes_ponte")
 }
 
 // ============================================================

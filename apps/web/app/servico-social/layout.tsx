@@ -12,6 +12,8 @@ const ROTAS_PRONTAS = [
   "/servico-social/fichas",
   "/servico-social/triagem",
   "/servico-social/elegibilidade",
+  "/servico-social/encaminhamentos",
+  "/servico-social/ponte",
 ];
 
 export default async function ServicoSocialLayout({
