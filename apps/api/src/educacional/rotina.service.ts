@@ -231,6 +231,14 @@ export class RotinaService {
       },
     });
 
+    // Dossiê do menor (rotina do dia) é dado sensível — leitura entra na trilha LGPD.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "DiarioDia",
+      entidadeId: diario?.id ?? membroId,
+      metadados: { contexto: "educacional.diarioDoDia", membroId, dia },
+    });
     return { dia, diario };
   }
 
