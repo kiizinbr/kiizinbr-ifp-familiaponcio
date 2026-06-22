@@ -19,7 +19,7 @@ import {
   asOptions,
   type PrioridadeTriagem,
   type StatusTriagem,
-  type TriagemItem,
+  type TriagemListaItem,
 } from "@/lib/api";
 import {
   useConcluirTriagem,
@@ -30,7 +30,6 @@ import {
 } from "@/lib/use-triagem";
 import { useFichas } from "@/lib/use-fichas";
 import { iniciaisDe } from "@/lib/iniciais";
-import { formatTelefone } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { Alerta, Botao, Campo, Input, Select, Spinner, Textarea } from "@/components/ui";
 import { Kpi, ListRow, PageHeader } from "@/components/casa";
@@ -72,7 +71,7 @@ function Pilula({ className, children }: { className: string; children: React.Re
 // ------------------------------------------------------------
 // Ações de cada triagem (transições de status com erro inline)
 // ------------------------------------------------------------
-function AcoesTriagem({ triagem }: { triagem: TriagemItem }) {
+function AcoesTriagem({ triagem }: { triagem: TriagemListaItem }) {
   const iniciar = useIniciarTriagem();
   const concluir = useConcluirTriagem();
   const [erro, setErro] = useState<string | null>(null);
@@ -391,7 +390,6 @@ export default function TriagemPage() {
                   subtitulo={
                     <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
                       <span>{t.ficha.protocolo}</span>
-                      <span>{formatTelefone(t.ficha.telefone)}</span>
                       {t.status !== "CONCLUIDA" ? (
                         <span className={cn("inline-flex items-center gap-1", esperaTom)}>
                           <Clock className="h-3 w-3" />

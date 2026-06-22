@@ -286,6 +286,18 @@ export interface TriagemItem {
   ficha: TriagemFicha;
 }
 
+/** Ficha enxuta para a LISTA/fila (minimização LGPD: sem telefone/nascimento). */
+export interface TriagemFichaLista {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+}
+
+/** Item da fila — ficha enxuta. O detalhe/criar usam TriagemItem (ficha completa). */
+export interface TriagemListaItem extends Omit<TriagemItem, "ficha"> {
+  ficha: TriagemFichaLista;
+}
+
 export interface TriagemKpis {
   naFila: number;
   prioritarias: number;
@@ -293,7 +305,7 @@ export interface TriagemKpis {
 }
 
 export interface ListaTriagens {
-  items: TriagemItem[];
+  items: TriagemListaItem[];
   kpis: TriagemKpis;
   pagination: Paginacao;
 }

@@ -12,6 +12,12 @@ const triagemInclude = {
   },
 } satisfies Prisma.TriagemInclude;
 
+// Minimização LGPD: a FILA não precisa de telefone/nascimento de toda família —
+// só protocolo/nome. Esses campos ficam restritos ao detalhe (com audit READ).
+const triagemIncludeLista = {
+  ficha: { select: { id: true, protocolo: true, nomeCompleto: true } },
+} satisfies Prisma.TriagemInclude;
+
 /** Dias de espera desde a abertura da triagem (inteiro, piso). */
 function diasEspera(criadoEm: Date): number {
   return Math.floor((Date.now() - criadoEm.getTime()) / 86_400_000);
@@ -43,7 +49,7 @@ export class TriagemService {
     const [rows, total, naFila, prioritarias] = await this.prisma.$transaction([
       this.prisma.triagem.findMany({
         where,
-        include: triagemInclude,
+        include: triagemIncludeLista,
         // URGENTE primeiro (enum desc), e dentro da prioridade os mais antigos.
         orderBy: [{ prioridade: "desc" }, { criadoEm: "asc" }],
         skip: (page - 1) * perPage,
