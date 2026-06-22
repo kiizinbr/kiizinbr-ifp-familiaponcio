@@ -27,4 +27,12 @@
     background-color: var(--color-primary);
     color: var(--ifp-white);
   }
+
+  /* Foco visível por teclado em todo elemento interativo (a11y — back-office
+     inteiro é operável por teclado: triar, aprovar, aceitar/recusar). */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
 }

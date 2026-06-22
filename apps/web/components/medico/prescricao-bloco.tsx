@@ -85,7 +85,7 @@ export function PrescricaoBloco({
   if (readOnly && emitidas.length === 0) return null;
 
   return (
-    <section className="space-y-4 rounded-[14px] border border-border bg-surface-2 p-4">
+    <section className="space-y-4 rounded-[14px] border border-border bg-surface p-4">
       <h3 className="flex items-center gap-2 font-semibold text-foreground">
         <Pill className="h-4 w-4 text-primary" /> Prescrição
       </h3>
@@ -147,11 +147,13 @@ export function PrescricaoBloco({
           {/* Adicionar item */}
           <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
             <Input
+              aria-label="Medicamento"
               placeholder="Medicamento (ex.: Amoxicilina 500mg)"
               value={medicamento}
               onChange={(e) => setMedicamento(e.target.value)}
             />
             <Input
+              aria-label="Posologia"
               placeholder="Posologia (ex.: 1 cp 8/8h por 7 dias)"
               value={posologia}
               onChange={(e) => setPosologia(e.target.value)}
