@@ -30,6 +30,7 @@ export const config = {
     "/educacional/:path*",
     "/esportivo/:path*",
     "/servico-social/:path*",
+    "/presidencia/:path*",
     "/familia/:path*",
     "/admin/:path*",
   ],
