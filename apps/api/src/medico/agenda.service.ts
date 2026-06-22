@@ -46,25 +46,29 @@ const agendaInclude = {
 
 /**
  * Prancha: o clínico precisa de identificação + histórico clínico (alergias,
- * condições, elegibilidades) — RG, contatos, endereço e renda ficam de fora.
+ * condições) — RG, contatos, endereço e renda ficam de fora. As elegibilidades
+ * são filtradas para a unidade médica do profissional (minimização): o clínico
+ * só precisa saber que a família está APROVADA no MÉDICO, não o mapa dela no
+ * instituto inteiro.
  */
-const pranchaInclude = {
-  ficha: {
-    select: {
-      id: true,
-      protocolo: true,
-      nomeCompleto: true,
-      dataNascimento: true,
-      alergias: { where: { ativa: true } },
-      condicoesCronicas: { where: { ativa: true } },
-      elegibilidades: { include: { unidade: true } },
+const pranchaInclude = (unidadeId: string) =>
+  ({
+    ficha: {
+      select: {
+        id: true,
+        protocolo: true,
+        nomeCompleto: true,
+        dataNascimento: true,
+        alergias: { where: { ativa: true } },
+        condicoesCronicas: { where: { ativa: true } },
+        elegibilidades: { where: { unidadeId }, include: { unidade: true } },
+      },
     },
-  },
-  membro: {
-    select: { id: true, nomeCompleto: true, dataNascimento: true, parentesco: true },
-  },
-  atendimento: { include: { vitais: true } },
-} satisfies Prisma.AgendamentoInclude;
+    membro: {
+      select: { id: true, nomeCompleto: true, dataNascimento: true, parentesco: true },
+    },
+    atendimento: { include: { vitais: true } },
+  }) satisfies Prisma.AgendamentoInclude;
 
 @Injectable()
 export class AgendaService {
@@ -101,6 +105,13 @@ export class AgendaService {
       include: agendaInclude,
     });
 
+    // Leitura de PII (nome/nascimento de pacientes do dia) entra na trilha LGPD.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Agendamento",
+      metadados: { contexto: "medico.listarDia", dia, resultados: items.length },
+    });
     return { items, dia };
   }
 
@@ -109,7 +120,7 @@ export class AgendaService {
 
     const agendamento = await this.prisma.agendamento.findUnique({
       where: { id: agendamentoId },
-      include: pranchaInclude,
+      include: pranchaInclude(profissional.unidadeId),
     });
     if (!agendamento) throw new NotFoundException("Agendamento não encontrado");
     this.profissionais.assertOwnership(agendamento.profissionalId, profissional, user);
@@ -364,6 +375,13 @@ export class AgendaService {
         ...agendaInclude,
         profissional: { select: { user: { select: { nome: true } } } },
       },
+    });
+    // Fila da unidade expõe nome dos pacientes de todos os profissionais — audit READ.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Agendamento",
+      metadados: { contexto: "medico.filaUnidade", dia, resultados: items.length },
     });
     return { items, dia };
   }
