@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { ShellInterno } from "@/components/casa";
+import { AcessoRestrito, ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /presidencia/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PRESIDENCIA"];
@@ -33,13 +33,7 @@ export default async function PresidenciaLayout({ children }: { children: React.
   const autorizado = session.perfis?.some((p) => PERFIS_PERMITIDOS.includes(p));
   if (!autorizado) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Acesso restrito</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          A Sala de Comando é exclusiva da Presidência. Se você acha que isso é um engano,
-          fale com o administrador.
-        </p>
-      </main>
+      <AcessoRestrito mensagem="A Sala de Comando é exclusiva da Presidência. Se você acha que isso é um engano, fale com o administrador." />
     );
   }
 

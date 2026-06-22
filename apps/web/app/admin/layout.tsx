@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { ShellInterno } from "@/components/casa";
+import { AcessoRestrito, ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /admin/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE"];
@@ -27,13 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const autorizado = session.perfis?.some((p) => PERFIS_PERMITIDOS.includes(p));
   if (!autorizado) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Acesso restrito</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Esta área é exclusiva da administração. Se você acha que isso é um engano,
-          fale com o Super Admin.
-        </p>
-      </main>
+      <AcessoRestrito mensagem="Esta área é exclusiva da administração. Se você acha que isso é um engano, fale com o Super Admin." />
     );
   }
 

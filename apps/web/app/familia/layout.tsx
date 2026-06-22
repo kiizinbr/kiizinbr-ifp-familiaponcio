@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import { SairButton } from "@/components/sair-button";
-import { Brandmark } from "@/components/casa";
+import { AcessoRestrito, Brandmark } from "@/components/casa";
 import { BottomNavFamilia } from "@/components/casa/BottomNavFamilia";
 
 /**
@@ -26,13 +26,7 @@ export default async function FamiliaLayout({
   const autorizado = session.perfis?.some((p) => PERFIS_PERMITIDOS.includes(p));
   if (!autorizado) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Acesso restrito</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Esta área é exclusiva dos responsáveis das crianças. Se você acha que isso é
-          um engano, fale com a secretaria do instituto.
-        </p>
-      </main>
+      <AcessoRestrito mensagem="Esta área é exclusiva dos responsáveis das crianças. Se você acha que isso é um engano, fale com a secretaria do instituto." />
     );
   }
 
