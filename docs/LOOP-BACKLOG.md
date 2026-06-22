@@ -32,16 +32,18 @@
 > salvos em `origin/backup/casa-local-2026-06-17`. Gate typecheck+lint verde.
 
 ## 🟢 Fila — baixo risco (loop autônomo)
-- [ ] Refino interno das páginas já reskinadas — aplicar blocos (`PageHeader`/`Card`/`Kpi`/`ListRow`/`Pill`) por dentro de: educacional (painel/turma/comunicados/criança), capacitação (painel/turmas/turma/chamada), serviço social (início/fichas/nova/detalhe), esportivo (painel/turma)
-- [ ] Home `/` (hub) — adicionar card do Centro Educacional + ajustar vitrine (tirar Recreativo sem rota)
+- [~] Refino interno das páginas já reskinadas — aplicar blocos (`PageHeader`/`Card`/`Kpi`/`ListRow`/`Pill`) por dentro de: educacional (painel/turma/comunicados/criança), capacitação (painel/turmas/turma/chamada), serviço social (início/fichas/nova/detalhe), esportivo (painel/turma)
+  - _22/06: feitos os painéis/listas de **capacitação (turmas), esportivo (painel), educacional (painel), serviço social (fichas)**. Painéis de capacitação/serviço-social já estavam em blocos. Faltam as páginas-detalhe ricas (turma/chamada/criança/detalhe) — deixadas porque já são CASA-consistentes e refator às cegas é risco sem ganho._
+- [x] Home `/` (hub) — ~~adicionar card do Centro Educacional + ajustar vitrine (tirar Recreativo sem rota)~~ → **já satisfeito** (22/06): `lib/unidades.ts` já tem Educacional e não há Recreativo; card já nas `AREAS`.
 
 ## 🟡 Fila — novo-front (API já existe; médio)
-- [ ] Médico: tela de **beneficiários** liberados (GET /medico/fichas)
+- [x] Médico: tela de **beneficiários** liberados (GET /medico/fichas) → já existe e completa (verificado 22/06)
 - [ ] Educacional: UI de cadastro/revogação de autorizados já existe; conferir cobertura
-- [ ] Capacitação: catálogo de cursos / certificados (se API cobre)
+- [x] Capacitação: catálogo de cursos / certificados → `cursos/` (CRUD, já em blocos CASA) e `certificados/` existem (verificado 22/06)
 
 ## 🔴 Fila — novo-fullstack (precisa backend; revisão humana antes de mesclar)
-- [ ] **Prescrição estruturada + bloqueio REAL de alergia** (modelo Prisma + endpoint com checagem server-side + tela na prancha) — segurança do paciente
+- [~] **Prescrição estruturada + bloqueio REAL de alergia** (modelo Prisma + endpoint com checagem server-side + tela na prancha) — segurança do paciente
+  - _22/06 COMEÇADO: lógica pura de cruzamento + teste unitário 11/11 (`apps/api/src/medico/alergia-check.{ts,spec.ts}`) + jest unitário da API. Schema/endpoint/UI especificados em `docs/PLANO-PRESCRICAO-ALERGIA.md` — dependem do banco de pé. NÃO mesclar sem revisão._
 - [ ] Médico: fila kanban, odontograma, triagem de enfermagem, indicadores, equipe
 - [ ] Presidência: Sala de Comando + unidades/impacto/famílias/relatórios (dashboards agregados)
 - [x] ~~Esportivo: módulo do zero (modalidade/turma/frequência/graduação)~~ → ENTREGUE pelo remoto (API + telas + chamada de treino) e reskinado CASA na reconciliação de 18/06
