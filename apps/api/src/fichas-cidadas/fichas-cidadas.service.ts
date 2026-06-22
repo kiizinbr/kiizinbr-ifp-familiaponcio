@@ -10,7 +10,7 @@ import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CreateFichaCidadaDto } from "./dto/create-ficha-cidada.dto";
 import type { ListFichasQuery } from "./dto/list-fichas.query";
-import type { ReplaceMembrosDto } from "./dto/replace-membros.dto";
+import type { MembroFamiliarDto, ReplaceMembrosDto } from "./dto/replace-membros.dto";
 import type { UpdateElegibilidadeDto } from "./dto/update-elegibilidade.dto";
 import type { UpdateFichaCidadaDto } from "./dto/update-ficha-cidada.dto";
 import type { UpsertDadosSocioDto } from "./dto/upsert-dados-socio.dto";
@@ -98,7 +98,7 @@ export class FichasCidadasService {
     return ficha;
   }
 
-  async findAll(query: ListFichasQuery) {
+  async findAll(query: ListFichasQuery, leitorId: string) {
     const page = query.page ?? 1;
     const perPage = query.perPage ?? 20;
     const skip = (page - 1) * perPage;
@@ -148,6 +148,22 @@ export class FichasCidadasService {
       }),
     ]);
 
+    // Lista da base de famílias = PII em massa (CPF, renda, vulnerabilidade).
+    // Quem consultou tem de ficar na trilha LGPD, igual ao detalhe (findOne).
+    this.audit.registrar({
+      userId: leitorId,
+      acao: AcaoAuditoria.READ,
+      entidade: "FichaCidada.lista",
+      metadados: {
+        q: query.q ?? null,
+        status: query.status ?? null,
+        unidade: query.unidade ?? null,
+        ativa: query.ativa ?? null,
+        page,
+        total,
+      },
+    });
+
     return {
       items,
       pagination: {
@@ -183,25 +199,90 @@ export class FichasCidadasService {
     return ficha;
   }
 
+  /**
+   * Reconcilia a composição familiar SEM apagar quem já existe. O `deleteMany`
+   * + `createMany` anterior gerava novos ids a cada salvar: membros com
+   * relação `SetNull` (atendimentos, alergias) ficavam com prontuário órfão, e
+   * membros com relação `Restrict` (matrícula infantil, check-in, diário,
+   * autorizados, conversa) faziam a transação estourar 500. Aqui casamos por
+   * identidade natural (CPF; ou nome+nascimento p/ menores sem CPF), atualizamos
+   * quem permanece, criamos os novos e só removemos quem NÃO tem histórico.
+   * O DTO não traz `id` — daí o casamento por chave natural.
+   */
   async replaceMembros(id: string, dto: ReplaceMembrosDto, autorId: string) {
     await this.assertExists(id);
 
+    const existentes = await this.prisma.membroFamiliar.findMany({
+      where: { fichaId: id },
+      select: {
+        id: true,
+        cpf: true,
+        nomeCompleto: true,
+        dataNascimento: true,
+        conversa: { select: { id: true } },
+        _count: {
+          select: {
+            agendamentos: true,
+            atendimentos: true,
+            alergias: true,
+            condicoesCronicas: true,
+            matriculas: true,
+            autorizacoesImagem: true,
+            matriculasInfantis: true,
+            responsaveisAutorizados: true,
+            checksInOut: true,
+            diariosDia: true,
+            matriculasEsportivas: true,
+            prescricoes: true,
+          },
+        },
+      },
+    });
+
+    const porChave = new Map(
+      existentes.map((m) => [this.chaveMembro(m.cpf, m.nomeCompleto, m.dataNascimento), m]),
+    );
+
+    const aAtualizar: Array<{ id: string; dados: ReturnType<FichasCidadasService["dadosMembro"]> }> =
+      [];
+    const aCriar: MembroFamiliarDto[] = [];
+    const casados = new Set<string>();
+
+    for (const m of dto.membros) {
+      const chave = this.chaveMembro(m.cpf, m.nomeCompleto, m.dataNascimento);
+      const existente = porChave.get(chave);
+      if (existente && !casados.has(existente.id)) {
+        casados.add(existente.id);
+        aAtualizar.push({ id: existente.id, dados: this.dadosMembro(m) });
+      } else {
+        aCriar.push(m);
+      }
+    }
+
+    const aRemover = existentes.filter((m) => !casados.has(m.id));
+    const comHistorico = aRemover.filter(
+      (m) => m.conversa !== null || Object.values(m._count).some((n) => n > 0),
+    );
+    if (comHistorico.length) {
+      throw new ConflictException(
+        `Não é possível remover da composição familiar quem já tem histórico no instituto: ` +
+          `${comHistorico.map((m) => m.nomeCompleto).join(", ")}. ` +
+          `Edite os dados da pessoa em vez de removê-la.`,
+      );
+    }
+
     const ficha = await this.prisma.$transaction(async (tx) => {
-      await tx.membroFamiliar.deleteMany({ where: { fichaId: id } });
-      if (dto.membros.length) {
+      for (const u of aAtualizar) {
+        await tx.membroFamiliar.update({ where: { id: u.id }, data: u.dados });
+      }
+      if (aCriar.length) {
         await tx.membroFamiliar.createMany({
-          data: dto.membros.map((m) => ({
-            fichaId: id,
-            nomeCompleto: m.nomeCompleto,
-            cpf: m.cpf,
-            dataNascimento: new Date(m.dataNascimento),
-            parentesco: m.parentesco,
-            ocupacao: m.ocupacao,
-            escolaridade: m.escolaridade,
-            rendaMensal:
-              m.rendaMensal !== undefined ? new Prisma.Decimal(m.rendaMensal) : null,
-            observacoes: m.observacoes,
-          })),
+          data: aCriar.map((m) => ({ fichaId: id, ...this.dadosMembro(m) })),
+        });
+      }
+      if (aRemover.length) {
+        await tx.membroFamiliar.deleteMany({
+          where: { id: { in: aRemover.map((m) => m.id) } },
         });
       }
       return tx.fichaCidada.findUniqueOrThrow({ where: { id }, include: fichaInclude });
@@ -212,10 +293,38 @@ export class FichasCidadasService {
       acao: AcaoAuditoria.UPDATE,
       entidade: "FichaCidada.membros",
       entidadeId: id,
-      metadados: { quantidade: dto.membros.length },
+      metadados: {
+        total: dto.membros.length,
+        criados: aCriar.length,
+        atualizados: aAtualizar.length,
+        removidos: aRemover.length,
+      },
     });
 
     return ficha;
+  }
+
+  /** Identidade natural de um membro: CPF (forte) ou nome+nascimento (menores sem CPF). */
+  private chaveMembro(cpf: string | null | undefined, nome: string, nasc: string | Date): string {
+    const digitos = cpf?.replace(/\D/g, "");
+    if (digitos && digitos.length === 11) return `cpf:${digitos}`;
+    const data = typeof nasc === "string" ? new Date(nasc) : nasc;
+    const ymd = data.toISOString().slice(0, 10);
+    return `nn:${nome.trim().toLowerCase().replace(/\s+/g, " ")}|${ymd}`;
+  }
+
+  /** Campos graváveis de um membro a partir do DTO (compartilhado por create/update). */
+  private dadosMembro(m: MembroFamiliarDto) {
+    return {
+      nomeCompleto: m.nomeCompleto,
+      cpf: m.cpf,
+      dataNascimento: new Date(m.dataNascimento),
+      parentesco: m.parentesco,
+      ocupacao: m.ocupacao,
+      escolaridade: m.escolaridade,
+      rendaMensal: m.rendaMensal !== undefined ? new Prisma.Decimal(m.rendaMensal) : null,
+      observacoes: m.observacoes,
+    };
   }
 
   async upsertDadosSocio(id: string, dto: UpsertDadosSocioDto, autorId: string) {

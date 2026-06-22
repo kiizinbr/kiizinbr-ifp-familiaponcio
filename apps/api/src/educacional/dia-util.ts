@@ -27,3 +27,17 @@ export function janelaDoDiaSP(data?: string) {
   const dataDb = new Date(`${dia}T00:00:00.000Z`);
   return { dia, inicio, fim, dataDb };
 }
+
+/**
+ * Fim do dia (23:59:59.999) em America/Sao_Paulo. Para validades inclusivas
+ * "até o dia X": gravar `new Date(dia)` puro vira meia-noite UTC = 21h de
+ * Brasília do dia ANTERIOR, vencendo a autorização ~3h cedo e no dia errado.
+ */
+export function fimDoDiaSP(data: string): Date {
+  const dia = data.slice(0, 10);
+  const fim = new Date(`${dia}T23:59:59.999${OFFSET_SP}`);
+  if (Number.isNaN(fim.getTime())) {
+    throw new BadRequestException("Data inválida — use o formato AAAA-MM-DD.");
+  }
+  return fim;
+}

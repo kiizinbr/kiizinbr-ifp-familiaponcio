@@ -47,8 +47,8 @@ export class FichasCidadasController {
 
   @Get()
   @ApiOperation({ summary: "Lista fichas com filtros e paginação" })
-  list(@Query() query: ListFichasQuery) {
-    return this.fichas.findAll(query);
+  list(@Query() query: ListFichasQuery, @CurrentUser() user: AuthenticatedUser) {
+    return this.fichas.findAll(query, user.id);
   }
 
   @Get(":id")

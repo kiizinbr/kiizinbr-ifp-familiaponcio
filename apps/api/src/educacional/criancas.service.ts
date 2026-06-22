@@ -12,6 +12,7 @@ import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import { ProfissionaisService } from "../medico/profissionais.service";
 import type { AtualizarAutorizacaoImagemDto } from "./dto/atualizar-autorizacao-imagem.dto";
 import type { CriarAutorizadoDto } from "./dto/criar-autorizado.dto";
+import { fimDoDiaSP } from "./dia-util";
 
 const VERSAO_TERMO_VIGENTE = "v1-2026";
 
@@ -89,6 +90,17 @@ export class CriancasService {
       where: { membroId },
       orderBy: [{ revogadoEm: "asc" }, { nome: "asc" }],
     });
+
+    // Quem pode retirar a criança (e restrição judicial) é dado de segurança
+    // física do menor — toda LEITURA do dossiê entra na trilha LGPD.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "ResponsavelAutorizado",
+      entidadeId: membroId,
+      metadados: { contexto: "educacional.listarAutorizados", membroId, total: items.length },
+    });
+
     return { items };
   }
 
@@ -104,7 +116,7 @@ export class CriancasService {
         documento: dto.documento,
         parentesco: dto.parentesco,
         fotoUrl: dto.fotoUrl,
-        vigenteAte: dto.vigenteAte ? new Date(dto.vigenteAte) : null,
+        vigenteAte: dto.vigenteAte ? fimDoDiaSP(dto.vigenteAte) : null,
         restricaoJudicial: dto.restricaoJudicial ?? false,
         criadoPor: user.id,
       },
