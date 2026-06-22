@@ -223,6 +223,7 @@ model FichaCidada {
   matriculasEsportivas    MatriculaEsportiva[]
   conversasFamilia        ConversaFamilia[]
   prescricoes             Prescricao[]
+  triagens                Triagem[]
 
   // Painel da Presidência: contagens por ativa / novas por criadoEm
   @@index([ativa])
@@ -647,6 +648,42 @@ model PrescricaoItem {
 
   @@index([prescricaoId])
   @@map("prescricao_itens")
+}
+
+// ------------------------------------------------------------
+// Serviço Social — Triagem (fila de entrada das famílias)
+// ------------------------------------------------------------
+enum StatusTriagem {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+// Severidade em ordem ASC — orderBy desc traz URGENTE primeiro.
+enum PrioridadeTriagem {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+model Triagem {
+  id                String            @id @default(cuid())
+  fichaId           String
+  status            StatusTriagem     @default(PENDENTE)
+  prioridade        PrioridadeTriagem @default(MEDIA)
+  motivoSolicitacao String?
+  iniciadaEm        DateTime?
+  concluidaEm       DateTime?
+  criadoPor         String? // userId de quem abriu a triagem
+  criadoEm          DateTime          @default(now())
+  atualizadoEm      DateTime          @updatedAt
+
+  ficha FichaCidada @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  @@index([status, prioridade])
+  @@index([fichaId])
+  @@map("triagens")
 }
 
 // ============================================================

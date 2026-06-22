@@ -10,6 +10,7 @@ import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { FichasCidadasModule } from "./fichas-cidadas/fichas-cidadas.module";
+import { ServicoSocialModule } from "./servico-social/servico-social.module";
 import { MedicoModule } from "./medico/medico.module";
 import { CapacitacaoModule } from "./capacitacao/capacitacao.module";
 import { EducacionalModule } from "./educacional/educacional.module";
@@ -27,6 +28,7 @@ import { PresidenciaModule } from "./presidencia/presidencia.module";
     UsersModule,
     TenantsModule,
     FichasCidadasModule,
+    ServicoSocialModule,
     MedicoModule,
     CapacitacaoModule,
     EducacionalModule,
