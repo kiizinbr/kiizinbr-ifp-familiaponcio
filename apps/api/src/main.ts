@@ -27,13 +27,17 @@ async function bootstrap() {
   );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  const config = new DocumentBuilder()
-    .setTitle("IFP Connect API")
-    .setDescription("API do Instituto Família Poncio")
-    .setVersion("0.0.1")
-    .addBearerAuth()
-    .build();
-  SwaggerModule.setup("api/docs", app, SwaggerModule.createDocument(app, config));
+  // Swagger só fora de produção — em prod /api/docs expõe o mapa inteiro da API
+  // (rotas, DTOs, contratos) sem nenhuma autenticação.
+  if (process.env.NODE_ENV !== "production") {
+    const config = new DocumentBuilder()
+      .setTitle("IFP Connect API")
+      .setDescription("API do Instituto Família Poncio")
+      .setVersion("0.0.1")
+      .addBearerAuth()
+      .build();
+    SwaggerModule.setup("api/docs", app, SwaggerModule.createDocument(app, config));
+  }
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>("PORT", 3333);
