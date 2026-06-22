@@ -14,6 +14,7 @@ import {
 import { useFichas, type FichasQuery } from "@/lib/use-fichas";
 import { formatCpf, formatTelefone, idadeAnos } from "@/lib/format";
 import { Alerta, BadgeStatus, Botao, Input, Select, Spinner } from "@/components/ui";
+import { ListRow, PageHeader } from "@/components/casa";
 
 const PER_PAGE = 20;
 const statusOptions = asOptions(STATUS_LABEL);
@@ -45,20 +46,18 @@ export default function FichasListaPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Fichas Cidadãs</h1>
-          <p className="text-sm text-muted-foreground">
-            Famílias atendidas pelo Serviço Social.
-          </p>
-        </div>
-        <Link href="/servico-social/fichas/nova">
-          <Botao>
-            <Plus className="h-4 w-4" />
-            Nova ficha
-          </Botao>
-        </Link>
-      </div>
+      <PageHeader
+        titulo="Fichas Cidadãs"
+        descricao="Famílias atendidas pelo Serviço Social."
+        acoes={
+          <Link href="/servico-social/fichas/nova">
+            <Botao>
+              <Plus className="h-4 w-4" />
+              Nova ficha
+            </Botao>
+          </Link>
+        }
+      />
 
       {/* Barra de filtros */}
       <div className="mb-6 grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-[1fr_auto_auto]">
@@ -128,29 +127,24 @@ export default function FichasListaPage() {
         </div>
       ) : (
         <>
-          <ul className="space-y-2">
+          <div>
             {data.items.map((f) => {
               const idade = idadeAnos(f.dataNascimento);
               return (
-                <li key={f.id}>
-                  <Link
-                    href={`/servico-social/fichas/${f.id}`}
-                    className="block rounded-lg border border-border bg-surface p-4 transition hover:border-ifp-orange hover:shadow-ifp-sm"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-foreground">
-                          {f.nomeCompleto}
-                          {!f.ativa ? (
-                            <span className="ml-2 text-xs font-normal text-danger">(inativa)</span>
-                          ) : null}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {f.protocolo} · CPF {formatCpf(f.cpf)} · {formatTelefone(f.telefone)}
-                          {idade !== null ? ` · ${idade} anos` : ""}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
+                <Link key={f.id} href={`/servico-social/fichas/${f.id}`} className="group block">
+                  <ListRow
+                    className="transition group-hover:border-ifp-orange group-hover:shadow-casa-sm"
+                    titulo={
+                      <span className="group-hover:text-primary">
+                        {f.nomeCompleto}
+                        {!f.ativa ? (
+                          <span className="ml-2 text-xs font-normal text-danger">(inativa)</span>
+                        ) : null}
+                      </span>
+                    }
+                    subtitulo={`${f.protocolo} · CPF ${formatCpf(f.cpf)} · ${formatTelefone(f.telefone)}${idade !== null ? ` · ${idade} anos` : ""}`}
+                    trailing={
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         {f.elegibilidades.length === 0 ? (
                           <span className="text-xs text-muted-foreground">sem elegibilidade</span>
                         ) : (
@@ -164,12 +158,12 @@ export default function FichasListaPage() {
                           ))
                         )}
                       </div>
-                    </div>
-                  </Link>
-                </li>
+                    }
+                  />
+                </Link>
               );
             })}
-          </ul>
+          </div>
 
           {/* Paginação */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
