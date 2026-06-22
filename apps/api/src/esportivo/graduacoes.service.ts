@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Perfil, StatusMatricula, TipoUnidade } from "@ifp/database";
+import { AcaoAuditoria, Perfil, Prisma, StatusMatricula, TipoUnidade } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -61,15 +61,24 @@ export class GraduacoesService {
       throw new ConflictException("Este nível já foi concedido a este atleta.");
     }
 
-    const graduacao = await this.prisma.graduacao.create({
-      data: {
-        unidadeId: matricula.unidadeId,
-        matriculaId,
-        nivel: dto.nivel,
-        observacao: dto.observacao,
-        concedidaPor: user.id,
-      },
-    });
+    const graduacao = await this.prisma.graduacao
+      .create({
+        data: {
+          unidadeId: matricula.unidadeId,
+          matriculaId,
+          nivel: dto.nivel,
+          observacao: dto.observacao,
+          concedidaPor: user.id,
+        },
+      })
+      .catch((e) => {
+        // Corrida: o check jaConcedida passou nas duas requisições e o unique
+        // (matriculaId_nivel) barra a 2ª no banco — traduz P2002 → 409 (não 500).
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          throw new ConflictException("Este nível já foi concedido a este atleta.");
+        }
+        throw e;
+      });
 
     this.audit.registrar({
       userId: user.id,
