@@ -250,8 +250,9 @@ export class RotinaService {
       include: { _count: { select: { registros: true } } },
     });
     if (!diario) throw new NotFoundException("Diário não encontrado");
+    // Anti-enumeração: cross-unidade responde 404 (não 403) — não confirma o id.
     if (diario.unidadeId !== profissional.unidadeId) {
-      throw new ForbiddenException("Este diário pertence a outra unidade.");
+      throw new NotFoundException("Diário não encontrado");
     }
     if (diario.status === StatusDiario.FECHADO) {
       throw new ConflictException("Diário já fechado.");
