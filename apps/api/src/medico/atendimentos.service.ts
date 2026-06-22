@@ -183,31 +183,13 @@ export class AtendimentosService {
     this.profissionais.assertOwnership(atendimento.profissionalId, profissional, user);
     this.assertEditavel(atendimento); // prescreve-se durante o atendimento aberto
 
-    // Alergias ATIVAS do PACIENTE deste atendimento: titular (membroId null)
-    // ou o dependente atendido (membroId preenchido).
-    const alergias = await this.prisma.alergia.findMany({
-      where: { ativa: true, fichaId: atendimento.fichaId, membroId: atendimento.membroId },
-      select: { id: true, descricao: true, gravidade: true },
-    });
-
-    const conflitos = verificarConflitoAlergia(
-      dto.itens.map((i) => ({ medicamento: i.medicamento })),
-      alergias,
-    );
-    const motivoOverride = dto.override?.motivo?.trim() || null;
-
-    // BLOQUEIO: conflito sem override consciente → 409 com a lista.
-    if (conflitos.length > 0 && !motivoOverride) {
-      throw new ConflictException({
-        code: "ALERGIA_CONFLITO",
-        message:
-          "Conflito de alergia: há medicamento prescrito que casa com uma alergia ATIVA do paciente. Para prescrever mesmo assim, justifique.",
-        conflitos,
-      });
-    }
-
-    const comConflito = conflitos.length > 0;
-    const medicamentosEmConflito = new Set(conflitos.map((c) => c.medicamento));
+    // Os conflitos de alergia são lidos e decididos DENTRO da transação, sob o
+    // mesmo lock do atendimento (fix TOCTOU): se uma alergia ATIVA for cadastrada
+    // entre a leitura e o create, a barreira ainda enxerga o snapshot consistente.
+    // Hoisted para fora da closure só para alimentar a auditoria pós-commit.
+    let conflitos: ReturnType<typeof verificarConflitoAlergia> = [];
+    let comConflito = false;
+    let motivoOverride: string | null = null;
 
     const prescricao = await this.prisma.$transaction(async (tx) => {
       // Re-checa o selo sob lock — sem janela para prescrever em prontuário selado.
@@ -216,6 +198,31 @@ export class AtendimentosService {
       `;
       if (!row) throw new NotFoundException("Atendimento não encontrado");
       if (row.encerradoEm) throw new ConflictException(MSG_SELADO);
+
+      // Alergias ATIVAS do PACIENTE deste atendimento: titular (membroId null)
+      // ou o dependente atendido (membroId preenchido) — lidas sob o lock.
+      const alergias = await tx.alergia.findMany({
+        where: { ativa: true, fichaId: atendimento.fichaId, membroId: atendimento.membroId },
+        select: { id: true, descricao: true, gravidade: true },
+      });
+      conflitos = verificarConflitoAlergia(
+        dto.itens.map((i) => ({ medicamento: i.medicamento })),
+        alergias,
+      );
+      motivoOverride = dto.override?.motivo?.trim() || null;
+
+      // BLOQUEIO: conflito sem override consciente → 409 com a lista (rollback do lock).
+      if (conflitos.length > 0 && !motivoOverride) {
+        throw new ConflictException({
+          code: "ALERGIA_CONFLITO",
+          message:
+            "Conflito de alergia: há medicamento prescrito que casa com uma alergia ATIVA do paciente. Para prescrever mesmo assim, justifique.",
+          conflitos,
+        });
+      }
+
+      comConflito = conflitos.length > 0;
+      const medicamentosEmConflito = new Set(conflitos.map((c) => c.medicamento));
 
       return tx.prescricao.create({
         data: {
