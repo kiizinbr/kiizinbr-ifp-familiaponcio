@@ -5,6 +5,7 @@ import {
   ModalidadeCurso,
   Parentesco,
   Perfil,
+  PrioridadeTriagem,
   PrismaClient,
   SentidoCheck,
   SituacaoMoradia,
@@ -13,6 +14,7 @@ import {
   StatusElegibilidade,
   StatusMatricula,
   StatusPresenca,
+  StatusTriagem,
   StatusTurma,
   TipoRegistroRotina,
   TipoUnidade,
@@ -94,6 +96,70 @@ async function main() {
   await seedUsuariosErick();
   await seedPresidencia();
   await seedDadosPresidencia();
+  await seedServicoSocial();
+}
+
+// ============================================================
+// Serviço Social — fila de triagem de exemplo (porta de entrada).
+// Reusa as fichas criadas em seedCentroMedico(); idempotente (zera
+// as triagens dessas fichas antes de recriar).
+// ============================================================
+async function seedServicoSocial() {
+  const fichas = await prisma.fichaCidada.findMany({
+    where: { cpf: { in: ["11111111111", "22222222222", "33333333333"] } },
+  });
+  const porCpf = new Map(fichas.map((f) => [f.cpf, f]));
+
+  const ids = fichas.map((f) => f.id);
+  if (ids.length) {
+    await prisma.triagem.deleteMany({ where: { fichaId: { in: ids } } });
+  }
+
+  const agora = Date.now();
+  const diasAtras = (d: number) => new Date(agora - d * 86_400_000);
+
+  const exemplos = [
+    {
+      cpf: "22222222222",
+      status: StatusTriagem.PENDENTE,
+      prioridade: PrioridadeTriagem.URGENTE,
+      motivoSolicitacao: "Insegurança alimentar — encaminhada pelo CRAS.",
+      criadoEm: diasAtras(2),
+    },
+    {
+      cpf: "11111111111",
+      status: StatusTriagem.PENDENTE,
+      prioridade: PrioridadeTriagem.ALTA,
+      motivoSolicitacao: "Família com criança fora da creche; busca vaga no Centro Educacional.",
+      criadoEm: diasAtras(6),
+    },
+    {
+      cpf: "33333333333",
+      status: StatusTriagem.EM_ANDAMENTO,
+      prioridade: PrioridadeTriagem.MEDIA,
+      motivoSolicitacao: "Avaliação de elegibilidade para o Centro de Capacitação.",
+      criadoEm: diasAtras(1),
+      iniciadaEm: new Date(agora - 3_600_000),
+    },
+  ];
+
+  let n = 0;
+  for (const e of exemplos) {
+    const ficha = porCpf.get(e.cpf);
+    if (!ficha) continue;
+    await prisma.triagem.create({
+      data: {
+        fichaId: ficha.id,
+        status: e.status,
+        prioridade: e.prioridade,
+        motivoSolicitacao: e.motivoSolicitacao,
+        criadoEm: e.criadoEm,
+        ...(e.iniciadaEm ? { iniciadaEm: e.iniciadaEm } : {}),
+      },
+    });
+    n++;
+  }
+  console.log(`  ✓ ${n} triagens de exemplo na fila do Serviço Social`);
 }
 
 // ============================================================

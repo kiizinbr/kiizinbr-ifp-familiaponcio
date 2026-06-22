@@ -243,6 +243,62 @@ export interface ListaFichas {
 }
 
 // ============================================================
+// Serviço Social — Triagem (fila de entrada das famílias)
+// ============================================================
+
+export type StatusTriagem = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA";
+export type PrioridadeTriagem = "BAIXA" | "MEDIA" | "ALTA" | "URGENTE";
+
+export const STATUS_TRIAGEM_LABEL: Record<StatusTriagem, string> = {
+  PENDENTE: "Na fila",
+  EM_ANDAMENTO: "Em andamento",
+  CONCLUIDA: "Concluída",
+};
+
+export const PRIORIDADE_TRIAGEM_LABEL: Record<PrioridadeTriagem, string> = {
+  BAIXA: "Baixa",
+  MEDIA: "Média",
+  ALTA: "Alta",
+  URGENTE: "Urgente",
+};
+
+/** Ficha resumida embutida em cada item da fila (select mínimo do backend). */
+export interface TriagemFicha {
+  id: string;
+  protocolo: string;
+  nomeCompleto: string;
+  telefone: string;
+  dataNascimento: string;
+}
+
+export interface TriagemItem {
+  id: string;
+  fichaId: string;
+  status: StatusTriagem;
+  prioridade: PrioridadeTriagem;
+  motivoSolicitacao: string | null;
+  iniciadaEm: string | null;
+  concluidaEm: string | null;
+  criadoEm: string;
+  atualizadoEm: string;
+  /** Dias desde a abertura (calculado pelo backend). */
+  diasEspera: number;
+  ficha: TriagemFicha;
+}
+
+export interface TriagemKpis {
+  naFila: number;
+  prioritarias: number;
+  maiorEsperaDias: number;
+}
+
+export interface ListaTriagens {
+  items: TriagemItem[];
+  kpis: TriagemKpis;
+  pagination: Paginacao;
+}
+
+// ============================================================
 // Centro Médico (Fase 1 — agenda + prancha de atendimento)
 // ============================================================
 
