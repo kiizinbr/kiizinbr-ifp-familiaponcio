@@ -1,10 +1,11 @@
 import { randomBytes } from "node:crypto";
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Prisma } from "@ifp/database";
+import { AcaoAuditoria, Prisma, StatusElegibilidade } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -391,20 +392,35 @@ export class FichasCidadasService {
     if (!ficha) throw new NotFoundException("Ficha não encontrada");
     if (!unidade) throw new NotFoundException(`Unidade '${unidadeSlug}' não encontrada`);
 
+    // LGPD: reprovar/suspender/desligar exige justificativa registrada — a ação
+    // mais sensível não pode entrar na trilha sem o porquê. A tela valida no
+    // client, mas o backend é a fonte de verdade (senão a regra é burlável).
+    const EXIGEM_MOTIVO: StatusElegibilidade[] = [
+      StatusElegibilidade.REPROVADO,
+      StatusElegibilidade.SUSPENSO,
+      StatusElegibilidade.DESLIGADO,
+    ];
+    const motivo = dto.motivo?.trim() || null;
+    if (EXIGEM_MOTIVO.includes(dto.status) && (!motivo || motivo.length < 3)) {
+      throw new BadRequestException(
+        "Informe o motivo (mín. 3 caracteres) ao reprovar, suspender ou desligar a elegibilidade.",
+      );
+    }
+
     const elegibilidade = await this.prisma.elegibilidadePorUnidade.upsert({
       where: { fichaId_unidadeId: { fichaId, unidadeId: unidade.id } },
       create: {
         fichaId,
         unidadeId: unidade.id,
         status: dto.status,
-        motivo: dto.motivo,
+        motivo,
         reavaliarEm: dto.reavaliarEm ? new Date(dto.reavaliarEm) : null,
         avaliadoPor: autorId,
         avaliadoEm: new Date(),
       },
       update: {
         status: dto.status,
-        motivo: dto.motivo,
+        motivo,
         reavaliarEm: dto.reavaliarEm ? new Date(dto.reavaliarEm) : null,
         avaliadoPor: autorId,
         avaliadoEm: new Date(),
@@ -421,6 +437,7 @@ export class FichasCidadasService {
         fichaId,
         unidade: unidade.slug,
         status: dto.status,
+        ...(motivo ? { motivo } : {}),
       },
     });
 

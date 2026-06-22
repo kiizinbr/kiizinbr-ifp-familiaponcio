@@ -90,6 +90,18 @@ caso("#4 cria autorizado c/ vigenteAte (201)", 201, na.status);
 // fim do dia SP de 2026-06-22 = 23:59:59.999-03:00 = 2026-06-23T02:59:59.999Z
 caso("#4 vigenteAte gravado como fim do dia SP", "2026-06-23T02:59:59.999Z", na.json?.vigenteAte);
 
+// ── motivo obrigatório ao revogar elegibilidade (P2 rodada 2) ─────────
+const semMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
+  status: "REPROVADO",
+});
+caso("reprovar elegibilidade SEM motivo → 400", 400, semMotivo.status);
+const comMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
+  status: "REPROVADO",
+  motivo: "Renda acima do critério (QA).",
+});
+caso("reprovar COM motivo → 200", 200, comMotivo.status);
+caso("motivo fica gravado", true, /renda acima/i.test(comMotivo.json?.motivo ?? ""));
+
 console.log("");
 console.log(`${res.filter(Boolean).length}/${res.length}`);
 console.log("ANA_ID=" + ana);
