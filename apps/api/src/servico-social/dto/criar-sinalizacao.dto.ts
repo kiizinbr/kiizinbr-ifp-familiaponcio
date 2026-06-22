@@ -9,8 +9,12 @@ export class CriarSinalizacaoDto {
   @IsString()
   membroId?: string;
 
+  // Ignorado pelo servidor: a origem é sempre a unidade do profissional logado
+  // (server-authoritative; evita origem forjada na auditoria). Opcional só para
+  // não quebrar clientes que ainda enviam o campo.
+  @IsOptional()
   @IsString()
-  unidadeOrigemSlug!: string;
+  unidadeOrigemSlug?: string;
 
   @IsOptional()
   @IsEnum(TipoSinalizacao)

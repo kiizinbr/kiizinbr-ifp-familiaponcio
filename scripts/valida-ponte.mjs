@@ -68,7 +68,18 @@ const criar = await req(medico, "POST", "/servico-social/ponte", {
 });
 caso("médico cria → 201", 201, criar.status);
 caso("nasce PENDENTE", "PENDENTE", criar.json?.status);
+caso("origem = unidade do profissional (não a do corpo)", "medico", criar.json?.unidadeOrigem?.slug);
 const sinalId = criar.json?.id;
+
+// Anti-forja (P1 da auditoria rodada 2): o profissional tenta carimbar OUTRA
+// unidade como origem — o servidor IGNORA o corpo e usa a unidade real do cadastro.
+const forja = await req(medico, "POST", "/servico-social/ponte", {
+  fichaId,
+  unidadeOrigemSlug: "esportivo",
+  descricao: "QA tentativa de forjar a origem",
+});
+caso("forja: POST aceito → 201", 201, forja.status);
+caso("forja: origem ignorada (continua medico)", "medico", forja.json?.unidadeOrigem?.slug);
 
 const membroInvalido = await req(medico, "POST", "/servico-social/ponte", {
   fichaId,

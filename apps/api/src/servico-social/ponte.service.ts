@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import {
   AcaoAuditoria,
   PrioridadeSinal,
@@ -120,17 +126,23 @@ export class PonteService {
       if (!membro) throw new BadRequestException("O membro informado não pertence a esta ficha.");
     }
 
-    const origem = await this.prisma.unidade.findUnique({
-      where: { slug: dto.unidadeOrigemSlug },
-      select: { id: true },
+    // A unidade de origem é SEMPRE a do profissional logado, resolvida pelo
+    // cadastro — nunca o `unidadeOrigemSlug` do corpo. Senão um profissional de
+    // uma unidade conseguiria carimbar OUTRA unidade na trilha de auditoria
+    // (origem forjada) e sinalizar como um salão que não é o dele.
+    const profissional = await this.prisma.profissional.findUnique({
+      where: { userId: user.id },
+      select: { ativo: true, unidade: { select: { id: true, slug: true } } },
     });
-    if (!origem) throw new NotFoundException("Unidade de origem não encontrada.");
+    if (!profissional || !profissional.ativo) {
+      throw new ForbiddenException("Usuário não possui cadastro de Profissional ativo.");
+    }
 
     const sinal = await this.prisma.sinalizacaoPonte.create({
       data: {
         fichaId: dto.fichaId,
         membroId: dto.membroId ?? null,
-        unidadeOrigemId: origem.id,
+        unidadeOrigemId: profissional.unidade.id,
         descricao: dto.descricao,
         criadoPor: user.id,
         ...(dto.tipo ? { tipo: dto.tipo } : {}),
@@ -143,7 +155,7 @@ export class PonteService {
       acao: AcaoAuditoria.CREATE,
       entidade: "SinalizacaoPonte",
       entidadeId: sinal.id,
-      metadados: { fichaId: dto.fichaId, origem: dto.unidadeOrigemSlug },
+      metadados: { fichaId: dto.fichaId, origem: profissional.unidade.slug },
     });
     return sinal;
   }
