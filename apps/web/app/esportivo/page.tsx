@@ -7,9 +7,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { ChevronRight, Hourglass, Medal, Plus, Trophy, Users } from "lucide-react";
+import { ChevronRight, Medal, Plus } from "lucide-react";
 
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
+import { Kpi, ListRow, PageHeader } from "@/components/casa";
 import { STATUS_TURMA_LABEL } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import {
@@ -19,28 +20,6 @@ import {
   useTurmasEsportivas,
   type CriarTurmaEsportivaPayload,
 } from "@/lib/use-esportivo";
-
-function Kpi({
-  rotulo,
-  valor,
-  icone,
-}: {
-  rotulo: string;
-  valor: number | string;
-  icone: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-surface p-4 shadow-ifp-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wide text-muted-foreground">
-          {rotulo}
-        </span>
-        <span className="text-primary">{icone}</span>
-      </div>
-      <div className="mt-2 text-3xl font-bold text-foreground">{valor}</div>
-    </div>
-  );
-}
 
 interface FormTurma {
   modalidadeId: string;
@@ -221,32 +200,16 @@ export default function PainelEsportivo() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <h1 className="text-2xl font-bold text-foreground">Centro Esportivo</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Modalidades, turmas e graduações verificáveis.
-      </p>
+      <PageHeader
+        titulo="Centro Esportivo"
+        descricao="Modalidades, turmas e graduações verificáveis."
+      />
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi
-          rotulo="Turmas em andamento"
-          valor={resumo?.turmasEmAndamento ?? "—"}
-          icone={<Medal className="h-5 w-5" />}
-        />
-        <Kpi
-          rotulo="Atletas ativos"
-          valor={resumo?.atletasAtivos ?? "—"}
-          icone={<Users className="h-5 w-5" />}
-        />
-        <Kpi
-          rotulo="Graduações concedidas"
-          valor={resumo?.graduacoesConcedidas ?? "—"}
-          icone={<Trophy className="h-5 w-5" />}
-        />
-        <Kpi
-          rotulo="Lista de espera"
-          valor={resumo?.listaEspera ?? "—"}
-          icone={<Hourglass className="h-5 w-5" />}
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Turmas em andamento" valor={resumo?.turmasEmAndamento ?? "—"} />
+        <Kpi label="Atletas ativos" valor={resumo?.atletasAtivos ?? "—"} />
+        <Kpi label="Graduações concedidas" valor={resumo?.graduacoesConcedidas ?? "—"} />
+        <Kpi label="Lista de espera" valor={resumo?.listaEspera ?? "—"} />
       </div>
 
       <div className="mt-8 flex items-center justify-between">
@@ -262,54 +225,47 @@ export default function PainelEsportivo() {
 
       {criando ? <FormNovaTurma aoFechar={() => setCriando(false)} /> : null}
 
-      <ul className="mt-3 space-y-2">
+      <div className="mt-3">
         {turmas?.items.map((t) => (
-          <li key={t.id}>
-            <Link
-              href={`/esportivo/turmas/${t.id}`}
-              className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 transition hover:border-primary/50"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Medal className="h-4 w-4" />
+          <Link key={t.id} href={`/esportivo/turmas/${t.id}`} className="group block">
+            <ListRow
+              className="transition group-hover:shadow-casa-sm"
+              avatar={<Medal className="h-4 w-4" />}
+              titulo={
+                <span className="group-hover:text-primary">
+                  {t.modalidade.nome} · {t.codigo}
                 </span>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {t.modalidade.nome} · {t.codigo}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t.diasHorario}
-                    {t.local ? ` · ${t.local}` : ""} · {t._count.matriculas}/{t.vagasTotais}{" "}
-                    atletas
-                    {t.faixaEtariaMin != null && t.faixaEtariaMax != null
-                      ? ` · ${t.faixaEtariaMin}–${t.faixaEtariaMax} anos`
-                      : ""}
-                  </p>
+              }
+              subtitulo={`${t.diasHorario}${t.local ? ` · ${t.local}` : ""} · ${t._count.matriculas}/${t.vagasTotais} atletas${
+                t.faixaEtariaMin != null && t.faixaEtariaMax != null
+                  ? ` · ${t.faixaEtariaMin}–${t.faixaEtariaMax} anos`
+                  : ""
+              }`}
+              trailing={
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                      t.status === "ENCERRADA"
+                        ? "border-border text-muted-foreground"
+                        : "border-primary/60 bg-primary/10 text-primary",
+                    )}
+                  >
+                    {STATUS_TURMA_LABEL[t.status]}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
-              </div>
-              <span className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-xs font-medium",
-                    t.status === "ENCERRADA"
-                      ? "border-border text-muted-foreground"
-                      : "border-primary/60 bg-primary/10 text-primary",
-                  )}
-                >
-                  {STATUS_TURMA_LABEL[t.status]}
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </span>
-            </Link>
-          </li>
+              }
+            />
+          </Link>
         ))}
         {turmas?.items.length === 0 && (
-          <li className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
             <Medal className="mx-auto mb-2 h-5 w-5" />
             Nenhuma turma ainda — crie a primeira em “Nova turma”.
-          </li>
+          </div>
         )}
-      </ul>
+      </div>
     </main>
   );
 }
