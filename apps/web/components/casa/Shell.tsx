@@ -29,16 +29,22 @@ function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: s
           </div>
         </div>
       </div>
-      <div className="flex max-w-[420px] flex-1 items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-muted-foreground">
+      <div
+        title="Busca global — em breve"
+        className="flex max-w-[420px] flex-1 cursor-default items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-muted-foreground opacity-60"
+      >
         <Search className="h-4 w-4" />
         <span className="text-[13px]">Buscar família, protocolo, beneficiário…</span>
+        <span className="ml-auto rounded-full bg-[var(--unidade-suave)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--unidade-escuro)]">
+          Em breve
+        </span>
       </div>
       <div className="ml-auto flex items-center gap-3.5">
-        <span className="relative flex h-[38px] w-[38px] items-center justify-center rounded-xl border border-border bg-surface text-foreground">
+        <span
+          title="Notificações — em breve"
+          className="flex h-[38px] w-[38px] cursor-default items-center justify-center rounded-xl border border-border bg-surface text-muted-foreground opacity-60"
+        >
           <Bell className="h-[18px] w-[18px]" />
-          <span className="absolute -right-1.5 -top-1.5 flex h-[17px] w-[17px] items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white">
-            3
-          </span>
         </span>
         <span className="flex items-center gap-2">
           <CrestAvatar iniciais={iniciais} size={34} />
