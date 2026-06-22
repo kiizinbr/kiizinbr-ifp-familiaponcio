@@ -32,6 +32,32 @@ Retomei a varredura de go-live. A auditoria de 22/06 (rodada 1) tinha coberto o 
 
 ---
 
+## ➕ Atualização — endurecimento (2026-06-22, sessão seguinte) · 12 commits · GATE verde · NÃO empurrado
+
+Avancei a lista de "o que ainda precisa melhorar". **Feito e verificado** (typecheck api+web + lint a cada item):
+
+| Achado | Commit | Fix |
+|--------|--------|-----|
+| #12 | `27a2321` | Swagger `/api/docs` só fora de produção (`NODE_ENV`) |
+| #8  | `0a433d3` | leitura de alergias movida para DENTRO do lock da prescrição (TOCTOU) |
+| #30 | `26d4601` | lista de triagem sem telefone/nascimento (minimização) |
+| #11/#14 | `abc1036` | audit READ agenda/fila + prancha só com a elegibilidade da unidade médica |
+| #19 | `581cd01` | audit READ na leitura do diário do menor |
+| #36 | `afe19ad` | audit READ em `/medico/indicadores` |
+| #16 | `912f8aa` | graduação esportiva: P2002 → 409 (não 500) |
+| #15 | `e8e87b6` | encerrar turma cancela matrícula TRANCADA (sem status órfão) |
+| #3/#5/#24 | `4180b65` | foco visível global + labels da prescrição + token `bg-surface` |
+| #34 | `495ad03` | `fecharDiario` cross-unidade → 404 (anti-enumeração) |
+| #20 | `002eda3` | busca de ficha distingue erro de "vazio" (sem falha silenciosa) |
+
+**Ainda aberto (ordem sugerida):**
+- **#7 idempotência da fila** (triagem/encaminhamento/ponte) — exige **migração** (índice único parcial `WHERE status='PENDENTE'`) + P2002→409; **precisa do banco de pé p/ validar** (não fiz às cegas).
+- **#18 race check-in/out da creche** — `$transaction` + `FOR UPDATE`; idealmente validar ao vivo.
+- **#9 Ponte — scoping por ficha** — risco de travar sinalização legítima; **decisão de produto** (o P1 da forja de origem já está fechado).
+- Resto (P3/qualidade): #21 (erro por substring), #27/#28 (TOCTOU baixo), #29/#31/#32 (texto-livre/ip/consentimento interunidade), #35 (JWT refresh), #25/#26 (ARIA tabs/aria-live), #4/#6 (contraste de tokens), #37 (setTimeout cleanup), índices.
+
+---
+
 ## 2. O que ainda precisa melhorar para o go-live
 
 > Decisão consciente: os fixes acima fecharam os furos de segurança reais. O resto é **endurecimento**. Lista priorizada (a completa, com arquivo:linha e correção, está no relatório).
