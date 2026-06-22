@@ -312,6 +312,14 @@ export class BeneficiariosService {
       GROUP BY 1 ORDER BY 1
     `;
 
+    // Só agregados (sem PII), mas mantém a trilha consistente com os demais READs.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Atendimento",
+      metadados: { contexto: "medico.indicadores" },
+    });
+
     return { atendimentosSelados, beneficiarios, porStatus, taxaComparecimento, porMes };
   }
 }
