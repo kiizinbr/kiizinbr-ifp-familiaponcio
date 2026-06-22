@@ -7,7 +7,12 @@ import { ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /servico-social/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "SERVICO_SOCIAL"];
-const ROTAS_PRONTAS = ["/servico-social", "/servico-social/fichas", "/servico-social/triagem"];
+const ROTAS_PRONTAS = [
+  "/servico-social",
+  "/servico-social/fichas",
+  "/servico-social/triagem",
+  "/servico-social/elegibilidade",
+];
 
 export default async function ServicoSocialLayout({
   children,
