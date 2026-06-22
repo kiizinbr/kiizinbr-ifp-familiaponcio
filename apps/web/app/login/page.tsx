@@ -7,6 +7,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { unidadePorSlug } from "@/lib/unidades";
 
+/** Só aceita caminho interno — evita open redirect (?callbackUrl=//site-externo). */
+function destinoSeguro(bruto: string | null, fallback: string): string {
+  if (!bruto) return fallback;
+  if (!bruto.startsWith("/") || bruto.startsWith("//") || bruto.startsWith("/\\")) {
+    return fallback;
+  }
+  return bruto;
+}
+
 /**
  * Login com contexto de unidade (fluxo: vitrine → /acesso → cá).
  * ?unidade=<slug> aplica o data-theme do salão e define o destino pós-login;
@@ -16,7 +25,7 @@ export default function LoginPage() {
   const router = useRouter();
   const params = useSearchParams();
   const unidade = unidadePorSlug(params.get("unidade"));
-  const callbackUrl = params.get("callbackUrl") ?? unidade?.destino ?? "/";
+  const callbackUrl = destinoSeguro(params.get("callbackUrl"), unidade?.destino ?? "/");
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
