@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import {
   AcaoAuditoria,
+  Prisma,
   SentidoCheck,
   StatusDiario,
   TipoUnidade,
@@ -80,9 +81,12 @@ export class RotinaService {
     return autorizado;
   }
 
-  private async ultimoCheckDoDia(membroId: string) {
+  private async ultimoCheckDoDia(
+    tx: Prisma.TransactionClient,
+    membroId: string,
+  ) {
     const { inicio, fim } = janelaDoDiaSP();
-    return this.prisma.checkInOut.findFirst({
+    return tx.checkInOut.findFirst({
       where: { membroId, ocorridoEm: { gte: inicio, lt: fim } },
       orderBy: { ocorridoEm: "desc" },
     });
@@ -99,20 +103,29 @@ export class RotinaService {
       SentidoCheck.ENTRADA,
     );
 
-    const ultimo = await this.ultimoCheckDoDia(dto.membroId);
-    if (ultimo?.sentido === SentidoCheck.ENTRADA) {
-      throw new ConflictException("Esta criança já está presente (check-in sem saída).");
-    }
+    // Lock da linha do membro: serializa o ler-último-check + criar com outro
+    // clique simultâneo — sem janela pra gravar dois ENTRADA seguidos (mesma
+    // disciplina de $transaction + FOR UPDATE de registrarRotina/fecharDiario).
+    const check = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`
+        SELECT id FROM membros_familiares WHERE id = ${dto.membroId} FOR UPDATE
+      `;
 
-    const check = await this.prisma.checkInOut.create({
-      data: {
-        unidadeId: profissional.unidadeId,
-        membroId: dto.membroId,
-        sentido: SentidoCheck.ENTRADA,
-        autorizadoId: autorizado.id,
-        profissionalId: profissional.id,
-      },
-      include: { autorizado: { select: { nome: true, parentesco: true } } },
+      const ultimo = await this.ultimoCheckDoDia(tx, dto.membroId);
+      if (ultimo?.sentido === SentidoCheck.ENTRADA) {
+        throw new ConflictException("Esta criança já está presente (check-in sem saída).");
+      }
+
+      return tx.checkInOut.create({
+        data: {
+          unidadeId: profissional.unidadeId,
+          membroId: dto.membroId,
+          sentido: SentidoCheck.ENTRADA,
+          autorizadoId: autorizado.id,
+          profissionalId: profissional.id,
+        },
+        include: { autorizado: { select: { nome: true, parentesco: true } } },
+      });
     });
 
     this.audit.registrar({
@@ -137,22 +150,31 @@ export class RotinaService {
       SentidoCheck.SAIDA,
     );
 
-    const ultimo = await this.ultimoCheckDoDia(dto.membroId);
-    if (!ultimo || ultimo.sentido === SentidoCheck.SAIDA) {
-      throw new ConflictException(
-        "Não há check-in aberto hoje para esta criança — check-out bloqueado.",
-      );
-    }
+    // Lock da linha do membro: serializa o ler-último-check + criar com outro
+    // clique simultâneo — sem janela pra gravar dois SAIDA seguidos (mesma
+    // disciplina de $transaction + FOR UPDATE de registrarRotina/fecharDiario).
+    const check = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`
+        SELECT id FROM membros_familiares WHERE id = ${dto.membroId} FOR UPDATE
+      `;
 
-    const check = await this.prisma.checkInOut.create({
-      data: {
-        unidadeId: profissional.unidadeId,
-        membroId: dto.membroId,
-        sentido: SentidoCheck.SAIDA,
-        autorizadoId: autorizado.id,
-        profissionalId: profissional.id,
-      },
-      include: { autorizado: { select: { nome: true, parentesco: true } } },
+      const ultimo = await this.ultimoCheckDoDia(tx, dto.membroId);
+      if (!ultimo || ultimo.sentido === SentidoCheck.SAIDA) {
+        throw new ConflictException(
+          "Não há check-in aberto hoje para esta criança — check-out bloqueado.",
+        );
+      }
+
+      return tx.checkInOut.create({
+        data: {
+          unidadeId: profissional.unidadeId,
+          membroId: dto.membroId,
+          sentido: SentidoCheck.SAIDA,
+          autorizadoId: autorizado.id,
+          profissionalId: profissional.id,
+        },
+        include: { autorizado: { select: { nome: true, parentesco: true } } },
+      });
     });
 
     this.audit.registrar({
