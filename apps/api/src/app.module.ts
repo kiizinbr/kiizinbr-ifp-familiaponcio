@@ -21,7 +21,15 @@ import { PresidenciaModule } from "./presidencia/presidencia.module";
   imports: [
     // .env vive na raiz do monorepo; em dev (turbo) o cwd é apps/api.
     ConfigModule.forRoot({ isGlobal: true, cache: true, envFilePath: ["../../.env", ".env"] }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    // Teto global de requisições; o login tem limite próprio (10/min) em auth.controller.
+    // skipIf desliga o throttle só em regressão/E2E em lote (que bate no rate-limit do
+    // login). Guarda dupla: exige THROTTLE_DISABLED=1 E NODE_ENV != production — assim,
+    // mesmo que a env vaze para produção, o throttle continua ativo lá.
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 120 }],
+      skipIf: () =>
+        process.env.THROTTLE_DISABLED === "1" && process.env.NODE_ENV !== "production",
+    }),
     PrismaModule,
     AuditModule,
     AuthModule,
