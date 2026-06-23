@@ -195,20 +195,6 @@ export class TurmasService {
       throw new BadRequestException("A turma já foi encerrada.");
     }
 
-    // Regra de ouro: só matricula quem o Serviço Social aprovou para a Capacitação.
-    const elegivel = await this.prisma.elegibilidadePorUnidade.findFirst({
-      where: {
-        fichaId: dto.fichaId,
-        unidadeId: turma.unidadeId,
-        status: StatusElegibilidade.APROVADO,
-      },
-    });
-    if (!elegivel) {
-      throw new BadRequestException(
-        "Esta família não tem elegibilidade APROVADA na Capacitação — encaminhe ao Serviço Social.",
-      );
-    }
-
     // LGPD: matrícula de MENOR (<18) exige o consentimento do responsável (titular).
     const nascimento = await this.dataNascimentoDoAluno(dto.fichaId, dto.membroId);
     const ehMenor = this.idadeEmAnos(nascimento) < 18;
@@ -231,6 +217,21 @@ export class TurmasService {
       if (!lockada) throw new NotFoundException("Turma não encontrada");
       if (lockada.status === StatusTurma.ENCERRADA) {
         throw new BadRequestException("A turma já foi encerrada.");
+      }
+
+      // Regra de ouro: só matricula quem o Serviço Social aprovou para a Capacitação.
+      // Lida DENTRO da transação (após o FOR UPDATE) para o snapshot ser consistente.
+      const elegivel = await tx.elegibilidadePorUnidade.findFirst({
+        where: {
+          fichaId: dto.fichaId,
+          unidadeId: turma.unidadeId,
+          status: StatusElegibilidade.APROVADO,
+        },
+      });
+      if (!elegivel) {
+        throw new BadRequestException(
+          "Esta família não tem elegibilidade APROVADA na Capacitação — encaminhe ao Serviço Social.",
+        );
       }
 
       const duplicada = await tx.matricula.findFirst({
