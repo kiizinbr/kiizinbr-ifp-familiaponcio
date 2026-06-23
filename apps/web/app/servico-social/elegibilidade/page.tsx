@@ -323,7 +323,7 @@ export default function ElegibilidadePage() {
 
           {/* Paginação */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
+            <p role="status" aria-live="polite" aria-busy={isFetching} className="text-xs text-muted-foreground">
               {total} família(s) · página {page} de {totalPages}
               {isFetching ? " · atualizando..." : ""}
             </p>

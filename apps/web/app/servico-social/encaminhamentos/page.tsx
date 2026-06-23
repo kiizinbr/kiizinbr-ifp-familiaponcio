@@ -331,7 +331,7 @@ export default function EncaminhamentosPage() {
         titulo="Encaminhamentos"
         descricao="Famílias encaminhadas entre as unidades — aceite ou recuse cada solicitação."
         acoes={
-          <Botao onClick={() => setNovoAberto((v) => !v)}>
+          <Botao onClick={() => setNovoAberto((v) => !v)} aria-expanded={novoAberto}>
             <Plus className="h-4 w-4" />
             Novo encaminhamento
           </Botao>
@@ -349,11 +349,13 @@ export default function EncaminhamentosPage() {
       {novoAberto ? <NovoEncaminhamentoPanel onClose={() => setNovoAberto(false)} /> : null}
 
       {/* Abas */}
-      <div className="mb-6 flex gap-2 border-b border-border">
+      <div role="tablist" className="mb-6 flex gap-2 border-b border-border">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
+            role="tab"
+            aria-selected={tab === t.key}
             onClick={() => {
               setTab(t.key);
               setPage(1);
@@ -431,7 +433,7 @@ export default function EncaminhamentosPage() {
 
           {/* Paginação */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
+            <p role="status" aria-live="polite" className="text-xs text-muted-foreground">
               {total} no total · página {page} de {totalPages}
               {isFetching ? " · atualizando..." : ""}
             </p>

@@ -100,11 +100,13 @@ export default function PontePage() {
       </section>
 
       {/* Abas */}
-      <div className="mb-6 flex gap-2 border-b border-border">
+      <div role="tablist" aria-label="Filtrar sinalizações" className="mb-6 flex gap-2 border-b border-border">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
+            role="tab"
+            aria-selected={tab === t.key}
             onClick={() => {
               setTab(t.key);
               setPage(1);
@@ -169,7 +171,7 @@ export default function PontePage() {
 
           {/* Paginação */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
+            <p role="status" aria-live="polite" className="text-xs text-muted-foreground">
               {total} no total · página {page} de {totalPages}
               {isFetching ? " · atualizando..." : ""}
             </p>

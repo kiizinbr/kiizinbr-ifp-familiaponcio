@@ -291,7 +291,7 @@ export default function TriagemPage() {
         titulo="Triagem"
         descricao="Fila de famílias aguardando avaliação, ordenada por prioridade."
         acoes={
-          <Botao onClick={() => setNovaAberta((v) => !v)}>
+          <Botao onClick={() => setNovaAberta((v) => !v)} aria-expanded={novaAberta}>
             <Plus className="h-4 w-4" />
             Nova triagem
           </Botao>
@@ -413,7 +413,7 @@ export default function TriagemPage() {
 
           {/* Paginação */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
               {total} na fila · página {page} de {totalPages}
               {isFetching ? " · atualizando..." : ""}
             </p>
