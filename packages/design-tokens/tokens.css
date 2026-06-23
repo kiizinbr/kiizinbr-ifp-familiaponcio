@@ -39,6 +39,7 @@
   --ifp-gray-200:       #E5E5E5;
   --ifp-gray-300:       #D4D4D4;
   --ifp-gray-500:       #737373;
+  --ifp-gray-600:       #5C5C5C;  /* texto secundário acessível (>=4.5:1 no papel) */
   --ifp-gray-700:       #404040;
   --ifp-gray-900:       #171717;
 
@@ -53,7 +54,7 @@
   --color-bg:           var(--ifp-papel);
   --color-surface:      var(--ifp-white);
   --color-text:         var(--ifp-gray);
-  --color-text-muted:   var(--ifp-gray-500);
+  --color-text-muted:   var(--ifp-gray-600);
   --color-border:       var(--ifp-linha);
   --color-primary:      var(--unidade);
   --color-primary-hover:var(--unidade-escuro);

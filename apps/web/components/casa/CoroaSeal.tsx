@@ -8,7 +8,7 @@ type CoroaStatus = "aprovado" | "analise" | "bloqueado";
 
 const VARIANTES: Record<CoroaStatus, { bg: string; color: string; border: string; icon: string }> = {
   aprovado: { bg: "rgba(201,150,47,.14)", color: "#8a6516", border: "rgba(201,150,47,.55)", icon: "var(--ifp-dourado)" },
-  analise: { bg: "var(--ifp-white)", color: "#9a8f84", border: "var(--ifp-linha)", icon: "#bcae9f" },
+  analise: { bg: "var(--ifp-white)", color: "#6E6358", border: "var(--ifp-linha)", icon: "#bcae9f" },
   bloqueado: { bg: "var(--ifp-erro-bg)", color: "var(--color-danger)", border: "rgba(179,38,30,.3)", icon: "var(--color-danger)" },
 };
 
