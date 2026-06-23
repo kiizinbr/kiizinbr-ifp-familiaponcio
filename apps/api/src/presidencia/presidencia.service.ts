@@ -435,6 +435,141 @@ export class PresidenciaService {
   }
 
   // ============================================================
+  // Impacto longitudinal — séries temporais por mês (últimos N meses)
+  // ============================================================
+  /**
+   * Cruza as verticais numa visão LONGITUDINAL: para cada um dos últimos N
+   * meses, conta atendimentos, matrículas (capacitação+infantil+esportiva),
+   * graduações, certificados e presenças efetivas (PRESENTE) — aula + treino +
+   * creche. generate_series garante a grade de N meses (meses sem dado = 0),
+   * para o gráfico não "pular" buracos e enganar a leitura. Só agregação READ
+   * sobre o que o banco já tem; sem IA, sem schema novo.
+   */
+  async impactoSeries(user: AuthenticatedUser, mesesBruto?: string | number) {
+    this.auditarLeitura(user, "impacto-series");
+    const meses = this.normalizarMeses(mesesBruto);
+
+    // Cada série usa a mesma grade de meses (generate_series) com LEFT JOIN na
+    // coluna de data própria daquela entidade. ($queryRaw não interpola
+    // identificadores, mas `meses` é um inteiro saneado por normalizarMeses.)
+    const offset = meses - 1;
+
+    const serieAtendimentos = await this.serieMensal(offset, "atendimentos", "encerradoEm", {
+      whereExtra: '"encerradoEm" IS NOT NULL',
+    });
+    const serieMatriculas = await this.serieMatriculas(offset);
+    const serieGraduacoes = await this.serieMensal(offset, "graduacoes", "concedidaEm");
+    const serieCertificados = await this.serieMensal(offset, "certificados", "emitidoEm");
+    const seriePresencas = await this.seriePresencas(offset);
+
+    // Totais do período (a barra de topo da tela) — soma das próprias séries,
+    // garantindo coerência entre o número grande e o mini-gráfico.
+    const somar = (s: { total: number }[]) => s.reduce((a, p) => a + p.total, 0);
+
+    return {
+      meses,
+      kpis: {
+        atendimentos: somar(serieAtendimentos),
+        matriculas: somar(serieMatriculas),
+        graduacoes: somar(serieGraduacoes),
+        certificados: somar(serieCertificados),
+        presencas: somar(seriePresencas),
+      },
+      series: [
+        { chave: "atendimentos", label: "Atendimentos", pontos: serieAtendimentos },
+        { chave: "matriculas", label: "Matrículas", pontos: serieMatriculas },
+        { chave: "graduacoes", label: "Graduações", pontos: serieGraduacoes },
+        { chave: "certificados", label: "Certificados", pontos: serieCertificados },
+        { chave: "presencas", label: "Presenças", pontos: seriePresencas },
+      ],
+    };
+  }
+
+  /** Saneia o nº de meses pedido: inteiro entre 3 e 24 (default 12). */
+  private normalizarMeses(bruto?: string | number): number {
+    const n = typeof bruto === "string" ? Number.parseInt(bruto, 10) : bruto;
+    if (n == null || Number.isNaN(n)) return 12;
+    return Math.min(24, Math.max(3, Math.trunc(n)));
+  }
+
+  /**
+   * Série mensal genérica para uma tabela com UMA coluna de data. `tabela` e
+   * `coluna` vêm SÓ de literais internos deste service (nunca do usuário);
+   * `offset` é inteiro saneado. Sem entrada externa interpolada → sem SQLi.
+   */
+  private serieMensal(
+    offset: number,
+    tabela: string,
+    coluna: string,
+    opts?: { whereExtra?: string },
+  ) {
+    const where = opts?.whereExtra ? `AND t.${opts.whereExtra}` : "";
+    const sql = `
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(t.id)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - make_interval(months => ${offset}),
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN ${tabela} t
+        ON date_trunc('month', t."${coluna}") = m.mes ${where}
+      GROUP BY m.mes ORDER BY m.mes
+    `;
+    return this.prisma.$queryRawUnsafe<{ mes: string; total: number }[]>(sql);
+  }
+
+  /** Matrículas no mês: soma capacitação + infantil + esportiva (criadoEm). */
+  private serieMatriculas(offset: number) {
+    const sql = `
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(t.id)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - make_interval(months => ${offset}),
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN (
+        SELECT id, "criadoEm" FROM matriculas
+        UNION ALL SELECT id, "criadoEm" FROM matriculas_infantis
+        UNION ALL SELECT id, "criadoEm" FROM matriculas_esportivas
+      ) t ON date_trunc('month', t."criadoEm") = m.mes
+      GROUP BY m.mes ORDER BY m.mes
+    `;
+    return this.prisma.$queryRawUnsafe<{ mes: string; total: number }[]>(sql);
+  }
+
+  /**
+   * Presenças efetivas no mês: aula (Presenca→Aula.data) + treino
+   * (PresencaTreino→TreinoEsportivo.data) + creche (PresencaCreche.data).
+   * Só PRESENTE conta como "presença" (falta/justificada/atraso ficam fora);
+   * creche conta resposta SIM. A data é a DO ENCONTRO, não a do registro.
+   */
+  private seriePresencas(offset: number) {
+    const sql = `
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(t.dia)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - make_interval(months => ${offset}),
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN (
+        SELECT a.data AS dia
+          FROM presencas p JOIN aulas a ON a.id = p."aulaId"
+          WHERE p.status = 'PRESENTE'::"StatusPresenca"
+        UNION ALL
+        SELECT tr.data AS dia
+          FROM presencas_treino pt JOIN treinos_esportivos tr ON tr.id = pt."treinoId"
+          WHERE pt.status = 'PRESENTE'::"StatusPresenca"
+        UNION ALL
+        SELECT pc.data::timestamp AS dia
+          FROM presencas_creche pc
+          WHERE pc.resposta = 'SIM'::"RespostaPresenca"
+      ) t ON date_trunc('month', t.dia) = m.mes
+      GROUP BY m.mes ORDER BY m.mes
+    `;
+    return this.prisma.$queryRawUnsafe<{ mes: string; total: number }[]>(sql);
+  }
+
+  // ============================================================
   // Jornada da Família — o diferencial: famílias em N unidades
   // ============================================================
   async jornada(user: AuthenticatedUser) {

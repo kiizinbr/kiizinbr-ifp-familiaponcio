@@ -72,6 +72,29 @@ export interface ImpactoPresidencia {
   crescimentoPorUnidade: { tipo: string; nome: string; total: number }[];
 }
 
+export interface SerieMensalPonto {
+  mes: string;
+  total: number;
+}
+
+export interface SerieImpacto {
+  chave: "atendimentos" | "matriculas" | "graduacoes" | "certificados" | "presencas";
+  label: string;
+  pontos: SerieMensalPonto[];
+}
+
+export interface ImpactoSeriesPresidencia {
+  meses: number;
+  kpis: {
+    atendimentos: number;
+    matriculas: number;
+    graduacoes: number;
+    certificados: number;
+    presencas: number;
+  };
+  series: SerieImpacto[];
+}
+
 export interface JornadaPresidencia {
   familiasUnicas: number;
   cross2mais: number;
@@ -101,6 +124,19 @@ export const useFamiliasPresidencia = () => usePresidenciaQuery<FamiliasPresiden
 export const useUnidadesPresidencia = () => usePresidenciaQuery<UnidadesPresidencia>("unidades");
 export const useImpactoPresidencia = () => usePresidenciaQuery<ImpactoPresidencia>("impacto");
 export const useJornadaPresidencia = () => usePresidenciaQuery<JornadaPresidencia>("jornada");
+
+/** Séries temporais cruzando as verticais; `meses` entre 3 e 24 (default 12). */
+export function useImpactoSeries(meses: number) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["presidencia", "impacto-series", meses],
+    queryFn: () =>
+      authFetch<ImpactoSeriesPresidencia>(`/presidencia/impacto-series?meses=${meses}`),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
+  });
+}
 
 export type PeriodoChave = "mes" | "ano" | "12m";
 

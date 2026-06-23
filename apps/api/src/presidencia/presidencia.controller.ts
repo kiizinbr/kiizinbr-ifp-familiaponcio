@@ -62,6 +62,15 @@ export class PresidenciaController {
     return this.presidencia.impacto(user);
   }
 
+  @Get("impacto-series")
+  @ApiOperation({
+    summary: "Séries temporais por mês cruzando as verticais (últimos N meses)",
+  })
+  @ApiQuery({ name: "meses", required: false, description: "3 a 24 (default 12)" })
+  impactoSeries(@Query("meses") meses: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.presidencia.impactoSeries(user, meses);
+  }
+
   @Get("jornada")
   @ApiOperation({ summary: "Jornada da Família: famílias que cruzam 2+ unidades" })
   jornada(@CurrentUser() user: AuthenticatedUser) {
