@@ -134,6 +134,54 @@ const registroPosSelo = await req(educadora, "POST", `/educacional/diarios/${mem
 });
 caso("registro após o selo bloqueado", 409, registroPosSelo.status);
 
+console.log("--- INDICADORES DA CRECHE (U3) ---");
+const indicadores = await req(educadora, "GET", "/educacional/indicadores");
+caso("educadora -> indicadores", 200, indicadores.status);
+const presencaPorDia = indicadores.json?.presencaPorDia ?? [];
+caso("  -> presença por dia traz a série de 7 dias", 7, presencaPorDia.length);
+const temOcupacao = Array.isArray(indicadores.json?.ocupacaoPorTurma)
+  && indicadores.json.ocupacaoPorTurma.length > 0;
+caso("  -> ocupação por turma preenchida", true, temOcupacao);
+const fechamentoOk = (indicadores.json?.diarios?.fechados ?? 0) >= 1;
+caso("  -> diários fechados >= 1 (o selo de Ana)", true, fechamentoOk);
+console.log(
+  `    presentes hoje: ${presencaPorDia[presencaPorDia.length - 1]?.presentes} · ocupação geral: ${indicadores.json?.ocupacao?.pct}% · fechamento: ${indicadores.json?.diarios?.taxaFechamento}%`,
+);
+
+console.log("--- DIÁRIO EM LOTE (U3) ---");
+// Ana (membroId) já está com o diário FECHADO: o lote da turma deve PULÁ-LA,
+// nunca abortar — e aplicar nos demais. É o teste central do recurso.
+const lote = await req(educadora, "POST", `/educacional/turmas/${turma.id}/diarios/lote`, {
+  tipo: "ATIVIDADE",
+  descricao: "Roda de música com toda a turma",
+});
+caso("lote na turma inteira", 201, lote.status);
+const anaPulada = (lote.json?.pulados ?? []).some((p) => p.membroId === membroId);
+caso("  -> Ana (diário selado) foi PULADA, não derrubou o lote", true, anaPulada);
+const totalCoberto =
+  (lote.json?.aplicados?.length ?? 0) + (lote.json?.pulados?.length ?? 0);
+caso("  -> aplicados + pulados = total de alvos", lote.json?.totalAlvos ?? -1, totalCoberto);
+
+const loteFiltrado = await req(educadora, "POST", `/educacional/turmas/${turma.id}/diarios/lote`, {
+  tipo: "HIGIENE",
+  descricao: "Higiene das mãos",
+  membroIds: [membroId],
+});
+caso("lote filtrado por criança", 201, loteFiltrado.status);
+
+const loteForaDaTurma = await req(educadora, "POST", `/educacional/turmas/${turma.id}/diarios/lote`, {
+  tipo: "HIGIENE",
+  descricao: "criança de outra turma",
+  membroIds: ["membro-inexistente-xyz"],
+});
+caso("lote com criança fora da turma -> 400", 400, loteForaDaTurma.status);
+
+const loteTurmaInexistente = await req(educadora, "POST", "/educacional/turmas/turma-zzz/diarios/lote", {
+  tipo: "ATIVIDADE",
+  descricao: "turma fantasma",
+});
+caso("lote em turma inexistente/cross-unidade -> 404", 404, loteTurmaInexistente.status);
+
 console.log("--- PORTAL DA FAMÍLIA (ownership) ---");
 const minhas = await req(familia, "GET", "/familia/educacional/criancas");
 caso("família -> minhas crianças", 200, minhas.status);
@@ -155,6 +203,19 @@ if (critico) {
 
 console.log("--- RBAC CRUZADO ---");
 caso("médico -> /educacional/resumo", 403, (await req(medico, "GET", "/educacional/resumo")).status);
+caso(
+  "médico -> /educacional/indicadores",
+  403,
+  (await req(medico, "GET", "/educacional/indicadores")).status,
+);
+caso(
+  "família -> diário em lote (console da equipe)",
+  403,
+  (await req(familia, "POST", `/educacional/turmas/${turma.id}/diarios/lote`, {
+    tipo: "ATIVIDADE",
+    descricao: "tentativa indevida",
+  })).status,
+);
 caso(
   "família -> /educacional/turmas (console da equipe)",
   403,

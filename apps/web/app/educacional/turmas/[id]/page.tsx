@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
+  Layers,
   LogIn,
   LogOut,
   Lock,
@@ -32,6 +33,7 @@ import {
   useDiarioDoDia,
   useFecharDiario,
   useRegistrarRotina,
+  useRegistrarRotinaLote,
   useTurmaInfantil,
   type AutorizadoItem,
   type EstadoDia,
@@ -355,6 +357,121 @@ function PainelRotina({ matricula }: { matricula: MatriculaTurmaDia }) {
   );
 }
 
+/**
+ * Lançamento em LOTE para a turma toda: escolhe o tipo, dispara por tag de 1
+ * toque (ou nota) e a API cria o registro no diário de cada criança. Diários
+ * já selados são PULADOS (a API devolve a contagem), não derruba o lote.
+ */
+function PainelLote({ turmaId, onFechar }: { turmaId: string; onFechar: () => void }) {
+  const lote = useRegistrarRotinaLote();
+  const [tipo, setTipo] = useState<TipoRegistroRotina | null>(null);
+  const [nota, setNota] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+  const [resumo, setResumo] = useState<{ aplicados: number; pulados: number } | null>(null);
+
+  async function enviar(descricao: string) {
+    if (!tipo) return;
+    setErro(null);
+    try {
+      const r = await lote.mutateAsync({ turmaId, tipo, descricao });
+      setResumo({ aplicados: r.aplicados.length, pulados: r.pulados.length });
+      setTipo(null);
+      setNota("");
+    } catch (e) {
+      setErro((e as Error).message || "Falha ao lançar em lote.");
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-primary/40 bg-primary/5 p-4">
+      <div className="flex items-center justify-between">
+        <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+          <Layers className="h-4 w-4" /> Rotina para a turma toda
+        </p>
+        <button
+          type="button"
+          onClick={onFechar}
+          className="rounded p-1 text-muted-foreground hover:text-foreground"
+          aria-label="Fechar lote"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Lança o mesmo registro no diário de cada criança. Diários já fechados são pulados.
+      </p>
+
+      {!tipo ? (
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {(Object.keys(TIPO_ROTINA_LABEL) as TipoRegistroRotina[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => {
+                setTipo(t);
+                setResumo(null);
+              }}
+              className="rounded-lg border border-border bg-surface px-3 py-3 text-sm font-semibold text-foreground transition hover:border-primary/60 hover:text-primary"
+            >
+              {TIPO_ROTINA_LABEL[t]}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-primary">{TIPO_ROTINA_LABEL[tipo]}</p>
+            <button
+              type="button"
+              onClick={() => setTipo(null)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              trocar tipo
+            </button>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {TAGS_ROTINA[tipo].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                disabled={lote.isPending}
+                onClick={() => enviar(tag)}
+                className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/20"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 flex gap-2">
+            <Input
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+              placeholder="Ou escreva uma nota curta para todos..."
+              className="flex-1"
+            />
+            <Botao disabled={lote.isPending || nota.trim().length < 2} onClick={() => enviar(nota.trim())}>
+              Lançar p/ turma
+            </Botao>
+          </div>
+        </div>
+      )}
+
+      {resumo && (
+        <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-success">
+          <Check className="h-4 w-4" /> Lançado em {resumo.aplicados} criança(s)
+          {resumo.pulados > 0 ? ` · ${resumo.pulados} com diário já fechado (pulado)` : ""}.
+        </p>
+      )}
+
+      {erro && (
+        <div className="mt-3">
+          <Alerta tipo="erro">{erro}</Alerta>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TurmaDoDia({ params }: { params: { id: string } }) {
   const { id } = params;
   const { data: turma, isLoading, error } = useTurmaInfantil(id);
@@ -363,6 +480,7 @@ export default function TurmaDoDia({ params }: { params: { id: string } }) {
     sentido: SentidoCheck;
   } | null>(null);
   const [rotinaAberta, setRotinaAberta] = useState<string | null>(null);
+  const [loteAberto, setLoteAberto] = useState(false);
 
   if (isLoading) {
     return (
@@ -389,14 +507,22 @@ export default function TurmaDoDia({ params }: { params: { id: string } }) {
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Painel
       </Link>
-      <div className="mt-2 flex items-end justify-between">
+      <div className="mt-2 flex items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">{turma.nome}</h1>
           <p className="text-xs text-muted-foreground">
             {turma.dia} · {presentes} presente(s) de {turma.matriculas.length}
           </p>
         </div>
+        <Botao
+          variante={loteAberto ? "primary" : "outline"}
+          onClick={() => setLoteAberto((v) => !v)}
+        >
+          <Layers className="mr-1 h-4 w-4" /> Rotina em lote
+        </Botao>
       </div>
+
+      {loteAberto && <PainelLote turmaId={id} onFechar={() => setLoteAberto(false)} />}
 
       <ul className="mt-5 space-y-3">
         {turma.matriculas.map((m) => (

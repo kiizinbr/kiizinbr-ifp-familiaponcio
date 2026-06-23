@@ -73,6 +73,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
   educacional: [
     { href: "/educacional", label: "Painel", icon: Home },
     { href: "/educacional/turmas", label: "Turmas", icon: Baby },
+    { href: "/educacional/indicadores", label: "Indicadores", icon: BarChart3 },
     { href: "/educacional/comunicados", label: "Comunicados", icon: Bell },
     { href: "/educacional/criancas", label: "Crianças", icon: User },
   ],

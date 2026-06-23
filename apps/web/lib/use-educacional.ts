@@ -90,6 +90,27 @@ export interface ResumoEducacional {
   criticosSemLeitura: number;
 }
 
+export interface IndicadoresEducacional {
+  presencaPorDia: { dia: string; presentes: number }[];
+  diarios: { abertos: number; fechados: number; taxaFechamento: number | null };
+  ocupacao: { matriculados: number; capacidade: number; pct: number | null };
+  ocupacaoPorTurma: {
+    turmaId: string;
+    nome: string;
+    matriculados: number;
+    capacidade: number;
+    pct: number | null;
+  }[];
+}
+
+export interface RotinaLoteResultado {
+  tipo: TipoRegistroRotina;
+  descricao: string;
+  totalAlvos: number;
+  aplicados: { membroId: string; registroId: string }[];
+  pulados: { membroId: string; motivo: string }[];
+}
+
 export interface TurmaInfantilResumo {
   id: string;
   nome: string;
@@ -188,6 +209,45 @@ export function useResumoEducacional() {
     queryKey: ["educacional", "resumo"],
     queryFn: () => authFetch<ResumoEducacional>("/educacional/resumo"),
     enabled: status === "authenticated",
+  });
+}
+
+/** Indicadores da creche (dashboard): presença 7 dias, fechamento, ocupação. */
+export function useIndicadoresEducacional() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["educacional", "indicadores"],
+    queryFn: () => authFetch<IndicadoresEducacional>("/educacional/indicadores"),
+    enabled: status === "authenticated",
+  });
+}
+
+/** Lança um registro de rotina para a turma inteira de uma vez. */
+export function useRegistrarRotinaLote() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      turmaId,
+      tipo,
+      descricao,
+      membroIds,
+    }: {
+      turmaId: string;
+      tipo: TipoRegistroRotina;
+      descricao: string;
+      membroIds?: string[];
+    }) =>
+      authFetch<RotinaLoteResultado>(`/educacional/turmas/${turmaId}/diarios/lote`, {
+        method: "POST",
+        body: JSON.stringify({ tipo, descricao, membroIds }),
+      }),
+    onSuccess: (_d, { turmaId }) => {
+      qc.invalidateQueries({ queryKey: ["educacional", "turma", turmaId] });
+      qc.invalidateQueries({ queryKey: ["educacional", "resumo"] });
+      qc.invalidateQueries({ queryKey: ["educacional", "indicadores"] });
+    },
   });
 }
 

@@ -9,6 +9,8 @@ import { CriancasController } from "./criancas.controller";
 import { CriancasService } from "./criancas.service";
 import { FamiliaController } from "./familia.controller";
 import { FamiliaService } from "./familia.service";
+import { IndicadoresController } from "./indicadores.controller";
+import { IndicadoresService } from "./indicadores.service";
 import { RotinaController } from "./rotina.controller";
 import { RotinaService } from "./rotina.service";
 import { TurmasInfantisController } from "./turmas-infantis.controller";
@@ -20,6 +22,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     TurmasInfantisController,
     CriancasController,
     RotinaController,
+    IndicadoresController,
     ComunicadosController,
     ConversasController,
     FamiliaController,
@@ -28,6 +31,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     TurmasInfantisService,
     CriancasService,
     RotinaService,
+    IndicadoresService,
     ComunicadosService,
     ConversasService,
     FamiliaService,

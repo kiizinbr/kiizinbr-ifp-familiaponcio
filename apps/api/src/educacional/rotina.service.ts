@@ -20,6 +20,7 @@ import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import { ProfissionaisService } from "../medico/profissionais.service";
 import { CriancasService } from "./criancas.service";
 import type { CriarRegistroRotinaDto } from "./dto/criar-registro-rotina.dto";
+import type { CriarRotinaLoteDto } from "./dto/criar-rotina-lote.dto";
 import type { RegistrarCheckDto } from "./dto/registrar-check.dto";
 import { janelaDoDiaSP } from "./dia-util";
 
@@ -237,6 +238,118 @@ export class RotinaService {
     });
 
     return registro;
+  }
+
+  /**
+   * Lançamento em LOTE: aplica UM registro do mesmo tipo/descrição a todas as
+   * crianças (ou às escolhidas) da turma de uma vez — "almoço servido", "soneca".
+   * Reusa o model de diário (não inventa nada): para cada criança faz o mesmo
+   * upsert-do-dia + lock + create de registrarRotina. Diário FECHADO é PULADO
+   * (imutável após o selo), não derruba o lote — relatamos o que foi pulado.
+   */
+  async registrarRotinaLote(
+    user: AuthenticatedUser,
+    turmaId: string,
+    dto: CriarRotinaLoteDto,
+  ) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.EDUCACIONAL);
+
+    // Tenant: a turma tem de ser desta unidade (anti-enumeração: 404 cross-unidade).
+    const turma = await this.prisma.turmaInfantil.findUnique({
+      where: { id: turmaId },
+      select: { id: true, unidadeId: true },
+    });
+    if (!turma || turma.unidadeId !== profissional.unidadeId) {
+      throw new NotFoundException("Turma não encontrada");
+    }
+
+    const matriculas = await this.prisma.matriculaInfantil.findMany({
+      where: { turmaId, ativa: true },
+      select: { membroId: true },
+    });
+    let alvos = matriculas.map((m) => m.membroId);
+
+    // Filtro opcional por criança — só vale para quem está matriculado na turma.
+    if (dto.membroIds && dto.membroIds.length > 0) {
+      const selecionados = new Set(dto.membroIds);
+      const naTurma = new Set(alvos);
+      const forasDaTurma = dto.membroIds.filter((id) => !naTurma.has(id));
+      if (forasDaTurma.length > 0) {
+        throw new BadRequestException(
+          "Há crianças que não estão matriculadas nesta turma.",
+        );
+      }
+      alvos = alvos.filter((id) => selecionados.has(id));
+    }
+
+    if (alvos.length === 0) {
+      throw new BadRequestException("Não há crianças para lançar a rotina nesta turma.");
+    }
+
+    const { dataDb } = janelaDoDiaSP();
+    const aplicados: { membroId: string; registroId: string }[] = [];
+    const pulados: { membroId: string; motivo: string }[] = [];
+
+    // Mesma disciplina do lançamento individual: upsert do diário + lock FOR
+    // UPDATE + create, por criança. Uma criança com diário selado é pulada
+    // (409 vira "pulado"), preservando a imutabilidade sem abortar o lote.
+    for (const membroId of alvos) {
+      try {
+        const registro = await this.prisma.$transaction(async (tx) => {
+          const diario = await tx.diarioDia.upsert({
+            where: { membroId_data: { membroId, data: dataDb } },
+            update: {},
+            create: { unidadeId: profissional.unidadeId, membroId, data: dataDb },
+          });
+
+          const [lockado] = await tx.$queryRaw<{ status: StatusDiario }[]>`
+            SELECT status FROM diarios_dia WHERE id = ${diario.id} FOR UPDATE
+          `;
+          if (!lockado) throw new NotFoundException("Diário não encontrado");
+          if (lockado.status === StatusDiario.FECHADO) {
+            throw new ConflictException(MSG_DIARIO_FECHADO);
+          }
+
+          return tx.registroRotina.create({
+            data: {
+              diarioId: diario.id,
+              tipo: dto.tipo,
+              descricao: dto.descricao,
+              profissionalId: profissional.id,
+            },
+          });
+        });
+        aplicados.push({ membroId, registroId: registro.id });
+      } catch (e) {
+        if (e instanceof ConflictException) {
+          pulados.push({ membroId, motivo: "diário já fechado" });
+          continue;
+        }
+        throw e;
+      }
+    }
+
+    // O lote é escrita de dossiê de menores — uma linha de trilha cobre o ato.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.CREATE,
+      entidade: "RegistroRotina.lote",
+      entidadeId: turmaId,
+      metadados: {
+        turmaId,
+        tipo: dto.tipo,
+        aplicados: aplicados.length,
+        pulados: pulados.length,
+      },
+    });
+
+    return {
+      tipo: dto.tipo,
+      descricao: dto.descricao,
+      totalAlvos: alvos.length,
+      aplicados,
+      pulados,
+    };
   }
 
   /** Diário do dia da criança (visão do educador). */

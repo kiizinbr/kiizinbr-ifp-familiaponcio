@@ -18,6 +18,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
 import { CriarRegistroRotinaDto } from "./dto/criar-registro-rotina.dto";
+import { CriarRotinaLoteDto } from "./dto/criar-rotina-lote.dto";
 import { RegistrarCheckDto } from "./dto/registrar-check.dto";
 import { RotinaService } from "./rotina.service";
 
@@ -53,6 +54,21 @@ export class RotinaController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.rotina.registrarRotina(user, membroId, dto);
+  }
+
+  @Post("turmas/:turmaId/diarios/lote")
+  @ApiOperation({
+    summary:
+      "Lança UM registro de rotina para a turma inteira de uma vez; pula diário fechado (não aborta o lote)",
+  })
+  @ApiParam({ name: "turmaId", description: "cuid da TurmaInfantil" })
+  @HttpCode(HttpStatus.CREATED)
+  registrarLote(
+    @Param("turmaId") turmaId: string,
+    @Body() dto: CriarRotinaLoteDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.rotina.registrarRotinaLote(user, turmaId, dto);
   }
 
   @Get("diarios/:membroId")
