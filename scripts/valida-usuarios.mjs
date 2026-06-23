@@ -15,19 +15,31 @@ if (!SENHA) {
   process.exit(2);
 }
 
+const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function loginFull(email, senha) {
-  const r = await fetch(`${API}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, senha }),
-  });
-  let json = null;
-  try {
-    json = await r.json();
-  } catch {
-    /* sem corpo */
+  // O login tem rate-limit próprio (janela de 60s). Este script faz muitos
+  // logins; ao bater 429 é preciso ESPERAR a janela FECHAR sem novas requisições
+  // (polling reabastece a janela), então dormimos > 60s e tentamos de novo.
+  for (let tentativa = 0; tentativa < 3; tentativa++) {
+    const r = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, senha }),
+    });
+    if (r.status === 429) {
+      await dormir(62000);
+      continue;
+    }
+    let json = null;
+    try {
+      json = await r.json();
+    } catch {
+      /* sem corpo */
+    }
+    return { status: r.status, token: json?.accessToken, user: json?.user };
   }
-  return { status: r.status, token: json?.accessToken, user: json?.user };
+  return { status: 429, token: undefined, user: undefined };
 }
 
 async function login(email) {
@@ -62,11 +74,16 @@ function caso(nome, esperado, obtido) {
 }
 
 // --- atores ---
-const adminLogin = await loginFull("admin@ifp.local", SENHA);
+// O admin pode ter senha própria (SEED_SUPER_ADMIN_PASSWORD) quando as senhas
+// do seed NÃO estão unificadas: tenta a senha dev e cai para a do admin.
+let adminLogin = await loginFull("admin@ifp.local", SENHA);
+if (adminLogin.status !== 200 && process.env.SENHA_ADMIN) {
+  adminLogin = await loginFull("admin@ifp.local", process.env.SENHA_ADMIN);
+}
 if (adminLogin.status !== 200) {
   console.error(
     `Não consegui logar como admin@ifp.local (${adminLogin.status}). ` +
-      "Rode o padroniza-senhas-demo.ts e confira SENHA_DEV.",
+      "Rode o padroniza-senhas-demo.ts e confira SENHA_DEV/SENHA_ADMIN.",
   );
   process.exit(2);
 }

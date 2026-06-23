@@ -447,6 +447,8 @@ model AuditLog {
   @@index([userId])
   @@index([entidade, entidadeId])
   @@index([criadoEm])
+  // Filtro do visualizador de auditoria (governança LGPD) por tipo de ação.
+  @@index([acao])
   @@map("audit_logs")
 }
 

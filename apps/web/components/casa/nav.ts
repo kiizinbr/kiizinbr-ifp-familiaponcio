@@ -16,7 +16,6 @@ import {
   ListOrdered,
   Network,
   Send,
-  Settings,
   ShieldCheck,
   Stethoscope,
   User,
@@ -98,6 +97,6 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
     { href: "/admin/usuarios", label: "Usuários", icon: Users },
     { href: "/admin/unidades", label: "Unidades", icon: LayoutGrid },
     { href: "/admin/auditoria", label: "Auditoria", icon: ShieldCheck },
-    { href: "/admin/config", label: "Config", icon: Settings },
+    { href: "/admin/comunicados", label: "Comunicados", icon: Bell },
   ],
 };

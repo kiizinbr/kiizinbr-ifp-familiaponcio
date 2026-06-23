@@ -7,8 +7,13 @@ import { AcessoRestrito, ShellInterno } from "@/components/casa";
 /** Guard único de toda a área /admin/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE"];
 
-/** Rotas do admin que já existem (as demais aparecem como "em breve" no rail). */
-const ROTAS_PRONTAS = ["/admin/usuarios"];
+/**
+ * Rotas do admin que já existem (as demais aparecem como "em breve" no rail).
+ * Auditoria/Unidades/Comunicados são exclusivas do SUPER_ADMIN (o backend
+ * devolve 403 para gestor; aqui só liberamos o item do rail para o admin).
+ */
+const ROTAS_BASE = ["/admin/usuarios"];
+const ROTAS_SUPER_ADMIN = ["/admin/auditoria", "/admin/unidades", "/admin/comunicados"];
 
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);
@@ -32,14 +37,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const nome = session.user?.name ?? session.user?.email ?? "Administração";
-  const ehGestor = !session.perfis.includes("SUPER_ADMIN");
+  const ehSuperAdmin = session.perfis.includes("SUPER_ADMIN");
+  const habilitadas = ehSuperAdmin ? [...ROTAS_BASE, ...ROTAS_SUPER_ADMIN] : ROTAS_BASE;
   return (
     <ShellInterno
       modulo="admin"
       user={nome}
-      cargo={ehGestor ? "Gestor de unidade" : "Administração"}
+      cargo={ehSuperAdmin ? "Administração" : "Gestor de unidade"}
       iniciais={iniciais(nome)}
-      habilitadas={ROTAS_PRONTAS}
+      habilitadas={habilitadas}
     >
       {children}
     </ShellInterno>
