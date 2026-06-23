@@ -7,6 +7,20 @@
 
 ---
 
+## ⭐ ATUALIZAÇÃO (22/06, pós-handoff) — VALIDADO EM RUNTIME E DEPLOYADO
+
+> Esta seção é o **estado atual**. O resto do doc abaixo é o histórico da varredura.
+
+- **VM de produção = `ifp-final`** → **https://ifp-final.taile04c66.ts.net** (SSH `ifp@100.118.69.57`, stack em `/opt/ifp-connect`). ⚠️ A VM **`ifp-app` (100.104.192.49) é a ANTIGA** — só falta desativar (export do backup Amplimed antes). **Deploy vai SEMPRE na `ifp-final`.**
+- **Deploy feito:** branch atualizada para **`b8283a9`** (+41 commits desde `b64f154`). Migrations do Serviço Social + idempotência aplicadas; containers `Up (healthy)`; smoke HTTPS OK (`/servico-social/triagens` 200, `/medico/*` 200, site `/` 200).
+- **#7 idempotência da fila: FECHADA** — índices únicos parciais (`WHERE status='PENDENTE'`) + `P2002`→409; cobertura em `scripts/valida-idempotencia.mjs`.
+- **Suíte E2E completa validada ao vivo: 19/20 verde.** Único vermelho = `gestao-educacional` 16/18, **não-regressão** (o seed dá `GESTOR_UNIDADE` à `educadora@`). Os itens "⚠ validar runtime" deste handoff (#18/#28/#8/#15/#16) estão **confirmados**.
+- **Para rodar a suíte em lote:** subir a API com `THROTTLE_DISABLED=1` (bypass env-gated, inócuo em produção pela guarda `NODE_ENV!==production`), reseedar entre scripts, e atenção às 2 convenções de senha (Serviço Social usa `SENHA_ADMIN`+`SENHA_DEV`; grupo médico-equipe/recepção/presidência/usuários usa senha única via `packages/database/scripts/padroniza-senhas-demo.ts` → `ifp2026!`).
+- **⚠ Pegadinha de deploy:** `docker compose build api web` **NÃO** rebuilda a imagem `migrate` (target `migrator`, imagem própria). Rebuildar `migrate` junto, senão `run --rm migrate` usa imagem velha, diz "No pending migrations" e a API nova sobe sem as tabelas.
+- **Pendências reais antes do piloto com gente:** (a) rotacionar segredos do `.env.production` (hoje senhas dev); (b) cutover/desativar a VM `ifp-app` (export Amplimed); (c) commitar upstream os fixes de Dockerfile/Caddy/site (hoje só na VM e em `C:\Users\Erick\ifp-deploy\`); (d) rever o papel `GESTOR` da `educadora@` no seed.
+
+---
+
 ## 1. O que foi feito
 
 Retomei a varredura de go-live. A auditoria de 22/06 (rodada 1) tinha coberto o núcleo, mas **não tinha varrido a superfície nova**: módulo **Serviço Social** (triagem, elegibilidade, encaminhamentos cross-unidade, ponte), **prescrição/consentimento** e **prestação de contas**. Rodei uma auditoria estática multi-agente (8 dimensões + verificação adversarial) **+ re-check** dos P2/P3 antigos.

@@ -1,5 +1,11 @@
 # ONDE PARAMOS — handoff do sprint (atualizado 2026-06-11)
 
+> 🛑 **ESTE ARQUIVO ESTÁ DEFASADO (11/06).** O estado ATUAL (22/06) está em
+> **`docs/HANDOFF-GO-LIVE-2026-06-22.md`** (seção "⭐ ATUALIZAÇÃO") + **`docs/COMPARATIVO-100.md`**.
+> Resumo: o sistema está **DEPLOYADO em produção na VM `ifp-final`**
+> (https://ifp-final.taile04c66.ts.net), branch em `b8283a9`, Serviço Social + idempotência no ar.
+> A VM de produção é a **`ifp-final`** — **NÃO** a `ifp-app` (essa é a antiga, só falta desativar).
+
 > **Para a IA que retomar este projeto (em qualquer máquina): leia este arquivo primeiro.**
 > Branch de trabalho: `claude/continue-projetoifp-section-10-RKC1n` (skin CASA + verticais).
 > Contexto maior: `docs/PLANO-UNIR-CONNECT.md` · blueprints em `docs/BLUEPRINT-*.md` ·
