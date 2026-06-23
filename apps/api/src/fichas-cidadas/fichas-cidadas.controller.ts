@@ -104,4 +104,24 @@ export class FichasCidadasController {
   ) {
     return this.fichas.updateElegibilidade(id, unidadeSlug, dto, user.id);
   }
+
+  @Get(":id/acesso-familia")
+  @ApiOperation({
+    summary: "Estado do acesso do responsável da família (existe? já trocou a senha?)",
+  })
+  @ApiParam({ name: "id", description: "cuid da ficha" })
+  obterAcessoFamilia(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.fichas.obterAcessoFamilia(id, user.id);
+  }
+
+  @Post(":id/acesso-familia")
+  @ApiOperation({
+    summary:
+      "Gera o acesso do responsável (senha provisória, mostrada uma vez). Idempotente.",
+  })
+  @ApiParam({ name: "id", description: "cuid da ficha" })
+  @HttpCode(HttpStatus.CREATED)
+  gerarAcessoFamilia(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.fichas.gerarAcessoFamilia(id, user.id);
+  }
 }

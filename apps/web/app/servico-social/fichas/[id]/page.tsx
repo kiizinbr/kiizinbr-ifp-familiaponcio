@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, KeyRound, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import {
   asOptions,
@@ -22,7 +22,9 @@ import {
   type StatusElegibilidade,
 } from "@/lib/api";
 import {
+  useAcessoFamilia,
   useFicha,
+  useGerarAcessoFamilia,
   useReplaceMembros,
   useUpdateElegibilidade,
   useUpdateFicha,
@@ -504,6 +506,99 @@ function CardElegibilidade({
   );
 }
 
+// ============================================================
+// Acesso da família (auto-provisionamento — reusa o 1º acesso)
+// ============================================================
+function SecaoAcessoFamilia({ fichaId }: { fichaId: string }) {
+  const { data, isLoading } = useAcessoFamilia(fichaId);
+  const mutation = useGerarAcessoFamilia();
+  // A senha provisória só existe no momento da geração: guardamos em estado
+  // local para exibi-la UMA vez (some ao recarregar/navegar — nunca persiste).
+  const [senha, setSenha] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
+
+  const possui = data?.possuiAcesso ?? false;
+  const acesso = data?.acesso ?? null;
+
+  async function gerar() {
+    setSenha(null);
+    setCopiado(false);
+    const r = await mutation.mutateAsync(fichaId);
+    if (r.senhaProvisoria) setSenha(r.senhaProvisoria);
+  }
+
+  async function copiar() {
+    if (!senha) return;
+    try {
+      await navigator.clipboard.writeText(senha);
+      setCopiado(true);
+    } catch {
+      /* clipboard pode falhar sem HTTPS — a senha segue visível na tela */
+    }
+  }
+
+  return (
+    <Secao titulo="Acesso da família">
+      <p className="mb-4 text-sm text-muted-foreground">
+        Gera o login do responsável (perfil <strong>Responsável familiar</strong>) com uma{" "}
+        <strong>senha provisória</strong>. Anote e entregue ao responsável: no primeiro acesso
+        ele troca a senha. O sistema <strong>não envia e-mail</strong> — a senha aparece aqui uma
+        única vez.
+      </p>
+
+      {isLoading ? (
+        <Spinner label="Verificando acesso..." />
+      ) : possui && acesso ? (
+        <div className="rounded-md border border-border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-success">
+              <Check className="h-4 w-4" /> Acesso já criado
+            </span>
+            {acesso.mustChangePassword ? (
+              <span className="text-xs text-muted-foreground">aguardando 1º acesso</span>
+            ) : (
+              <span className="text-xs text-success">senha já trocada pela família</span>
+            )}
+          </div>
+          <dl className="mt-3 grid gap-4 sm:grid-cols-2">
+            <Item label="Login (e-mail)">{acesso.email}</Item>
+            <Item label="Último acesso">
+              {acesso.ultimoLogin ? formatDataHora(acesso.ultimoLogin) : "nunca acessou"}
+            </Item>
+          </dl>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Esqueceu a senha? Reemita pela gestão de usuários (Admin → Usuários → Resetar senha).
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <Botao type="button" onClick={gerar} carregando={mutation.isPending}>
+            <KeyRound className="h-4 w-4" /> Gerar acesso da família
+          </Botao>
+          {mutation.isError ? <Alerta>{(mutation.error as Error).message}</Alerta> : null}
+        </div>
+      )}
+
+      {/* Senha provisória recém-gerada — exibida uma única vez */}
+      {senha ? (
+        <div className="mt-4 rounded-md border border-success/40 bg-success/5 p-4">
+          <p className="text-sm font-semibold text-foreground">
+            Acesso criado. Anote a senha provisória (não será mostrada de novo):
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <code className="rounded bg-surface px-3 py-1.5 font-mono text-base tracking-wider text-foreground">
+              {senha}
+            </code>
+            <Botao type="button" variante="outline" onClick={copiar} className="px-3 py-1.5 text-sm">
+              {copiado ? "Copiado!" : "Copiar"}
+            </Botao>
+          </div>
+        </div>
+      ) : null}
+    </Secao>
+  );
+}
+
 export default function FichaDetalhePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -699,6 +794,9 @@ export default function FichaDetalhePage() {
           ))}
         </div>
       </Secao>
+
+      {/* Acesso da família (auto-provisionamento) */}
+      <SecaoAcessoFamilia fichaId={ficha.id} />
 
       {ficha.observacoes ? (
         <Secao titulo="Observações">

@@ -5,7 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Prisma, StatusElegibilidade } from "@ifp/database";
+import { AcaoAuditoria, Perfil, Prisma, StatusElegibilidade } from "@ifp/database";
+import { hash } from "bcrypt";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -24,6 +25,9 @@ const fichaInclude = {
   consentimentos: true,
   elegibilidades: { include: { unidade: true } },
 } satisfies Prisma.FichaCidadaInclude;
+
+/** Alfabeto sem caracteres ambíguos (0/O, 1/l/I) — espelha o de UsersService. */
+const ALFABETO_SENHA = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
 
 @Injectable()
 export class FichasCidadasService {
@@ -446,6 +450,203 @@ export class FichasCidadasService {
     });
 
     return elegibilidade;
+  }
+
+  // ------------------------------------------------------------
+  // Acesso da família (auto-provisionamento) — reusa o fluxo de 1º acesso
+  // ------------------------------------------------------------
+
+  /** Senha provisória legível, mostrada uma única vez na tela do operador. */
+  private gerarSenhaProvisoria(tamanho = 12): string {
+    const bytes = randomBytes(tamanho);
+    let senha = "";
+    for (const byte of bytes) {
+      senha += ALFABETO_SENHA[byte % ALFABETO_SENHA.length] ?? "";
+    }
+    return senha;
+  }
+
+  /**
+   * E-mail de login do responsável. Usa o e-mail da ficha quando há; senão
+   * deriva um identificador estável do protocolo (o sistema NÃO envia e-mail —
+   * o login é por essa string e a senha provisória aparece na tela do operador).
+   */
+  private emailAcesso(ficha: { email: string | null; protocolo: string }): string {
+    const informado = ficha.email?.trim().toLowerCase();
+    if (informado) return informado;
+    const slug = ficha.protocolo.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    return `familia.${slug}@ifp.local`;
+  }
+
+  /** Resumo do acesso (sem nunca expor o hash da senha) para a tela. */
+  private resumoAcesso(user: {
+    id: string;
+    nome: string;
+    email: string;
+    ativo: boolean;
+    mustChangePassword: boolean;
+    ultimoLogin: Date | null;
+    criadoEm: Date;
+  }) {
+    return {
+      id: user.id,
+      nome: user.nome,
+      email: user.email,
+      ativo: user.ativo,
+      mustChangePassword: user.mustChangePassword,
+      ultimoLogin: user.ultimoLogin,
+      criadoEm: user.criadoEm,
+    };
+  }
+
+  /**
+   * Estado atual do acesso do responsável da ficha (existe? já trocou a senha?).
+   * READ de dado pessoal — entra na trilha LGPD.
+   */
+  async obterAcessoFamilia(fichaId: string, leitorId: string) {
+    const ficha = await this.prisma.fichaCidada.findUnique({
+      where: { id: fichaId },
+      select: { id: true, protocolo: true, nomeCompleto: true },
+    });
+    if (!ficha) throw new NotFoundException("Ficha não encontrada");
+
+    const user = await this.prisma.user.findUnique({
+      where: { fichaCidadaId: fichaId },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        ativo: true,
+        mustChangePassword: true,
+        ultimoLogin: true,
+        criadoEm: true,
+      },
+    });
+
+    this.audit.registrar({
+      userId: leitorId,
+      acao: AcaoAuditoria.READ,
+      entidade: "FichaCidada.acessoFamilia",
+      entidadeId: fichaId,
+      metadados: { possuiAcesso: Boolean(user) },
+    });
+
+    return {
+      possuiAcesso: Boolean(user),
+      acesso: user ? this.resumoAcesso(user) : null,
+    };
+  }
+
+  /**
+   * Auto-provisiona o acesso do responsável da família: cria um User
+   * RESPONSAVEL_FAMILIAR vinculado à ficha (User.fichaCidadaId) com senha
+   * PROVISÓRIA e mustChangePassword=true — reusando o MESMO mecanismo de 1º
+   * acesso da gestão de usuários. A senha só existe nesta resposta (nunca
+   * persiste em claro) e o sistema NÃO envia e-mail.
+   *
+   * Idempotente: se a ficha já tem acesso, devolve o estado atual SEM gerar nova
+   * senha (`jaExistia: true`). Para reemitir a senha use o reset na gestão de
+   * usuários (fluxo já existente) — aqui não reciclamos credencial em silêncio.
+   */
+  async gerarAcessoFamilia(fichaId: string, atorId: string) {
+    const ficha = await this.prisma.fichaCidada.findUnique({
+      where: { id: fichaId },
+      select: { id: true, protocolo: true, nomeCompleto: true, email: true },
+    });
+    if (!ficha) throw new NotFoundException("Ficha não encontrada");
+
+    // Idempotência: 1 acesso por ficha (User.fichaCidadaId é @unique).
+    const existente = await this.prisma.user.findUnique({
+      where: { fichaCidadaId: fichaId },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        ativo: true,
+        mustChangePassword: true,
+        ultimoLogin: true,
+        criadoEm: true,
+      },
+    });
+    if (existente) {
+      this.audit.registrar({
+        userId: atorId,
+        acao: AcaoAuditoria.READ,
+        entidade: "FichaCidada.acessoFamilia",
+        entidadeId: fichaId,
+        metadados: { evento: "acesso-ja-existe", userId: existente.id },
+      });
+      return {
+        jaExistia: true,
+        senhaProvisoria: null,
+        acesso: this.resumoAcesso(existente),
+      };
+    }
+
+    const email = this.emailAcesso(ficha);
+    // O e-mail é a chave de login (@unique em User). Se já estiver em uso por
+    // OUTRA conta (ex.: a ficha reaproveita um e-mail de funcionário), não dá
+    // para criar o acesso — orienta a corrigir o e-mail da ficha.
+    const emailEmUso = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    if (emailEmUso) {
+      throw new ConflictException(
+        `O e-mail ${email} já pertence a outra conta. Ajuste o e-mail da ficha antes de gerar o acesso da família.`,
+      );
+    }
+
+    const senhaProvisoria = this.gerarSenhaProvisoria();
+    const senhaHash = await hash(senhaProvisoria, 12);
+
+    const user = await this.prisma
+      .$transaction(async (tx) => {
+        const criado = await tx.user.create({
+          data: {
+            nome: ficha.nomeCompleto,
+            email,
+            senhaHash,
+            mustChangePassword: true,
+            ativo: true,
+            fichaCidadaId: ficha.id,
+          },
+        });
+        await tx.usuarioPerfil.create({
+          data: { userId: criado.id, perfil: Perfil.RESPONSAVEL_FAMILIAR },
+        });
+        return criado;
+      })
+      .catch((e: unknown) => {
+        // Corrida entre o pré-check e o INSERT (e-mail/ficha @unique): traduz o
+        // P2002 para 409 em vez de deixar escapar como 500.
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          throw new ConflictException(
+            "Já existe um acesso vinculado a esta ficha ou a este e-mail.",
+          );
+        }
+        throw e;
+      });
+
+    this.audit.registrar({
+      userId: atorId,
+      acao: AcaoAuditoria.CREATE,
+      entidade: "User",
+      entidadeId: user.id,
+      metadados: {
+        evento: "auto-provisionamento-acesso-familia",
+        fichaId: ficha.id,
+        protocolo: ficha.protocolo,
+        perfil: Perfil.RESPONSAVEL_FAMILIAR,
+      },
+    });
+
+    // A senha provisória só existe aqui (nunca persiste em claro nem em log).
+    return {
+      jaExistia: false,
+      senhaProvisoria,
+      acesso: this.resumoAcesso(user),
+    };
   }
 
   private async assertExists(id: string) {

@@ -230,6 +230,29 @@ export interface FichaDetalhe extends FichaResumo {
   dadosSocio?: DadosSocio | null;
 }
 
+/** Acesso (login) do responsável vinculado à ficha — nunca expõe a senha em claro. */
+export interface AcessoFamiliaResumo {
+  id: string;
+  nome: string;
+  email: string;
+  ativo: boolean;
+  mustChangePassword: boolean;
+  ultimoLogin?: string | null;
+  criadoEm: string;
+}
+
+export interface EstadoAcessoFamilia {
+  possuiAcesso: boolean;
+  acesso: AcessoFamiliaResumo | null;
+}
+
+/** Resposta da geração: a senha provisória só vem na criação (idempotente devolve null). */
+export interface GerarAcessoFamiliaResposta {
+  jaExistia: boolean;
+  senhaProvisoria: string | null;
+  acesso: AcessoFamiliaResumo;
+}
+
 export interface Paginacao {
   page: number;
   perPage: number;

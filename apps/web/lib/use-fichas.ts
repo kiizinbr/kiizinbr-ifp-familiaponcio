@@ -7,8 +7,10 @@ import { useAuthFetch } from "./use-auth-fetch";
 import type {
   Elegibilidade,
   Escolaridade,
+  EstadoAcessoFamilia,
   EstadoCivil,
   FichaDetalhe,
+  GerarAcessoFamiliaResposta,
   ListaFichas,
   Parentesco,
   SituacaoMoradia,
@@ -201,6 +203,33 @@ export function useUpsertDadosSocio() {
         body: JSON.stringify(dados),
       }),
     onSuccess: (_data, { id }) => qc.invalidateQueries({ queryKey: ["ficha", id] }),
+  });
+}
+
+/** Estado do acesso (login) do responsável da família vinculado à ficha. */
+export function useAcessoFamilia(id: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["acesso-familia", id],
+    queryFn: () => authFetch<EstadoAcessoFamilia>(`/fichas-cidadas/${id}/acesso-familia`),
+    enabled: status === "authenticated" && !!id,
+  });
+}
+
+/**
+ * Auto-provisiona o acesso do responsável (senha provisória mostrada UMA vez).
+ * Idempotente: se já existir, devolve o estado com `senhaProvisoria: null`.
+ */
+export function useGerarAcessoFamilia() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      authFetch<GerarAcessoFamiliaResposta>(`/fichas-cidadas/${id}/acesso-familia`, {
+        method: "POST",
+      }),
+    onSuccess: (_data, id) => qc.invalidateQueries({ queryKey: ["acesso-familia", id] }),
   });
 }
 
