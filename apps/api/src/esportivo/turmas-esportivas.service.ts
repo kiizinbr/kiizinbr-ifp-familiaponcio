@@ -87,6 +87,231 @@ export class TurmasEsportivasService {
     return { turmasEmAndamento, atletasAtivos, graduacoesConcedidas, listaEspera };
   }
 
+  /**
+   * Indicadores da unidade (dashboard): graduações por mês, frequência por
+   * modalidade e evasão. Só agregados (sem PII), mas mantém a trilha LGPD.
+   */
+  async indicadores(user: AuthenticatedUser) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.ESPORTIVO);
+    const unidadeId = profissional.unidadeId;
+
+    // Graduações concedidas por mês (últimos 6 meses).
+    const graduacoesPorMes = await this.prisma.$queryRaw<{ mes: string; total: number }[]>`
+      SELECT to_char(date_trunc('month', g."concedidaEm"), 'YYYY-MM') AS mes, count(*)::int AS total
+      FROM graduacoes g
+      WHERE g."unidadeId" = ${unidadeId}
+        AND g."concedidaEm" >= now() - interval '6 months'
+      GROUP BY 1 ORDER BY 1
+    `;
+
+    // Frequência por modalidade: presenças PRESENTE sobre o total lançado.
+    // Só treinos selados (encerradoEm) contam — chamada aberta ainda muda.
+    const frequenciaPorModalidade = await this.prisma.$queryRaw<
+      { modalidade: string; presencas: number; total: number }[]
+    >`
+      SELECT m.nome AS modalidade,
+             count(*) FILTER (WHERE p.status = 'PRESENTE')::int AS presencas,
+             count(*)::int AS total
+      FROM presencas_treino p
+      JOIN treinos_esportivos t ON t.id = p."treinoId" AND t."encerradoEm" IS NOT NULL
+      JOIN turmas_esportivas tu ON tu.id = t."turmaId"
+      JOIN modalidades m ON m.id = tu."modalidadeId"
+      WHERE t."unidadeId" = ${unidadeId}
+      GROUP BY m.nome
+      ORDER BY m.nome
+    `;
+
+    // Evasão por modalidade: matrículas EVADIDA sobre o total que já treinou
+    // (exclui LISTA_ESPERA/CANCELADA — quem nunca entrou na turma não evade).
+    const evasaoPorModalidade = await this.prisma.$queryRaw<
+      { modalidade: string; evadidas: number; base: number }[]
+    >`
+      SELECT m.nome AS modalidade,
+             count(*) FILTER (WHERE me.status = 'EVADIDA')::int AS evadidas,
+             count(*) FILTER (WHERE me.status IN ('ATIVA','EVADIDA','CONCLUIDA','TRANCADA'))::int AS base
+      FROM matriculas_esportivas me
+      JOIN turmas_esportivas tu ON tu.id = me."turmaId"
+      JOIN modalidades m ON m.id = tu."modalidadeId"
+      WHERE me."unidadeId" = ${unidadeId}
+      GROUP BY m.nome
+      ORDER BY m.nome
+    `;
+
+    const totalBase = evasaoPorModalidade.reduce((s, e) => s + e.base, 0);
+    const totalEvadidas = evasaoPorModalidade.reduce((s, e) => s + e.evadidas, 0);
+    const taxaEvasaoGeral = totalBase > 0 ? Math.round((totalEvadidas / totalBase) * 100) : null;
+
+    const totalPresencas = frequenciaPorModalidade.reduce((s, f) => s + f.presencas, 0);
+    const totalLancamentos = frequenciaPorModalidade.reduce((s, f) => s + f.total, 0);
+    const taxaFrequenciaGeral =
+      totalLancamentos > 0 ? Math.round((totalPresencas / totalLancamentos) * 100) : null;
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "TurmaEsportiva",
+      metadados: { contexto: "esportivo.indicadores" },
+    });
+
+    return {
+      graduacoesPorMes,
+      frequenciaPorModalidade: frequenciaPorModalidade.map((f) => ({
+        modalidade: f.modalidade,
+        presencas: f.presencas,
+        total: f.total,
+        pct: f.total > 0 ? Math.round((f.presencas / f.total) * 100) : null,
+      })),
+      evasaoPorModalidade: evasaoPorModalidade.map((e) => ({
+        modalidade: e.modalidade,
+        evadidas: e.evadidas,
+        base: e.base,
+        pct: e.base > 0 ? Math.round((e.evadidas / e.base) * 100) : null,
+      })),
+      taxaFrequenciaGeral,
+      taxaEvasaoGeral,
+    };
+  }
+
+  /**
+   * Painel enriquecido: anel de ocupação geral, turmas em quadra hoje e o
+   * próximo exame de faixa por turma. Read-only — sem PII no agregado.
+   */
+  async painel(user: AuthenticatedUser) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.ESPORTIVO);
+    const unidadeId = profissional.unidadeId;
+
+    const turmas = await this.prisma.turmaEsportiva.findMany({
+      where: { unidadeId, status: StatusTurma.EM_ANDAMENTO },
+      include: {
+        modalidade: { select: { nome: true, trilhaGraduacoes: true } },
+        _count: { select: { matriculas: { where: { status: StatusMatricula.ATIVA } } } },
+      },
+      orderBy: { codigo: "asc" },
+    });
+
+    const vagasTotais = turmas.reduce((s, t) => s + t.vagasTotais, 0);
+    const atletasAtivos = turmas.reduce((s, t) => s + t._count.matriculas, 0);
+    const ocupacaoPct = vagasTotais > 0 ? Math.round((atletasAtivos / vagasTotais) * 100) : null;
+
+    // Turmas com treino marcado para hoje (00:00–23:59 no fuso do servidor).
+    const inicioHoje = new Date();
+    inicioHoje.setHours(0, 0, 0, 0);
+    const fimHoje = new Date();
+    fimHoje.setHours(23, 59, 59, 999);
+    const treinosHoje = await this.prisma.treinoEsportivo.findMany({
+      where: { unidadeId, data: { gte: inicioHoje, lte: fimHoje } },
+      include: {
+        turma: { include: { modalidade: { select: { nome: true } } } },
+      },
+      orderBy: { data: "asc" },
+    });
+    const emQuadraHoje = treinosHoje.map((t) => ({
+      treinoId: t.id,
+      turmaId: t.turmaId,
+      codigo: t.turma.codigo,
+      modalidade: t.turma.modalidade.nome,
+      local: t.turma.local,
+      diasHorario: t.turma.diasHorario,
+      data: t.data,
+      selado: t.encerradoEm != null,
+    }));
+
+    // Próximo exame de faixa: por turma ativa, o menor nível da trilha que
+    // nenhum atleta da turma ainda alcançou (heurística simples para a vitrine).
+    const trilhaPorTurma = await this.prisma.turmaEsportiva.findMany({
+      where: { unidadeId, status: StatusTurma.EM_ANDAMENTO },
+      select: {
+        id: true,
+        codigo: true,
+        modalidade: { select: { nome: true, trilhaGraduacoes: true } },
+        matriculas: {
+          where: { status: StatusMatricula.ATIVA },
+          select: { graduacoes: { select: { nivel: true } } },
+        },
+      },
+      orderBy: { codigo: "asc" },
+    });
+    const proximosExames = trilhaPorTurma
+      .map((t) => {
+        const concedidos = new Set<string>();
+        for (const m of t.matriculas) for (const g of m.graduacoes) concedidos.add(g.nivel);
+        const proximo = t.modalidade.trilhaGraduacoes.find((n) => !concedidos.has(n));
+        const atletas = t.matriculas.length;
+        return proximo && atletas > 0
+          ? { turmaId: t.id, codigo: t.codigo, modalidade: t.modalidade.nome, proximoNivel: proximo, atletas }
+          : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null);
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "TurmaEsportiva",
+      metadados: { contexto: "esportivo.painel" },
+    });
+
+    return {
+      ocupacao: { atletasAtivos, vagasTotais, pct: ocupacaoPct },
+      emQuadraHoje,
+      proximosExames,
+    };
+  }
+
+  /**
+   * Catálogo de turmas com filtros (modalidade/status) e grade de horários.
+   * Read-only; só metadados de turma (sem PII de atleta).
+   */
+  async catalogo(user: AuthenticatedUser, filtros: { modalidadeId?: string; status?: string }) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.ESPORTIVO);
+    const unidadeId = profissional.unidadeId;
+
+    const statusValido =
+      filtros.status && (Object.values(StatusTurma) as string[]).includes(filtros.status)
+        ? (filtros.status as StatusTurma)
+        : undefined;
+
+    const where: Prisma.TurmaEsportivaWhereInput = {
+      unidadeId,
+      ...(filtros.modalidadeId ? { modalidadeId: filtros.modalidadeId } : {}),
+      ...(statusValido ? { status: statusValido } : {}),
+    };
+
+    const turmas = await this.prisma.turmaEsportiva.findMany({
+      where,
+      orderBy: [{ status: "asc" }, { diasHorario: "asc" }, { codigo: "asc" }],
+      include: {
+        modalidade: { select: { id: true, nome: true } },
+        _count: { select: { matriculas: { where: { status: StatusMatricula.ATIVA } } } },
+      },
+    });
+
+    const items = turmas.map((t) => ({
+      id: t.id,
+      codigo: t.codigo,
+      diasHorario: t.diasHorario,
+      local: t.local,
+      faixaEtariaMin: t.faixaEtariaMin,
+      faixaEtariaMax: t.faixaEtariaMax,
+      vagasTotais: t.vagasTotais,
+      status: t.status,
+      modalidade: t.modalidade,
+      atletasAtivos: t._count.matriculas,
+    }));
+
+    // Grade: agrupa por dias/horário (a string já é a "faixa" da grade).
+    const gradeMap = new Map<string, typeof items>();
+    for (const it of items) {
+      const lista = gradeMap.get(it.diasHorario) ?? [];
+      lista.push(it);
+      gradeMap.set(it.diasHorario, lista);
+    }
+    const grade = [...gradeMap.entries()]
+      .map(([diasHorario, turmasDoSlot]) => ({ diasHorario, turmas: turmasDoSlot }))
+      .sort((a, b) => a.diasHorario.localeCompare(b.diasHorario));
+
+    return { items, grade, total: items.length };
+  }
+
   /** Fichas APROVADAS no Esportivo (para o formulário de matrícula). */
   async fichasElegiveis(user: AuthenticatedUser, q?: string) {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.ESPORTIVO);

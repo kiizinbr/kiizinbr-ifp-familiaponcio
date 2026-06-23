@@ -8,7 +8,7 @@ import { AcessoRestrito, ShellInterno } from "@/components/casa";
 /** Guard único de toda a área /esportivo/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE", "PROFISSIONAL"];
 /** Rotas do esportivo que já existem (as demais aparecem como "em breve" no rail). */
-const ROTAS_PRONTAS = ["/esportivo"];
+const ROTAS_PRONTAS = ["/esportivo", "/esportivo/turmas", "/esportivo/indicadores"];
 
 export default async function EsportivoLayout({
   children,

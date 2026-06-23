@@ -56,6 +56,28 @@ export class EsportivoController {
     return this.turmas.resumo(user);
   }
 
+  @Get("indicadores")
+  @ApiOperation({ summary: "Indicadores: graduações/mês, frequência e evasão por modalidade" })
+  indicadores(@CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.indicadores(user);
+  }
+
+  @Get("painel")
+  @ApiOperation({ summary: "Painel: ocupação, turmas em quadra hoje e próximo exame de faixa" })
+  painel(@CurrentUser() user: AuthenticatedUser) {
+    return this.turmas.painel(user);
+  }
+
+  @Get("catalogo")
+  @ApiOperation({ summary: "Catálogo de turmas com filtros (modalidade/status) e grade de horários" })
+  catalogo(
+    @Query("modalidadeId") modalidadeId: string,
+    @Query("status") status: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.turmas.catalogo(user, { modalidadeId, status });
+  }
+
   @Get("fichas-elegiveis")
   @ApiOperation({ summary: "Fichas APROVADAS no Esportivo (form de matrícula)" })
   fichasElegiveis(@Query("q") q: string, @CurrentUser() user: AuthenticatedUser) {

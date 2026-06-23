@@ -182,6 +182,65 @@ caso("chamada após o selo (imutável)", 409, chamadaPosSelo.status);
 const selo2 = await req(sensei, "POST", `/esportivo/treinos/${treino.json?.id}/encerrar`);
 caso("selar 2x", 409, selo2.status);
 
+console.log("--- DASHBOARDS (indicadores / painel / catálogo) ---");
+const indicadores = await req(sensei, "GET", "/esportivo/indicadores");
+caso("sensei -> indicadores", 200, indicadores.status);
+caso("indicadores.graduacoesPorMes é array", true, Array.isArray(indicadores.json?.graduacoesPorMes));
+caso(
+  "indicadores.frequenciaPorModalidade é array",
+  true,
+  Array.isArray(indicadores.json?.frequenciaPorModalidade),
+);
+caso(
+  "indicadores.evasaoPorModalidade é array",
+  true,
+  Array.isArray(indicadores.json?.evasaoPorModalidade),
+);
+// A graduação Faixa Cinza concedida acima entra na contagem do mês corrente.
+const totalGrad = (indicadores.json?.graduacoesPorMes ?? []).reduce((s, m) => s + m.total, 0);
+caso("graduações do período >= 1", true, totalGrad >= 1);
+// A trilha de chave da agregação: presença selada lançada acima existe.
+caso(
+  "frequenciaPorModalidade tem entrada (chamada selada)",
+  true,
+  (indicadores.json?.frequenciaPorModalidade ?? []).length >= 1,
+);
+
+const painel = await req(sensei, "GET", "/esportivo/painel");
+caso("sensei -> painel", 200, painel.status);
+caso("painel.ocupacao presente", true, painel.json?.ocupacao != null);
+caso("painel.emQuadraHoje é array", true, Array.isArray(painel.json?.emQuadraHoje));
+caso("painel.proximosExames é array", true, Array.isArray(painel.json?.proximosExames));
+// O treino registrado hoje (acima) tem de aparecer em quadra hoje.
+caso(
+  "treino de hoje aparece em quadra",
+  true,
+  (painel.json?.emQuadraHoje ?? []).some((t) => t.turmaId === turma.json.id),
+);
+
+const catalogo = await req(sensei, "GET", "/esportivo/catalogo");
+caso("sensei -> catálogo (sem filtro)", 200, catalogo.status);
+caso("catálogo.items é array", true, Array.isArray(catalogo.json?.items));
+caso("catálogo.grade é array", true, Array.isArray(catalogo.json?.grade));
+caso("catálogo.total numérico", "number", typeof catalogo.json?.total);
+caso("catálogo inclui a turma criada", true, (catalogo.json?.items ?? []).some((t) => t.id === turma.json.id));
+
+const catalogoFiltrado = await req(sensei, "GET", `/esportivo/catalogo?modalidadeId=${judo.id}`);
+caso("catálogo filtrado por modalidade", 200, catalogoFiltrado.status);
+caso(
+  "filtro só traz a modalidade pedida",
+  true,
+  (catalogoFiltrado.json?.items ?? []).every((t) => t.modalidade.id === judo.id),
+);
+
+const catalogoEncerradas = await req(sensei, "GET", "/esportivo/catalogo?status=ENCERRADA");
+caso("catálogo filtrado por status", 200, catalogoEncerradas.status);
+caso(
+  "filtro de status só traz ENCERRADA",
+  true,
+  (catalogoEncerradas.json?.items ?? []).every((t) => t.status === "ENCERRADA"),
+);
+
 console.log("--- RBAC CRUZADO ---");
 const medicoNega = await req(medico, "GET", "/esportivo/turmas");
 caso("médico -> esportivo (parede de tenant)", 403, medicoNega.status);
@@ -189,6 +248,13 @@ const familiaNega = await req(familia, "POST", `/esportivo/matriculas/${m1.json.
   nivel: "Faixa Azul",
 });
 caso("família -> graduar (RBAC)", 403, familiaNega.status);
+// Os dashboards são dado sensível agregado — família não pode lê-los.
+const familiaIndicadores = await req(familia, "GET", "/esportivo/indicadores");
+caso("família -> indicadores (RBAC)", 403, familiaIndicadores.status);
+const familiaPainel = await req(familia, "GET", "/esportivo/painel");
+caso("família -> painel (RBAC)", 403, familiaPainel.status);
+const familiaCatalogo = await req(familia, "GET", "/esportivo/catalogo");
+caso("família -> catálogo (RBAC)", 403, familiaCatalogo.status);
 
 console.log("--- ENCERRAMENTO ---");
 const encerra = await req(sensei, "POST", `/esportivo/turmas/${turma.json.id}/encerrar`);

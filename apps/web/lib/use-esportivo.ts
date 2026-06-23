@@ -79,6 +79,64 @@ export interface FichaElegivelEsportivo {
   membros: { id: string; nomeCompleto: string; parentesco: string }[];
 }
 
+export interface IndicadoresEsportivo {
+  graduacoesPorMes: { mes: string; total: number }[];
+  frequenciaPorModalidade: {
+    modalidade: string;
+    presencas: number;
+    total: number;
+    pct: number | null;
+  }[];
+  evasaoPorModalidade: {
+    modalidade: string;
+    evadidas: number;
+    base: number;
+    pct: number | null;
+  }[];
+  taxaFrequenciaGeral: number | null;
+  taxaEvasaoGeral: number | null;
+}
+
+export interface PainelEsportivo {
+  ocupacao: { atletasAtivos: number; vagasTotais: number; pct: number | null };
+  emQuadraHoje: {
+    treinoId: string;
+    turmaId: string;
+    codigo: string;
+    modalidade: string;
+    local: string | null;
+    diasHorario: string;
+    data: string;
+    selado: boolean;
+  }[];
+  proximosExames: {
+    turmaId: string;
+    codigo: string;
+    modalidade: string;
+    proximoNivel: string;
+    atletas: number;
+  }[];
+}
+
+export interface TurmaCatalogoItem {
+  id: string;
+  codigo: string;
+  diasHorario: string;
+  local: string | null;
+  faixaEtariaMin: number | null;
+  faixaEtariaMax: number | null;
+  vagasTotais: number;
+  status: "INSCRICOES_ABERTAS" | "EM_ANDAMENTO" | "ENCERRADA";
+  modalidade: { id: string; nome: string };
+  atletasAtivos: number;
+}
+
+export interface CatalogoEsportivo {
+  items: TurmaCatalogoItem[];
+  grade: { diasHorario: string; turmas: TurmaCatalogoItem[] }[];
+  total: number;
+}
+
 // ============================================================
 // Consultas
 // ============================================================
@@ -100,6 +158,41 @@ export function useModalidades() {
     queryKey: ["esportivo", "modalidades"],
     queryFn: () => authFetch<{ items: ModalidadeItem[] }>("/esportivo/modalidades"),
     enabled: status === "authenticated",
+  });
+}
+
+export function useIndicadoresEsportivo() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "indicadores"],
+    queryFn: () => authFetch<IndicadoresEsportivo>("/esportivo/indicadores"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function usePainelEsportivo() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "painel"],
+    queryFn: () => authFetch<PainelEsportivo>("/esportivo/painel"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useCatalogoEsportivo(filtros: { modalidadeId?: string; status?: string }) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  const params = new URLSearchParams();
+  if (filtros.modalidadeId) params.set("modalidadeId", filtros.modalidadeId);
+  if (filtros.status) params.set("status", filtros.status);
+  const qs = params.toString();
+  return useQuery({
+    queryKey: ["esportivo", "catalogo", filtros.modalidadeId ?? "", filtros.status ?? ""],
+    queryFn: () => authFetch<CatalogoEsportivo>(`/esportivo/catalogo${qs ? `?${qs}` : ""}`),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
   });
 }
 

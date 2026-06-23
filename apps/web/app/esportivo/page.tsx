@@ -7,15 +7,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { ChevronRight, Medal, Plus } from "lucide-react";
+import { Award, CalendarClock, ChevronRight, Medal, Plus } from "lucide-react";
 
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
-import { Kpi, ListRow, PageHeader } from "@/components/casa";
+import { Card, JubaRing, Kpi, ListRow, PageHeader, Pill, SecTitle } from "@/components/casa";
 import { STATUS_TURMA_LABEL } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import {
   useCriarTurmaEsportiva,
   useModalidades,
+  usePainelEsportivo,
   useResumoEsportivo,
   useTurmasEsportivas,
   type CriarTurmaEsportivaPayload,
@@ -178,9 +179,14 @@ function FormNovaTurma({ aoFechar }: { aoFechar: () => void }) {
   );
 }
 
+function horaDe(iso: string) {
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function PainelEsportivo() {
   const { data: resumo, isLoading, error } = useResumoEsportivo();
   const { data: turmas, isLoading: carregandoTurmas } = useTurmasEsportivas();
+  const { data: painel } = usePainelEsportivo();
   const [criando, setCriando] = useState(false);
 
   if (isLoading || carregandoTurmas) {
@@ -211,6 +217,68 @@ export default function PainelEsportivo() {
         <Kpi label="Graduações concedidas" valor={resumo?.graduacoesConcedidas ?? "—"} />
         <Kpi label="Lista de espera" valor={resumo?.listaEspera ?? "—"} />
       </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <Card className="flex items-center gap-4">
+          <JubaRing
+            pct={painel?.ocupacao.pct ?? 0}
+            size={72}
+            label={painel?.ocupacao.pct != null ? `${painel.ocupacao.pct}%` : "—"}
+          />
+          <div>
+            <SecTitle>Ocupação das turmas</SecTitle>
+            <p className="text-sm text-muted-foreground">
+              {painel
+                ? `${painel.ocupacao.atletasAtivos} de ${painel.ocupacao.vagasTotais} vagas ativas`
+                : "Carregando..."}
+            </p>
+          </div>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <SecTitle icon={<CalendarClock />}>Em quadra hoje</SecTitle>
+          {painel && painel.emQuadraHoje.length > 0 ? (
+            <div className="space-y-2">
+              {painel.emQuadraHoje.map((t) => (
+                <Link key={t.treinoId} href={`/esportivo/turmas/${t.turmaId}`} className="block">
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm transition hover:shadow-casa-sm">
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold text-foreground">
+                        {t.modalidade} · {t.codigo}
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {horaDe(t.data)}
+                        {t.local ? ` · ${t.local}` : ""} · {t.diasHorario}
+                      </div>
+                    </div>
+                    <Pill tom={t.selado ? "ok" : "warn"}>{t.selado ? "Chamada selada" : "Chamada aberta"}</Pill>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Nenhum treino marcado para hoje.</p>
+          )}
+        </Card>
+      </div>
+
+      {painel && painel.proximosExames.length > 0 ? (
+        <Card className="mt-4">
+          <SecTitle icon={<Award />}>Próximo exame de faixa</SecTitle>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {painel.proximosExames.map((e) => (
+              <Link key={e.turmaId} href={`/esportivo/turmas/${e.turmaId}`} className="block">
+                <div className="rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm transition hover:shadow-casa-sm">
+                  <div className="font-semibold text-foreground">{e.proximoNivel}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {e.modalidade} · {e.codigo} · {e.atletas} atleta(s)
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
