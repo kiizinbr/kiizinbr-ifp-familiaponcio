@@ -173,6 +173,19 @@ export interface DiarioFamilia {
   checks: CheckItem[];
 }
 
+export type TipoConsentimentoFamilia = "USO_DADOS_LGPD" | "COMPARTILHAMENTO_PARCEIROS";
+
+export const CONSENTIMENTO_DADOS_LABEL: Record<TipoConsentimentoFamilia, string> = {
+  USO_DADOS_LGPD: "Uso dos meus dados pelo instituto",
+  COMPARTILHAMENTO_PARCEIROS: "Compartilhar meus dados com parceiros",
+};
+
+export interface ConsentimentoDadosItem {
+  tipo: TipoConsentimentoFamilia;
+  concedido: boolean;
+  registradoEm: string | null;
+}
+
 export interface FichaCriancaFamilia {
   crianca: {
     id: string;
@@ -187,6 +200,7 @@ export interface FichaCriancaFamilia {
     concedido: boolean;
     revogadoEm: string | null;
   }[];
+  consentimentosDados: ConsentimentoDadosItem[];
 }
 
 export interface ComunicadoFamilia {
@@ -548,5 +562,33 @@ export function useConfirmarLeitura() {
         method: "POST",
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["familia", "comunicados"] }),
+  });
+}
+
+/** Titular dá/revoga consentimento de uso de imagem da própria criança. */
+export function useConsentirImagem(membroId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { escopo: EscopoImagem; concedido: boolean }) =>
+      authFetch(`/familia/educacional/ficha/${membroId}/consentimento-imagem`, {
+        method: "POST",
+        body: JSON.stringify(vars),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["familia", "ficha", membroId] }),
+  });
+}
+
+/** Titular dá/revoga consentimento sobre os próprios dados (por ficha). */
+export function useConsentirDados(membroId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { tipo: TipoConsentimentoFamilia; concedido: boolean }) =>
+      authFetch(`/familia/educacional/consentimento-dados`, {
+        method: "POST",
+        body: JSON.stringify(vars),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["familia", "ficha", membroId] }),
   });
 }

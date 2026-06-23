@@ -16,6 +16,8 @@ import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decora
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
 import { PerfisGuard } from "../auth/perfis.guard";
+import { ConsentirDadosFamiliaDto } from "./dto/consentir-dados-familia.dto";
+import { ConsentirImagemFamiliaDto } from "./dto/consentir-imagem-familia.dto";
 import { CriarConversaDto } from "./dto/criar-conversa.dto";
 import { CriarMensagemDto } from "./dto/criar-mensagem.dto";
 import { FamiliaService } from "./familia.service";
@@ -54,6 +56,32 @@ export class FamiliaController {
   @ApiParam({ name: "membroId", description: "cuid da criança (da própria família)" })
   ficha(@Param("membroId") membroId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.familia.fichaCrianca(user, membroId);
+  }
+
+  @Post("ficha/:membroId/consentimento-imagem")
+  @ApiOperation({
+    summary: "Titular dá/revoga consentimento de uso de imagem da criança (LGPD)",
+  })
+  @ApiParam({ name: "membroId", description: "cuid da criança (da própria família)" })
+  @HttpCode(HttpStatus.OK)
+  consentirImagem(
+    @Param("membroId") membroId: string,
+    @Body() dto: ConsentirImagemFamiliaDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.familia.consentirImagem(user, membroId, dto);
+  }
+
+  @Post("consentimento-dados")
+  @ApiOperation({
+    summary: "Titular dá/revoga consentimento de uso/compartilhamento de dados (LGPD)",
+  })
+  @HttpCode(HttpStatus.OK)
+  consentirDados(
+    @Body() dto: ConsentirDadosFamiliaDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.familia.consentirDados(user, dto);
   }
 
   @Get("comunicados")

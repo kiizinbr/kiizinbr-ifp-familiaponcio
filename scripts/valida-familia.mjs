@@ -217,6 +217,128 @@ caso("sem token -> recebido (401)", 401, semToken.status);
 const semTokenAgenda = await req(null, "GET", "/familia/agenda");
 caso("sem token -> agenda (401)", 401, semTokenAgenda.status);
 
+// ════════════════════════════════════════════════════════════════════════
+// CONSENTIMENTO DO TITULAR (B3) — dar/revogar uso de imagem (por criança) e
+// uso/compartilhamento de dados (por ficha). Reusa AutorizacaoImagem +
+// Consentimento. IDOR: só a PRÓPRIA ficha/criança.
+// ════════════════════════════════════════════════════════════════════════
+console.log("\n--- CONSENTIMENTO DO TITULAR: leitura da ficha ---");
+// Descobre uma criança da PRÓPRIA família (não confia em id do client).
+const criancas = await req(familia, "GET", "/familia/educacional/criancas");
+caso("família -> minhas crianças", 200, criancas.status);
+const minhaCrianca = (criancas.json?.items ?? [])[0]?.crianca?.id;
+caso("família tem ao menos 1 criança", true, Boolean(minhaCrianca));
+
+const ficha = await req(familia, "GET", `/familia/educacional/ficha/${minhaCrianca}`);
+caso("família -> ficha da própria criança", 200, ficha.status);
+caso(
+  "ficha lista os 3 escopos de imagem",
+  3,
+  (ficha.json?.autorizacoesImagem ?? []).length,
+);
+caso(
+  "ficha lista os consentimentos de dados",
+  true,
+  (ficha.json?.consentimentosDados ?? []).length >= 2,
+);
+
+console.log("--- USO DE IMAGEM: dar e revogar (por criança) ---");
+const darImagem = await req(
+  familia,
+  "POST",
+  `/familia/educacional/ficha/${minhaCrianca}/consentimento-imagem`,
+  { escopo: "REDES_IFP", concedido: true },
+);
+caso("família -> CONCEDE imagem (REDES_IFP)", 200, darImagem.status);
+caso("imagem concedida fica true", true, darImagem.json?.concedido === true);
+
+// Reflete na leitura da ficha.
+const ficha2 = await req(familia, "GET", `/familia/educacional/ficha/${minhaCrianca}`);
+const redes2 = (ficha2.json?.autorizacoesImagem ?? []).find((a) => a.escopo === "REDES_IFP");
+caso("ficha reflete imagem concedida", true, redes2?.concedido === true);
+
+const revogarImagem = await req(
+  familia,
+  "POST",
+  `/familia/educacional/ficha/${minhaCrianca}/consentimento-imagem`,
+  { escopo: "REDES_IFP", concedido: false },
+);
+caso("família -> REVOGA imagem (REDES_IFP)", 200, revogarImagem.status);
+caso("imagem revogada fica false", false, revogarImagem.json?.concedido);
+const ficha3 = await req(familia, "GET", `/familia/educacional/ficha/${minhaCrianca}`);
+const redes3 = (ficha3.json?.autorizacoesImagem ?? []).find((a) => a.escopo === "REDES_IFP");
+caso("ficha reflete imagem revogada", false, redes3?.concedido);
+
+console.log("--- USO/COMPARTILHAMENTO DE DADOS: dar e revogar (por ficha) ---");
+const darDados = await req(familia, "POST", "/familia/educacional/consentimento-dados", {
+  tipo: "COMPARTILHAMENTO_PARCEIROS",
+  concedido: true,
+});
+caso("família -> CONCEDE compartilhamento de dados", 200, darDados.status);
+caso("dados concedidos fica true", true, darDados.json?.concedido === true);
+
+const revogarDados = await req(familia, "POST", "/familia/educacional/consentimento-dados", {
+  tipo: "COMPARTILHAMENTO_PARCEIROS",
+  concedido: false,
+});
+caso("família -> REVOGA compartilhamento de dados", 200, revogarDados.status);
+caso("dados revogados fica false", false, revogarDados.json?.concedido);
+
+// Consentimento de dados FORA do que a família controla → 403 (defesa do enum).
+const dadosProibido = await req(familia, "POST", "/familia/educacional/consentimento-dados", {
+  tipo: "USO_IMAGEM",
+  concedido: true,
+});
+caso("família -> consentimento de tipo proibido (400/403)", true, [400, 403].includes(dadosProibido.status));
+
+console.log("--- IDOR: consentir imagem de criança de OUTRA família ---");
+// Descobre o menor Lucas (ficha do João, cpf 11111111111) via instrutor — é de
+// OUTRA família, então a Sandra não pode consentir por ele.
+const instrutor = await login("instrutor@ifp.local");
+const elR = await req(instrutor, "GET", "/capacitacao/fichas-elegiveis?q=joao");
+const fichaJoao = (elR.json?.items ?? []).find((f) => /jo[aã]o/i.test(f.nomeCompleto));
+const lucas = (fichaJoao?.membros ?? []).find((m) => /lucas/i.test(m.nomeCompleto));
+const outroMembroId = lucas?.id;
+caso("achou criança de outra família (fixture)", true, Boolean(outroMembroId));
+
+const idorImagem = await req(
+  familia,
+  "POST",
+  `/familia/educacional/ficha/${outroMembroId}/consentimento-imagem`,
+  { escopo: "REDES_IFP", concedido: true },
+);
+caso("família -> consentir imagem de OUTRA criança (IDOR)", 403, idorImagem.status);
+
+const idorFicha = await req(familia, "GET", `/familia/educacional/ficha/${outroMembroId}`);
+caso("família -> ler ficha de OUTRA criança (IDOR)", 403, idorFicha.status);
+
+const inexistente = await req(
+  familia,
+  "POST",
+  `/familia/educacional/ficha/nao-existe/consentimento-imagem`,
+  { escopo: "REDES_IFP", concedido: true },
+);
+caso("família -> consentir imagem de criança inexistente", 403, inexistente.status);
+
+console.log("--- RBAC: perfil errado nas ações de consentimento ---");
+const medicoConsentImagem = await req(
+  medico,
+  "POST",
+  `/familia/educacional/ficha/${minhaCrianca}/consentimento-imagem`,
+  { escopo: "REDES_IFP", concedido: true },
+);
+caso("médico -> consentir imagem (RBAC)", 403, medicoConsentImagem.status);
+const senseiConsentDados = await req(sensei, "POST", "/familia/educacional/consentimento-dados", {
+  tipo: "USO_DADOS_LGPD",
+  concedido: true,
+});
+caso("sensei -> consentir dados (RBAC)", 403, senseiConsentDados.status);
+const semTokenConsent = await req(null, "POST", "/familia/educacional/consentimento-dados", {
+  tipo: "USO_DADOS_LGPD",
+  concedido: true,
+});
+caso("sem token -> consentir dados (401)", 401, semTokenConsent.status);
+
 const total = resultados.length;
 const ok = resultados.filter(Boolean).length;
 console.log(`\n${ok}/${total}`);

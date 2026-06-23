@@ -1,16 +1,26 @@
 "use client";
 
 /**
- * Tela 3 do portal: ficha da criança — quem pode buscar, alergias e
- * autorizações de imagem (visão de leitura do responsável).
+ * Tela 3 do portal: ficha da criança — quem pode buscar, alergias e os
+ * CONSENTIMENTOS do titular (uso de imagem por criança + uso/compartilhamento
+ * de dados por ficha). O responsável dá/revoga aqui mesmo (efeito imediato).
  */
+import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Camera, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Share2, ShieldCheck } from "lucide-react";
 
-import { Alerta, Spinner } from "@/components/ui";
+import { Alerta, BotaoResposta, Spinner } from "@/components/ui";
 import { idade } from "@/lib/idade";
 import { cn } from "@/lib/cn";
-import { ESCOPO_IMAGEM_LABEL, useFichaCrianca } from "@/lib/use-educacional";
+import {
+  CONSENTIMENTO_DADOS_LABEL,
+  ESCOPO_IMAGEM_LABEL,
+  useConsentirDados,
+  useConsentirImagem,
+  useFichaCrianca,
+  type EscopoImagem,
+  type TipoConsentimentoFamilia,
+} from "@/lib/use-educacional";
 
 export default function FichaCriancaFamiliaPage({
   params,
@@ -19,6 +29,36 @@ export default function FichaCriancaFamiliaPage({
 }) {
   const { membroId } = params;
   const { data, isLoading, error } = useFichaCrianca(membroId);
+  const consentirImagem = useConsentirImagem(membroId);
+  const consentirDados = useConsentirDados(membroId);
+  const [erroAcao, setErroAcao] = useState<string | null>(null);
+
+  // Trava a linha que está sendo salva (evita duplo clique no mesmo escopo/tipo).
+  const [salvando, setSalvando] = useState<string | null>(null);
+
+  async function mudarImagem(escopo: EscopoImagem, concedido: boolean) {
+    setErroAcao(null);
+    setSalvando(`img:${escopo}`);
+    try {
+      await consentirImagem.mutateAsync({ escopo, concedido });
+    } catch (e) {
+      setErroAcao((e as Error)?.message ?? "Não foi possível salvar. Tente de novo.");
+    } finally {
+      setSalvando(null);
+    }
+  }
+
+  async function mudarDados(tipo: TipoConsentimentoFamilia, concedido: boolean) {
+    setErroAcao(null);
+    setSalvando(`dados:${tipo}`);
+    try {
+      await consentirDados.mutateAsync({ tipo, concedido });
+    } catch (e) {
+      setErroAcao((e as Error)?.message ?? "Não foi possível salvar. Tente de novo.");
+    } finally {
+      setSalvando(null);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -35,7 +75,7 @@ export default function FichaCriancaFamiliaPage({
     );
   }
 
-  const { crianca, autorizados, autorizacoesImagem } = data;
+  const { crianca, autorizados, autorizacoesImagem, consentimentosDados } = data;
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
@@ -50,6 +90,12 @@ export default function FichaCriancaFamiliaPage({
       <p className="text-xs text-muted-foreground">
         {idade(crianca.dataNascimento)} anos
       </p>
+
+      {erroAcao && (
+        <div className="mt-4">
+          <Alerta tipo="erro">{erroAcao}</Alerta>
+        </div>
+      )}
 
       {crianca.alergias.length > 0 && (
         <div className="mt-4 rounded-xl border border-danger/60 bg-danger/10 px-4 py-3">
@@ -110,35 +156,86 @@ export default function FichaCriancaFamiliaPage({
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Você decide onde a imagem da sua criança pode aparecer. Sem a sua autorização,
-          a resposta é sempre NÃO.
+          a resposta é sempre NÃO. Pode mudar quando quiser — vale na hora.
         </p>
         <ul className="mt-3 grid gap-2">
-          {autorizacoesImagem.map((a) => (
-            <li
-              key={a.escopo}
-              className={cn(
-                "flex items-center justify-between rounded-xl border px-4 py-3 text-sm",
-                a.concedido && !a.revogadoEm
-                  ? "border-success/60 bg-success/10"
-                  : "border-border bg-surface",
-              )}
-            >
-              <span className="text-foreground">{ESCOPO_IMAGEM_LABEL[a.escopo]}</span>
-              <span
+          {autorizacoesImagem.map((a) => {
+            const autorizado = a.concedido && !a.revogadoEm;
+            const ocupado = salvando === `img:${a.escopo}`;
+            return (
+              <li
+                key={a.escopo}
                 className={cn(
-                  "text-xs font-bold",
-                  a.concedido && !a.revogadoEm ? "text-success" : "text-muted-foreground",
+                  "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
+                  autorizado ? "border-success/60 bg-success/10" : "border-border bg-surface",
                 )}
               >
-                {a.concedido && !a.revogadoEm ? "Autorizado" : "Não autorizado"}
-              </span>
-            </li>
-          ))}
-          {autorizacoesImagem.length === 0 && (
-            <li className="text-xs text-muted-foreground">
-              Nenhuma autorização concedida — tudo negado por padrão.
-            </li>
-          )}
+                <span className="text-foreground">{ESCOPO_IMAGEM_LABEL[a.escopo]}</span>
+                <div className="flex items-center gap-1.5">
+                  <BotaoResposta
+                    tom="sim"
+                    ativo={autorizado}
+                    disabled={ocupado}
+                    onClick={() => mudarImagem(a.escopo, true)}
+                  >
+                    Autorizo
+                  </BotaoResposta>
+                  <BotaoResposta
+                    tom="nao"
+                    ativo={!autorizado}
+                    disabled={ocupado}
+                    onClick={() => mudarImagem(a.escopo, false)}
+                  >
+                    Não
+                  </BotaoResposta>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Share2 className="h-4 w-4 text-primary" /> Meus dados (LGPD)
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Consentimentos da sua família sobre o uso e o compartilhamento dos dados. Você
+          controla — e pode revogar a qualquer momento.
+        </p>
+        <ul className="mt-3 grid gap-2">
+          {consentimentosDados.map((c) => {
+            const ocupado = salvando === `dados:${c.tipo}`;
+            return (
+              <li
+                key={c.tipo}
+                className={cn(
+                  "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
+                  c.concedido ? "border-success/60 bg-success/10" : "border-border bg-surface",
+                )}
+              >
+                <span className="text-foreground">{CONSENTIMENTO_DADOS_LABEL[c.tipo]}</span>
+                <div className="flex items-center gap-1.5">
+                  <BotaoResposta
+                    tom="sim"
+                    ativo={c.concedido}
+                    disabled={ocupado}
+                    onClick={() => mudarDados(c.tipo, true)}
+                  >
+                    Autorizo
+                  </BotaoResposta>
+                  <BotaoResposta
+                    tom="nao"
+                    ativo={!c.concedido}
+                    disabled={ocupado}
+                    onClick={() => mudarDados(c.tipo, false)}
+                  >
+                    Não
+                  </BotaoResposta>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </section>
     </main>

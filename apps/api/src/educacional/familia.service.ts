@@ -1,15 +1,23 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { AcaoAuditoria, StatusDiario } from "@ifp/database";
+import { AcaoAuditoria, EscopoImagem, StatusDiario, TipoConsentimento } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import { ConversasService } from "./conversas.service";
+import type { ConsentirDadosFamiliaDto } from "./dto/consentir-dados-familia.dto";
+import type { ConsentirImagemFamiliaDto } from "./dto/consentir-imagem-familia.dto";
 import type { CriarConversaDto } from "./dto/criar-conversa.dto";
 import type { CriarMensagemDto } from "./dto/criar-mensagem.dto";
 import { janelaDoDiaSP } from "./dia-util";
 
 const VERSAO_TERMO_VIGENTE = "v1-2026";
+
+/** Consentimentos de DADOS que o titular controla sozinho (subconjunto LGPD). */
+const TIPOS_CONSENTIMENTO_FAMILIA: TipoConsentimento[] = [
+  TipoConsentimento.USO_DADOS_LGPD,
+  TipoConsentimento.COMPARTILHAMENTO_PARCEIROS,
+];
 
 /**
  * Portal da família. Ownership SEMPRE por `User.fichaCidadaId` — o elo entre
@@ -100,9 +108,9 @@ export class FamiliaService {
 
   /** 3ª tela do portal: ficha da criança (autorizados + alergias + imagem). */
   async fichaCrianca(user: AuthenticatedUser, membroId: string) {
-    const { crianca } = await this.assertCriancaDaFamilia(user, membroId);
+    const { fichaId, crianca } = await this.assertCriancaDaFamilia(user, membroId);
 
-    const [detalhe, autorizados, autorizacoesImagem] = await Promise.all([
+    const [detalhe, autorizados, imagemRegistros, dadosRegistros] = await Promise.all([
       this.prisma.membroFamiliar.findUnique({
         where: { id: membroId },
         select: {
@@ -129,7 +137,32 @@ export class FamiliaService {
         where: { membroId, versaoTermo: VERSAO_TERMO_VIGENTE },
         select: { escopo: true, concedido: true, registradoEm: true, revogadoEm: true },
       }),
+      this.prisma.consentimento.findMany({
+        where: {
+          fichaId,
+          tipo: { in: TIPOS_CONSENTIMENTO_FAMILIA },
+          versaoTermo: VERSAO_TERMO_VIGENTE,
+        },
+        select: { tipo: true, concedido: true, registradoEm: true },
+      }),
     ]);
+
+    // Mostra SEMPRE os 3 escopos de imagem (default: NÃO autorizado) para a
+    // família agir, mesmo nos que ainda não têm registro.
+    const autorizacoesImagem = Object.values(EscopoImagem).map((escopo) => {
+      const r = imagemRegistros.find((a) => a.escopo === escopo);
+      return {
+        escopo,
+        concedido: r ? r.concedido && r.revogadoEm == null : false,
+        revogadoEm: r?.revogadoEm ?? null,
+      };
+    });
+
+    // Idem para os consentimentos de DADOS do titular (default: NÃO).
+    const consentimentosDados = TIPOS_CONSENTIMENTO_FAMILIA.map((tipo) => {
+      const r = dadosRegistros.find((c) => c.tipo === tipo);
+      return { tipo, concedido: r?.concedido ?? false, registradoEm: r?.registradoEm ?? null };
+    });
 
     this.audit.registrar({
       userId: user.id,
@@ -139,7 +172,103 @@ export class FamiliaService {
       metadados: { contexto: "familia.fichaCrianca" },
     });
 
-    return { crianca: detalhe ?? crianca, autorizados, autorizacoesImagem };
+    return {
+      crianca: detalhe ?? crianca,
+      autorizados,
+      autorizacoesImagem,
+      consentimentosDados,
+    };
+  }
+
+  /**
+   * Titular dá/revoga consentimento de USO DE IMAGEM da própria criança.
+   * Reusa AutorizacaoImagem (por menor) — mesma trilha do lado da equipe.
+   * Ownership por assertCriancaDaFamilia (IDOR: criança de outra família → 403).
+   */
+  async consentirImagem(
+    user: AuthenticatedUser,
+    membroId: string,
+    dto: ConsentirImagemFamiliaDto,
+  ) {
+    const { fichaId } = await this.assertCriancaDaFamilia(user, membroId);
+    const versaoTermo = dto.versaoTermo ?? VERSAO_TERMO_VIGENTE;
+
+    const autorizacao = await this.prisma.autorizacaoImagem.upsert({
+      where: { membroId_escopo_versaoTermo: { membroId, escopo: dto.escopo, versaoTermo } },
+      update: {
+        concedido: dto.concedido,
+        // Revogar nunca deleta: marca revogadoEm (efeito imediato, trilha LGPD).
+        revogadoEm: dto.concedido ? null : new Date(),
+        revogadoPor: dto.concedido ? null : user.id,
+      },
+      create: {
+        fichaId,
+        membroId,
+        escopo: dto.escopo,
+        concedido: dto.concedido,
+        versaoTermo,
+        criadoPor: user.id,
+      },
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "AutorizacaoImagem",
+      entidadeId: autorizacao.id,
+      metadados: {
+        contexto: "familia.consentirImagem",
+        membroId,
+        escopo: dto.escopo,
+        concedido: dto.concedido,
+        versaoTermo,
+      },
+    });
+
+    return {
+      escopo: autorizacao.escopo,
+      concedido: autorizacao.concedido && autorizacao.revogadoEm == null,
+      revogadoEm: autorizacao.revogadoEm,
+    };
+  }
+
+  /**
+   * Titular dá/revoga consentimento sobre os DADOS da própria ficha
+   * (uso de dados LGPD / compartilhamento com parceiros). Reusa Consentimento
+   * (por ficha) — sem 2º sistema. Ownership por resolverFichaId (escopo da família).
+   */
+  async consentirDados(user: AuthenticatedUser, dto: ConsentirDadosFamiliaDto) {
+    const fichaId = await this.resolverFichaId(user);
+    const tipo = dto.tipo as unknown as TipoConsentimento;
+    if (!TIPOS_CONSENTIMENTO_FAMILIA.includes(tipo)) {
+      throw new ForbiddenException("Este consentimento não pode ser ajustado pela família.");
+    }
+    const versaoTermo = dto.versaoTermo ?? VERSAO_TERMO_VIGENTE;
+
+    const consentimento = await this.prisma.consentimento.upsert({
+      where: { fichaId_tipo_versaoTermo: { fichaId, tipo, versaoTermo } },
+      update: { concedido: dto.concedido, registradoEm: new Date() },
+      create: { fichaId, tipo, concedido: dto.concedido, versaoTermo },
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "Consentimento",
+      entidadeId: consentimento.id,
+      metadados: {
+        contexto: "familia.consentirDados",
+        tipo,
+        concedido: dto.concedido,
+        versaoTermo,
+      },
+    });
+
+    return {
+      tipo: consentimento.tipo,
+      concedido: consentimento.concedido,
+      registradoEm: consentimento.registradoEm,
+    };
   }
 
   /** Comunicados das unidades onde a família tem criança matriculada. */
