@@ -88,6 +88,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
   "servico-social": [
     { href: "/servico-social", label: "Início", icon: Home },
     { href: "/servico-social/fichas", label: "Fichas", icon: FileText },
+    { href: "/servico-social/agenda", label: "Agenda", icon: Calendar },
     { href: "/servico-social/triagem", label: "Triagem", icon: ListChecks },
     { href: "/servico-social/elegibilidade", label: "Elegib.", icon: ShieldCheck },
     { href: "/servico-social/encaminhamentos", label: "Encaminh.", icon: Send },

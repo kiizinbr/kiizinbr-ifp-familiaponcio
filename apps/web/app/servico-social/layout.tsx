@@ -10,6 +10,7 @@ const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "SERVICO_SOCIAL"];
 const ROTAS_PRONTAS = [
   "/servico-social",
   "/servico-social/fichas",
+  "/servico-social/agenda",
   "/servico-social/triagem",
   "/servico-social/elegibilidade",
   "/servico-social/encaminhamentos",

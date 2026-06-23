@@ -410,6 +410,53 @@ export interface ListaSinalizacoes {
 }
 
 // ============================================================
+// Agenda transversal do Serviço Social (B4) — agregação read-only
+// que cruza, em um único dia, o que as 4 unidades já têm marcado.
+// ============================================================
+
+export type TipoItemAgenda = "AGENDAMENTO" | "AULA" | "TREINO" | "EVENTO";
+
+export interface ItemAgendaTransversal {
+  id: string;
+  tipo: TipoItemAgenda;
+  inicioEm: string;
+  titulo: string;
+  detalhe: string | null;
+  profissional: string | null;
+  status: StatusAgendamento | null;
+}
+
+export interface ColunaAgendaUnidade {
+  tipo: TipoUnidade;
+  nome: string;
+  slug: string;
+  total: number;
+  itens: ItemAgendaTransversal[];
+}
+
+export interface PulsoAgendaDia {
+  totalDoDia: number;
+  unidadesComAtividade: number;
+  agendamentos: number;
+  aulas: number;
+  treinos: number;
+  eventos: number;
+}
+
+export interface AgendaTransversal {
+  data: string;
+  pulso: PulsoAgendaDia;
+  unidades: ColunaAgendaUnidade[];
+}
+
+export const TIPO_ITEM_AGENDA_LABEL: Record<TipoItemAgenda, string> = {
+  AGENDAMENTO: "Consulta",
+  AULA: "Aula",
+  TREINO: "Treino",
+  EVENTO: "Evento",
+};
+
+// ============================================================
 // Centro Médico (Fase 1 — agenda + prancha de atendimento)
 // ============================================================
 
