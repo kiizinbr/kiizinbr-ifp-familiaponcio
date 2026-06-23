@@ -1,37 +1,50 @@
-# Caddyfile — IFP Connect (produção)
-# Caddy emite e renova certificados TLS automaticamente via Let's Encrypt.
-
 {
-	email {$ACME_EMAIL}
-	# servers {
-	#     trusted_proxies static 0.0.0.0/0  # descomentar se atrás de outro proxy/CDN
-	# }
+	auto_https off
 }
 
-# Frontend (Next.js)
-{$WEB_DOMAIN} {
+# Host único atrás do Tailscale (HTTPS terminado pelo tailscale serve → :80).
+:80 {
 	encode zstd gzip
-	@static path /_next/static/*
-	header @static Cache-Control "public, max-age=31536000, immutable"
-	reverse_proxy web:3000 {
-		header_up X-Forwarded-Proto {scheme}
-		header_up X-Forwarded-Host {host}
-		header_up X-Real-IP {remote_host}
-	}
-}
 
-# API (NestJS)
-{$API_DOMAIN} {
-	encode zstd gzip
-	@cors {
-		method OPTIONS
+	# --- API NestJS ---
+	@api path /api/v1 /api/v1/*
+	handle @api {
+		reverse_proxy api:3333 {
+			header_up X-Forwarded-Proto https
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
 	}
-	respond @cors 204 {
-		close
+
+	# --- "/" COM sessão → hub do app (não quebra quem já logou) ---
+	@app_authed {
+		path /
+		header Cookie *next-auth.session-token*
 	}
-	reverse_proxy api:3333 {
-		header_up X-Forwarded-Proto {scheme}
-		header_up X-Forwarded-Host {host}
-		header_up X-Real-IP {remote_host}
+	handle @app_authed {
+		reverse_proxy web:3000 {
+			header_up X-Forwarded-Proto https
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# --- Site público institucional (landing em / sem sessão + assets) ---
+	@site path / /index.html /site.css /ifp-tokens.css /ifp-components.css /site.js /image-slot.js /loaders/* /fotos/* /public/* /scaffolds/* /preview/*
+	handle @site {
+		root * /srv/site
+		try_files {path} /index.html
+		file_server
+	}
+
+	# --- App Next (login, acesso, /educacional, _next, etc.) ---
+	handle {
+		@static path /_next/static/*
+		header @static Cache-Control "public, max-age=31536000, immutable"
+		reverse_proxy web:3000 {
+			header_up X-Forwarded-Proto https
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
 	}
 }
