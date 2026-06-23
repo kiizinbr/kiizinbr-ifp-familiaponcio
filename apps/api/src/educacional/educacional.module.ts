@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 
+import { CapacitacaoModule } from "../capacitacao/capacitacao.module";
 import { MedicoModule } from "../medico/medico.module";
 import { ComunicadosController } from "./comunicados.controller";
 import { ComunicadosService } from "./comunicados.service";
@@ -8,6 +9,8 @@ import { ConversasService } from "./conversas.service";
 import { CriancasController } from "./criancas.controller";
 import { CriancasService } from "./criancas.service";
 import { FamiliaController } from "./familia.controller";
+import { FamiliaRecebidoController } from "./familia-recebido.controller";
+import { FamiliaRecebidoService } from "./familia-recebido.service";
 import { FamiliaService } from "./familia.service";
 import { IndicadoresController } from "./indicadores.controller";
 import { IndicadoresService } from "./indicadores.service";
@@ -17,7 +20,10 @@ import { TurmasInfantisController } from "./turmas-infantis.controller";
 import { TurmasInfantisService } from "./turmas-infantis.service";
 
 @Module({
-  imports: [MedicoModule], // reusa ProfissionaisService (resolver + parede de TipoUnidade)
+  imports: [
+    MedicoModule, // reusa ProfissionaisService (resolver + parede de TipoUnidade)
+    CapacitacaoModule, // reusa CertificadoPdfService (PDF do portal da família)
+  ],
   controllers: [
     TurmasInfantisController,
     CriancasController,
@@ -26,6 +32,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     ComunicadosController,
     ConversasController,
     FamiliaController,
+    FamiliaRecebidoController,
   ],
   providers: [
     TurmasInfantisService,
@@ -35,6 +42,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     ComunicadosService,
     ConversasService,
     FamiliaService,
+    FamiliaRecebidoService,
   ],
 })
 export class EducacionalModule {}

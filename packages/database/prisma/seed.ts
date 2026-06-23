@@ -101,6 +101,7 @@ async function main() {
   await seedPresidencia();
   await seedDadosPresidencia();
   await seedServicoSocial();
+  await seedConquistasFamilia();
 }
 
 // ============================================================
@@ -1392,4 +1393,152 @@ async function seedEsportivo() {
     });
   }
   console.log(`  ✓ ${fichas.length} fichas APROVADAS no Esportivo`);
+}
+
+// ============================================================
+// Conquistas da família Sandra (fixture do portal "recebido" + certificados):
+// 1 certificado de capacitação (titular Sandra) e 1 graduação esportiva (Ana).
+// Idempotente; depende de seedCapacitacao/seedEducacional/seedEsportivo.
+// ============================================================
+async function seedConquistasFamilia() {
+  const senha = process.env.SEED_MEDICO_PASSWORD; // mesma senha dev dos profissionais
+  if (!senha) {
+    console.warn("  ! SEED_MEDICO_PASSWORD não definido — pulando conquistas da família.");
+    return;
+  }
+
+  // A ficha da Sandra (titular do login familia@ifp.local) e a Ana (dependente).
+  const sandra = await prisma.fichaCidada.findUnique({ where: { cpf: "44444444444" } });
+  if (!sandra) {
+    console.warn("  ! Ficha da Sandra não encontrada — pulando conquistas da família.");
+    return;
+  }
+  const ana = await prisma.membroFamiliar.findFirst({
+    where: { fichaId: sandra.id, nomeCompleto: "Ana Silva" },
+  });
+
+  // ── 1) Certificado de capacitação para a Sandra (titular) ──────────────
+  const unidadeCap = await prisma.unidade.findUniqueOrThrow({ where: { slug: "capacitacao" } });
+  const instrutor = await prisma.profissional.findFirst({
+    where: { unidadeId: unidadeCap.id },
+  });
+  const turmaCap = await prisma.turma.findUnique({ where: { codigo: "BB-2026-1" } });
+  if (instrutor && turmaCap) {
+    // Elegibilidade aprovada na capacitação (pré-requisito da matrícula).
+    await prisma.elegibilidadePorUnidade.upsert({
+      where: { fichaId_unidadeId: { fichaId: sandra.id, unidadeId: unidadeCap.id } },
+      update: { status: StatusElegibilidade.APROVADO },
+      create: {
+        fichaId: sandra.id,
+        unidadeId: unidadeCap.id,
+        status: StatusElegibilidade.APROVADO,
+        motivo: "Seed — conquistas da família",
+      },
+    });
+    let matCap = await prisma.matricula.findFirst({
+      where: { turmaId: turmaCap.id, fichaId: sandra.id, membroId: null },
+    });
+    if (!matCap) {
+      matCap = await prisma.matricula.create({
+        data: {
+          unidadeId: unidadeCap.id,
+          turmaId: turmaCap.id,
+          fichaId: sandra.id,
+          status: StatusMatricula.CONCLUIDA,
+          criadoPor: instrutor.userId,
+        },
+      });
+    }
+    // Certificado com código FIXO → o teste de aceite acha sem adivinhar.
+    await prisma.certificado.upsert({
+      where: { matriculaId: matCap.id },
+      update: {},
+      create: {
+        unidadeId: unidadeCap.id,
+        matriculaId: matCap.id,
+        codigoVerificacao: "seed-cert-sandra",
+        cargaHorariaCumprida: 40,
+        presencaPct: 92.5,
+      },
+    });
+    console.log("  ✓ Certificado de capacitação da Sandra (cód. seed-cert-sandra)");
+
+    // Certificado de OUTRA família (João/11111111111) — fixture do teste de IDOR:
+    // o portal da Sandra deve dar 404 ao tentar baixar este PDF.
+    const joao = await prisma.fichaCidada.findUnique({ where: { cpf: "11111111111" } });
+    const matJoao = joao
+      ? await prisma.matricula.findFirst({
+          where: { turmaId: turmaCap.id, fichaId: joao.id, membroId: null },
+        })
+      : null;
+    if (matJoao) {
+      await prisma.certificado.upsert({
+        where: { matriculaId: matJoao.id },
+        update: {},
+        create: {
+          unidadeId: unidadeCap.id,
+          matriculaId: matJoao.id,
+          codigoVerificacao: "seed-cert-outra-familia",
+          cargaHorariaCumprida: 40,
+          presencaPct: 88.0,
+        },
+      });
+      console.log("  ✓ Certificado de outra família (cód. seed-cert-outra-familia — fixture IDOR)");
+    }
+  }
+
+  // ── 2) Graduação esportiva para a Ana (dependente) ─────────────────────
+  const unidadeEsp = await prisma.unidade.findUniqueOrThrow({ where: { slug: "esportivo" } });
+  const sensei = await prisma.profissional.findFirst({
+    where: { unidadeId: unidadeEsp.id },
+  });
+  const judo = await prisma.modalidade.findFirst({
+    where: { unidadeId: unidadeEsp.id, nome: "Judô" },
+  });
+  if (ana && sensei && judo) {
+    const turmaEsp = await prisma.turmaEsportiva.upsert({
+      where: { codigo: "JUDO-FAM-2026" },
+      update: {},
+      create: {
+        unidadeId: unidadeEsp.id,
+        modalidadeId: judo.id,
+        codigo: "JUDO-FAM-2026",
+        profissionalId: sensei.id,
+        diasHorario: "Ter/Qui 9h-10h30",
+        local: "Tatame 1",
+        faixaEtariaMin: 4,
+        faixaEtariaMax: 12,
+        inicioEm: new Date("2026-02-01"),
+        vagasTotais: 20,
+      },
+    });
+    let matEsp = await prisma.matriculaEsportiva.findFirst({
+      where: { turmaId: turmaEsp.id, fichaId: sandra.id, membroId: ana.id },
+    });
+    if (!matEsp) {
+      matEsp = await prisma.matriculaEsportiva.create({
+        data: {
+          unidadeId: unidadeEsp.id,
+          turmaId: turmaEsp.id,
+          fichaId: sandra.id,
+          membroId: ana.id,
+          status: StatusMatricula.ATIVA,
+          criadoPor: sensei.userId,
+        },
+      });
+    }
+    await prisma.graduacao.upsert({
+      where: { matriculaId_nivel: { matriculaId: matEsp.id, nivel: "Faixa Branca" } },
+      update: {},
+      create: {
+        unidadeId: unidadeEsp.id,
+        matriculaId: matEsp.id,
+        nivel: "Faixa Branca",
+        codigoVerificacao: "seed-grad-ana",
+        observacao: "Primeira graduação — fixture do portal da família",
+        concedidaPor: sensei.userId,
+      },
+    });
+    console.log("  ✓ Graduação esportiva da Ana (cód. seed-grad-ana)");
+  }
 }

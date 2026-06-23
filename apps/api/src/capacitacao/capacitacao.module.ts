@@ -14,5 +14,6 @@ import { VerificacaoController } from "./verificacao.controller";
   imports: [MedicoModule], // reusa ProfissionaisService (resolver + ownership)
   controllers: [TurmasController, AulasController, CursosController, VerificacaoController],
   providers: [TurmasService, AulasService, CursosService, CertificadoPdfService],
+  exports: [CertificadoPdfService], // reusado pelo portal da família (educacional)
 })
 export class CapacitacaoModule {}
