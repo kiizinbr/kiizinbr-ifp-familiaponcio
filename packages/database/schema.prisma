@@ -73,6 +73,8 @@ model Unidade {
   eventos              EventoUnidade[]
   documentosMedicos    DocumentoMedico[]
   odontogramas         Odontograma[]
+  modelosVoluntarios   ModeloVoluntario[]
+  sessoesPraticas      SessaoPratica[]
 
   encaminhamentosOrigem  Encaminhamento[]   @relation("EncaminhamentoOrigem")
   encaminhamentosDestino Encaminhamento[]   @relation("EncaminhamentoDestino")
@@ -514,6 +516,7 @@ model Profissional {
   prescricoes       Prescricao[]
   documentosMedicos DocumentoMedico[]
   odontogramas      Odontograma[]
+  sessoesPraticas   SessaoPratica[]
 
   @@map("profissionais")
 }
@@ -939,9 +942,10 @@ model Turma {
 
   unidade    Unidade      @relation(fields: [unidadeId], references: [id])
   curso      Curso        @relation(fields: [cursoId], references: [id])
-  instrutor  Profissional @relation(fields: [profissionalId], references: [id])
-  matriculas Matricula[]
-  aulas      Aula[]
+  instrutor       Profissional    @relation(fields: [profissionalId], references: [id])
+  matriculas      Matricula[]
+  aulas           Aula[]
+  sessoesPraticas SessaoPratica[]
 
   @@index([unidadeId, status])
   @@map("turmas")
@@ -965,9 +969,10 @@ model Matricula {
   unidade     Unidade         @relation(fields: [unidadeId], references: [id])
   turma       Turma           @relation(fields: [turmaId], references: [id])
   ficha       FichaCidada     @relation(fields: [fichaId], references: [id])
-  membro      MembroFamiliar? @relation(fields: [membroId], references: [id])
-  presencas   Presenca[]
-  certificado Certificado?
+  membro          MembroFamiliar?   @relation(fields: [membroId], references: [id])
+  presencas       Presenca[]
+  certificado     Certificado?
+  inscricoesModelo InscricaoModelo[]
 
   @@unique([turmaId, fichaId, membroId])
   @@index([unidadeId, status])
@@ -1627,4 +1632,94 @@ model RelatorioPDF {
   @@index([tipo])
   @@index([geradoEm])
   @@map("relatorios_pdf")
+}
+
+// ============================================================
+// Capacitação · Banco de Modelos (sessões práticas) — C4
+// ============================================================
+// Cursos práticos (ex.: barbearia) precisam de pessoas reais para o aluno
+// treinar (cortes supervisionados). O Banco de Modelos cadastra voluntários
+// da comunidade, agenda SESSÕES PRÁTICAS por turma e faz o matching
+// aluno <-> modelo. Modelos NOVOS e aditivos — não tocam turma/matrícula.
+
+enum StatusSessaoPratica {
+  AGENDADA
+  REALIZADA
+  CANCELADA
+}
+
+enum StatusInscricaoModelo {
+  INSCRITO // voluntário se inscreveu na sessão (aguardando)
+  VINCULADO // já tem um aluno designado para atender o modelo
+  CONCLUIDO // o atendimento aconteceu
+  CANCELADO // desistência / no-show
+}
+
+// Voluntário da comunidade que se oferece como modelo (ex.: para cortes
+// supervisionados). Não é um cidadão da ficha social — é um colaborador
+// externo da unidade. Telefone é dado pessoal → leitura entra na trilha LGPD.
+model ModeloVoluntario {
+  id           String   @id @default(cuid())
+  unidadeId    String
+  nomeCompleto String
+  telefone     String? // contato p/ confirmar presença (opcional)
+  observacao   String? // preferências/restrições (ex.: "só barba")
+  ativo        Boolean  @default(true)
+  criadoPor    String? // userId de quem cadastrou
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  unidade   Unidade           @relation(fields: [unidadeId], references: [id])
+  inscricoes InscricaoModelo[]
+
+  @@index([unidadeId, ativo])
+  @@map("modelos_voluntarios")
+}
+
+// Agenda de uma sessão prática de uma turma (ex.: "tarde de cortes"). Tem
+// data, nº de vagas (quantos modelos cabem) e status. O instrutor da turma
+// é o responsável (assertOwnership reusa o profissionalId).
+model SessaoPratica {
+  id             String              @id @default(cuid())
+  unidadeId      String
+  turmaId        String
+  profissionalId String // instrutor responsável (espelha Turma.profissionalId)
+  titulo         String // ex.: "Sessão de cortes — módulo 2"
+  data           DateTime
+  vagasModelos   Int                 @default(1) // quantos modelos a sessão comporta
+  status         StatusSessaoPratica @default(AGENDADA)
+  observacao     String?
+  criadoEm       DateTime            @default(now())
+  atualizadoEm   DateTime            @updatedAt
+
+  unidade    Unidade           @relation(fields: [unidadeId], references: [id])
+  turma      Turma             @relation(fields: [turmaId], references: [id])
+  instrutor  Profissional      @relation(fields: [profissionalId], references: [id])
+  inscricoes InscricaoModelo[]
+
+  @@index([unidadeId, status])
+  @@index([turmaId, data])
+  @@map("sessoes_praticas")
+}
+
+// Matching: inscreve um modelo voluntário numa sessão prática e, opcionalmente,
+// vincula o aluno (Matricula) que vai atendê-lo. Um modelo só entra uma vez
+// por sessão (unique composto).
+model InscricaoModelo {
+  id           String                @id @default(cuid())
+  sessaoId     String
+  modeloId     String
+  matriculaId  String? // aluno designado (null = ainda sem vínculo)
+  status       StatusInscricaoModelo @default(INSCRITO)
+  criadoPor    String? // userId de quem inscreveu
+  criadoEm     DateTime              @default(now())
+  atualizadoEm DateTime              @updatedAt
+
+  sessao    SessaoPratica    @relation(fields: [sessaoId], references: [id], onDelete: Cascade)
+  modelo    ModeloVoluntario @relation(fields: [modeloId], references: [id])
+  matricula Matricula?       @relation(fields: [matriculaId], references: [id])
+
+  @@unique([sessaoId, modeloId])
+  @@index([sessaoId, status])
+  @@map("inscricoes_modelo")
 }

@@ -405,3 +405,151 @@ export function useMatriculasSemestre(status?: StatusMatricula | "TODOS") {
     placeholderData: (prev) => prev,
   });
 }
+
+// ============================================================
+// Banco de Modelos (C4) — sessões práticas + matching aluno <-> modelo
+// ============================================================
+
+export type StatusSessaoPratica = "AGENDADA" | "REALIZADA" | "CANCELADA";
+export type StatusInscricaoModelo = "INSCRITO" | "VINCULADO" | "CONCLUIDO" | "CANCELADO";
+
+export const STATUS_SESSAO_LABEL: Record<StatusSessaoPratica, string> = {
+  AGENDADA: "Agendada",
+  REALIZADA: "Realizada",
+  CANCELADA: "Cancelada",
+};
+
+export const STATUS_INSCRICAO_LABEL: Record<StatusInscricaoModelo, string> = {
+  INSCRITO: "Inscrito",
+  VINCULADO: "Vinculado",
+  CONCLUIDO: "Concluído",
+  CANCELADO: "Cancelado",
+};
+
+export interface ModeloVoluntario {
+  id: string;
+  nomeCompleto: string;
+  telefone: string | null;
+  observacao: string | null;
+  ativo: boolean;
+}
+
+export interface InscricaoModelo {
+  id: string;
+  status: StatusInscricaoModelo;
+  modelo: { id: string; nome: string };
+  aluno: { matriculaId: string; nome: string } | null;
+}
+
+export interface SessaoPratica {
+  id: string;
+  titulo: string;
+  data: string;
+  vagasModelos: number;
+  status: StatusSessaoPratica;
+  observacao: string | null;
+  turma: { id: string; codigo: string; curso: string };
+  inscricoes: InscricaoModelo[];
+  vagasOcupadas: number;
+}
+
+export function useModelosVoluntarios() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "modelos"],
+    queryFn: () =>
+      authFetch<{ items: ModeloVoluntario[]; total: number }>(
+        "/capacitacao/banco-modelos/modelos",
+      ),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useSessoesPraticas(filtros: { turmaId?: string; status?: string } = {}) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  const params = new URLSearchParams();
+  if (filtros.turmaId) params.set("turmaId", filtros.turmaId);
+  if (filtros.status) params.set("status", filtros.status);
+  const qs = params.toString();
+  return useQuery({
+    queryKey: ["capacitacao", "sessoes", filtros.turmaId ?? "", filtros.status ?? ""],
+    queryFn: () =>
+      authFetch<{ items: SessaoPratica[]; total: number }>(
+        `/capacitacao/banco-modelos/sessoes${qs ? `?${qs}` : ""}`,
+      ),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useCriarModelo() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { nomeCompleto: string; telefone?: string; observacao?: string }) =>
+      authFetch<ModeloVoluntario>("/capacitacao/banco-modelos/modelos", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["capacitacao", "modelos"] }),
+  });
+}
+
+export function useCriarSessaoPratica() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      turmaId: string;
+      titulo: string;
+      data: string;
+      vagasModelos?: number;
+      observacao?: string;
+    }) =>
+      authFetch<SessaoPratica>("/capacitacao/banco-modelos/sessoes", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["capacitacao", "sessoes"] }),
+  });
+}
+
+export function useInscreverModelo() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      sessaoId,
+      modeloId,
+      matriculaId,
+    }: {
+      sessaoId: string;
+      modeloId: string;
+      matriculaId?: string;
+    }) =>
+      authFetch<InscricaoModelo>(
+        `/capacitacao/banco-modelos/sessoes/${sessaoId}/inscricoes`,
+        { method: "POST", body: JSON.stringify({ modeloId, matriculaId }) },
+      ),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["capacitacao", "sessoes"] }),
+  });
+}
+
+export function useVincularAlunoModelo() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ inscricaoId, matriculaId }: { inscricaoId: string; matriculaId: string }) =>
+      authFetch<InscricaoModelo>(
+        `/capacitacao/banco-modelos/inscricoes/${inscricaoId}/aluno`,
+        { method: "PATCH", body: JSON.stringify({ matriculaId }) },
+      ),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["capacitacao", "sessoes"] }),
+  });
+}
