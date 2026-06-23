@@ -7,7 +7,15 @@
  */
 import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Camera, Share2, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Camera,
+  ChevronRight,
+  Clock,
+  Share2,
+  ShieldCheck,
+} from "lucide-react";
 
 import { Alerta, BotaoResposta, Spinner } from "@/components/ui";
 import { idade } from "@/lib/idade";
@@ -96,6 +104,24 @@ export default function FichaCriancaFamiliaPage({
           <Alerta tipo="erro">{erroAcao}</Alerta>
         </div>
       )}
+
+      <Link
+        href={`/familia/crianca/${membroId}/linha-do-tempo`}
+        className="mt-4 flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 transition hover:border-primary/50"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Clock className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-foreground">
+            Linha do tempo
+          </span>
+          <span className="text-xs text-muted-foreground">
+            A jornada da sua criança no instituto, do começo até hoje
+          </span>
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
 
       {crianca.alergias.length > 0 && (
         <div className="mt-4 rounded-xl border border-danger/60 bg-danger/10 px-4 py-3">

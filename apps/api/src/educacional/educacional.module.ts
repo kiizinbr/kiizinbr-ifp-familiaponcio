@@ -13,6 +13,8 @@ import { FamiliaAgendaService } from "./familia-agenda.service";
 import { FamiliaController } from "./familia.controller";
 import { FamiliaRecebidoController } from "./familia-recebido.controller";
 import { FamiliaRecebidoService } from "./familia-recebido.service";
+import { FamiliaTimelineController } from "./familia-timeline.controller";
+import { FamiliaTimelineService } from "./familia-timeline.service";
 import { FamiliaService } from "./familia.service";
 import { IndicadoresController } from "./indicadores.controller";
 import { IndicadoresService } from "./indicadores.service";
@@ -36,6 +38,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     FamiliaController,
     FamiliaRecebidoController,
     FamiliaAgendaController,
+    FamiliaTimelineController,
   ],
   providers: [
     TurmasInfantisService,
@@ -47,6 +50,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     FamiliaService,
     FamiliaRecebidoService,
     FamiliaAgendaService,
+    FamiliaTimelineService,
   ],
 })
 export class EducacionalModule {}

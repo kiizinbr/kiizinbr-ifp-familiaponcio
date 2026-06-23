@@ -173,6 +173,34 @@ export interface DiarioFamilia {
   checks: CheckItem[];
 }
 
+/** Linha do tempo da criança — categorias de evento (guiam ícone/cor na UI). */
+export type TipoEventoTimeline =
+  | "MATRICULA_CRECHE"
+  | "MATRICULA_CAPACITACAO"
+  | "MATRICULA_ESPORTE"
+  | "DIARIO"
+  | "ENTRADA"
+  | "SAIDA"
+  | "CERTIFICADO"
+  | "GRADUACAO"
+  | "ATENDIMENTO";
+
+export interface EventoTimeline {
+  id: string;
+  tipo: TipoEventoTimeline;
+  data: string;
+  titulo: string;
+  descricao?: string | null;
+  unidade?: string | null;
+  codigoVerificacao?: string | null;
+}
+
+export interface TimelineCrianca {
+  crianca: { id: string; nomeCompleto: string; dataNascimento: string };
+  total: number;
+  eventos: EventoTimeline[];
+}
+
 export type TipoConsentimentoFamilia = "USO_DADOS_LGPD" | "COMPARTILHAMENTO_PARCEIROS";
 
 export const CONSENTIMENTO_DADOS_LABEL: Record<TipoConsentimentoFamilia, string> = {
@@ -538,6 +566,18 @@ export function useFichaCrianca(membroId: string | undefined) {
     queryKey: ["familia", "ficha", membroId],
     queryFn: () =>
       authFetch<FichaCriancaFamilia>(`/familia/educacional/ficha/${membroId}`),
+    enabled: status === "authenticated" && !!membroId,
+  });
+}
+
+/** Linha do tempo da criança (jornada cronológica agregada das verticais). */
+export function useTimelineCrianca(membroId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["familia", "timeline", membroId],
+    queryFn: () =>
+      authFetch<TimelineCrianca>(`/familia/educacional/timeline/${membroId}`),
     enabled: status === "authenticated" && !!membroId,
   });
 }

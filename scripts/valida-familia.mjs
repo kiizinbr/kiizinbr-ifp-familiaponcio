@@ -218,6 +218,68 @@ const semTokenAgenda = await req(null, "GET", "/familia/agenda");
 caso("sem token -> agenda (401)", 401, semTokenAgenda.status);
 
 // ════════════════════════════════════════════════════════════════════════
+// LINHA DO TEMPO DA CRIANÇA (B6) — jornada narrativa cruzando eventos JÁ
+// existentes (matrícula, presenças/check-in, diários, certificados/graduações,
+// atendimentos) numa timeline cronológica. PURA AGREGAÇÃO de leitura.
+// IDOR: 200 só da PRÓPRIA criança; criança de outra família → 403.
+// ════════════════════════════════════════════════════════════════════════
+console.log("\n--- LINHA DO TEMPO: jornada da própria criança ---");
+// Descobre a Ana (criança da própria família) — não confia em id do client.
+const criancasTl = await req(familia, "GET", "/familia/educacional/criancas");
+const anaTl = (criancasTl.json?.items ?? [])[0]?.crianca?.id;
+caso("família tem ao menos 1 criança (timeline)", true, Boolean(anaTl));
+
+const tl = await req(familia, "GET", `/familia/educacional/timeline/${anaTl}`);
+caso("família -> timeline da própria criança", 200, tl.status);
+const eventosTl = tl.json?.eventos ?? [];
+caso("timeline da criança traz eventos", true, eventosTl.length >= 1);
+caso("timeline informa o total batendo com a lista", true, tl.json?.total === eventosTl.length);
+caso("timeline identifica a criança certa", anaTl, tl.json?.crianca?.id);
+
+// A Ana tem fixtures garantidos no seed: matrícula infantil (Jardim A),
+// matrícula esportiva (Judô) e graduação esportiva (Faixa Branca).
+const tipos = eventosTl.map((e) => e.tipo);
+caso("timeline traz a matrícula na creche", true, tipos.includes("MATRICULA_CRECHE"));
+caso("timeline traz a matrícula no esporte", true, tipos.includes("MATRICULA_ESPORTE"));
+const gradEv = eventosTl.find((e) => e.tipo === "GRADUACAO");
+caso("timeline traz a graduação esportiva", true, Boolean(gradEv));
+caso(
+  "graduação na timeline expõe o código de verificação",
+  "seed-grad-ana",
+  gradEv?.codigoVerificacao,
+);
+// Selo do diário FECHADO de ontem também entra na jornada.
+caso("timeline traz o diário fechado", true, tipos.includes("DIARIO"));
+
+// Ordem cronológica: do mais ANTIGO ao mais RECENTE (a UI lê de cima a baixo).
+const datas = eventosTl.map((e) => new Date(e.data).getTime());
+const ordenado = datas.every((t, i) => i === 0 || datas[i - 1] <= t);
+caso("timeline vem em ordem cronológica (asc)", true, ordenado);
+// O diário/checks de ONTEM precedem as matrículas/graduação criadas HOJE no seed.
+const idxDiario = eventosTl.findIndex((e) => e.tipo === "DIARIO");
+const idxGrad = eventosTl.findIndex((e) => e.tipo === "GRADUACAO");
+caso("diário (ontem) vem antes da graduação (hoje)", true, idxDiario >= 0 && idxDiario < idxGrad);
+
+console.log("--- LINHA DO TEMPO: IDOR e RBAC ---");
+// Criança de OUTRA família (Lucas, ficha do João) → 403. Descobre via instrutor.
+const instrutorTl = await login("instrutor@ifp.local");
+const elTl = await req(instrutorTl, "GET", "/capacitacao/fichas-elegiveis?q=joao");
+const fichaJoaoTl = (elTl.json?.items ?? []).find((f) => /jo[aã]o/i.test(f.nomeCompleto));
+const lucasTl = (fichaJoaoTl?.membros ?? []).find((m) => /lucas/i.test(m.nomeCompleto))?.id;
+caso("achou criança de outra família (fixture timeline)", true, Boolean(lucasTl));
+const tlIdor = await req(familia, "GET", `/familia/educacional/timeline/${lucasTl}`);
+caso("família -> timeline de OUTRA criança (IDOR)", 403, tlIdor.status);
+const tlInexistente = await req(familia, "GET", "/familia/educacional/timeline/nao-existe");
+caso("família -> timeline de criança inexistente", 403, tlInexistente.status);
+// RBAC: perfil errado e sem token.
+const medicoTl = await req(medico, "GET", `/familia/educacional/timeline/${anaTl}`);
+caso("médico -> timeline (RBAC)", 403, medicoTl.status);
+const senseiTl = await req(sensei, "GET", `/familia/educacional/timeline/${anaTl}`);
+caso("sensei -> timeline (RBAC)", 403, senseiTl.status);
+const semTokenTl = await req(null, "GET", `/familia/educacional/timeline/${anaTl}`);
+caso("sem token -> timeline (401)", 401, semTokenTl.status);
+
+// ════════════════════════════════════════════════════════════════════════
 // CONSENTIMENTO DO TITULAR (B3) — dar/revogar uso de imagem (por criança) e
 // uso/compartilhamento de dados (por ficha). Reusa AutorizacaoImagem +
 // Consentimento. IDOR: só a PRÓPRIA ficha/criança.
@@ -343,4 +405,6 @@ const total = resultados.length;
 const ok = resultados.filter(Boolean).length;
 console.log(`\n${ok}/${total}`);
 if (ok !== total) process.exit(1);
-console.log(">>> PORTAL DA FAMÍLIA (recebido + certificados + agenda + presença) VALIDADO <<<");
+console.log(
+  ">>> PORTAL DA FAMÍLIA (recebido + certificados + agenda + presença + linha do tempo) VALIDADO <<<",
+);
