@@ -93,15 +93,24 @@ export class TriagemService {
     });
     if (!ficha) throw new NotFoundException("Ficha não encontrada.");
 
-    const triagem = await this.prisma.triagem.create({
-      data: {
-        fichaId: dto.fichaId,
-        prioridade: dto.prioridade,
-        motivoSolicitacao: dto.motivoSolicitacao,
-        criadoPor: user.id,
-      },
-      include: triagemInclude,
-    });
+    const triagem = await this.prisma.triagem
+      .create({
+        data: {
+          fichaId: dto.fichaId,
+          prioridade: dto.prioridade,
+          motivoSolicitacao: dto.motivoSolicitacao,
+          criadoPor: user.id,
+        },
+        include: triagemInclude,
+      })
+      .catch((e) => {
+        // Índice único parcial (1 triagem PENDENTE por ficha) → 409 em vez de 500;
+        // barra duplo-clique/retry.
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          throw new ConflictException("Já existe uma triagem pendente para esta família.");
+        }
+        throw e;
+      });
     this.audit.registrar({
       userId: user.id,
       acao: AcaoAuditoria.CREATE,

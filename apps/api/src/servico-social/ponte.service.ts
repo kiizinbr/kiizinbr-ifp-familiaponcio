@@ -138,18 +138,28 @@ export class PonteService {
       throw new ForbiddenException("Usuário não possui cadastro de Profissional ativo.");
     }
 
-    const sinal = await this.prisma.sinalizacaoPonte.create({
-      data: {
-        fichaId: dto.fichaId,
-        membroId: dto.membroId ?? null,
-        unidadeOrigemId: profissional.unidade.id,
-        descricao: dto.descricao,
-        criadoPor: user.id,
-        ...(dto.tipo ? { tipo: dto.tipo } : {}),
-        ...(dto.prioridade ? { prioridade: dto.prioridade } : {}),
-      },
-      include: sinalizacaoInclude,
-    });
+    const sinal = await this.prisma.sinalizacaoPonte
+      .create({
+        data: {
+          fichaId: dto.fichaId,
+          membroId: dto.membroId ?? null,
+          unidadeOrigemId: profissional.unidade.id,
+          descricao: dto.descricao,
+          criadoPor: user.id,
+          ...(dto.tipo ? { tipo: dto.tipo } : {}),
+          ...(dto.prioridade ? { prioridade: dto.prioridade } : {}),
+        },
+        include: sinalizacaoInclude,
+      })
+      .catch((e) => {
+        // Índice único parcial (1 PENDENTE por ficha+origem+tipo) → 409 em vez de 500.
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          throw new ConflictException(
+            "Já existe uma sinalização pendente igual para esta família.",
+          );
+        }
+        throw e;
+      });
     this.audit.registrar({
       userId: user.id,
       acao: AcaoAuditoria.CREATE,

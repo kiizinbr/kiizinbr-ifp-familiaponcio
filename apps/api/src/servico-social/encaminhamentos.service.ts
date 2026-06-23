@@ -131,17 +131,27 @@ export class EncaminhamentosService {
       );
     }
 
-    const encaminhamento = await this.prisma.encaminhamento.create({
-      data: {
-        fichaId: dto.fichaId,
-        unidadeOrigemId: origem.id,
-        unidadeDestinoId: destino.id,
-        motivo: dto.motivo,
-        criadoPor: user.id,
-        ...(dto.prioridade ? { prioridade: dto.prioridade } : {}),
-      },
-      include: encaminhamentoInclude,
-    });
+    const encaminhamento = await this.prisma.encaminhamento
+      .create({
+        data: {
+          fichaId: dto.fichaId,
+          unidadeOrigemId: origem.id,
+          unidadeDestinoId: destino.id,
+          motivo: dto.motivo,
+          criadoPor: user.id,
+          ...(dto.prioridade ? { prioridade: dto.prioridade } : {}),
+        },
+        include: encaminhamentoInclude,
+      })
+      .catch((e) => {
+        // Índice único parcial (1 PENDENTE por ficha+origem+destino) → 409 em vez de 500.
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          throw new ConflictException(
+            "Já existe um encaminhamento pendente desta família para essa unidade.",
+          );
+        }
+        throw e;
+      });
     this.audit.registrar({
       userId: user.id,
       acao: AcaoAuditoria.CREATE,
