@@ -33,5 +33,6 @@ export const config = {
     "/presidencia/:path*",
     "/familia/:path*",
     "/admin/:path*",
+    "/conta/:path*",
   ],
 };

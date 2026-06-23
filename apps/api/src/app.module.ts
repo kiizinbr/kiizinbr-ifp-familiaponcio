@@ -16,6 +16,7 @@ import { CapacitacaoModule } from "./capacitacao/capacitacao.module";
 import { EducacionalModule } from "./educacional/educacional.module";
 import { EsportivoModule } from "./esportivo/esportivo.module";
 import { PresidenciaModule } from "./presidencia/presidencia.module";
+import { BuscaModule } from "./busca/busca.module";
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PresidenciaModule } from "./presidencia/presidencia.module";
     EducacionalModule,
     EsportivoModule,
     PresidenciaModule,
+    BuscaModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

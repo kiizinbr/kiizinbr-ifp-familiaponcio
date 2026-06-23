@@ -236,6 +236,66 @@ caso(
   Boolean(lista.json?.items?.some((u) => u.id === novoId)),
 );
 
+console.log("--- MINHA CONTA (/auth/me enriquecido) ---");
+const meAdmin = await req(admin, "GET", "/auth/me");
+caso("auth/me responde 200", 200, meAdmin.status);
+caso("auth/me traz nome", true, typeof meAdmin.json?.nome === "string" && meAdmin.json.nome.length > 0);
+caso("auth/me traz email", true, meAdmin.json?.email === "admin@ifp.local");
+caso("auth/me traz perfis (array)", true, Array.isArray(meAdmin.json?.perfis));
+caso("auth/me traz unidades (array)", true, Array.isArray(meAdmin.json?.unidades));
+caso("auth/me NÃO vaza senhaHash", true, meAdmin.json?.senhaHash === undefined);
+const meFamilia = await req(familia, "GET", "/auth/me");
+caso("família também acessa /auth/me", 200, meFamilia.status);
+
+console.log("--- BUSCA GLOBAL (/busca) ---");
+const buscaSemTermo = await req(admin, "GET", "/busca");
+caso("busca sem termo responde 200", 200, buscaSemTermo.status);
+caso("busca sem termo retorna vazio", 0, buscaSemTermo.json?.total);
+
+const buscaCurta = await req(admin, "GET", "/busca?q=a");
+caso("termo curto (<2) não busca", 0, buscaCurta.json?.total);
+
+const buscaUsuario = await req(admin, "GET", `/busca?q=${encodeURIComponent("QA Profissional")}`);
+caso("admin busca o usuário criado", 200, buscaUsuario.status);
+caso(
+  "resultado inclui o usuário criado",
+  true,
+  Boolean(buscaUsuario.json?.resultados?.some((r) => r.tipo === "usuario" && r.id === novoId)),
+);
+caso(
+  "resultado de usuário tem href clicável",
+  true,
+  Boolean(
+    buscaUsuario.json?.resultados
+      ?.find((r) => r.id === novoId)
+      ?.href?.startsWith("/admin/usuarios"),
+  ),
+);
+
+const buscaFamilia = await req(familia, "GET", `/busca?q=${encodeURIComponent("QA Profissional")}`);
+caso("família (RBAC) acessa busca mas não vê usuários", 200, buscaFamilia.status);
+caso(
+  "família não recebe resultados de usuário (RBAC)",
+  true,
+  !buscaFamilia.json?.resultados?.some((r) => r.tipo === "usuario"),
+);
+
+const buscaGestora = await req(gestora, "GET", `/busca?q=${encodeURIComponent("QA Gestor-Prof")}`);
+caso("gestora busca dentro do escopo", 200, buscaGestora.status);
+caso(
+  "gestora encontra usuário da própria unidade",
+  true,
+  gProfId
+    ? Boolean(buscaGestora.json?.resultados?.some((r) => r.tipo === "usuario" && r.id === gProfId))
+    : true,
+);
+const buscaGestoraFora = await req(gestora, "GET", `/busca?q=${encodeURIComponent("admin@ifp.local")}`);
+caso(
+  "gestora NÃO encontra admin fora do seu escopo (RBAC)",
+  true,
+  !buscaGestoraFora.json?.resultados?.some((r) => r.tipo === "usuario" && r.id === adminId),
+);
+
 // limpeza best-effort: desativa os usuários de teste criados nesta execução
 await req(admin, "PATCH", `/users/${novoId}/ativo`, { ativo: false });
 if (gProfId) await req(admin, "PATCH", `/users/${gProfId}/ativo`, { ativo: false });

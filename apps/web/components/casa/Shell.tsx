@@ -7,10 +7,11 @@
  */
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Bell, BookOpen, Search, User } from "lucide-react";
+import { Bell, BookOpen, User } from "lucide-react";
 
 import { SairButton } from "@/components/sair-button";
 import { Brandmark } from "./Brandmark";
+import { BuscaGlobal } from "./BuscaGlobal";
 import { CrestAvatar } from "./CrestAvatar";
 import { Rail } from "./Rail";
 import { NOME_UNIDADE, type ModuloCasa } from "./nav";
@@ -29,16 +30,7 @@ function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: s
           </div>
         </div>
       </div>
-      <div
-        title="Busca global — em breve"
-        className="flex max-w-[420px] flex-1 cursor-default items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-muted-foreground opacity-60"
-      >
-        <Search className="h-4 w-4" />
-        <span className="text-[13px]">Buscar família, protocolo, beneficiário…</span>
-        <span className="ml-auto rounded-full bg-[var(--unidade-suave)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--unidade-escuro)]">
-          Em breve
-        </span>
-      </div>
+      <BuscaGlobal />
       <div className="ml-auto flex items-center gap-3.5">
         <span
           title="Notificações — em breve"
@@ -46,13 +38,17 @@ function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: s
         >
           <Bell className="h-[18px] w-[18px]" />
         </span>
-        <span className="flex items-center gap-2">
+        <Link
+          href="/conta"
+          title="Minha conta"
+          className="flex items-center gap-2 rounded-xl px-1.5 py-1 transition hover:bg-[var(--unidade-suave)]"
+        >
           <CrestAvatar iniciais={iniciais} size={34} />
           <span className="leading-tight">
             <span className="block text-[12.5px] font-semibold text-foreground">{user}</span>
             <span className="block text-[10px] text-muted-foreground">{cargo}</span>
           </span>
-        </span>
+        </Link>
         <SairButton />
       </div>
     </header>

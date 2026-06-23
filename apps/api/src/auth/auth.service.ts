@@ -62,6 +62,41 @@ export class AuthService {
     };
   }
 
+  /**
+   * Dados completos do próprio usuário ("Minha conta"). Enriquece o que o
+   * JwtStrategy carrega (id/email/perfis) com nome e unidades vinculadas.
+   * Auditamos como READ do próprio cadastro (dado pessoal — LGPD).
+   */
+  async me(userId: string) {
+    const user = await this.users.findByIdWithPerfis(userId);
+
+    this.audit.registrar({
+      userId,
+      acao: AcaoAuditoria.READ,
+      entidade: "User",
+      entidadeId: userId,
+      metadados: { evento: "minha-conta" },
+    });
+
+    return {
+      id: user.id,
+      nome: user.nome,
+      email: user.email,
+      cpf: user.cpf,
+      ativo: user.ativo,
+      mustChangePassword: user.mustChangePassword,
+      ultimoLogin: user.ultimoLogin,
+      criadoEm: user.criadoEm,
+      perfis: user.perfis.map((p) => p.perfil),
+      unidades: user.unidades.map((u) => ({
+        id: u.unidade.id,
+        slug: u.unidade.slug,
+        nome: u.unidade.nome,
+        tipo: u.unidade.tipo,
+      })),
+    };
+  }
+
   /** Troca da própria senha (valida a senha atual). Limpa o flag de 1º acesso. */
   async trocarSenha(userId: string, senhaAtual: string, novaSenha: string) {
     const user = await this.users.findById(userId);

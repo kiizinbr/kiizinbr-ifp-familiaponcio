@@ -29,9 +29,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @PermiteSenhaProvisoria()
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Retorna o usuário autenticado" })
+  @ApiOperation({ summary: "Retorna os dados completos do usuário autenticado (Minha conta)" })
   me(@CurrentUser() user: AuthenticatedUser) {
-    return user;
+    return this.auth.me(user.id);
   }
 
   @Post("trocar-senha")
