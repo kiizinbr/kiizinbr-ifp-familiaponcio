@@ -141,6 +141,39 @@ export function Botao({
 }
 
 // ------------------------------------------------------------
+// BotaoResposta: pílula SIM/NAO (RSVP da família, "vem amanhã?")
+// Destaca a resposta escolhida; verde p/ SIM, vermelho p/ NAO.
+// ------------------------------------------------------------
+export function BotaoResposta({
+  ativo,
+  tom,
+  children,
+  className,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  ativo: boolean;
+  tom: "sim" | "nao";
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-60",
+        ativo
+          ? tom === "sim"
+            ? "bg-primary text-primary-foreground"
+            : "bg-danger text-ifp-white"
+          : "border border-border bg-surface text-muted-foreground hover:bg-muted",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ------------------------------------------------------------
 // BadgeStatus: pílula colorida por status de elegibilidade
 // ------------------------------------------------------------
 const statusEstilo: Record<StatusElegibilidade, string> = {

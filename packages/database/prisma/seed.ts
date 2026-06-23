@@ -14,6 +14,7 @@ import {
   StatusDiario,
   StatusElegibilidade,
   StatusEncaminhamento,
+  StatusEvento,
   StatusMatricula,
   StatusPresenca,
   StatusSinalizacao,
@@ -1169,6 +1170,79 @@ async function seedEducacional() {
     });
     console.log("  ✓ Comunicado crítico sem leitura");
   }
+
+  // 8) Agenda da família (U6): eventos do calendário + confirmação de presença.
+  // IDs fixos para a regressão (valida-familia) bater sem depender de busca.
+  // Zera o estado de presença do dia (igual ao diário): a regressão grava o
+  // "vem amanhã?" — sem limpar, re-rodar deixaria respostas penduradas.
+  await prisma.presencaCreche.deleteMany({ where: { membroId: ana.id } });
+  await prisma.confirmacaoEvento.deleteMany({
+    where: { evento: { unidadeId: unidadeEdu.id } },
+  });
+
+  // Datas no futuro (independem do dia da execução) — calendário sempre cheio.
+  const amanha = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const proxSemana = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  // 8a) Evento da turma Jardim A que PEDE confirmação (RSVP) — fixture central.
+  await prisma.eventoUnidade.upsert({
+    where: { id: "seed-evento-festa-junina" },
+    update: {
+      inicioEm: proxSemana,
+      status: StatusEvento.AGENDADO,
+      pedeConfirmacao: true,
+    },
+    create: {
+      id: "seed-evento-festa-junina",
+      unidadeId: unidadeEdu.id,
+      turmaId: turmaInf.id,
+      titulo: "Festa Junina — Jardim A",
+      descricao: "Comidas típicas e quadrilha. Tragam um prato para compartilhar!",
+      local: "Pátio do Centro Educacional",
+      inicioEm: proxSemana,
+      pedeConfirmacao: true,
+      criadoPor: educadoraUser.id,
+    },
+  });
+
+  // 8b) Evento GERAL da unidade, sem RSVP (aparece na agenda, não pede resposta).
+  await prisma.eventoUnidade.upsert({
+    where: { id: "seed-evento-reuniao-geral" },
+    update: { inicioEm: amanha, status: StatusEvento.AGENDADO, pedeConfirmacao: false },
+    create: {
+      id: "seed-evento-reuniao-geral",
+      unidadeId: unidadeEdu.id,
+      turmaId: null,
+      titulo: "Reunião geral de pais e responsáveis",
+      descricao: "Apresentação do calendário do semestre.",
+      local: "Auditório",
+      inicioEm: amanha,
+      pedeConfirmacao: false,
+      criadoPor: educadoraUser.id,
+    },
+  });
+
+  // 8c) Fixture IDOR: evento de OUTRA unidade (capacitação) — a Ana NÃO tem
+  // matrícula infantil lá. A família NÃO deve ver na agenda nem conseguir
+  // confirmar (POST → 404). Só cria se a unidade de capacitação existir.
+  const unidadeCap = await prisma.unidade.findUnique({ where: { slug: "capacitacao" } });
+  if (unidadeCap) {
+    await prisma.eventoUnidade.upsert({
+      where: { id: "seed-evento-outra-unidade" },
+      update: { inicioEm: proxSemana, status: StatusEvento.AGENDADO, pedeConfirmacao: true },
+      create: {
+        id: "seed-evento-outra-unidade",
+        unidadeId: unidadeCap.id,
+        turmaId: null,
+        titulo: "Mostra de cursos — Capacitação",
+        descricao: "Evento de outra unidade (fixture IDOR do portal da família).",
+        local: "Centro de Capacitação",
+        inicioEm: proxSemana,
+        pedeConfirmacao: true,
+      },
+    });
+  }
+  console.log("  ✓ Agenda da família: 2 eventos visíveis + 1 de outra unidade (IDOR)");
 }
 
 // ============================================================

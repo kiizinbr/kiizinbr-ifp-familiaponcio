@@ -1,10 +1,12 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { API_BASE_URL, ApiError } from "./api";
 import { useAuthFetch } from "./use-auth-fetch";
+
+export type RespostaPresenca = "SIM" | "NAO";
 
 // ============================================================
 // Portal da família — "O que recebi" + galeria de certificados.
@@ -142,6 +144,119 @@ export function useBaixarCertificadoPdf() {
       // Libera a object URL depois de o navegador abrir a aba.
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
       return true;
+    },
+  });
+}
+
+// ============================================================
+// Agenda de eventos + confirmação de presença (U6).
+// Espelha o FamiliaAgendaController (prefixo /familia/agenda, /familia/presenca).
+// ============================================================
+
+export interface ConfirmacaoEventoFamilia {
+  membroId: string;
+  resposta: RespostaPresenca;
+  observacao: string | null;
+  respondidoEm: string;
+}
+
+export interface EventoFamilia {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  local: string | null;
+  inicioEm: string;
+  fimEm: string | null;
+  pedeConfirmacao: boolean;
+  unidade: { id: string; nome: string };
+  turma: { id: string; nome: string } | null;
+  confirmacoes: ConfirmacaoEventoFamilia[];
+  pendentes: number;
+}
+
+export interface AgendaFamilia {
+  items: EventoFamilia[];
+}
+
+export interface PresencaItem {
+  crianca: { id: string; nomeCompleto: string };
+  turma: { id: string; nome: string };
+  unidade: { id: string; nome: string };
+  resposta: RespostaPresenca | null;
+  observacao: string | null;
+  respondidaEm: string | null;
+}
+
+export interface PresencaDoDia {
+  dia: string;
+  items: PresencaItem[];
+}
+
+/** Calendário de eventos das unidades das minhas crianças + meu RSVP. */
+export function useAgenda() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["familia", "agenda"],
+    queryFn: () => authFetch<AgendaFamilia>("/familia/agenda"),
+    enabled: status === "authenticated",
+  });
+}
+
+/** Confirma (SIM/NAO) a presença de uma criança num evento; invalida a agenda. */
+export function useConfirmarEvento() {
+  const authFetch = useAuthFetch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: {
+      eventoId: string;
+      membroId: string;
+      resposta: RespostaPresenca;
+      observacao?: string;
+    }) =>
+      authFetch(`/familia/agenda/${vars.eventoId}/confirmar`, {
+        method: "POST",
+        body: JSON.stringify({
+          membroId: vars.membroId,
+          resposta: vars.resposta,
+          observacao: vars.observacao,
+        }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["familia", "agenda"] });
+    },
+  });
+}
+
+/** "Vem amanhã?" da creche — confirmação por criança no dia (default: amanhã). */
+export function usePresenca(data?: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  const qs = data ? `?data=${encodeURIComponent(data)}` : "";
+  return useQuery({
+    queryKey: ["familia", "presenca", data ?? "amanha"],
+    queryFn: () => authFetch<PresencaDoDia>(`/familia/presenca${qs}`),
+    enabled: status === "authenticated",
+  });
+}
+
+/** Responde o "vem amanhã?" de uma criança (SIM/NAO); invalida a lista do dia. */
+export function useResponderPresenca() {
+  const authFetch = useAuthFetch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: {
+      membroId: string;
+      resposta: RespostaPresenca;
+      data?: string;
+      observacao?: string;
+    }) =>
+      authFetch("/familia/presenca", {
+        method: "POST",
+        body: JSON.stringify(vars),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["familia", "presenca"] });
     },
   });
 }

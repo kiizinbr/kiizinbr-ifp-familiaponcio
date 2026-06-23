@@ -69,6 +69,7 @@ model Unidade {
   conversasFamilia     ConversaFamilia[]
   treinosEsportivos    TreinoEsportivo[]
   prescricoes          Prescricao[]
+  eventos              EventoUnidade[]
 
   encaminhamentosOrigem  Encaminhamento[]   @relation("EncaminhamentoOrigem")
   encaminhamentosDestino Encaminhamento[]   @relation("EncaminhamentoDestino")
@@ -230,6 +231,8 @@ model FichaCidada {
   triagens                Triagem[]
   encaminhamentos         Encaminhamento[]
   sinalizacoesPonte       SinalizacaoPonte[]
+  confirmacoesEvento      ConfirmacaoEvento[]
+  presencasCreche         PresencaCreche[]
 
   // Painel da Presidência: contagens por ativa / novas por criadoEm
   @@index([ativa])
@@ -281,6 +284,8 @@ model MembroFamiliar {
   conversa                ConversaFamilia?
   prescricoes             Prescricao[]
   sinalizacoesPonte       SinalizacaoPonte[]
+  confirmacoesEvento      ConfirmacaoEvento[]
+  presencasCreche         PresencaCreche[]
 
   @@map("membros_familiares")
 }
@@ -986,6 +991,21 @@ enum SentidoCheck {
   SAIDA
 }
 
+// Resposta da família: confirmação de presença em evento (RSVP) e o
+// "vem amanhã?" da creche. SIM/NAO explícitos — sem default (a ausência
+// de registro = "não respondeu", estado distinto de "não vem").
+enum RespostaPresenca {
+  SIM
+  NAO
+}
+
+// Status do evento no calendário da unidade. CANCELADO é "soft" (mantém
+// a trilha; nunca apagamos o que a família já confirmou).
+enum StatusEvento {
+  AGENDADO
+  CANCELADO
+}
+
 // Autorização de imagem granular, POR CRIANÇA e POR FINALIDADE, revogável,
 // default NEGADO (LGPD Art. 14). Transversal: será reutilizada pelo Esportivo
 // e pelo Banco de Modelos da Capacitação (Fase 2).
@@ -1029,6 +1049,7 @@ model TurmaInfantil {
   atualizadoEm   DateTime            @updatedAt
   matriculas     MatriculaInfantil[]
   comunicados    Comunicado[]
+  eventos        EventoUnidade[]
 
   @@index([unidadeId])
   @@map("turmas_infantis")
@@ -1156,6 +1177,74 @@ model ComunicadoLeitura {
 
   @@unique([comunicadoId, fichaId])
   @@map("comunicados_leituras")
+}
+
+// ============================================================
+// Família — agenda de eventos + confirmação de presença (U6)
+// Calendário da unidade que a família vê no portal, RSVP por criança e o
+// "vem amanhã?" da creche. Tudo escopado por unidade/turma; o portal resolve
+// ownership por User.fichaCidadaId (nunca aceita fichaId/membroId de outra
+// família). Models aditivos, sem alterar o que já existe.
+// ============================================================
+
+model EventoUnidade {
+  id            String         @id @default(cuid())
+  unidadeId     String
+  unidade       Unidade        @relation(fields: [unidadeId], references: [id])
+  turmaId       String? // null = evento geral da unidade; senão restrito à turma
+  turma         TurmaInfantil? @relation(fields: [turmaId], references: [id])
+  titulo        String
+  descricao     String?
+  local         String?
+  inicioEm      DateTime
+  fimEm         DateTime?
+  // Eventos como passeio/festa pedem RSVP; reunião informativa pode não pedir.
+  pedeConfirmacao Boolean      @default(false)
+  status        StatusEvento   @default(AGENDADO)
+  criadoPor     String? // userId administrativo
+  criadoEm      DateTime       @default(now())
+  atualizadoEm  DateTime       @updatedAt
+  confirmacoes  ConfirmacaoEvento[]
+
+  @@index([unidadeId, inicioEm])
+  @@map("eventos_unidade")
+}
+
+model ConfirmacaoEvento {
+  id            String           @id @default(cuid())
+  eventoId      String
+  evento        EventoUnidade    @relation(fields: [eventoId], references: [id])
+  fichaId       String // a família que respondeu (ownership)
+  ficha         FichaCidada      @relation(fields: [fichaId], references: [id])
+  membroId      String // a criança da família
+  membro        MembroFamiliar   @relation(fields: [membroId], references: [id])
+  resposta      RespostaPresenca
+  observacao    String? // ex.: "chega 30min atrasada"
+  respondidoEm  DateTime         @default(now())
+  atualizadoEm  DateTime         @updatedAt
+
+  // Uma resposta por criança por evento (re-confirmar = update).
+  @@unique([eventoId, membroId])
+  @@index([fichaId])
+  @@map("confirmacoes_evento")
+}
+
+model PresencaCreche {
+  id           String           @id @default(cuid())
+  fichaId      String // a família que respondeu (ownership)
+  ficha        FichaCidada      @relation(fields: [fichaId], references: [id])
+  membroId     String // a criança
+  membro       MembroFamiliar   @relation(fields: [membroId], references: [id])
+  data         DateTime         @db.Date // dia civil (São Paulo) — molde DiarioDia
+  resposta     RespostaPresenca
+  observacao   String?
+  respondidaEm DateTime         @default(now())
+  atualizadaEm DateTime         @updatedAt
+
+  // Uma confirmação por criança por dia (re-responder = update).
+  @@unique([membroId, data])
+  @@index([fichaId, data])
+  @@map("presencas_creche")
 }
 
 // ============================================================

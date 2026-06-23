@@ -8,6 +8,8 @@ import { ConversasController } from "./conversas.controller";
 import { ConversasService } from "./conversas.service";
 import { CriancasController } from "./criancas.controller";
 import { CriancasService } from "./criancas.service";
+import { FamiliaAgendaController } from "./familia-agenda.controller";
+import { FamiliaAgendaService } from "./familia-agenda.service";
 import { FamiliaController } from "./familia.controller";
 import { FamiliaRecebidoController } from "./familia-recebido.controller";
 import { FamiliaRecebidoService } from "./familia-recebido.service";
@@ -33,6 +35,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     ConversasController,
     FamiliaController,
     FamiliaRecebidoController,
+    FamiliaAgendaController,
   ],
   providers: [
     TurmasInfantisService,
@@ -43,6 +46,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     ConversasService,
     FamiliaService,
     FamiliaRecebidoService,
+    FamiliaAgendaService,
   ],
 })
 export class EducacionalModule {}
