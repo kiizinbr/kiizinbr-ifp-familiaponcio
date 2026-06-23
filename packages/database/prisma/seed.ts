@@ -600,8 +600,7 @@ async function seedCapacitacao() {
         itens: ["Desenho e modelagem de barba", "Atendimento ao cliente", "Gestão do próprio negócio"],
       },
     ];
-    for (let i = 0; i < trilha.length; i++) {
-      const m = trilha[i];
+    for (const [i, m] of trilha.entries()) {
       await prisma.moduloCurso.create({
         data: {
           cursoId: curso.id,

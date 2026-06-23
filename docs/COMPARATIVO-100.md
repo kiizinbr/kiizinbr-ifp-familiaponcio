@@ -9,6 +9,17 @@
 > **Este doc é a fonte de verdade do gap** (o `ONDE-PARAMOS.md` está defasado em ~11 dias).
 > Branch: `claude/continue-projetoifp-section-10-RKC1n`.
 
+> **⚙️ ATUALIZAÇÃO 2026-06-23 — esteira autônoma fechou o "conjunto seguro" (ver `RFC-FECHAR-GAP-AUTONOMO.md`).**
+> 9 unidades por área entregues e EMPURRADAS (commits `7f4e9dd`→`6ec878e`): Comum (perfil/busca), Esportivo
+> (dashboards), Educacional (indicadores/diário-lote), Capacitação (curso/matrículas), Família (recebido/
+> certificados/agenda/presença), Médico Fase 2 (recepção/triagem-enfermagem/atestado-PDF/odontograma), Admin
+> (auditoria-LGPD/unidades/entrega-comunicados). **Verificado em runtime:** 13/13 scripts `valida-*` verdes
+> (incl. regressões tenant/prescrição/triagem) + `pnpm typecheck` do repo inteiro verde.
+> **⚠ Ressalva (não inflar o placar abaixo):** verificação é **backend + compilação**; a **UI não foi
+> testada no navegador** (limite do forward na workstation) e o `next build` de produção (`output:standalone`)
+> só completa no **Linux/CI** (EPERM de symlink no Windows). Antes de ir a usuário: smoke no navegador + build
+> de produção no servidor + deploy na `ifp-final`. As percentagens abaixo são o estado PRÉ-esteira.
+
 ## 📊 Placar global
 
 | | Telas | % |
