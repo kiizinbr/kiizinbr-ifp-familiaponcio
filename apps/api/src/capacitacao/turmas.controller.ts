@@ -10,8 +10,9 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
-import { Perfil } from "@ifp/database";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { BadRequestException } from "@nestjs/common";
+import { Perfil, StatusMatricula } from "@ifp/database";
 
 import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
@@ -65,6 +66,25 @@ export class TurmasController {
   @ApiOperation({ summary: "Certificados emitidos na unidade (consulta/2ª via)" })
   certificados(@CurrentUser() user: AuthenticatedUser) {
     return this.turmas.certificados(user);
+  }
+
+  @Get("matriculas/semestre")
+  @ApiOperation({
+    summary: "Matrículas consolidadas da unidade, agrupadas por turma (opcional: filtra por status)",
+  })
+  @ApiQuery({ name: "status", required: false, enum: StatusMatricula })
+  matriculasSemestre(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("status") status?: string,
+  ) {
+    let filtro: StatusMatricula | undefined;
+    if (status) {
+      if (!(Object.values(StatusMatricula) as string[]).includes(status)) {
+        throw new BadRequestException("status inválido");
+      }
+      filtro = status as StatusMatricula;
+    }
+    return this.turmas.matriculasSemestre(user, filtro);
   }
 
   @Patch("matriculas/:id")

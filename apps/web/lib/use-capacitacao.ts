@@ -7,10 +7,13 @@ import { useAuthFetch } from "./use-auth-fetch";
 import type {
   AulaInfo,
   Curso,
+  CursoDetalhe,
   FichaBuscaItem,
+  MatriculasSemestre,
   MatriculaTurma,
   ResumoCapacitacao,
   ResumoEncerramentoTurma,
+  StatusMatricula,
   StatusPresenca,
   TurmaDetalhe,
   TurmaResumo,
@@ -264,6 +267,17 @@ export function useCursosGestao() {
   });
 }
 
+/** Detalhe de um curso com a trilha (módulos + ementa). */
+export function useCursoDetalhe(cursoId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "curso", cursoId],
+    queryFn: () => authFetch<CursoDetalhe>(`/capacitacao/cursos/${cursoId}`),
+    enabled: status === "authenticated" && !!cursoId,
+  });
+}
+
 export function useCriarCurso() {
   const authFetch = useAuthFetch();
   const qc = useQueryClient();
@@ -351,5 +365,28 @@ export function useIndicadoresCapacitacao() {
     queryKey: ["capacitacao", "indicadores"],
     queryFn: () => authFetch<IndicadoresCapacitacao>("/capacitacao/indicadores"),
     enabled: status === "authenticated",
+  });
+}
+
+// ============================================================
+// Matrículas consolidadas do semestre (cruza todas as turmas)
+// ============================================================
+
+/**
+ * Matrículas da unidade agrupadas por turma. `status` opcional filtra por
+ * situação (ATIVA, LISTA_ESPERA, CONCLUIDA...). Sem filtro = todas.
+ */
+export function useMatriculasSemestre(status?: StatusMatricula | "TODOS") {
+  const authFetch = useAuthFetch();
+  const { status: sessao } = useSession();
+  const filtro = status && status !== "TODOS" ? status : undefined;
+  return useQuery({
+    queryKey: ["capacitacao", "matriculas-semestre", filtro ?? "todos"],
+    queryFn: () =>
+      authFetch<MatriculasSemestre>(
+        `/capacitacao/matriculas/semestre${filtro ? `?status=${filtro}` : ""}`,
+      ),
+    enabled: sessao === "authenticated",
+    placeholderData: (prev) => prev,
   });
 }

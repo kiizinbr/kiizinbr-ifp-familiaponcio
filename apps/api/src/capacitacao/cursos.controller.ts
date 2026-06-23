@@ -24,6 +24,13 @@ export class CursosController {
     return this.cursos.listarTodos(user);
   }
 
+  @Get(":id")
+  @ApiOperation({ summary: "Detalhe do curso com a trilha (módulos + ementa)" })
+  @ApiParam({ name: "id", description: "cuid do curso" })
+  detalhe(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.cursos.detalhe(user, id);
+  }
+
   @Post()
   @ApiOperation({ summary: "Cria um curso na unidade do profissional logado" })
   criar(@Body() dto: CriarCursoDto, @CurrentUser() user: AuthenticatedUser) {

@@ -67,6 +67,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
     { href: "/capacitacao", label: "Painel", icon: Home },
     { href: "/capacitacao/turmas", label: "Turmas", icon: Users },
     { href: "/capacitacao/cursos", label: "Cursos", icon: BookOpen },
+    { href: "/capacitacao/matriculas", label: "Matrículas", icon: ClipboardList },
     { href: "/capacitacao/certificados", label: "Certificados", icon: Award },
     { href: "/capacitacao/indicadores", label: "Indicadores", icon: Activity },
   ],

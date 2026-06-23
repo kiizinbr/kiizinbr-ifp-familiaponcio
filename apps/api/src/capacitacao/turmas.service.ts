@@ -638,6 +638,99 @@ export class TurmasService {
     };
   }
 
+  /**
+   * Matrículas consolidadas da unidade (visão de semestre), agrupadas por turma.
+   * Hoje a lista de alunos só existe dentro do detalhe de uma turma — esta visão
+   * cruza todas as turmas para acompanhar quem está matriculado no período.
+   * `status` opcional filtra (ATIVA, LISTA_ESPERA...). Leitura de dado pessoal → LGPD.
+   */
+  async matriculasSemestre(user: AuthenticatedUser, status?: StatusMatricula) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+    const unidadeId = profissional.unidadeId;
+
+    const matriculas = await this.prisma.matricula.findMany({
+      where: { unidadeId, ...(status ? { status } : {}) },
+      orderBy: [{ turma: { codigo: "asc" } }, { criadoEm: "asc" }],
+      select: {
+        id: true,
+        status: true,
+        posicaoEspera: true,
+        criadoEm: true,
+        ficha: { select: { id: true, protocolo: true, nomeCompleto: true } },
+        membro: { select: { id: true, nomeCompleto: true } },
+        turma: {
+          select: {
+            id: true,
+            codigo: true,
+            status: true,
+            curso: { select: { id: true, nome: true } },
+          },
+        },
+        certificado: { select: { codigoVerificacao: true } },
+      },
+    });
+
+    // Agrupa por turma para a tela renderizar blocos (turma → alunos).
+    const porTurmaMap = new Map<
+      string,
+      {
+        turmaId: string;
+        codigo: string;
+        statusTurma: StatusTurma;
+        curso: string;
+        alunos: {
+          id: string;
+          aluno: string;
+          protocolo: string;
+          status: StatusMatricula;
+          posicaoEspera: number | null;
+          certificado: string | null;
+        }[];
+      }
+    >();
+
+    const totaisPorStatus: Record<string, number> = {};
+    for (const m of matriculas) {
+      totaisPorStatus[m.status] = (totaisPorStatus[m.status] ?? 0) + 1;
+      const chave = m.turma.id;
+      if (!porTurmaMap.has(chave)) {
+        porTurmaMap.set(chave, {
+          turmaId: m.turma.id,
+          codigo: m.turma.codigo,
+          statusTurma: m.turma.status,
+          curso: m.turma.curso.nome,
+          alunos: [],
+        });
+      }
+      porTurmaMap.get(chave)!.alunos.push({
+        id: m.id,
+        aluno: m.membro?.nomeCompleto ?? m.ficha.nomeCompleto,
+        protocolo: m.ficha.protocolo,
+        status: m.status,
+        posicaoEspera: m.posicaoEspera,
+        certificado: m.certificado?.codigoVerificacao ?? null,
+      });
+    }
+
+    // Lista de alunos consolidada é dado pessoal — entra na trilha LGPD.
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Matricula",
+      metadados: {
+        contexto: "matriculasSemestre",
+        total: matriculas.length,
+        filtroStatus: status ?? "todos",
+      },
+    });
+
+    return {
+      total: matriculas.length,
+      totaisPorStatus,
+      turmas: Array.from(porTurmaMap.values()),
+    };
+  }
+
   /** Indicadores da unidade: turmas/matrículas por status, certificados, conclusão. */
   async indicadores(user: AuthenticatedUser) {
     const prof = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);

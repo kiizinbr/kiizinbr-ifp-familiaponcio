@@ -11,6 +11,7 @@ const ROTAS_PRONTAS = [
   "/capacitacao",
   "/capacitacao/turmas",
   "/capacitacao/cursos",
+  "/capacitacao/matriculas",
   "/capacitacao/certificados",
   "/capacitacao/indicadores",
 ];

@@ -124,6 +124,44 @@ const ind = await req(instrutor, "GET", "/capacitacao/indicadores");
 caso("indicadores da capacitação", 200, ind.status);
 caso("indicadores têm turmas por status", true, ind.json?.turmas != null && typeof ind.json.turmas === "object");
 
+console.log("--- DETALHE DO CURSO (trilha: módulos + ementa) ---");
+// O curso de seed "Barbearia Profissional" tem a trilha cadastrada (3 módulos).
+const todosCursos = await req(instrutor, "GET", "/capacitacao/cursos/todos");
+const cursoComTrilha = todosCursos.json?.items?.find((c) => c.nome === "Barbearia Profissional");
+caso("curso de seed existe", true, Boolean(cursoComTrilha));
+const det = await req(instrutor, "GET", `/capacitacao/cursos/${cursoComTrilha?.id}`);
+caso("detalhe do curso", 200, det.status);
+caso("detalhe traz módulos da trilha", true, Array.isArray(det.json?.modulos) && det.json.modulos.length >= 1);
+caso("módulos vêm ordenados (ordem 1 primeiro)", 1, det.json?.modulos?.[0]?.ordem);
+caso("módulo tem itens de ementa", true, Array.isArray(det.json?.modulos?.[0]?.itens) && det.json.modulos[0].itens.length >= 1);
+caso("detalhe traz nº de turmas", true, typeof det.json?._count?.turmas === "number");
+caso("detalhe soma carga dos módulos", true, typeof det.json?.cargaModulos === "number");
+
+// Detalhe do curso recém-criado (sem trilha) deve vir com módulos vazios, não 404.
+const detNovo = await req(instrutor, "GET", `/capacitacao/cursos/${cursoId}`);
+caso("detalhe de curso sem trilha", 200, detNovo.status);
+caso("curso sem trilha → módulos vazios", 0, detNovo.json?.modulos?.length);
+
+const detInexistente = await req(instrutor, "GET", "/capacitacao/cursos/curso-que-nao-existe");
+caso("curso inexistente → 404", 404, detInexistente.status);
+const detRbac = await req(familia, "GET", `/capacitacao/cursos/${cursoComTrilha?.id}`);
+caso("família não vê detalhe de curso (RBAC)", 403, detRbac.status);
+
+console.log("--- MATRÍCULAS CONSOLIDADAS (semestre) ---");
+const sem = await req(instrutor, "GET", "/capacitacao/matriculas/semestre");
+caso("matrículas do semestre", 200, sem.status);
+caso("consolidado agrupa por turma", true, Array.isArray(sem.json?.turmas));
+caso("consolidado traz total numérico", true, typeof sem.json?.total === "number");
+caso("consolidado traz totais por status", true, sem.json?.totaisPorStatus != null && typeof sem.json.totaisPorStatus === "object");
+const semAtivas = await req(instrutor, "GET", "/capacitacao/matriculas/semestre?status=ATIVA");
+caso("filtro por status (ATIVA)", 200, semAtivas.status);
+const soAtivas = (semAtivas.json?.turmas ?? []).every((t) => t.alunos.every((a) => a.status === "ATIVA"));
+caso("filtro ATIVA só devolve ativas", true, soAtivas);
+const semInvalido = await req(instrutor, "GET", "/capacitacao/matriculas/semestre?status=BANANA");
+caso("status inválido → 400", 400, semInvalido.status);
+const semRbac = await req(familia, "GET", "/capacitacao/matriculas/semestre");
+caso("família não vê matrículas consolidadas (RBAC)", 403, semRbac.status);
+
 const total = resultados.length;
 const ok = resultados.filter(Boolean).length;
 console.log(`\n${ok}/${total}`);

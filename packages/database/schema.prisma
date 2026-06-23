@@ -817,11 +817,46 @@ model Curso {
   criadoEm          DateTime        @default(now())
   atualizadoEm      DateTime        @updatedAt
 
-  unidade Unidade @relation(fields: [unidadeId], references: [id])
+  unidade Unidade       @relation(fields: [unidadeId], references: [id])
   turmas  Turma[]
+  modulos ModuloCurso[]
 
   @@index([unidadeId])
   @@map("cursos")
+}
+
+// Estrutura curricular do curso (trilha): módulos ordenados, cada um com
+// itens de ementa. Não afeta turmas/matrículas — é só o conteúdo do curso.
+model ModuloCurso {
+  id           String   @id @default(cuid())
+  cursoId      String
+  ordem        Int // posição na trilha (1, 2, 3...)
+  nome         String
+  cargaHoraria Int? // horas estimadas do módulo (opcional)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  curso Curso        @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  itens EmentaItem[]
+
+  @@unique([cursoId, ordem])
+  @@index([cursoId])
+  @@map("modulos_curso")
+}
+
+model EmentaItem {
+  id           String   @id @default(cuid())
+  moduloId     String
+  ordem        Int // posição dentro do módulo
+  descricao    String
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  modulo ModuloCurso @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+
+  @@unique([moduloId, ordem])
+  @@index([moduloId])
+  @@map("ementa_itens")
 }
 
 model Turma {

@@ -6,6 +6,7 @@
  * existiam cursos vindos do seed. Permite criar, editar e ativar/desativar.
  */
 import { useState } from "react";
+import Link from "next/link";
 import { BookOpen, GraduationCap, Pencil, Plus, X } from "lucide-react";
 
 import { Alerta, Botao, Campo, Checkbox, Input, Select, Spinner } from "@/components/ui";
@@ -193,7 +194,12 @@ function LinhaCurso({ curso, aoEditar }: { curso: CursoGestao; aoEditar: () => v
           <GraduationCap className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-foreground">{curso.nome}</div>
+          <Link
+            href={`/capacitacao/cursos/${curso.id}`}
+            className="font-semibold text-foreground hover:text-primary hover:underline"
+          >
+            {curso.nome}
+          </Link>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Pill tom="unidade">{MODALIDADE_LABEL[curso.modalidade]}</Pill>
             <Pill>{curso.cargaHorariaTotal}h</Pill>

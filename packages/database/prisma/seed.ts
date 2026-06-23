@@ -577,6 +577,44 @@ async function seedCapacitacao() {
       },
     });
   }
+  // Trilha (módulos + ementa) do curso — alimenta a tela de detalhe do curso.
+  // Idempotente: só cria se o curso ainda não tiver módulos.
+  const temModulos = await prisma.moduloCurso.count({ where: { cursoId: curso.id } });
+  if (temModulos === 0) {
+    const trilha = [
+      {
+        nome: "Fundamentos e biossegurança",
+        cargaHoraria: 20,
+        itens: ["Higiene e esterilização", "Anatomia capilar", "Equipamentos e EPIs"],
+      },
+      {
+        nome: "Cortes masculinos",
+        cargaHoraria: 32,
+        itens: ["Cortes na tesoura", "Máquina e pente", "Degradê e acabamento"],
+      },
+      {
+        nome: "Barba e atendimento",
+        cargaHoraria: 28,
+        itens: ["Desenho e modelagem de barba", "Atendimento ao cliente", "Gestão do próprio negócio"],
+      },
+    ];
+    for (let i = 0; i < trilha.length; i++) {
+      const m = trilha[i];
+      await prisma.moduloCurso.create({
+        data: {
+          cursoId: curso.id,
+          ordem: i + 1,
+          nome: m.nome,
+          cargaHoraria: m.cargaHoraria,
+          itens: {
+            create: m.itens.map((descricao, j) => ({ ordem: j + 1, descricao })),
+          },
+        },
+      });
+    }
+    console.log("  ✓ Trilha do curso Barbearia (3 módulos + ementa)");
+  }
+
   const inicioTurma = new Date();
   inicioTurma.setDate(inicioTurma.getDate() - 30);
   const turma = await prisma.turma.upsert({

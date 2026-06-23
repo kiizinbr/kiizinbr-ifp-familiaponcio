@@ -34,6 +34,35 @@ export class CursosService {
     return { items };
   }
 
+  /** Detalhe do curso com a trilha (módulos + ementa) e nº de turmas. */
+  async detalhe(user: AuthenticatedUser, id: string) {
+    const profissional = await this.profissionais.resolverPorUser(
+      user,
+      TipoUnidade.CAPACITACAO,
+    );
+    // Tenant: só cursos da unidade resolvida do profissional (mesmo padrão de
+    // listarTodos/atualizar). resolverPorUser já barra unidade de outra área.
+    const curso = await this.prisma.curso.findFirst({
+      where: { id, unidadeId: profissional.unidadeId },
+      include: {
+        _count: { select: { turmas: true } },
+        modulos: {
+          orderBy: { ordem: "asc" },
+          include: { itens: { orderBy: { ordem: "asc" } } },
+        },
+      },
+    });
+    if (!curso) throw new NotFoundException("Curso não encontrado nesta unidade");
+
+    // Carga horária somada dos módulos (quando informada) — só leitura agregada.
+    const cargaModulos = curso.modulos.reduce(
+      (acc, m) => acc + (m.cargaHoraria ?? 0),
+      0,
+    );
+
+    return { ...curso, cargaModulos };
+  }
+
   async criar(user: AuthenticatedUser, dto: CriarCursoDto) {
     const profissional = await this.profissionais.resolverPorUser(
       user,

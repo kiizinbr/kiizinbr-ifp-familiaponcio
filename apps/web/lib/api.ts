@@ -632,3 +632,60 @@ export interface VerificacaoCertificado {
   presencaPct?: number;
   emitidoEm?: string;
 }
+
+/** Item de ementa (tópico) dentro de um módulo do curso. */
+export interface EmentaItem {
+  id: string;
+  ordem: number;
+  descricao: string;
+}
+
+/** Módulo da trilha do curso, com seus itens de ementa. */
+export interface ModuloCurso {
+  id: string;
+  ordem: number;
+  nome: string;
+  cargaHoraria?: number | null;
+  itens: EmentaItem[];
+}
+
+/** Detalhe do curso com a trilha (módulos + ementa) e nº de turmas. */
+export interface CursoDetalhe {
+  id: string;
+  nome: string;
+  modalidade: "PRATICO" | "TEORICO";
+  cargaHorariaTotal: number;
+  presencaMinimaPct: number;
+  requerModelos: boolean;
+  ativo: boolean;
+  _count: { turmas: number };
+  modulos: ModuloCurso[];
+  /** Soma da carga horária informada nos módulos. */
+  cargaModulos: number;
+}
+
+/** Aluno dentro de uma turma na visão consolidada de matrículas. */
+export interface MatriculaConsolidadaAluno {
+  id: string;
+  aluno: string;
+  protocolo: string;
+  status: StatusMatricula;
+  posicaoEspera: number | null;
+  certificado: string | null;
+}
+
+/** Bloco turma → alunos na visão consolidada do semestre. */
+export interface MatriculasTurmaConsolidada {
+  turmaId: string;
+  codigo: string;
+  statusTurma: StatusTurma;
+  curso: string;
+  alunos: MatriculaConsolidadaAluno[];
+}
+
+/** Matrículas consolidadas da unidade (visão de semestre). */
+export interface MatriculasSemestre {
+  total: number;
+  totaisPorStatus: Record<string, number>;
+  turmas: MatriculasTurmaConsolidada[];
+}
