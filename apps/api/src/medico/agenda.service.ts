@@ -68,6 +68,8 @@ const pranchaInclude = (unidadeId: string) =>
       select: { id: true, nomeCompleto: true, dataNascimento: true, parentesco: true },
     },
     atendimento: { include: { vitais: true } },
+    // O médico lê a triagem de enfermagem (vitais na chegada + risco) na abertura.
+    triagem: true,
   }) satisfies Prisma.AgendamentoInclude;
 
 @Injectable()
@@ -384,6 +386,96 @@ export class AgendaService {
       metadados: { contexto: "medico.filaUnidade", dia, resultados: items.length },
     });
     return { items, dia };
+  }
+
+  /**
+   * Recepção marca a CHEGADA física do paciente (presença no balcão). Idempotente:
+   * marcar de novo só atualiza o horário. Não mexe no status do atendimento — é só
+   * o carimbo de presença usado pela enfermagem para puxar a fila de triagem.
+   */
+  async marcarChegada(user: AuthenticatedUser, agendamentoId: string) {
+    const { unidadeId } = await this.acessoBalcao(user);
+    const ag = await this.prisma.agendamento.findUnique({
+      where: { id: agendamentoId },
+      select: { id: true, unidadeId: true, status: true },
+    });
+    if (!ag || ag.unidadeId !== unidadeId) {
+      throw new NotFoundException("Agendamento não encontrado");
+    }
+    if (
+      ag.status === StatusAgendamento.CANCELADO ||
+      ag.status === StatusAgendamento.FALTOU
+    ) {
+      throw new BadRequestException(
+        "Não dá para marcar chegada de um agendamento cancelado ou faltoso.",
+      );
+    }
+
+    const atualizado = await this.prisma.agendamento.update({
+      where: { id: agendamentoId },
+      data: {
+        chegouEm: new Date(),
+        // Chegou e ainda estava só AGENDADO → confirma a presença.
+        ...(ag.status === StatusAgendamento.AGENDADO
+          ? { status: StatusAgendamento.CONFIRMADO }
+          : {}),
+      },
+      include: agendaInclude,
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "Agendamento",
+      entidadeId: agendamentoId,
+      metadados: { contexto: "medico.marcarChegada" },
+    });
+
+    return atualizado;
+  }
+
+  /**
+   * Fila de CHEGADA/TRIAGEM do dia da unidade, com KPIs de presença — para a
+   * recepção e a enfermagem. Cada item informa se já chegou e se já foi triado.
+   */
+  async filaChegada(user: AuthenticatedUser, data?: string) {
+    const { unidadeId } = await this.acessoBalcao(user);
+    const { inicio, fim, dia } = this.janelaDoDia(data);
+
+    const items = await this.prisma.agendamento.findMany({
+      where: { unidadeId, inicioEm: { gte: inicio, lt: fim } },
+      orderBy: { inicioEm: "asc" },
+      include: {
+        ...agendaInclude,
+        profissional: { select: { user: { select: { nome: true } } } },
+        triagem: {
+          select: { id: true, classificacaoRisco: true, registradaEm: true },
+        },
+      },
+    });
+
+    // KPIs de presença: agendados, chegaram, aguardando triagem, já triados, faltas.
+    const ativos = items.filter(
+      (a) =>
+        a.status !== StatusAgendamento.CANCELADO &&
+        a.status !== StatusAgendamento.FALTOU,
+    );
+    const kpis = {
+      agendados: items.length,
+      presentes: ativos.filter((a) => a.chegouEm).length,
+      aguardandoTriagem: ativos.filter((a) => a.chegouEm && !a.triagem).length,
+      triados: ativos.filter((a) => a.triagem).length,
+      faltas: items.filter((a) => a.status === StatusAgendamento.FALTOU).length,
+    };
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "Agendamento",
+      metadados: { contexto: "medico.filaChegada", dia, resultados: items.length },
+    });
+
+    return { items, dia, kpis };
   }
 
   /** Gestão do agendamento: confirmar, marcar falta, cancelar ou reagendar. */

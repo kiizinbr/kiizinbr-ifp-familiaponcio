@@ -14,6 +14,7 @@ import { usePrancha, useIniciarAtendimento, useSalvarSoap, useSalvarVitais, useE
 import { Alerta, Botao, Campo, Input, Spinner, Textarea } from "@/components/ui";
 import { CrestAvatar } from "@/components/casa";
 import { ChipClinico } from "@/components/medico/chip-clinico";
+import { BadgeRisco } from "@/components/medico/badge-risco";
 import { PranchaStepper, PASSOS_PRANCHA } from "@/components/medico/prancha-stepper";
 import { PrescricaoBloco } from "@/components/medico/prescricao-bloco";
 import { idade } from "@/lib/idade";
@@ -249,6 +250,44 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
                 </div>
               ))}
             </div>
+
+            {/* Triagem de enfermagem (acolhimento na chegada) — leitura pelo médico */}
+            {prancha.triagem ? (
+              <div className="rounded-md border border-border bg-muted/40 p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Triagem de enfermagem
+                  </h3>
+                  <BadgeRisco risco={prancha.triagem.classificacaoRisco} />
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground sm:grid-cols-3">
+                  {prancha.triagem.pressaoSistolica && prancha.triagem.pressaoDiastolica ? (
+                    <div>PA: <span className="text-foreground">{prancha.triagem.pressaoSistolica}/{prancha.triagem.pressaoDiastolica}</span></div>
+                  ) : null}
+                  {prancha.triagem.temperaturaC ? (
+                    <div>Temp: <span className="text-foreground">{prancha.triagem.temperaturaC} °C</span></div>
+                  ) : null}
+                  {prancha.triagem.saturacaoO2 ? (
+                    <div>SatO₂: <span className="text-foreground">{prancha.triagem.saturacaoO2}%</span></div>
+                  ) : null}
+                  {prancha.triagem.frequenciaCardiaca ? (
+                    <div>FC: <span className="text-foreground">{prancha.triagem.frequenciaCardiaca} bpm</span></div>
+                  ) : null}
+                  {typeof prancha.triagem.dorEscala === "number" ? (
+                    <div>Dor: <span className="text-foreground">{prancha.triagem.dorEscala}/10</span></div>
+                  ) : null}
+                </div>
+                {prancha.triagem.queixaPrincipal ? (
+                  <p className="mt-2 text-sm">
+                    <span className="text-muted-foreground">Queixa: </span>
+                    <span className="text-foreground">{prancha.triagem.queixaPrincipal}</span>
+                  </p>
+                ) : null}
+                {prancha.triagem.observacoes ? (
+                  <p className="mt-1 text-xs text-muted-foreground">{prancha.triagem.observacoes}</p>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         ) : null}
 

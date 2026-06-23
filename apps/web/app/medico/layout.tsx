@@ -11,6 +11,7 @@ const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE", "REC
 const ROTAS_PRONTAS = [
   "/medico/agenda",
   "/medico/fila",
+  "/medico/fila-chegada",
   "/medico/beneficiarios",
   "/medico/prontuarios",
   "/medico/indicadores",

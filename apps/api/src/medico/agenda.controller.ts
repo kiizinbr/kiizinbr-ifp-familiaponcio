@@ -32,6 +32,26 @@ export class AgendaController {
     return this.agenda.filaUnidade(user, query.data);
   }
 
+  @Get("fila-chegada")
+  @Perfis(Perfil.SUPER_ADMIN, Perfil.PROFISSIONAL, Perfil.GESTOR_UNIDADE, Perfil.RECEPCAO)
+  @ApiOperation({
+    summary: "Fila de chegada/triagem do dia com KPIs de presença — recepção e enfermagem",
+  })
+  filaChegada(@Query() query: ListAgendaQuery, @CurrentUser() user: AuthenticatedUser) {
+    return this.agenda.filaChegada(user, query.data);
+  }
+
+  @Post("agendamentos/:agendamentoId/chegada")
+  @Perfis(Perfil.SUPER_ADMIN, Perfil.GESTOR_UNIDADE, Perfil.RECEPCAO)
+  @ApiOperation({ summary: "Recepção marca a chegada física do paciente (idempotente)" })
+  @ApiParam({ name: "agendamentoId", description: "cuid do agendamento" })
+  marcarChegada(
+    @Param("agendamentoId") agendamentoId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.agenda.marcarChegada(user, agendamentoId);
+  }
+
   @Get("agenda/:agendamentoId")
   @ApiOperation({
     summary: "Payload completo da prancha (ficha + histórico clínico + draft) — registra READ",

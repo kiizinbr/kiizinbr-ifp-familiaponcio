@@ -1,10 +1,14 @@
 /**
  * E2E do acesso da RECEPCAO ao balcão do Centro Médico (Bloco H): fila da
- * unidade (todos os profissionais) e gestão de agendamento de qualquer médico.
- * Uso: SENHA_DEV=... node scripts/valida-medico-recepcao.mjs
+ * unidade, gestão de agendamento de qualquer médico, marcação de chegada e
+ * fila de triagem com KPIs de presença.
+ * Uso: SENHA_DEV=... [SENHA_ADMIN=...] node scripts/valida-medico-recepcao.mjs
+ *   SENHA_DEV   = senha do medico@ifp.local (e família, no ambiente de teste)
+ *   SENHA_ADMIN = senha do admin@ifp.local (cai em SENHA_DEV se não definida)
  */
 const API = process.env.API_URL_TESTE ?? "http://127.0.0.1:3333/api/v1";
 const SENHA = process.env.SENHA_DEV;
+const SENHA_ADMIN = process.env.SENHA_ADMIN ?? SENHA;
 if (!SENHA) {
   console.error("Defina SENHA_DEV");
   process.exit(2);
@@ -24,10 +28,14 @@ async function loginFull(email, senha) {
   }
   return { status: r.status, token: j?.accessToken };
 }
-async function login(email) {
-  const r = await loginFull(email, SENHA);
-  if (r.status !== 200) throw new Error(`login ${email}: ${r.status}`);
-  return r.token;
+/** Tenta as senhas candidatas (admin e dev podem diferir). */
+async function login(email, ...candidatas) {
+  const senhas = candidatas.length ? candidatas : [SENHA];
+  for (const senha of senhas) {
+    const r = await loginFull(email, senha);
+    if (r.status === 200) return r.token;
+  }
+  throw new Error(`login ${email}: falhou com as senhas candidatas`);
 }
 
 async function req(token, method, path, body) {
@@ -55,9 +63,9 @@ function caso(nome, esperado, obtido) {
   console.log(`${ok ? "✓" : "✗ FALHOU"} ${nome}: ${obtido} (espera ${esperado})`);
 }
 
-const admin = await login("admin@ifp.local");
-const medico = await login("medico@ifp.local");
-const familia = await login("familia@ifp.local");
+const admin = await login("admin@ifp.local", SENHA_ADMIN, SENHA);
+const medico = await login("medico@ifp.local", SENHA);
+const familia = await login("familia@ifp.local", SENHA);
 const marca = Date.now().toString(36);
 
 console.log("--- SETUP (recepção na unidade médica) ---");
@@ -105,6 +113,41 @@ const novoAg = await req(medico, "POST", "/medico/agendamentos", {
 caso("médico cria agendamento", 201, novoAg.status);
 const agId = novoAg.json?.id;
 
+console.log("--- CHEGADA E FILA DE TRIAGEM ---");
+// novo agendamento (o de cima vai virar FALTOU mais abaixo) para testar chegada
+const agChegada = await req(medico, "POST", "/medico/agendamentos", {
+  fichaId,
+  inicioEm: new Date(Date.now() + 7200_000).toISOString(),
+  motivo: "QA chegada",
+});
+caso("médico cria agendamento p/ chegada", 201, agChegada.status);
+const agChId = agChegada.json?.id;
+
+const chegada = await req(rec, "POST", `/medico/agendamentos/${agChId}/chegada`);
+caso("recepção marca chegada", 201, chegada.status);
+caso("chegouEm preenchido", true, !!chegada.json?.chegouEm);
+caso("chegada confirma o agendamento", "CONFIRMADO", chegada.json?.status);
+
+const chegada2 = await req(rec, "POST", `/medico/agendamentos/${agChId}/chegada`);
+caso("marcar chegada de novo é idempotente (201)", 201, chegada2.status);
+
+const filaCh = await req(rec, "GET", "/medico/fila-chegada");
+caso("recepção vê fila de chegada", 200, filaCh.status);
+caso("fila-chegada traz KPIs", true, typeof filaCh.json?.kpis?.presentes === "number");
+caso(
+  "o paciente que chegou conta como presente",
+  true,
+  (filaCh.json?.kpis?.presentes ?? 0) >= 1,
+);
+caso(
+  "aguardando triagem >= 1 (chegou e ainda não foi triado)",
+  true,
+  (filaCh.json?.kpis?.aguardandoTriagem ?? 0) >= 1,
+);
+const itemChegada = (filaCh.json?.items ?? []).find((a) => a.id === agChId);
+caso("o agendamento aparece na fila de chegada", true, !!itemChegada);
+caso("e marcado como chegado", true, !!itemChegada?.chegouEm);
+
 const gestao = await req(rec, "PATCH", `/medico/agendamentos/${agId}`, { status: "FALTOU" });
 caso("recepção gere agendamento de outro profissional (balcão)", 200, gestao.status);
 caso("status aplicado", "FALTOU", gestao.json?.status);
@@ -114,6 +157,11 @@ const famFila = await req(familia, "GET", "/medico/fila");
 caso("família não vê a fila (RBAC)", 403, famFila.status);
 const famGestao = await req(familia, "PATCH", `/medico/agendamentos/${agId}`, { status: "CONFIRMADO" });
 caso("família não gere agendamento (RBAC)", 403, famGestao.status);
+const famChegada = await req(familia, "POST", `/medico/agendamentos/${agChId}/chegada`);
+caso("família não marca chegada (RBAC)", 403, famChegada.status);
+// o médico (PROFISSIONAL puro) não marca chegada — isso é da recepção/balcão
+const medChegada = await req(medico, "POST", `/medico/agendamentos/${agChId}/chegada`);
+caso("profissional puro não marca chegada (RBAC balcão)", 403, medChegada.status);
 
 // limpeza
 await req(admin, "PATCH", `/users/${recUserId}/ativo`, { ativo: false });

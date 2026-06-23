@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Stethoscope,
   User,
+  UserCheck,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -58,6 +59,7 @@ export const NAV: Record<ModuloCasa, NavItem[]> = {
   medico: [
     { href: "/medico/agenda", label: "Agenda", icon: Calendar },
     { href: "/medico/fila", label: "Fila", icon: ListOrdered },
+    { href: "/medico/fila-chegada", label: "Chegada", icon: UserCheck },
     { href: "/medico/prontuarios", label: "Prontuários", icon: ClipboardList },
     { href: "/medico/beneficiarios", label: "Beneficiários", icon: Users },
     { href: "/medico/indicadores", label: "Indicadores", icon: BarChart3 },

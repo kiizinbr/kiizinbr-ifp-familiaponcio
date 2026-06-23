@@ -8,9 +8,11 @@ import type {
   AgendaDia,
   AgendamentoResumo,
   Atendimento,
+  ClassificacaoRisco,
   FichaBuscaItem,
   Prancha,
   StatusAgendamento,
+  TriagemEnfermagem,
 } from "./api";
 
 // ============================================================
@@ -246,6 +248,93 @@ export function useAtualizarAgendamento() {
     mutationFn: ({ id, dados }: { id: string; dados: AtualizarAgendamentoPayload }) =>
       authFetch<AgendamentoResumo>(`/medico/agendamentos/${id}`, {
         method: "PATCH",
+        body: JSON.stringify(dados),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),
+  });
+}
+
+// ============================================================
+// Recepção (chegada) + Triagem de enfermagem (acolhimento na chegada)
+// ============================================================
+
+export interface ChegadaItem extends FilaItem {
+  chegouEm?: string | null;
+  triagem?: { id: string; classificacaoRisco: ClassificacaoRisco; registradaEm: string } | null;
+}
+
+export interface FilaChegadaKpis {
+  agendados: number;
+  presentes: number;
+  aguardandoTriagem: number;
+  triados: number;
+  faltas: number;
+}
+
+/** Fila de chegada/triagem do dia com KPIs de presença (recepção + enfermagem). */
+export function useFilaChegada(data?: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["medico", "fila-chegada", data ?? "hoje"],
+    queryFn: () =>
+      authFetch<{ items: ChegadaItem[]; dia: string; kpis: FilaChegadaKpis }>(
+        `/medico/fila-chegada${data ? `?data=${data}` : ""}`,
+      ),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useMarcarChegada() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (agendamentoId: string) =>
+      authFetch<AgendamentoResumo>(`/medico/agendamentos/${agendamentoId}/chegada`, {
+        method: "POST",
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),
+  });
+}
+
+export interface TriagemPayload {
+  classificacaoRisco: ClassificacaoRisco;
+  pressaoSistolica?: number;
+  pressaoDiastolica?: number;
+  frequenciaCardiaca?: number;
+  frequenciaRespiratoria?: number;
+  temperaturaC?: number;
+  saturacaoO2?: number;
+  pesoKg?: number;
+  alturaCm?: number;
+  glicemia?: number;
+  dorEscala?: number;
+  queixaPrincipal?: string;
+  observacoes?: string;
+}
+
+/** Lê a triagem de enfermagem de um agendamento (404 se ainda não triado). */
+export function useTriagemEnfermagem(agendamentoId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["medico", "triagem-enfermagem", agendamentoId],
+    queryFn: () =>
+      authFetch<TriagemEnfermagem>(`/medico/agendamentos/${agendamentoId}/triagem-enfermagem`),
+    enabled: status === "authenticated" && !!agendamentoId,
+    // 404 (sem triagem ainda) é um estado normal — não fica re-tentando.
+    retry: false,
+  });
+}
+
+export function useSalvarTriagem() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ agendamentoId, dados }: { agendamentoId: string; dados: TriagemPayload }) =>
+      authFetch<TriagemEnfermagem>(`/medico/agendamentos/${agendamentoId}/triagem-enfermagem`, {
+        method: "PUT",
         body: JSON.stringify(dados),
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["medico"] }),

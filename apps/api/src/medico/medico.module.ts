@@ -9,6 +9,8 @@ import { BeneficiariosService } from "./beneficiarios.service";
 import { EquipeController } from "./equipe.controller";
 import { EquipeService } from "./equipe.service";
 import { ProfissionaisService } from "./profissionais.service";
+import { TriagemEnfermagemController } from "./triagem-enfermagem.controller";
+import { TriagemEnfermagemService } from "./triagem-enfermagem.service";
 
 @Module({
   controllers: [
@@ -16,6 +18,7 @@ import { ProfissionaisService } from "./profissionais.service";
     AtendimentosController,
     BeneficiariosController,
     EquipeController,
+    TriagemEnfermagemController,
   ],
   providers: [
     AgendaService,
@@ -23,6 +26,7 @@ import { ProfissionaisService } from "./profissionais.service";
     BeneficiariosService,
     EquipeService,
     ProfissionaisService,
+    TriagemEnfermagemService,
   ],
   exports: [AtendimentosService, ProfissionaisService],
 })

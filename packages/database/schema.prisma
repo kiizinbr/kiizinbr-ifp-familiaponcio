@@ -468,6 +468,16 @@ enum GravidadeAlergia {
   GRAVE
 }
 
+// Classificação de risco da triagem de enfermagem (protocolo de acolhimento).
+// Ordem ASC por urgência → orderBy desc traz VERMELHO (emergência) primeiro.
+enum ClassificacaoRisco {
+  AZUL // não urgente
+  VERDE // pouco urgente
+  AMARELO // urgente
+  LARANJA // muito urgente
+  VERMELHO // emergência
+}
+
 model Profissional {
   id               String   @id @default(cuid())
   userId           String   @unique
@@ -506,15 +516,17 @@ model Agendamento {
   fimEm          DateTime
   status         StatusAgendamento @default(AGENDADO)
   motivo         String?
+  chegouEm       DateTime? // recepção marcou a chegada do paciente (presença física)
   criadoPor      String? // userId de quem agendou
   criadoEm       DateTime          @default(now())
   atualizadoEm   DateTime          @updatedAt
 
-  unidade      Unidade         @relation(fields: [unidadeId], references: [id])
-  ficha        FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
-  membro       MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
-  profissional Profissional    @relation(fields: [profissionalId], references: [id])
+  unidade      Unidade            @relation(fields: [unidadeId], references: [id])
+  ficha        FichaCidada        @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro       MembroFamiliar?    @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  profissional Profissional       @relation(fields: [profissionalId], references: [id])
   atendimento  Atendimento?
+  triagem      TriagemEnfermagem?
 
   @@index([unidadeId, inicioEm])
   @@index([profissionalId, inicioEm])
@@ -573,6 +585,37 @@ model SinaisVitais {
   atendimento Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
 
   @@map("sinais_vitais")
+}
+
+// Triagem de enfermagem (acolhimento) — vitais + queixa + classificação de
+// risco colhidos na CHEGADA, antes do médico iniciar o atendimento. 1-1 com o
+// agendamento (a triagem é do "encontro" daquele dia, não do prontuário selado).
+// O médico lê esta triagem na abertura da prancha. É DADO CLÍNICO → auditado.
+model TriagemEnfermagem {
+  id                     String             @id @default(cuid())
+  unidadeId              String
+  agendamentoId          String             @unique // 1-1 com o agendamento
+  registradaPor          String // userId da enfermagem que triou
+  pressaoSistolica       Int?
+  pressaoDiastolica      Int?
+  frequenciaCardiaca     Int?
+  frequenciaRespiratoria Int?
+  temperaturaC           Decimal?           @db.Decimal(4, 1)
+  saturacaoO2            Int?
+  pesoKg                 Decimal?           @db.Decimal(5, 2)
+  alturaCm               Decimal?           @db.Decimal(5, 1)
+  glicemia               Int?
+  dorEscala              Int? // escala de dor 0-10
+  queixaPrincipal        String?
+  observacoes            String?
+  classificacaoRisco     ClassificacaoRisco @default(VERDE)
+  registradaEm           DateTime           @default(now())
+  atualizadoEm           DateTime           @updatedAt
+
+  agendamento Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
+
+  @@index([unidadeId, registradaEm])
+  @@map("triagens_enfermagem")
 }
 
 // Histórico clínico do CIDADÃO — pendurado na ficha (atravessa unidades)

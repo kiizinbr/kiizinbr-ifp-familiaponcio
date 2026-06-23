@@ -472,6 +472,36 @@ export interface Atendimento {
   vitais?: SinaisVitais | null;
 }
 
+/** Classificação de risco da triagem de enfermagem (acolhimento). */
+export type ClassificacaoRisco = "AZUL" | "VERDE" | "AMARELO" | "LARANJA" | "VERMELHO";
+
+export const CLASSIFICACAO_RISCO_LABEL: Record<ClassificacaoRisco, string> = {
+  AZUL: "Não urgente",
+  VERDE: "Pouco urgente",
+  AMARELO: "Urgente",
+  LARANJA: "Muito urgente",
+  VERMELHO: "Emergência",
+};
+
+/** Triagem de enfermagem colhida na chegada (1-1 com o agendamento). */
+export interface TriagemEnfermagem {
+  id: string;
+  classificacaoRisco: ClassificacaoRisco;
+  pressaoSistolica?: number | null;
+  pressaoDiastolica?: number | null;
+  frequenciaCardiaca?: number | null;
+  frequenciaRespiratoria?: number | null;
+  temperaturaC?: string | null;
+  saturacaoO2?: number | null;
+  pesoKg?: string | null;
+  alturaCm?: string | null;
+  glicemia?: number | null;
+  dorEscala?: number | null;
+  queixaPrincipal?: string | null;
+  observacoes?: string | null;
+  registradaEm: string;
+}
+
 /** Item da agenda do dia (GET /medico/agenda). */
 export interface AgendamentoResumo {
   id: string;
@@ -479,6 +509,7 @@ export interface AgendamentoResumo {
   fimEm: string;
   status: StatusAgendamento;
   motivo?: string | null;
+  chegouEm?: string | null;
   ficha: Pick<FichaResumo, "id" | "protocolo" | "nomeCompleto" | "cpf" | "dataNascimento">;
   membro?: Membro | null;
   atendimento?: { id: string; encerradoEm?: string | null } | null;
@@ -508,9 +539,11 @@ export interface Prancha {
   fimEm: string;
   status: StatusAgendamento;
   motivo?: string | null;
+  chegouEm?: string | null;
   ficha: FichaPrancha;
   membro?: Membro | null;
   atendimento?: Atendimento | null;
+  triagem?: TriagemEnfermagem | null;
 }
 
 // ============================================================
