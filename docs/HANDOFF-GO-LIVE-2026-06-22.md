@@ -50,11 +50,22 @@ Avancei a lista de "o que ainda precisa melhorar". **Feito e verificado** (typec
 | #34 | `495ad03` | `fecharDiario` cross-unidade → 404 (anti-enumeração) |
 | #20 | `002eda3` | busca de ficha distingue erro de "vazio" (sem falha silenciosa) |
 
-**Ainda aberto (ordem sugerida):**
-- **#7 idempotência da fila** (triagem/encaminhamento/ponte) — exige **migração** (índice único parcial `WHERE status='PENDENTE'`) + P2002→409; **precisa do banco de pé p/ validar** (não fiz às cegas).
-- **#18 race check-in/out da creche** — `$transaction` + `FOR UPDATE`; idealmente validar ao vivo.
-- **#9 Ponte — scoping por ficha** — risco de travar sinalização legítima; **decisão de produto** (o P1 da forja de origem já está fechado).
-- Resto (P3/qualidade): #21 (erro por substring), #27/#28 (TOCTOU baixo), #29/#31/#32 (texto-livre/ip/consentimento interunidade), #35 (JWT refresh), #25/#26 (ARIA tabs/aria-live), #4/#6 (contraste de tokens), #37 (setTimeout cleanup), índices.
+**➕ 2ª leva (workflow paralelo de autoria, +6 commits — GATE verde, NÃO empurrado):**
+
+| Achado | Commit | Fix |
+|--------|--------|-----|
+| #25/#26 | `8208349` | ARIA em abas/painéis/status + Spinner anunciável |
+| #4/#6 | `83fdec6` | contraste AA do texto secundário + CoroaSeal "análise" (`--ifp-gray-600`) |
+| #21 | `5797463` | matrícula distingue erro de sucesso (sem inferir por substring) |
+| #37 | `4607791` | limpa timeouts da prancha no unmount |
+| #28 | `ce29187` | elegibilidade lida dentro do lock da matrícula (TOCTOU) — ⚠ validar runtime |
+| #18 | `443ef7b` | check-in/out serializado (transação + FOR UPDATE) — ⚠ validar runtime |
+
+**Ainda aberto:**
+- **#7 idempotência da fila** (triagem/encaminhamento/ponte) — exige **migração** (índice único parcial `WHERE status='PENDENTE'`) + P2002→409; **precisa do banco de pé** (último item "antes do piloto").
+- **Validação em runtime com o banco** dos backends das duas levas: #18, #28 (e revalidar #8/#15/#16) — passam typecheck, falta o teste vivo (scripts de regressão).
+- **#9 Ponte — scoping por ficha** — decisão de produto (o P1 da forja já está fechado).
+- P3 restantes: #23 (CardElegibilidade do detalhe sem aviso de motivo — backend já força), #27 (prescrição idempotente/UX), #29/#31/#32 (texto-livre PII / ip-userAgent / consentimento interunidade), #35 (JWT refresh), índices (Graduacao/Certificado/ConversaFamilia, via migração), e os P3 #38–#50 do relatório não varridos nesta sessão.
 
 ---
 
