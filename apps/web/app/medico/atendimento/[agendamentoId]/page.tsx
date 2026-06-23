@@ -17,6 +17,8 @@ import { ChipClinico } from "@/components/medico/chip-clinico";
 import { BadgeRisco } from "@/components/medico/badge-risco";
 import { PranchaStepper, PASSOS_PRANCHA } from "@/components/medico/prancha-stepper";
 import { PrescricaoBloco } from "@/components/medico/prescricao-bloco";
+import { DocumentosBloco } from "@/components/medico/documentos-bloco";
+import { OdontogramaBloco } from "@/components/medico/odontograma-bloco";
 import { idade } from "@/lib/idade";
 
 // ------------------------------------------------------------
@@ -400,7 +402,11 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
             ) : null}
 
             {atendimento ? (
-              <PrescricaoBloco atendimentoId={atendimento.id} readOnly={ro} />
+              <>
+                <PrescricaoBloco atendimentoId={atendimento.id} readOnly={ro} />
+                <DocumentosBloco atendimentoId={atendimento.id} readOnly={ro} />
+                <OdontogramaBloco atendimentoId={atendimento.id} readOnly={ro} />
+              </>
             ) : null}
           </section>
         ) : null}

@@ -666,6 +666,19 @@ export interface VerificacaoCertificado {
   emitidoEm?: string;
 }
 
+/** Resposta pública da verificação de documento médico (QR) — sem dado clínico. */
+export interface VerificacaoDocumentoMedico {
+  valido: boolean;
+  tipo?: "ATESTADO" | "RECEITA" | "DECLARACAO";
+  tipoLabel?: string;
+  paciente?: string;
+  profissional?: string;
+  registroConselho?: string | null;
+  emitidoEm?: string;
+  revogado?: boolean;
+  revogadoEm?: string | null;
+}
+
 /** Item de ementa (tópico) dentro de um módulo do curso. */
 export interface EmentaItem {
   id: string;

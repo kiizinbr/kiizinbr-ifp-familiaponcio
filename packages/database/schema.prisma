@@ -70,6 +70,8 @@ model Unidade {
   treinosEsportivos    TreinoEsportivo[]
   prescricoes          Prescricao[]
   eventos              EventoUnidade[]
+  documentosMedicos    DocumentoMedico[]
+  odontogramas         Odontograma[]
 
   encaminhamentosOrigem  Encaminhamento[]   @relation("EncaminhamentoOrigem")
   encaminhamentosDestino Encaminhamento[]   @relation("EncaminhamentoDestino")
@@ -233,6 +235,8 @@ model FichaCidada {
   sinalizacoesPonte       SinalizacaoPonte[]
   confirmacoesEvento      ConfirmacaoEvento[]
   presencasCreche         PresencaCreche[]
+  documentosMedicos       DocumentoMedico[]
+  odontogramas            Odontograma[]
 
   // Painel da Presidência: contagens por ativa / novas por criadoEm
   @@index([ativa])
@@ -286,6 +290,8 @@ model MembroFamiliar {
   sinalizacoesPonte       SinalizacaoPonte[]
   confirmacoesEvento      ConfirmacaoEvento[]
   presencasCreche         PresencaCreche[]
+  documentosMedicos       DocumentoMedico[]
+  odontogramas            Odontograma[]
 
   @@map("membros_familiares")
 }
@@ -502,6 +508,8 @@ model Profissional {
   turmasEsportivas  TurmaEsportiva[]
   treinosEsportivos TreinoEsportivo[]
   prescricoes       Prescricao[]
+  documentosMedicos DocumentoMedico[]
+  odontogramas      Odontograma[]
 
   @@map("profissionais")
 }
@@ -557,6 +565,8 @@ model Atendimento {
   agendamento  Agendamento?    @relation(fields: [agendamentoId], references: [id])
   vitais       SinaisVitais?
   prescricoes  Prescricao[]
+  documentos   DocumentoMedico[]
+  odontograma  Odontograma?
 
   @@index([fichaId])
   @@index([unidadeId, iniciadoEm])
@@ -1469,4 +1479,109 @@ model MensagemFamilia {
 
   @@index([conversaId, criadoEm])
   @@map("mensagens_familia")
+}
+
+// ============================================================
+// Centro Médico (Fase 2 — clínico)
+// ------------------------------------------------------------
+// DocumentoMedico: atestado / receita / declaração emitidos no atendimento,
+// com QR + verificação PÚBLICA (mesmo padrão anti-fraude do certificado da
+// Capacitação: codigoVerificacao cuid não-adivinhável). Documento emitido é
+// IMUTÁVEL — corrigir = revogar e emitir outro (revogadoEm).
+//
+// Odontograma + DenteEstado: mapa odontológico FDI (32 dentes permanentes) +
+// plano de tratamento por dente. 1-1 com o atendimento (a foto da boca naquele
+// encontro). É DADO CLÍNICO → leitura/escrita auditadas.
+// ============================================================
+
+enum TipoDocumentoMedico {
+  ATESTADO
+  RECEITA
+  DECLARACAO
+}
+
+model DocumentoMedico {
+  id                String              @id @default(cuid())
+  unidadeId         String
+  atendimentoId     String
+  fichaId           String
+  membroId          String?
+  profissionalId    String
+  tipo              TipoDocumentoMedico
+  codigoVerificacao String              @unique @default(cuid()) // validação pública (QR)
+  // Conteúdo livre (v1): corpo é o texto do atestado/receita/declaração.
+  conteudo          String
+  cid10             String? // atestado pode citar CID (sigiloso — não vai pra verificação pública)
+  diasAfastamento   Int? // atestado: dias de repouso/afastamento
+  // Imutabilidade: documento médico não se edita; revoga-se e emite outro.
+  revogadoEm        DateTime?
+  revogadoMotivo    String?
+  emitidoPor        String? // userId de quem emitiu (administrativo)
+  emitidoEm         DateTime            @default(now())
+  criadoEm          DateTime            @default(now())
+  atualizadoEm      DateTime            @updatedAt
+
+  unidade      Unidade         @relation(fields: [unidadeId], references: [id])
+  atendimento  Atendimento     @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  ficha        FichaCidada     @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro       MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  profissional Profissional    @relation(fields: [profissionalId], references: [id])
+
+  @@index([atendimentoId])
+  @@index([fichaId])
+  @@map("documentos_medicos")
+}
+
+enum EstadoDente {
+  HIGIDO // sadio
+  CARIE
+  RESTAURADO
+  AUSENTE
+  EXTRACAO_INDICADA
+  TRATAMENTO_CANAL
+  IMPLANTE
+  PROTESE
+  FRATURADO
+}
+
+model Odontograma {
+  id             String   @id @default(cuid())
+  unidadeId      String
+  atendimentoId  String   @unique // 1-1 com o atendimento (foto da boca daquele encontro)
+  fichaId        String
+  membroId       String?
+  profissionalId String
+  observacoes    String? // plano de tratamento geral / notas livres
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+
+  unidade      Unidade        @relation(fields: [unidadeId], references: [id])
+  atendimento  Atendimento    @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  ficha        FichaCidada    @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  membro       MembroFamiliar? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  profissional Profissional   @relation(fields: [profissionalId], references: [id])
+  dentes       DenteEstado[]
+
+  @@index([fichaId])
+  @@map("odontogramas")
+}
+
+model DenteEstado {
+  id            String      @id @default(cuid())
+  odontogramaId String
+  // Numeração FDI (11-18, 21-28, 31-38, 41-48) — dois dígitos: quadrante + dente.
+  numeroFdi     Int
+  estado        EstadoDente @default(HIGIDO)
+  // Plano de tratamento específico do dente (ex.: "Restauração oclusal").
+  procedimento  String?
+  observacoes   String?
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime    @updatedAt
+
+  odontograma Odontograma @relation(fields: [odontogramaId], references: [id], onDelete: Cascade)
+
+  // Um estado por dente por odontograma (upsert idempotente).
+  @@unique([odontogramaId, numeroFdi])
+  @@index([odontogramaId])
+  @@map("dente_estados")
 }
