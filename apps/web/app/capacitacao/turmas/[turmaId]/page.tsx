@@ -51,7 +51,10 @@ function dataCurta(iso: string) {
 /** Busca fichas APROVADAS e matricula o titular OU um dependente da família. */
 function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () => void }) {
   const [busca, setBusca] = useState("");
-  const [aviso, setAviso] = useState<string | null>(null);
+  // Estados separados (espelha AcoesMatricula): sucesso/informativo vs erro,
+  // para que o Alerta receba o tipo correto (role + cor) sem inferir por texto.
+  const [sucesso, setSucesso] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
   const [expandida, setExpandida] = useState<string | null>(null);
   const { data: resultados, isFetching } = useFichasElegiveis(busca);
   const matricular = useMatricular();
@@ -62,10 +65,11 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
     nome: string,
     consentimentoTitular?: boolean,
   ) {
-    setAviso(null);
+    setSucesso(null);
+    setErro(null);
     try {
       const m = await matricular.mutateAsync({ turmaId, fichaId, membroId, consentimentoTitular });
-      setAviso(
+      setSucesso(
         m.status === "LISTA_ESPERA"
           ? `${nome} entrou na lista de espera (turma lotada).`
           : `${nome} matriculado(a)!`,
@@ -88,10 +92,11 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
           await adicionar(fichaId, membroId, nome, true);
           return;
         }
-        setAviso("Matrícula de menor cancelada — falta o consentimento do responsável.");
+        setSucesso("Matrícula de menor cancelada — falta o consentimento do responsável.");
         return;
       }
-      setAviso((e as Error).message || "Falha ao matricular.");
+      // Erro da API: tipo "erro" explícito (role="alert" + cor de perigo).
+      setErro((e as Error).message || "Falha ao matricular.");
     }
   }
 
@@ -175,9 +180,14 @@ function MatricularAluno({ turmaId, onFechar }: { turmaId: string; onFechar: () 
           ) : null}
         </ul>
       ) : null}
-      {aviso ? (
+      {erro ? (
         <div className="mt-3">
-          <Alerta tipo={aviso.includes("Falha") || aviso.includes("não") ? "erro" : "info"}>{aviso}</Alerta>
+          <Alerta tipo="erro">{erro}</Alerta>
+        </div>
+      ) : null}
+      {sucesso ? (
+        <div className="mt-3">
+          <Alerta tipo="info">{sucesso}</Alerta>
         </div>
       ) : null}
     </div>
