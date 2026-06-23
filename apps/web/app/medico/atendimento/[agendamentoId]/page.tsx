@@ -95,9 +95,13 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
     }
   }, [atendimento]);
 
+  // Limpa timeouts pendentes (toast/redirect) se o componente desmontar antes de disparar.
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timeoutsRef.current.forEach(clearTimeout), []);
+
   function avisar(msg: string, tipo: "ok" | "erro" = "ok") {
     setToast({ msg, tipo });
-    setTimeout(() => setToast(null), 3500);
+    timeoutsRef.current.push(setTimeout(() => setToast(null), 3500));
   }
 
   function vitaisPayload(): VitaisPayload {
@@ -134,7 +138,7 @@ export default function PranchaPage({ params }: { params: { agendamentoId: strin
       await salvarVitais.mutateAsync({ atendimentoId: atendimento.id, dados: vitaisPayload() });
       await encerrar.mutateAsync(atendimento.id);
       avisar("Atendimento selado.");
-      setTimeout(() => router.push("/medico/agenda"), 1200);
+      timeoutsRef.current.push(setTimeout(() => router.push("/medico/agenda"), 1200));
     } catch (e) {
       avisar((e as Error).message || "Não foi possível selar.", "erro");
     }
