@@ -59,6 +59,14 @@ if (!fichaId) {
   process.exit(2);
 }
 
+// Estado limpo: o seed deixa o João com encaminhamento medico→capacitacao
+// PENDENTE; com o índice único parcial recriar daria 409. Drena (aceita) antes
+// de testar o caminho feliz — torna o script re-executável sem reseed.
+const histPend = await req(admin, "GET", `/servico-social/encaminhamentos/${fichaId}/historico`);
+for (const e of histPend.json?.items ?? []) {
+  if (e.status === "PENDENTE") await req(admin, "PATCH", `/servico-social/encaminhamentos/${e.id}/aceitar`);
+}
+
 console.log("--- CRIAR (regra: origem aprovada) ---");
 const criar = await req(admin, "POST", "/servico-social/encaminhamentos", {
   fichaId,

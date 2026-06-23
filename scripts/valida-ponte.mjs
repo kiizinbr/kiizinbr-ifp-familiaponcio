@@ -58,6 +58,15 @@ if (!fichaId) {
   process.exit(2);
 }
 
+// Estado limpo: o seed deixa o João com sinalização medico/ALERTA PENDENTE e
+// este script cria mais de uma; com o índice único parcial (ficha+origem+tipo)
+// recriar daria 409. Drena (marca-atendida) antes — torna o script re-executável.
+const pend = await req(admin, "GET", "/servico-social/ponte?status=PENDENTE&perPage=100");
+for (const s of pend.json?.items ?? []) {
+  if (s.fichaId !== fichaId) continue;
+  await req(admin, "PATCH", `/servico-social/ponte/${s.id}/marcar-atendida`);
+}
+
 console.log("--- CRIAR (profissional sinaliza) ---");
 const criar = await req(medico, "POST", "/servico-social/ponte", {
   fichaId,

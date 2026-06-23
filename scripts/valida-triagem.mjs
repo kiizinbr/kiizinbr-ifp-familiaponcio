@@ -59,6 +59,16 @@ if (!fichaId) {
   process.exit(2);
 }
 
+// Estado limpo: o seed deixa o João com 1 triagem PENDENTE e, com o índice
+// único parcial (idempotência), criar outra daria 409. Drena antes de testar
+// o caminho feliz — e de quebra torna o script re-executável sem reseed.
+const pend = await req(admin, "GET", "/servico-social/triagens?status=PENDENTE&perPage=100");
+for (const t of pend.json?.items ?? []) {
+  if (t.fichaId !== fichaId) continue;
+  await req(admin, "PATCH", `/servico-social/triagens/${t.id}/iniciar`);
+  await req(admin, "PATCH", `/servico-social/triagens/${t.id}/concluir`);
+}
+
 console.log("--- ABRIR TRIAGEM ---");
 const criar = await req(admin, "POST", "/servico-social/triagens", {
   fichaId,
