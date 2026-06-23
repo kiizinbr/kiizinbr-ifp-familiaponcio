@@ -199,6 +199,39 @@ export class TurmasEsportivasService {
     const atletasAtivos = turmas.reduce((s, t) => s + t._count.matriculas, 0);
     const ocupacaoPct = vagasTotais > 0 ? Math.round((atletasAtivos / vagasTotais) * 100) : null;
 
+    // Ocupação por modalidade: soma vagas e atletas ativos das turmas EM_ANDAMENTO
+    // agrupando pela modalidade. Mostra "qual esporte está lotando" para a gestão
+    // decidir onde abrir turma nova. Read agregado, sem PII.
+    const ocupacaoModalidadeMap = new Map<
+      string,
+      { modalidade: string; turmas: number; atletasAtivos: number; vagasTotais: number }
+    >();
+    for (const t of turmas) {
+      const nome = t.modalidade.nome;
+      const atual = ocupacaoModalidadeMap.get(nome) ?? {
+        modalidade: nome,
+        turmas: 0,
+        atletasAtivos: 0,
+        vagasTotais: 0,
+      };
+      atual.turmas += 1;
+      atual.atletasAtivos += t._count.matriculas;
+      atual.vagasTotais += t.vagasTotais;
+      ocupacaoModalidadeMap.set(nome, atual);
+    }
+    const ocupacaoPorModalidade = [...ocupacaoModalidadeMap.values()]
+      .map((m) => ({
+        ...m,
+        pct: m.vagasTotais > 0 ? Math.round((m.atletasAtivos / m.vagasTotais) * 100) : null,
+      }))
+      .sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || a.modalidade.localeCompare(b.modalidade));
+
+    // Demanda reprimida: total na lista de espera da unidade — sinal de quando
+    // abrir turma nova. Conta direto no banco (não só nas turmas em quadra).
+    const listaEsperaTotal = await this.prisma.matriculaEsportiva.count({
+      where: { unidadeId, status: StatusMatricula.LISTA_ESPERA },
+    });
+
     // Turmas com treino marcado para hoje (00:00–23:59 no fuso do servidor).
     const inicioHoje = new Date();
     inicioHoje.setHours(0, 0, 0, 0);
@@ -258,6 +291,8 @@ export class TurmasEsportivasService {
 
     return {
       ocupacao: { atletasAtivos, vagasTotais, pct: ocupacaoPct },
+      ocupacaoPorModalidade,
+      listaEsperaTotal,
       emQuadraHoje,
       proximosExames,
     };
@@ -291,18 +326,24 @@ export class TurmasEsportivasService {
       },
     });
 
-    const items = turmas.map((t) => ({
-      id: t.id,
-      codigo: t.codigo,
-      diasHorario: t.diasHorario,
-      local: t.local,
-      faixaEtariaMin: t.faixaEtariaMin,
-      faixaEtariaMax: t.faixaEtariaMax,
-      vagasTotais: t.vagasTotais,
-      status: t.status,
-      modalidade: t.modalidade,
-      atletasAtivos: t._count.matriculas,
-    }));
+    const items = turmas.map((t) => {
+      const atletasAtivos = t._count.matriculas;
+      return {
+        id: t.id,
+        codigo: t.codigo,
+        diasHorario: t.diasHorario,
+        local: t.local,
+        faixaEtariaMin: t.faixaEtariaMin,
+        faixaEtariaMax: t.faixaEtariaMax,
+        vagasTotais: t.vagasTotais,
+        status: t.status,
+        modalidade: t.modalidade,
+        atletasAtivos,
+        // Vitrine do catálogo: turma sem vaga aberta (matrícula nova cairia na
+        // lista de espera). Derivado dos campos já carregados, sem query extra.
+        lotada: t.vagasTotais > 0 && atletasAtivos >= t.vagasTotais,
+      };
+    });
 
     // Grade: agrupa por dias/horário (a string já é a "faixa" da grade).
     const gradeMap = new Map<string, typeof items>();
@@ -315,7 +356,29 @@ export class TurmasEsportivasService {
       .map(([diasHorario, turmasDoSlot]) => ({ diasHorario, turmas: turmasDoSlot }))
       .sort((a, b) => a.diasHorario.localeCompare(b.diasHorario));
 
-    return { items, grade, total: items.length };
+    // Resumo do conjunto filtrado: cabeçalho de catálogo (quantas por situação e
+    // por modalidade) para a tela não precisar recontar no cliente.
+    const porStatus = { INSCRICOES_ABERTAS: 0, EM_ANDAMENTO: 0, ENCERRADA: 0 } as Record<
+      StatusTurma,
+      number
+    >;
+    const porModalidadeMap = new Map<string, number>();
+    let lotadas = 0;
+    for (const it of items) {
+      porStatus[it.status] += 1;
+      porModalidadeMap.set(it.modalidade.nome, (porModalidadeMap.get(it.modalidade.nome) ?? 0) + 1);
+      if (it.lotada) lotadas += 1;
+    }
+    const porModalidade = [...porModalidadeMap.entries()]
+      .map(([modalidade, total]) => ({ modalidade, total }))
+      .sort((a, b) => b.total - a.total || a.modalidade.localeCompare(b.modalidade));
+
+    return {
+      items,
+      grade,
+      total: items.length,
+      resumo: { porStatus, porModalidade, lotadas },
+    };
   }
 
   /** Fichas APROVADAS no Esportivo (para o formulário de matrícula). */

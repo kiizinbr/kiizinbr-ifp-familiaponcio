@@ -111,6 +111,14 @@ export interface IndicadoresEsportivo {
 
 export interface PainelEsportivo {
   ocupacao: { atletasAtivos: number; vagasTotais: number; pct: number | null };
+  ocupacaoPorModalidade: {
+    modalidade: string;
+    turmas: number;
+    atletasAtivos: number;
+    vagasTotais: number;
+    pct: number | null;
+  }[];
+  listaEsperaTotal: number;
   emQuadraHoje: {
     treinoId: string;
     turmaId: string;
@@ -141,12 +149,18 @@ export interface TurmaCatalogoItem {
   status: "INSCRICOES_ABERTAS" | "EM_ANDAMENTO" | "ENCERRADA";
   modalidade: { id: string; nome: string };
   atletasAtivos: number;
+  lotada: boolean;
 }
 
 export interface CatalogoEsportivo {
   items: TurmaCatalogoItem[];
   grade: { diasHorario: string; turmas: TurmaCatalogoItem[] }[];
   total: number;
+  resumo: {
+    porStatus: Record<"INSCRICOES_ABERTAS" | "EM_ANDAMENTO" | "ENCERRADA", number>;
+    porModalidade: { modalidade: string; total: number }[];
+    lotadas: number;
+  };
 }
 
 // ============================================================

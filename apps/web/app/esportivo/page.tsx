@@ -7,7 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { Award, CalendarClock, ChevronRight, Medal, Plus } from "lucide-react";
+import { Award, CalendarClock, ChevronRight, Hourglass, Medal, Plus, TrendingUp } from "lucide-react";
 
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
 import { Card, JubaRing, Kpi, ListRow, PageHeader, Pill, SecTitle } from "@/components/casa";
@@ -261,6 +261,41 @@ export default function PainelEsportivo() {
           )}
         </Card>
       </div>
+
+      {painel && painel.ocupacaoPorModalidade.length > 0 ? (
+        <Card className="mt-4">
+          <div className="mb-3 flex items-center justify-between">
+            <SecTitle icon={<TrendingUp />}>Ocupação por modalidade</SecTitle>
+            {painel.listaEsperaTotal > 0 ? (
+              <Pill tom="warn">
+                <Hourglass className="h-3 w-3" /> {painel.listaEsperaTotal} na espera
+              </Pill>
+            ) : null}
+          </div>
+          <div className="space-y-2.5">
+            {painel.ocupacaoPorModalidade.map((m) => (
+              <div key={m.modalidade}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-foreground">{m.modalidade}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {m.atletasAtivos}/{m.vagasTotais} vagas
+                    {m.pct != null ? ` · ${m.pct}%` : ""} · {m.turmas} turma(s)
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-[var(--unidade-suave)]">
+                  <div
+                    className={cn(
+                      "h-full rounded-full",
+                      (m.pct ?? 0) >= 100 ? "bg-warning" : "bg-[var(--unidade)]",
+                    )}
+                    style={{ width: `${Math.min(m.pct ?? 0, 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       {painel && painel.proximosExames.length > 0 ? (
         <Card className="mt-4">

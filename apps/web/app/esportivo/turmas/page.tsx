@@ -39,6 +39,7 @@ function LinhaTurma({ t }: { t: TurmaCatalogoItem }) {
         }`}
         trailing={
           <div className="flex items-center gap-2">
+            {t.lotada && t.status !== "ENCERRADA" ? <Pill tom="warn">Lotada</Pill> : null}
             <Pill tom={pillTom(t.status)}>{STATUS_TURMA_LABEL[t.status]}</Pill>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </div>
@@ -102,9 +103,26 @@ export default function CatalogoTurmasPage() {
 
       {data ? (
         <>
-          <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {data.total} turma(s)
-          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {data.total} turma(s)
+            </p>
+            {data.resumo.porStatus.EM_ANDAMENTO > 0 ? (
+              <Pill tom="unidade">{data.resumo.porStatus.EM_ANDAMENTO} em andamento</Pill>
+            ) : null}
+            {data.resumo.porStatus.INSCRICOES_ABERTAS > 0 ? (
+              <Pill tom="ok">{data.resumo.porStatus.INSCRICOES_ABERTAS} abertas</Pill>
+            ) : null}
+            {data.resumo.porStatus.ENCERRADA > 0 ? (
+              <Pill tom="neutro">{data.resumo.porStatus.ENCERRADA} encerradas</Pill>
+            ) : null}
+            {data.resumo.lotadas > 0 ? <Pill tom="warn">{data.resumo.lotadas} lotada(s)</Pill> : null}
+          </div>
+          {data.resumo.porModalidade.length > 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {data.resumo.porModalidade.map((m) => `${m.modalidade} (${m.total})`).join(" · ")}
+            </p>
+          ) : null}
 
           {data.total === 0 ? (
             <div className="mt-3 rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">

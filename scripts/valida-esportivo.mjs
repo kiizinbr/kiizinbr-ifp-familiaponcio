@@ -247,6 +247,23 @@ caso(
   true,
   (painel.json?.emQuadraHoje ?? []).some((t) => t.turmaId === turma.json.id),
 );
+// C2 — painel enriquecido: ocupação por modalidade + demanda reprimida.
+caso("painel.ocupacaoPorModalidade é array", true, Array.isArray(painel.json?.ocupacaoPorModalidade));
+caso("painel.listaEsperaTotal numérico", "number", typeof painel.json?.listaEsperaTotal);
+// A turma de Judô criada está EM_ANDAMENTO com 1 atleta ativo → Judô tem de
+// aparecer no agregado por modalidade com o shape completo.
+const ocJudo = (painel.json?.ocupacaoPorModalidade ?? []).find((m) => m.modalidade === "Judô");
+caso("ocupacaoPorModalidade traz Judô (turma em quadra)", true, ocJudo != null);
+caso(
+  "ocupacaoPorModalidade tem shape completo",
+  true,
+  ocJudo != null &&
+    typeof ocJudo.turmas === "number" &&
+    typeof ocJudo.atletasAtivos === "number" &&
+    typeof ocJudo.vagasTotais === "number" &&
+    "pct" in ocJudo,
+);
+caso("Judô conta o atleta ativo da turma", true, !!ocJudo && ocJudo.atletasAtivos >= 1);
 
 const catalogo = await req(sensei, "GET", "/esportivo/catalogo");
 caso("sensei -> catálogo (sem filtro)", 200, catalogo.status);
@@ -254,6 +271,29 @@ caso("catálogo.items é array", true, Array.isArray(catalogo.json?.items));
 caso("catálogo.grade é array", true, Array.isArray(catalogo.json?.grade));
 caso("catálogo.total numérico", "number", typeof catalogo.json?.total);
 caso("catálogo inclui a turma criada", true, (catalogo.json?.items ?? []).some((t) => t.id === turma.json.id));
+// C2 — catálogo enriquecido: resumo (por status/modalidade/lotadas) + flag lotada.
+caso("catálogo.resumo presente", true, catalogo.json?.resumo != null);
+caso(
+  "resumo.porStatus tem as 3 situações",
+  true,
+  catalogo.json?.resumo != null &&
+    typeof catalogo.json.resumo.porStatus?.EM_ANDAMENTO === "number" &&
+    typeof catalogo.json.resumo.porStatus?.INSCRICOES_ABERTAS === "number" &&
+    typeof catalogo.json.resumo.porStatus?.ENCERRADA === "number",
+);
+caso("resumo.porModalidade é array", true, Array.isArray(catalogo.json?.resumo?.porModalidade));
+caso("resumo.lotadas numérico", "number", typeof catalogo.json?.resumo?.lotadas);
+// A turma JUDO criada tem 1 vaga e 1 atleta ativo → tem de vir marcada lotada.
+const minhaTurmaCat = (catalogo.json?.items ?? []).find((t) => t.id === turma.json.id);
+caso("item do catálogo expõe flag lotada", true, minhaTurmaCat != null && typeof minhaTurmaCat.lotada === "boolean");
+caso("turma de 1 vaga com 1 atleta está lotada", true, !!minhaTurmaCat && minhaTurmaCat.lotada === true);
+// Soma por status do resumo bate com o total do catálogo (consistência).
+const somaStatus = catalogo.json?.resumo
+  ? catalogo.json.resumo.porStatus.EM_ANDAMENTO +
+    catalogo.json.resumo.porStatus.INSCRICOES_ABERTAS +
+    catalogo.json.resumo.porStatus.ENCERRADA
+  : -1;
+caso("resumo.porStatus soma = total", catalogo.json?.total, somaStatus);
 
 const catalogoFiltrado = await req(sensei, "GET", `/esportivo/catalogo?modalidadeId=${judo.id}`);
 caso("catálogo filtrado por modalidade", 200, catalogoFiltrado.status);
