@@ -179,7 +179,10 @@ export class FichasCidadasService {
   async update(id: string, dto: UpdateFichaCidadaDto, autorId: string) {
     await this.assertExists(id);
 
-    const { dataNascimento, ...rest } = dto;
+    // Protocolo e CPF são a identidade da família: imutáveis na edição. O DTO
+    // herda `cpf` do create (PartialType), então descartamos aqui para que um
+    // PATCH não consiga trocar o CPF (e o protocolo nem é editável pelo DTO).
+    const { dataNascimento, cpf: _cpfIgnorado, ...rest } = dto;
     const ficha = await this.prisma.fichaCidada.update({
       where: { id },
       data: {
@@ -194,7 +197,8 @@ export class FichasCidadasService {
       acao: AcaoAuditoria.UPDATE,
       entidade: "FichaCidada",
       entidadeId: id,
-      metadados: { campos: Object.keys(dto) },
+      // CPF nunca é alterado; não entra na trilha de campos editados.
+      metadados: { campos: Object.keys(rest).concat(dataNascimento ? ["dataNascimento"] : []) },
     });
 
     return ficha;

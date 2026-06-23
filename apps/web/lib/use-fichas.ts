@@ -40,6 +40,31 @@ export interface CriarFichaPayload {
   observacoes?: string;
 }
 
+/**
+ * Edição do titular (PATCH). Espelha UpdateFichaCidadaDto: tudo opcional, e o
+ * CPF é IMUTÁVEL (o backend descarta), por isso nem aparece aqui.
+ */
+export interface AtualizarFichaPayload {
+  nomeCompleto?: string;
+  rg?: string;
+  dataNascimento?: string; // YYYY-MM-DD
+  estadoCivil?: EstadoCivil;
+  escolaridade?: Escolaridade;
+  telefone?: string;
+  telefoneAlt?: string;
+  email?: string;
+  whatsappOptIn?: boolean;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  observacoes?: string;
+  ativa?: boolean;
+}
+
 export interface MembroPayload {
   nomeCompleto: string;
   cpf?: string;
@@ -134,6 +159,22 @@ export function useCriarFicha() {
         body: JSON.stringify(payload),
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["fichas"] }),
+  });
+}
+
+export function useUpdateFicha() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dados }: { id: string; dados: AtualizarFichaPayload }) =>
+      authFetch<FichaDetalhe>(`/fichas-cidadas/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(dados),
+      }),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ["ficha", id] });
+      qc.invalidateQueries({ queryKey: ["fichas"] });
+    },
   });
 }
 
