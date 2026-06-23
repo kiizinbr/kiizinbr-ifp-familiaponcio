@@ -4,6 +4,9 @@
 > **`docs/HANDOFF-GO-LIVE-2026-06-22.md`** (seção "⭐ ATUALIZAÇÃO") + **`docs/COMPARATIVO-100.md`**.
 > Resumo: o sistema está **DEPLOYADO em produção na VM `ifp-final`**
 > (https://ifp-final.taile04c66.ts.net), branch em `b8283a9`, Serviço Social + idempotência no ar.
+>
+> 🆕 **23/06: esteira autônoma fechou o "conjunto seguro" (9 unidades, +24 telas) — branch `d496a29`, 13/13 valida verde + typecheck verde.**
+> **AO RETOMAR, leia `docs/RFC-FECHAR-GAP-AUTONOMO.md` → seção "▶️ RETOMAR AQUI"** (passo natural = build no Linux + smoke no navegador + deploy na `ifp-final`).
 > A VM de produção é a **`ifp-final`** — **NÃO** a `ifp-app` (essa é a antiga, só falta desativar).
 
 > **Para a IA que retomar este projeto (em qualquer máquina): leia este arquivo primeiro.**

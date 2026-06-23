@@ -44,3 +44,17 @@ recuperar-senha (SMTP), e tudo de produção (rotação de segredos, cutover da 
 
 ## Saídas
 Scorecard por unidade (green/failed/partial) + commits + lista de pendências pro humano.
+
+---
+
+## ✅ RESULTADO (2026-06-23) — esteira concluída e VERIFICADA
+9/9 unidades verdes e empurradas: commits `7f4e9dd`→`6ec878e` (+ `d496a29` = fix de typecheck do seed que o gate por-unidade não pegou). **Verificação cumulativa em runtime:** `pnpm typecheck` do repo inteiro VERDE + **13/13 scripts `valida-*` verdes** (usuarios 51 · esportivo 52 · cursos 34 · familia 40 · medico-recepcao 22 · medico-triagem 18 · medico-atestado 30 · medico-odonto 22 · admin 49 · + regressões triagem/tenant/prescrição/educacional). Estado da branch ao parar: `d496a29`, working tree limpo, em sincronia com a origin.
+
+## ▶️ RETOMAR AQUI — "passo natural" (levar pra produção)
+A entrega é **backend + compilação**; falta o que precisa de Linux/navegador. Ordem ao retomar:
+1. **Pull da branch** `claude/continue-projetoifp-section-10-RKC1n` (`d496a29`) numa máquina Linux (ou no próprio servidor).
+2. **`pnpm i && pnpm --filter @ifp/web build`** — deve completar o `output:standalone` (no Windows falhava só por EPERM de symlink; no Linux passa). Se falhar por outro motivo, é bug real a investigar.
+3. **Smoke no NAVEGADOR** das telas novas (login por perfil) via Tailscale, idealmente já no ambiente do servidor — a UI nunca foi vista rodando (a workstation não sustenta sessão interativa).
+4. **Deploy na `ifp-final`** seguindo a receita já provada (ver memória `ifp-vm-cutover-decision`): SSH `ifp@100.118.69.57` → `cd /opt/ifp-connect` → `pg_dump` backup (`~/ifp-backups/`) → `git checkout -- packages/database/schema.prisma` → `git pull --ff-only` → reaplica `binaryTargets` (`["native","debian-openssl-3.0.x"]`) → **`docker compose -f docker-compose.prod.yml -f docker-compose.tailscale.yml --env-file .env.production build api web migrate`** (⚠ INCLUIR `migrate` — senão a imagem migrate fica velha e diz "No pending") → `--profile tools run --rm migrate` (só `migrate deploy`, não seeda) → `up -d` → smoke HTTPS. **São 5 migrations novas** desta entrega (capacitacao_curso_ementa, familia_evento_presenca, medico_triagem_enfermagem, medico_odontograma, admin_auditlog_index_acao) — todas aditivas.
+
+> Fora do escopo desta esteira (continua humano+IA supervisionado): features de IA, site público, telas sem dados, recuperar-senha (SMTP). Ver `COMPARATIVO-100.md`.
