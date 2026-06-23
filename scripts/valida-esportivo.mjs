@@ -159,6 +159,21 @@ const chamada = await req(sensei, "PUT", `/esportivo/treinos/${treino.json?.id}/
   itens: [{ matriculaId: m1.json.id, status: "PRESENTE" }],
 });
 caso("lança chamada", 200, chamada.status);
+// Sumário da chamada vem junto (KPIs de frequência da tela do instrutor).
+caso("chamada traz resumoPresenca", true, chamada.json?.resumoPresenca != null);
+caso("resumo: 1 presente", 1, chamada.json?.resumoPresenca?.presentes);
+caso("resumo: 0 atrasos (ainda)", 0, chamada.json?.resumoPresenca?.atrasos);
+caso("resumo: % presença 100", 100, chamada.json?.resumoPresenca?.pctPresenca);
+
+// 4º estado da chamada: ATRASADO (chegou tarde, mas treinou → conta como compareceu).
+const chamadaAtraso = await req(sensei, "PUT", `/esportivo/treinos/${treino.json?.id}/chamada`, {
+  itens: [{ matriculaId: m1.json.id, status: "ATRASADO" }],
+});
+caso("lança chamada com ATRASADO (4º estado)", 200, chamadaAtraso.status);
+caso("resumo: 1 atraso", 1, chamadaAtraso.json?.resumoPresenca?.atrasos);
+caso("resumo: 0 presentes (virou atraso)", 0, chamadaAtraso.json?.resumoPresenca?.presentes);
+caso("resumo: compareceu = 1 (atraso conta)", 1, chamadaAtraso.json?.resumoPresenca?.compareceu);
+caso("resumo: % presença 100 (atraso compareceu)", 100, chamadaAtraso.json?.resumoPresenca?.pctPresenca);
 
 const chamadaInvalida = await req(
   sensei,
@@ -168,8 +183,15 @@ const chamadaInvalida = await req(
 );
 caso("chamada com matrícula alheia", 400, chamadaInvalida.status);
 
+// Volta para PRESENTE antes de selar (deixa um treino selado com presença “limpa”).
+await req(sensei, "PUT", `/esportivo/treinos/${treino.json?.id}/chamada`, {
+  itens: [{ matriculaId: m1.json.id, status: "PRESENTE" }],
+});
+
 const selo = await req(sensei, "POST", `/esportivo/treinos/${treino.json?.id}/encerrar`);
 caso("sela o treino", 200, selo.status);
+caso("selo devolve resumoPresenca", true, selo.json?.resumoPresenca != null);
+caso("selo: % presença 100 (1 presente)", 100, selo.json?.resumoPresenca?.pctPresenca);
 
 const chamadaPosSelo = await req(
   sensei,
@@ -205,6 +227,14 @@ caso(
   true,
   (indicadores.json?.frequenciaPorModalidade ?? []).length >= 1,
 );
+// Frequência agora destrincha atrasos/faltas (B2 — polimento read/agregação).
+const freqJudo = (indicadores.json?.frequenciaPorModalidade ?? []).find(
+  (f) => f.modalidade === "Judô",
+);
+caso("frequência por modalidade expõe atrasos", true, freqJudo != null && typeof freqJudo.atrasos === "number");
+caso("frequência por modalidade expõe faltas", true, freqJudo != null && typeof freqJudo.faltas === "number");
+// O treino selado tinha 1 PRESENTE → presencas (compareceu) >= 1.
+caso("frequência conta quem compareceu", true, !!freqJudo && freqJudo.presencas >= 1);
 
 const painel = await req(sensei, "GET", "/esportivo/painel");
 caso("sensei -> painel", 200, painel.status);

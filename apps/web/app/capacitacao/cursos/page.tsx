@@ -207,6 +207,11 @@ function LinhaCurso({ curso, aoEditar }: { curso: CursoGestao; aoEditar: () => v
             <Pill>
               {curso._count.turmas} turma{curso._count.turmas === 1 ? "" : "s"}
             </Pill>
+            {curso.ocupacaoPct != null ? (
+              <Pill tom={curso.ocupacaoPct >= 90 ? "warn" : "unidade"}>
+                ocupação {curso.ocupacaoPct}% ({curso.alunosAtivos}/{curso.vagasTotais})
+              </Pill>
+            ) : null}
             {!curso.ativo ? <Pill tom="warn">Inativo</Pill> : null}
           </div>
         </div>
@@ -233,7 +238,8 @@ function LinhaCurso({ curso, aoEditar }: { curso: CursoGestao; aoEditar: () => v
 }
 
 export default function PaginaCursos() {
-  const { data, isLoading, error } = useCursosGestao();
+  const [filtro, setFiltro] = useState<"" | "ativos" | "inativos">("");
+  const { data, isLoading, error } = useCursosGestao(filtro || undefined);
   const [criando, setCriando] = useState(false);
   const [editando, setEditando] = useState<CursoGestao | null>(null);
 
@@ -252,6 +258,23 @@ export default function PaginaCursos() {
           ) : null
         }
       />
+
+      {/* Filtro ativos/inativos (read-only — só estreita a listagem). */}
+      <div className="mb-4 flex items-center gap-2">
+        <label htmlFor="filtro-curso" className="text-xs text-muted-foreground">
+          Exibir:
+        </label>
+        <Select
+          id="filtro-curso"
+          className="w-auto py-1 text-sm"
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value as "" | "ativos" | "inativos")}
+        >
+          <option value="">Todos</option>
+          <option value="ativos">Só ativos</option>
+          <option value="inativos">Só inativos</option>
+        </Select>
+      </div>
 
       {mostrandoForm ? (
         <FormCurso

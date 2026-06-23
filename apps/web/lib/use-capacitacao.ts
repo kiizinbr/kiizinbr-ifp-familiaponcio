@@ -43,12 +43,19 @@ export interface ItemChamada {
 // Queries
 // ============================================================
 
-export function useTurmas() {
+export function useTurmas(filtros: { status?: string; cursoId?: string } = {}) {
   const authFetch = useAuthFetch();
   const { status } = useSession();
+  const params = new URLSearchParams();
+  if (filtros.status) params.set("status", filtros.status);
+  if (filtros.cursoId) params.set("cursoId", filtros.cursoId);
+  const qs = params.toString();
   return useQuery({
-    queryKey: ["capacitacao", "turmas"],
-    queryFn: () => authFetch<{ items: TurmaResumo[] }>("/capacitacao/turmas"),
+    queryKey: ["capacitacao", "turmas", filtros.status ?? "", filtros.cursoId ?? ""],
+    queryFn: () =>
+      authFetch<{ items: TurmaResumo[]; total: number }>(
+        `/capacitacao/turmas${qs ? `?${qs}` : ""}`,
+      ),
     enabled: status === "authenticated",
     placeholderData: (prev) => prev,
   });
@@ -247,6 +254,12 @@ export interface CursoGestao {
   requerModelos: boolean;
   ativo: boolean;
   _count: { turmas: number };
+  /** Alunos ATIVOS somados nas turmas do curso. */
+  alunosAtivos?: number;
+  /** Vagas somadas das turmas do curso. */
+  vagasTotais?: number;
+  /** % de ocupação do curso (alunosAtivos / vagasTotais). */
+  ocupacaoPct?: number | null;
 }
 
 export interface CriarCursoPayload {
@@ -257,13 +270,15 @@ export interface CriarCursoPayload {
   requerModelos?: boolean;
 }
 
-export function useCursosGestao() {
+export function useCursosGestao(filtro?: "ativos" | "inativos") {
   const authFetch = useAuthFetch();
   const { status } = useSession();
+  const qs = filtro ? `?filtro=${filtro}` : "";
   return useQuery({
-    queryKey: ["capacitacao", "cursos-gestao"],
-    queryFn: () => authFetch<{ items: CursoGestao[] }>("/capacitacao/cursos/todos"),
+    queryKey: ["capacitacao", "cursos-gestao", filtro ?? ""],
+    queryFn: () => authFetch<{ items: CursoGestao[] }>(`/capacitacao/cursos/todos${qs}`),
     enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
   });
 }
 

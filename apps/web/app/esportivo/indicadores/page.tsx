@@ -71,18 +71,22 @@ export default function IndicadoresEsportivoPage() {
 
           <Card className="mt-4">
             <SecTitle>Frequência por modalidade</SecTitle>
+            <p className="mb-2 text-xs text-muted-foreground">
+              % de comparecimento (presentes + atrasos) sobre as chamadas seladas.
+            </p>
             {data.frequenciaPorModalidade.length === 0 ? (
               <p className="text-sm text-muted-foreground">Sem chamadas seladas ainda.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {data.frequenciaPorModalidade.map((f) => (
-                  <Barra
-                    key={f.modalidade}
-                    label={f.modalidade}
-                    valor={f.pct ?? 0}
-                    max={100}
-                    sufixo="%"
-                  />
+                  <div key={f.modalidade}>
+                    <Barra label={f.modalidade} valor={f.pct ?? 0} max={100} sufixo="%" />
+                    <div className="ml-[7.75rem] mt-0.5 flex gap-3 text-[11px] text-muted-foreground">
+                      <span className="text-success">{f.presencas} compareceram</span>
+                      <span className="text-ifp-orange">{f.atrasos} atraso(s)</span>
+                      <span className="text-danger">{f.faltas} falta(s)</span>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

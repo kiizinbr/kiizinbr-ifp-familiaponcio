@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { BadRequestException } from "@nestjs/common";
-import { Perfil, StatusMatricula } from "@ifp/database";
+import { Perfil, StatusMatricula, StatusTurma } from "@ifp/database";
 
 import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
@@ -33,9 +33,17 @@ export class TurmasController {
   constructor(private readonly turmas: TurmasService) {}
 
   @Get("turmas")
-  @ApiOperation({ summary: "Turmas da unidade do profissional logado" })
-  listar(@CurrentUser() user: AuthenticatedUser) {
-    return this.turmas.listar(user);
+  @ApiOperation({
+    summary: "Turmas da unidade (filtros status/curso) com % de ocupação por turma",
+  })
+  @ApiQuery({ name: "status", required: false, enum: StatusTurma })
+  @ApiQuery({ name: "cursoId", required: false })
+  listar(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("status") status?: string,
+    @Query("cursoId") cursoId?: string,
+  ) {
+    return this.turmas.listar(user, { status, cursoId });
   }
 
   @Get("cursos")

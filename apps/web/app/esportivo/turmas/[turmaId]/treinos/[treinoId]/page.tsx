@@ -21,6 +21,7 @@ import { cn } from "@/lib/cn";
 
 const OPCOES: { valor: StatusPresenca; rotulo: string; ativo: string }[] = [
   { valor: "PRESENTE", rotulo: "P", ativo: "bg-success text-ifp-white border-success" },
+  { valor: "ATRASADO", rotulo: "A", ativo: "bg-ifp-orange text-ifp-white border-ifp-orange" },
   { valor: "FALTA", rotulo: "F", ativo: "bg-danger text-ifp-white border-danger" },
   { valor: "JUSTIFICADA", rotulo: "J", ativo: "bg-warning text-ifp-white border-warning" },
 ];
@@ -83,6 +84,23 @@ export default function ChamadaTreinoPage() {
     return atletas.map((m) => ({ matriculaId: m.id, status: statusDe(m.id) }));
   }
 
+  // Sumário ao vivo da chamada (atualiza a cada toque) — espelha o resumoPresenca
+  // do backend: ATRASADO conta como "compareceu" junto com PRESENTE.
+  const resumo = atletas.reduce(
+    (acc, m) => {
+      const s = statusDe(m.id);
+      acc.total += 1;
+      if (s === "PRESENTE") acc.presentes += 1;
+      else if (s === "ATRASADO") acc.atrasos += 1;
+      else if (s === "FALTA") acc.faltas += 1;
+      else if (s === "JUSTIFICADA") acc.justificadas += 1;
+      return acc;
+    },
+    { total: 0, presentes: 0, atrasos: 0, faltas: 0, justificadas: 0 },
+  );
+  const compareceu = resumo.presentes + resumo.atrasos;
+  const pctPresenca = resumo.total > 0 ? Math.round((compareceu / resumo.total) * 100) : null;
+
   async function salvar(selarDepois: boolean) {
     setAviso(null);
     try {
@@ -124,6 +142,31 @@ export default function ChamadaTreinoPage() {
           <Alerta tipo={aviso === "Chamada salva." ? "info" : "erro"}>{aviso}</Alerta>
         </div>
       ) : null}
+
+      {/* Sumário da frequência (presentes/atrasos/faltas/justificadas + % presença) */}
+      <dl className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {[
+          { rotulo: "Presentes", valor: resumo.presentes, cor: "text-success" },
+          { rotulo: "Atrasos", valor: resumo.atrasos, cor: "text-ifp-orange" },
+          { rotulo: "Faltas", valor: resumo.faltas, cor: "text-danger" },
+          { rotulo: "Justificadas", valor: resumo.justificadas, cor: "text-warning" },
+          {
+            rotulo: "% Presença",
+            valor: pctPresenca == null ? "—" : `${pctPresenca}%`,
+            cor: "text-foreground",
+          },
+        ].map((kpi) => (
+          <div
+            key={kpi.rotulo}
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-center"
+          >
+            <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {kpi.rotulo}
+            </dt>
+            <dd className={cn("text-lg font-bold", kpi.cor)}>{kpi.valor}</dd>
+          </div>
+        ))}
+      </dl>
 
       <ul className="mt-5 space-y-2">
         {atletas.map((m) => {

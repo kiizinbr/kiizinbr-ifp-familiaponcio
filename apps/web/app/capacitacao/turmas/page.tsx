@@ -104,7 +104,8 @@ function NovaTurma({ onFechar }: { onFechar: () => void }) {
 }
 
 export default function TurmasPage() {
-  const { data, isLoading, isError, error } = useTurmas();
+  const [filtroStatus, setFiltroStatus] = useState<string>("");
+  const { data, isLoading, isError, error } = useTurmas({ status: filtroStatus || undefined });
   const [novaAberta, setNovaAberta] = useState(false);
 
   return (
@@ -120,6 +121,29 @@ export default function TurmasPage() {
           ) : undefined
         }
       />
+
+      {/* Filtro por status (read-only — só estreita a listagem da unidade). */}
+      <div className="mt-4 flex items-center gap-2">
+        <label htmlFor="filtro-status" className="text-xs text-muted-foreground">
+          Status:
+        </label>
+        <Select
+          id="filtro-status"
+          className="w-auto py-1 text-sm"
+          value={filtroStatus}
+          onChange={(e) => setFiltroStatus(e.target.value)}
+        >
+          <option value="">Todas</option>
+          {(Object.keys(STATUS_TURMA_LABEL) as StatusTurma[]).map((s) => (
+            <option key={s} value={s}>
+              {STATUS_TURMA_LABEL[s]}
+            </option>
+          ))}
+        </Select>
+        {data ? (
+          <span className="text-xs text-muted-foreground">{data.total} turma(s)</span>
+        ) : null}
+      </div>
 
       {novaAberta ? <NovaTurma onFechar={() => setNovaAberta(false)} /> : null}
 
@@ -153,7 +177,8 @@ export default function TurmasPage() {
                 <div className="flex items-center gap-3">
                   <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
                     <Users className="h-3.5 w-3.5" />
-                    {t._count.matriculas}/{t.vagasTotais}
+                    {t.alunosAtivos ?? t._count.matriculas}/{t.vagasTotais}
+                    {t.ocupacaoPct != null ? ` · ${t.ocupacaoPct}%` : ""}
                   </span>
                   <span
                     className={cn(

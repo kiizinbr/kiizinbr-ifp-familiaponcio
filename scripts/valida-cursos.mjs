@@ -124,6 +124,46 @@ const ind = await req(instrutor, "GET", "/capacitacao/indicadores");
 caso("indicadores da capacitação", 200, ind.status);
 caso("indicadores têm turmas por status", true, ind.json?.turmas != null && typeof ind.json.turmas === "object");
 
+console.log("--- TURMAS: OCUPAÇÃO + FILTROS (B2) ---");
+const turmas = await req(instrutor, "GET", "/capacitacao/turmas");
+caso("lista de turmas", 200, turmas.status);
+caso("listagem traz total numérico", true, typeof turmas.json?.total === "number");
+const turmaNova = (turmas.json?.items ?? []).find((t) => t.id === turma.json?.id);
+caso("turma criada aparece na lista", true, Boolean(turmaNova));
+caso("turma traz ocupacaoPct", true, turmaNova != null && "ocupacaoPct" in turmaNova);
+caso("turma traz alunosAtivos", true, turmaNova != null && typeof turmaNova.alunosAtivos === "number");
+// A turma nova foi criada com EM_ANDAMENTO (sem alunos) → ocupação 0%.
+caso("turma nova com ocupação 0%", 0, turmaNova?.ocupacaoPct);
+
+const turmasAndamento = await req(instrutor, "GET", "/capacitacao/turmas?status=EM_ANDAMENTO");
+caso("filtro de turmas por status", 200, turmasAndamento.status);
+caso(
+  "filtro EM_ANDAMENTO só traz em andamento",
+  true,
+  (turmasAndamento.json?.items ?? []).every((t) => t.status === "EM_ANDAMENTO"),
+);
+const turmasDoCurso = await req(instrutor, "GET", `/capacitacao/turmas?cursoId=${cursoId}`);
+caso("filtro de turmas por curso", 200, turmasDoCurso.status);
+caso(
+  "filtro por curso só traz turmas do curso",
+  true,
+  (turmasDoCurso.json?.items ?? []).every((t) => t.curso.id === cursoId),
+);
+
+console.log("--- CURSOS: OCUPAÇÃO + FILTROS (B2) ---");
+const todosOcup = await req(instrutor, "GET", "/capacitacao/cursos/todos");
+caso("gestão de cursos", 200, todosOcup.status);
+const cursoNaGestao = (todosOcup.json?.items ?? []).find((c) => c.id === cursoId);
+caso("curso traz ocupacaoPct", true, cursoNaGestao != null && "ocupacaoPct" in cursoNaGestao);
+caso("curso traz vagasTotais somadas", true, cursoNaGestao != null && typeof cursoNaGestao.vagasTotais === "number");
+
+const soAtivos = await req(instrutor, "GET", "/capacitacao/cursos/todos?filtro=ativos");
+caso("filtro de cursos ativos", 200, soAtivos.status);
+caso("filtro ativos só traz ativos", true, (soAtivos.json?.items ?? []).every((c) => c.ativo === true));
+const soInativos = await req(instrutor, "GET", "/capacitacao/cursos/todos?filtro=inativos");
+caso("filtro de cursos inativos", 200, soInativos.status);
+caso("filtro inativos só traz inativos", true, (soInativos.json?.items ?? []).every((c) => c.ativo === false));
+
 console.log("--- DETALHE DO CURSO (trilha: módulos + ementa) ---");
 // O curso de seed "Barbearia Profissional" tem a trilha cadastrada (3 módulos).
 const todosCursos = await req(instrutor, "GET", "/capacitacao/cursos/todos");

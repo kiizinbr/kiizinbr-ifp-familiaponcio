@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { Perfil } from "@ifp/database";
 
 import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decorator";
@@ -19,9 +19,12 @@ export class CursosController {
   constructor(private readonly cursos: CursosService) {}
 
   @Get("todos")
-  @ApiOperation({ summary: "Todos os cursos da unidade (gestão), com nº de turmas" })
-  listarTodos(@CurrentUser() user: AuthenticatedUser) {
-    return this.cursos.listarTodos(user);
+  @ApiOperation({
+    summary: "Cursos da unidade (gestão) com nº de turmas e % de ocupação; filtro ativos/inativos",
+  })
+  @ApiQuery({ name: "filtro", required: false, enum: ["ativos", "inativos"] })
+  listarTodos(@CurrentUser() user: AuthenticatedUser, @Query("filtro") filtro?: string) {
+    return this.cursos.listarTodos(user, filtro);
   }
 
   @Get(":id")

@@ -104,13 +104,17 @@ export class TurmasEsportivasService {
       GROUP BY 1 ORDER BY 1
     `;
 
-    // Frequência por modalidade: presenças PRESENTE sobre o total lançado.
+    // Frequência por modalidade: quem COMPARECEU (PRESENTE + ATRASADO) sobre o
+    // total lançado. ATRASADO é o 4º estado da chamada — chegou tarde, mas treinou,
+    // então conta na frequência; `atrasos` fica destacado p/ a vitrine de pontualidade.
     // Só treinos selados (encerradoEm) contam — chamada aberta ainda muda.
     const frequenciaPorModalidade = await this.prisma.$queryRaw<
-      { modalidade: string; presencas: number; total: number }[]
+      { modalidade: string; presencas: number; atrasos: number; faltas: number; total: number }[]
     >`
       SELECT m.nome AS modalidade,
-             count(*) FILTER (WHERE p.status = 'PRESENTE')::int AS presencas,
+             count(*) FILTER (WHERE p.status IN ('PRESENTE','ATRASADO'))::int AS presencas,
+             count(*) FILTER (WHERE p.status = 'ATRASADO')::int AS atrasos,
+             count(*) FILTER (WHERE p.status = 'FALTA')::int AS faltas,
              count(*)::int AS total
       FROM presencas_treino p
       JOIN treinos_esportivos t ON t.id = p."treinoId" AND t."encerradoEm" IS NOT NULL
@@ -158,6 +162,8 @@ export class TurmasEsportivasService {
       frequenciaPorModalidade: frequenciaPorModalidade.map((f) => ({
         modalidade: f.modalidade,
         presencas: f.presencas,
+        atrasos: f.atrasos,
+        faltas: f.faltas,
         total: f.total,
         pct: f.total > 0 ? Math.round((f.presencas / f.total) * 100) : null,
       })),

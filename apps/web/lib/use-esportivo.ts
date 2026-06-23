@@ -63,7 +63,17 @@ export interface TreinoItem {
 
 export interface PresencaTreinoItem {
   matriculaId: string;
-  status: "PRESENTE" | "FALTA" | "JUSTIFICADA";
+  status: "PRESENTE" | "FALTA" | "JUSTIFICADA" | "ATRASADO";
+}
+
+export interface ResumoPresenca {
+  total: number;
+  presentes: number;
+  faltas: number;
+  justificadas: number;
+  atrasos: number;
+  compareceu: number;
+  pctPresenca: number | null;
 }
 
 export interface TurmaEsportivaDetalhe extends Omit<TurmaEsportivaResumo, "_count"> {
@@ -84,6 +94,8 @@ export interface IndicadoresEsportivo {
   frequenciaPorModalidade: {
     modalidade: string;
     presencas: number;
+    atrasos: number;
+    faltas: number;
     total: number;
     pct: number | null;
   }[];
@@ -307,7 +319,7 @@ export function useTreino(id: string | undefined) {
   return useQuery({
     queryKey: ["esportivo", "treino", id],
     queryFn: () =>
-      authFetch<TreinoItem & { presencas: PresencaTreinoItem[] }>(
+      authFetch<TreinoItem & { presencas: PresencaTreinoItem[]; resumoPresenca: ResumoPresenca }>(
         `/esportivo/treinos/${id}`,
       ),
     enabled: status === "authenticated" && !!id,

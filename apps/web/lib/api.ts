@@ -552,7 +552,7 @@ export interface Prancha {
 
 export type StatusTurma = "INSCRICOES_ABERTAS" | "EM_ANDAMENTO" | "ENCERRADA";
 export type StatusMatricula = "ATIVA" | "LISTA_ESPERA" | "TRANCADA" | "EVADIDA" | "CONCLUIDA";
-export type StatusPresenca = "PRESENTE" | "FALTA" | "JUSTIFICADA";
+export type StatusPresenca = "PRESENTE" | "FALTA" | "JUSTIFICADA" | "ATRASADO";
 
 export const STATUS_TURMA_LABEL: Record<StatusTurma, string> = {
   INSCRICOES_ABERTAS: "Inscrições abertas",
@@ -572,6 +572,7 @@ export const STATUS_PRESENCA_LABEL: Record<StatusPresenca, string> = {
   PRESENTE: "Presente",
   FALTA: "Falta",
   JUSTIFICADA: "Justificada",
+  ATRASADO: "Atrasado",
 };
 
 export interface Curso {
@@ -606,6 +607,10 @@ export interface TurmaResumo {
   vagasTotais: number;
   curso: Curso;
   _count: { matriculas: number; aulas: number };
+  /** Alunos ATIVOS na turma (ocupação real). */
+  alunosAtivos?: number;
+  /** % de ocupação = alunosAtivos / vagasTotais (null se sem vagas). */
+  ocupacaoPct?: number | null;
 }
 
 export interface MatriculaTurma {

@@ -55,17 +55,63 @@ export class TurmasService {
     return (validas / totalAulasEncerradas) * 100;
   }
 
-  async listar(user: AuthenticatedUser) {
+  /**
+   * Turmas da unidade com filtros opcionais (status/curso) e % de ocupação por
+   * turma (atletas ATIVOS sobre as vagas). Só agregado — sem PII de aluno.
+   */
+  async listar(
+    user: AuthenticatedUser,
+    filtros: { status?: string; cursoId?: string } = {},
+  ) {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
-    const items = await this.prisma.turma.findMany({
-      where: { unidadeId: profissional.unidadeId },
+
+    const statusValido =
+      filtros.status && (Object.values(StatusTurma) as string[]).includes(filtros.status)
+        ? (filtros.status as StatusTurma)
+        : undefined;
+
+    const turmas = await this.prisma.turma.findMany({
+      where: {
+        unidadeId: profissional.unidadeId,
+        ...(statusValido ? { status: statusValido } : {}),
+        ...(filtros.cursoId ? { cursoId: filtros.cursoId } : {}),
+      },
       orderBy: { criadoEm: "desc" },
       include: {
         curso: true,
-        _count: { select: { matriculas: true, aulas: true } },
+        _count: {
+          select: {
+            matriculas: true,
+            aulas: true,
+            // segundo bloco de matrículas só p/ contar as ATIVAS (ocupação real)
+          },
+        },
       },
     });
-    return { items };
+
+    // Ocupação por turma: ATIVAS / vagas. Conta em lote para não dar N+1.
+    const ativasPorTurma = await this.prisma.matricula.groupBy({
+      by: ["turmaId"],
+      where: {
+        unidadeId: profissional.unidadeId,
+        status: StatusMatricula.ATIVA,
+        turmaId: { in: turmas.map((t) => t.id) },
+      },
+      _count: { _all: true },
+    });
+    const ativasMap = new Map(ativasPorTurma.map((g) => [g.turmaId, g._count._all]));
+
+    const items = turmas.map((t) => {
+      const alunosAtivos = ativasMap.get(t.id) ?? 0;
+      return {
+        ...t,
+        alunosAtivos,
+        ocupacaoPct:
+          t.vagasTotais > 0 ? Math.round((alunosAtivos / t.vagasTotais) * 100) : null,
+      };
+    });
+
+    return { items, total: items.length };
   }
 
   /** Cursos ativos da unidade (para o formulário de nova turma). */

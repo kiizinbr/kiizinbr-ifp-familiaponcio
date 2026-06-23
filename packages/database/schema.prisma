@@ -864,6 +864,7 @@ enum StatusPresenca {
   PRESENTE
   FALTA
   JUSTIFICADA
+  ATRASADO // chegou ao treino/aula com atraso — compareceu, mas conta como pendência de pontualidade
 }
 
 model Curso {

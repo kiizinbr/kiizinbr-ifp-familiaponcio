@@ -29,13 +29,19 @@ export function PainelInicioSocial() {
 
   return (
     <section className="mb-10">
-      <div className="mb-4 grid gap-4 sm:grid-cols-2">
+      <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <Kpi label="Famílias na fila" valor={kpis?.naFila ?? "—"} />
         <Kpi
           label="Prioritárias"
           valor={kpis?.prioritarias ?? "—"}
           tendencia={kpis && kpis.prioritarias > 0 ? "Atenção" : undefined}
           alerta={!!kpis && kpis.prioritarias > 0}
+        />
+        <Kpi
+          label="Maior espera"
+          valor={kpis ? (kpis.maiorEsperaDias === 0 ? "hoje" : `${kpis.maiorEsperaDias}d`) : "—"}
+          tendencia={kpis && kpis.maiorEsperaDias >= 7 ? "Acompanhar" : undefined}
+          alerta={!!kpis && kpis.maiorEsperaDias >= 7}
         />
       </div>
 

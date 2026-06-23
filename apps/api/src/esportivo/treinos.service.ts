@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { AcaoAuditoria, Perfil, StatusTurma, TipoUnidade } from "@ifp/database";
+import { AcaoAuditoria, Perfil, StatusPresenca, StatusTurma, TipoUnidade } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -15,6 +15,29 @@ import type { LancarChamadaTreinoDto } from "./dto/lancar-chamada-treino.dto";
 import { ProfissionaisService } from "../medico/profissionais.service";
 
 const MSG_TREINO_SELADO = "Treino encerrado — chamada é imutável após o selo.";
+
+/**
+ * Sumário da chamada de um treino (KPIs da tela de frequência).
+ * "compareceu" = PRESENTE + ATRASADO (ATRASADO entrou no tatame, só chegou tarde);
+ * pctPresenca cruza quem compareceu sobre o total lançado. ATRASADO é o 4º estado.
+ */
+function resumoDePresencas(presencas: { status: StatusPresenca }[]) {
+  const presentes = presencas.filter((p) => p.status === StatusPresenca.PRESENTE).length;
+  const faltas = presencas.filter((p) => p.status === StatusPresenca.FALTA).length;
+  const justificadas = presencas.filter((p) => p.status === StatusPresenca.JUSTIFICADA).length;
+  const atrasos = presencas.filter((p) => p.status === StatusPresenca.ATRASADO).length;
+  const total = presencas.length;
+  const compareceu = presentes + atrasos;
+  return {
+    total,
+    presentes,
+    faltas,
+    justificadas,
+    atrasos,
+    compareceu,
+    pctPresenca: total > 0 ? Math.round((compareceu / total) * 100) : null,
+  };
+}
 
 @Injectable()
 export class TreinosService {
@@ -30,7 +53,7 @@ export class TreinosService {
       include: { turma: true, presencas: true },
     });
     if (!treino) throw new NotFoundException("Treino não encontrado");
-    return treino;
+    return { ...treino, resumoPresenca: resumoDePresencas(treino.presencas) };
   }
 
   /** Chamada só faz sentido com a turma viva — bloqueia depois do encerramento. */
@@ -168,14 +191,16 @@ export class TreinosService {
       });
     });
 
+    const resumoPresenca = resumoDePresencas(encerrado.presencas);
     this.audit.registrar({
       userId: user.id,
       acao: AcaoAuditoria.UPDATE,
       entidade: "TreinoEsportivo",
       entidadeId: treinoId,
-      metadados: { acao: "encerramento" },
+      // Trilha do que ficou selado: composição da chamada no momento do selo.
+      metadados: { acao: "encerramento", ...resumoPresenca },
     });
 
-    return encerrado;
+    return { ...encerrado, resumoPresenca };
   }
 }
