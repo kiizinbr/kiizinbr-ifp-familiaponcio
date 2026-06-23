@@ -4,6 +4,7 @@ import { Throttle } from "@nestjs/throttler";
 
 import { AuthService } from "./auth.service";
 import { CurrentUser, type AuthenticatedUser } from "./current-user.decorator";
+import { EscolherUnidadeDto } from "./dto/escolher-unidade.dto";
 import { LoginDto } from "./dto/login.dto";
 import { TrocarSenhaDto } from "./dto/trocar-senha.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
@@ -32,6 +33,22 @@ export class AuthController {
   @ApiOperation({ summary: "Retorna os dados completos do usuário autenticado (Minha conta)" })
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.auth.me(user.id);
+  }
+
+  @Post("unidade-ativa")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Seletor de unidade pós-login: ativa uma das PRÓPRIAS unidades (404 se não for sua)",
+  })
+  @ApiBody({ type: EscolherUnidadeDto })
+  escolherUnidade(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: EscolherUnidadeDto,
+  ) {
+    return this.auth.escolherUnidade(user.id, dto.unidadeId);
   }
 
   @Post("trocar-senha")

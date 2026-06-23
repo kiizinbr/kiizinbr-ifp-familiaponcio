@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { useAuthFetch } from "./use-auth-fetch";
@@ -57,6 +57,31 @@ export function useMinhaConta() {
     queryKey: ["conta", "me"],
     queryFn: () => authFetch<MinhaConta>("/auth/me"),
     enabled: status === "authenticated",
+  });
+}
+
+/** Unidade devolvida pelo seletor pós-login (POST /auth/unidade-ativa). */
+export interface UnidadeAtiva {
+  id: string;
+  slug: string;
+  nome: string;
+  tipo: string;
+}
+
+/**
+ * Seletor de unidade pós-login. Valida no backend que a unidade é UMA DAS DO
+ * usuário (404 se não for) e devolve seus dados; o componente usa o `slug`
+ * para navegar ao salão correspondente, recarregando o contexto. Reusa o
+ * endpoint de auth — não cria sessão nova.
+ */
+export function useEscolherUnidade() {
+  const authFetch = useAuthFetch();
+  return useMutation({
+    mutationFn: (unidadeId: string) =>
+      authFetch<UnidadeAtiva>("/auth/unidade-ativa", {
+        method: "POST",
+        body: JSON.stringify({ unidadeId }),
+      }),
   });
 }
 

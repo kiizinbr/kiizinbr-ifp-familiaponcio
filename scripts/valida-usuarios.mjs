@@ -313,10 +313,81 @@ caso(
   !buscaGestoraFora.json?.resultados?.some((r) => r.tipo === "usuario" && r.id === adminId),
 );
 
+console.log("--- SELETOR DE UNIDADE PÓS-LOGIN (/auth/unidade-ativa) ---");
+// Cria um usuário com DUAS unidades (caso raro, mas suportado) e troca o
+// contexto ativo entre elas. RBAC: só troca para AS PRÓPRIAS unidades.
+const emailMulti = `qa.multi.${marca}@ifp.local`;
+const criaMulti = await req(admin, "POST", "/users", {
+  nome: "QA Multi Unidade",
+  email: emailMulti,
+  perfis: ["PROFISSIONAL"],
+  unidades: ["medico", "educacional"],
+});
+caso("admin cria usuário com 2 unidades", 201, criaMulti.status);
+const multiId = criaMulti.json?.user?.id;
+const multiProv = criaMulti.json?.senhaProvisoria;
+
+// Loga com a provisória, troca a senha (o gate provisório barra rotas além de
+// me/trocar-senha) e re-loga para obter um token pleno.
+const multiPrimeiro = await loginFull(emailMulti, multiProv);
+const multiSenha = "MultiUnidade#1";
+await req(multiPrimeiro.token, "POST", "/auth/trocar-senha", {
+  senhaAtual: multiProv,
+  novaSenha: multiSenha,
+});
+const multiLogin = await loginFull(emailMulti, multiSenha);
+caso("usuário multiunidade loga com a nova senha", 200, multiLogin.status);
+const multiToken = multiLogin.token;
+
+// Descobre os IDs das DUAS unidades pelo próprio /auth/me (procura pelos IDs,
+// não por contagem — robusto a acúmulo de dados entre execuções).
+const multiMe = await req(multiToken, "GET", "/auth/me");
+caso("multiunidade vê 2 unidades em /auth/me", 2, multiMe.json?.unidades?.length);
+const unidMedico = multiMe.json?.unidades?.find((u) => u.slug === "medico");
+const unidEduc = multiMe.json?.unidades?.find((u) => u.slug === "educacional");
+caso("auth/me traz a unidade médico do usuário", true, Boolean(unidMedico?.id));
+caso("auth/me traz a unidade educacional do usuário", true, Boolean(unidEduc?.id));
+
+// Troca para a 1ª unidade própria → 200 e devolve os dados dela.
+const trocaMedico = await req(multiToken, "POST", "/auth/unidade-ativa", {
+  unidadeId: unidMedico?.id,
+});
+caso("troca para a própria unidade (médico)", 200, trocaMedico.status);
+caso("resposta da troca traz o slug correto", "medico", trocaMedico.json?.slug);
+caso("resposta da troca traz o id escolhido", true, trocaMedico.json?.id === unidMedico?.id);
+
+// Troca para a 2ª unidade própria → 200.
+const trocaEduc = await req(multiToken, "POST", "/auth/unidade-ativa", {
+  unidadeId: unidEduc?.id,
+});
+caso("troca para a outra unidade própria (educacional)", 200, trocaEduc.status);
+caso("resposta da 2ª troca traz o slug correto", "educacional", trocaEduc.json?.slug);
+
+// Descobre uma unidade que o usuário NÃO tem (capacitacao) via outro usuário e
+// tenta trocar para ela → 404 anti-enumeração (RBAC: só as próprias).
+const instrutorMe = await req(await login("instrutor@ifp.local"), "GET", "/auth/me");
+const unidCap = instrutorMe.json?.unidades?.find((u) => u.slug === "capacitacao");
+caso("encontrei o id de uma unidade alheia (capacitacao)", true, Boolean(unidCap?.id));
+const trocaAlheia = await req(multiToken, "POST", "/auth/unidade-ativa", {
+  unidadeId: unidCap?.id,
+});
+caso("trocar para unidade que NÃO é sua (RBAC) → 404", 404, trocaAlheia.status);
+
+// Unidade inexistente → 404 (mesmo caminho anti-enum).
+const trocaInexistente = await req(multiToken, "POST", "/auth/unidade-ativa", {
+  unidadeId: "unidade-que-nao-existe",
+});
+caso("trocar para unidade inexistente → 404", 404, trocaInexistente.status);
+
+// Corpo inválido (sem unidadeId) → 400 (validação do DTO).
+const trocaSemCorpo = await req(multiToken, "POST", "/auth/unidade-ativa", {});
+caso("trocar sem unidadeId → 400 (validação)", 400, trocaSemCorpo.status);
+
 // limpeza best-effort: desativa os usuários de teste criados nesta execução
 await req(admin, "PATCH", `/users/${novoId}/ativo`, { ativo: false });
 if (gProfId) await req(admin, "PATCH", `/users/${gProfId}/ativo`, { ativo: false });
 if (gpId) await req(admin, "PATCH", `/users/${gpId}/ativo`, { ativo: false });
+if (multiId) await req(admin, "PATCH", `/users/${multiId}/ativo`, { ativo: false });
 
 const total = resultados.length;
 const ok = resultados.filter(Boolean).length;

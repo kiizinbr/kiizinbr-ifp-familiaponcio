@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -94,6 +95,40 @@ export class AuthService {
         nome: u.unidade.nome,
         tipo: u.unidade.tipo,
       })),
+    };
+  }
+
+  /**
+   * Seletor de unidade pós-login: o usuário com acesso a mais de uma unidade
+   * escolhe qual ativar. NÃO há "unidade ativa" persistida no servidor — o
+   * contexto ativo é a rota/módulo em que o usuário navega; aqui apenas
+   * VALIDAMOS que a unidade é uma das do próprio usuário (RBAC: só troca entre
+   * as PRÓPRIAS unidades) e devolvemos os dados dela para o front recarregar o
+   * contexto. Unidade fora do escopo (ou inexistente) → 404 anti-enumeração,
+   * padrão do repo. SUPER_ADMIN não tem lotação, então a regra vale igual: só
+   * troca para unidades vinculadas a ele.
+   */
+  async escolherUnidade(userId: string, unidadeId: string) {
+    const user = await this.users.findByIdWithPerfis(userId);
+    const vinculo = user.unidades.find((u) => u.unidade.id === unidadeId);
+    if (!vinculo) {
+      throw new NotFoundException("Unidade não encontrada");
+    }
+
+    // Auditoria LGPD: registra a troca de contexto (sem expor dado sensível).
+    this.audit.registrar({
+      userId,
+      acao: AcaoAuditoria.READ,
+      entidade: "Unidade",
+      entidadeId: unidadeId,
+      metadados: { evento: "escolher-unidade-ativa", slug: vinculo.unidade.slug },
+    });
+
+    return {
+      id: vinculo.unidade.id,
+      slug: vinculo.unidade.slug,
+      nome: vinculo.unidade.nome,
+      tipo: vinculo.unidade.tipo,
     };
   }
 

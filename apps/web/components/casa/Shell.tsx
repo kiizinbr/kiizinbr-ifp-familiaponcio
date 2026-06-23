@@ -14,6 +14,7 @@ import { Brandmark } from "./Brandmark";
 import { BuscaGlobal } from "./BuscaGlobal";
 import { CrestAvatar } from "./CrestAvatar";
 import { Rail } from "./Rail";
+import { SeletorUnidade } from "./SeletorUnidade";
 import { NOME_UNIDADE, type ModuloCasa } from "./nav";
 
 function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: string; cargo: string; iniciais: string }) {
@@ -32,6 +33,7 @@ function Topbar({ modulo, user, cargo, iniciais }: { modulo: ModuloCasa; user: s
       </div>
       <BuscaGlobal />
       <div className="ml-auto flex items-center gap-3.5">
+        <SeletorUnidade slugAtivo={modulo} />
         <span
           title="Notificações — em breve"
           className="flex h-[38px] w-[38px] cursor-default items-center justify-center rounded-xl border border-border bg-surface text-muted-foreground opacity-60"

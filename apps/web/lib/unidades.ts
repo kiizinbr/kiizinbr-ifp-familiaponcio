@@ -78,3 +78,12 @@ export function unidadePorSlug(slug: string | null): UnidadeAcesso | undefined {
   if (!slug) return undefined;
   return UNIDADES_ACESSO.find((u) => u.slug === slug);
 }
+
+/**
+ * Rota de destino do salão a partir do slug da unidade (usada pelo seletor
+ * pós-login). Default seguro: a tela de "Minha conta", que qualquer perfil
+ * acessa, caso o slug não tenha um destino mapeado.
+ */
+export function destinoPorSlug(slug: string): string {
+  return unidadePorSlug(slug)?.destino ?? "/conta";
+}
