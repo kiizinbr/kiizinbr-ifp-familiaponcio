@@ -115,6 +115,7 @@ model User {
   fichaCidadaId    String?           @unique
   profissional     Profissional?
   mensagensFamilia MensagemFamilia[]
+  relatoriosPDF    RelatorioPDF[]
 
   @@map("usuarios")
 }
@@ -1588,4 +1589,42 @@ model DenteEstado {
   @@unique([odontogramaId, numeroFdi])
   @@index([odontogramaId])
   @@map("dente_estados")
+}
+
+// ============================================================
+// Presidência — Relatórios institucionais selados (PDF)
+// ============================================================
+// Registro/manifesto de cada relatório institucional gerado pela Presidência.
+// O PDF em si NÃO é guardado no banco (é regerado a partir dos números reais e
+// dos metadados do registro); aqui ficam só os METADADOS: tipo, período, quem
+// gerou, quando, e um código/hash verificável que sela aquele documento.
+enum TipoRelatorio {
+  PRESTACAO_CONTAS // números reais do período (famílias, atendimentos, base)
+  IMPACTO          // visão de impacto institucional (acumulado + diferencial)
+}
+
+model RelatorioPDF {
+  id String @id @default(cuid())
+
+  tipo    TipoRelatorio
+  // Período-base do relatório (mesmas chaves da prestação de contas).
+  periodo String // "mes" | "ano" | "12m"
+  titulo  String
+
+  // Quem solicitou a geração (Presidência / Super Admin). SetNull para não
+  // perder o histórico do relatório se o usuário for removido.
+  geradoPorId   String?
+  geradoPorNome String // nome capturado no momento (sobrevive à remoção do user)
+  geradoEm      DateTime @default(now())
+
+  // Selo verificável: código curto legível + hash determinístico do conteúdo
+  // (tipo + período + número de fechamento). Permite conferir a autenticidade.
+  codigo String @unique
+  hash   String
+
+  geradoPor User? @relation(fields: [geradoPorId], references: [id], onDelete: SetNull)
+
+  @@index([tipo])
+  @@index([geradoEm])
+  @@map("relatorios_pdf")
 }

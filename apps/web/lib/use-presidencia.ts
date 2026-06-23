@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { useAuthFetch } from "./use-auth-fetch";
@@ -128,6 +128,65 @@ export function usePrestacaoContas(periodo: PeriodoChave) {
     placeholderData: (prev) => prev,
   });
 }
+
+// ============================================================
+// Relatórios institucionais selados (model RelatorioPDF)
+// ============================================================
+
+export type TipoRelatorio = "PRESTACAO_CONTAS" | "IMPACTO";
+
+export interface RelatorioItem {
+  id: string;
+  tipo: TipoRelatorio;
+  tipoLabel: string;
+  periodo: PeriodoChave;
+  titulo: string;
+  geradoPorNome: string;
+  geradoEm: string;
+  codigo: string;
+}
+
+export interface ListaRelatorios {
+  total: number;
+  itens: RelatorioItem[];
+}
+
+export function useRelatorios() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["presidencia", "relatorios"],
+    queryFn: () => authFetch<ListaRelatorios>("/presidencia/relatorios"),
+    enabled: status === "authenticated",
+  });
+}
+
+/** Gera um novo relatório selado e invalida a lista para refletir na hora. */
+export function useGerarRelatorio() {
+  const authFetch = useAuthFetch();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { tipo: TipoRelatorio; periodo: PeriodoChave }) =>
+      authFetch<RelatorioItem>("/presidencia/relatorios", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["presidencia", "relatorios"] });
+    },
+  });
+}
+
+export const TIPO_RELATORIO_LABEL: Record<TipoRelatorio, string> = {
+  PRESTACAO_CONTAS: "Prestação de Contas",
+  IMPACTO: "Relatório de Impacto",
+};
+
+export const PERIODO_RELATORIO_LABEL: Record<PeriodoChave, string> = {
+  mes: "Este mês",
+  ano: "Este ano",
+  "12m": "Últimos 12 meses",
+};
 
 // ============================================================
 // Rótulos e cores das unidades (paleta oficial dos tokens CASA)
