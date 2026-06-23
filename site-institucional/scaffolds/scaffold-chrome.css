@@ -1,0 +1,30 @@
+/* Chrome só dos scaffolds (não faz parte do kit que vai pro Next.js).
+   Botão flutuante "voltar ao kit" + helpers. Remova ao forkar. */
+.kit-back {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 400;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-full);
+  padding: 8px 14px 8px 11px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-decoration: none;
+  box-shadow: var(--shadow-pop);
+  transition: border-color var(--t-base), color var(--t-base);
+}
+.kit-back:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.kit-back svg {
+  width: 14px;
+  height: 14px;
+}

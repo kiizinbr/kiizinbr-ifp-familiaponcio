@@ -1,0 +1,439 @@
+<!doctype html>
+<!--
+  INSTITUTO FAMÍLIA PÔNCIO — Site institucional (one-page público)
+  Porta de entrada do sistema multi-tenant. Mascotes-leões temáticos por unidade.
+  Tom: energético, vibrante, humano · fé com lugar de honra · sem apelo a doação.
+  Conteúdo real do brief; placeholders marcados "a confirmar".
+-->
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instituto Família Pôncio — Mudar realidades com abrigo, saúde, educação e amor</title>
+    <meta
+      name="description"
+      content="Organização filantrópica em Duque de Caxias/RJ. Cuidamos de famílias e crianças em quatro frentes: saúde, capacitação, esporte e recreação."
+    />
+    <link rel="stylesheet" href="ifp-tokens.css" />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body class="locked">
+    <!-- ============ SPLASH LOADER ============ -->
+    <div class="splash" id="splash">
+      <div class="splash-inner">
+        <div class="splash-medal">
+          <span class="ring"></span>
+          <span class="disc"><img class="lion" src="loaders/lion-white.png" alt="" /></span>
+        </div>
+        <div class="splash-word">
+          <b>Instituto Família Pôncio</b>
+          <span>Duque de Caxias · RJ</span>
+        </div>
+        <div class="splash-bar"><i></i></div>
+      </div>
+    </div>
+
+    <!-- ============ NAV ============ -->
+    <header class="nav" id="nav">
+      <div class="wrap">
+        <a class="brand-lock" href="#topo">
+          <span class="sym"><img src="loaders/lion-white.png" alt="IFP" /></span>
+          <span class="txt">
+            <b class="brand-grad">Instituto Família Pôncio</b>
+            <span>Duque de Caxias · RJ</span>
+          </span>
+        </a>
+        <nav class="links">
+          <a href="#unidades">Unidades</a>
+          <a href="#quem-somos">Quem somos</a>
+          <a href="#impacto">Impacto</a>
+          <a href="#participe">Participe</a>
+          <a href="#contato">Contato</a>
+        </nav>
+        <button class="nav-cta" id="accessBtn" aria-haspopup="true" aria-expanded="false">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+          Acesso ao Sistema
+          <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ ACESSO AO SISTEMA (dropdown) ============ -->
+    <div class="access-scrim" id="accessScrim"></div>
+    <div class="access-menu" id="accessMenu" role="menu" aria-label="Acesso ao sistema">
+      <div class="grp">Unidades de atendimento</div>
+      <a class="access-item" data-go="/acesso" data-unit="medico" data-phrase="Preparando o atendimento…" style="--u1: #007571; --u2: #10c2bb">
+        <span class="medal"><img src="loaders/lion-white.png" alt="" /></span>
+        <span class="ai-txt"><b>Centro Médico</b><span>Saúde e odontológico</span></span>
+        <svg class="go" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <a class="access-item" data-go="/acesso" data-unit="capacitacao" data-phrase="Carregando sua turma…" style="--u1: #ff772e; --u2: #c24d0f">
+        <span class="medal"><img src="loaders/lion-white.png" alt="" /></span>
+        <span class="ai-txt"><b>Centro de Capacitação</b><span>Cursos e profissionalização</span></span>
+        <svg class="go" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <a class="access-item" data-go="/acesso" data-unit="esportivo" data-phrase="Aquecendo…" style="--u1: #c24d0f; --u2: #752c05">
+        <span class="medal"><img src="loaders/lion-white.png" alt="" /></span>
+        <span class="ai-txt"><b>Centro Esportivo</b><span>Esporte, disciplina e Jiu-Jitsu</span></span>
+        <svg class="go" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <a class="access-item" data-go="/acesso" data-unit="recreativo" data-phrase="Chegando pra brincar…" style="--u1: #10c2bb; --u2: #007571">
+        <span class="medal"><img src="loaders/lion-white.png" alt="" /></span>
+        <span class="ai-txt"><b>Centro Recreativo</b><span>Recreação e cuidado infantil</span></span>
+        <svg class="go" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+
+      <div class="access-divider"></div>
+      <div class="grp">Equipe interna</div>
+      <a class="access-item" data-go="/acesso" data-unit="social" data-phrase="Organizando as fichas…" style="--u1: #4a4a49; --u2: #6b6b6b">
+        <span class="medal"><img src="loaders/lion-white.png" alt="" /></span>
+        <span class="ai-txt"><b>Serviço Social</b><span>Apoio interno e triagem</span></span>
+        <svg class="go" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <a class="access-item" data-go="/acesso" data-unit="poncio" data-phrase="Reunindo os números…" style="--u1: #752c05; --u2: #4a4a49">
+        <span class="medal"><img src="loaders/lion-white.png" alt="" /></span>
+        <span class="ai-txt"><b>Acesso Executivo</b><span>Diretoria · visão geral</span></span>
+        <svg class="go" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <div class="access-foot">Cada unidade tem seu próprio acesso. A equipe interna entra pelos canais de apoio e diretoria.</div>
+    </div>
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="topo">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="hero-slide on" data-unit="medico" style="background-image: url('fotos/aerea-centro-medico.jpg')"></div>
+        <div class="hero-slide" data-unit="capacitacao" style="background-image: url('fotos/aerea-capacitacao.jpg')"></div>
+        <div class="hero-slide" data-unit="esportivo" style="background-image: url('https://static.wixstatic.com/media/fb51a3_825d4d74bde84711a87fa15409c2dbe6~mv2.jpg/v1/fill/w_1600,h_1040,al_c,q_85,enc_avif,quality_auto/he-esp.jpg')"></div>
+        <div class="hero-slide" data-unit="recreativo" style="background-image: url('https://static.wixstatic.com/media/fb51a3_32fba3b6b23949b0b7208b8167f27635~mv2.jpg/v1/fill/w_1600,h_1040,al_c,q_85,enc_avif,quality_auto/he-rec.jpg')"></div>
+      </div>
+      <div class="hero-hue" id="heroHue" aria-hidden="true"></div>
+      <div class="hero-tint" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="hero-copy">
+          <span class="eyebrow reveal">Organização filantrópica · desde 2018</span>
+          <h1 class="reveal d1">Mudar realidades com <span class="hl-saude">saúde</span>, <span class="hl-edu">educação</span> e <span class="hl-amor">amor</span>.</h1>
+          <p class="hero-sub reveal d2">
+            Cuidamos de famílias e crianças de Duque de Caxias em quatro frentes — saúde, capacitação,
+            esporte e recreação. Acolhimento que transforma, com a fé em lugar de honra.
+          </p>
+          <div class="hero-cta reveal d3">
+            <a href="#unidades" class="btn-lg btn-solid">
+              Conheça nossas unidades
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
+            <a href="#contato" class="btn-lg btn-outline">Fale com a gente</a>
+          </div>
+          <div class="hero-now reveal d3">
+            <span class="hn-dots"><i data-i="0" class="on"></i><i data-i="1"></i><i data-i="2"></i><i data-i="3"></i></span>
+            <span class="hn-label">Em destaque: <b id="hnLabel">Centro Médico</b></span>
+          </div>
+        </div>
+
+        <div class="hero-emblem">
+          <div class="emblem-core">
+            <span class="halo"></span>
+            <span class="ring"></span>
+            <span class="ring dashed"></span>
+            <span class="disc"><img src="loaders/lion-white.png" alt="Leão · símbolo do Instituto Família Pôncio" /></span>
+          </div>
+          <div class="orbit-medal m1 active" data-unit="medico" style="--u1: #007571; --u2: #10c2bb"><span class="om-disc"><img src="loaders/lion-white.png" alt="" /></span></div>
+          <div class="orbit-medal m2 dim" data-unit="capacitacao" style="--u1: #ff772e; --u2: #c24d0f"><span class="om-disc"><img src="loaders/lion-white.png" alt="" /></span></div>
+          <div class="orbit-medal m3 dim" data-unit="esportivo" style="--u1: #c24d0f; --u2: #752c05"><span class="om-disc"><img src="loaders/lion-white.png" alt="" /></span></div>
+          <div class="orbit-medal m4 dim" data-unit="recreativo" style="--u1: #10c2bb; --u2: #1a9d6b"><span class="om-disc"><img src="loaders/lion-white.png" alt="" /></span></div>
+        </div>
+      </div>
+      <div class="hero-scroll"><span>Role</span><span class="mouse"></span></div>
+    </section>
+
+    <!-- ============ UNIDADES ============ -->
+    <section class="section units" id="unidades">
+      <div class="wrap">
+        <div class="units-head">
+          <span class="eyebrow reveal">Quatro frentes de cuidado</span>
+          <h2 class="sec-title reveal d1">Nossas unidades</h2>
+          <p class="sec-lead reveal d2">
+            Cada unidade é uma frente de atendimento ao público — e tem o leão vestindo a sua causa.
+            Conheça o cuidado que oferecemos em cada uma.
+          </p>
+        </div>
+
+        <div class="units-grid">
+          <!-- Médico -->
+          <article class="unit-card reveal" style="--u1: #007571; --u2: #10c2bb">
+            <span class="uc-photo"><span class="uc-tag">Saúde</span><img src="https://static.wixstatic.com/media/fb51a3_4e5eaeaab2f84088b57c1258cd289010~mv2.jpg/v1/fill/w_880,h_560,al_c,q_85,enc_avif,quality_auto/medico.jpg" alt="Atendimento odontológico no Centro Médico" loading="lazy" /></span>
+            <span class="uc-body">
+              <span class="unit-medal">
+                <span class="ring"></span>
+                <span class="disc"><img src="loaders/lion-white.png" alt="" /></span>
+                <span class="prop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v6a4 4 0 0 0 8 0V3" /><path d="M9 13v3a5 5 0 0 0 10 0v-2" /><circle cx="19" cy="11" r="2.4" /></svg></span>
+              </span>
+              <h3>Centro Médico</h3>
+              <p>Atendimento de saúde e odontológico para a comunidade, com acolhimento e dignidade.</p>
+              <span class="feats"><span class="feat">Clínica</span><span class="feat">Odontologia</span><span class="feat">Triagem</span></span>
+            </span>
+          </article>
+
+          <!-- Capacitação -->
+          <article class="unit-card reveal d1" style="--u1: #ff772e; --u2: #c24d0f">
+            <span class="uc-photo"><span class="uc-tag">Educação</span><img src="https://static.wixstatic.com/media/fb51a3_14fdccc7a24e4936b0ced5530bb5394a~mv2.jpg/v1/fill/w_880,h_560,al_c,q_85,enc_avif,quality_auto/capacitacao.jpg" alt="Curso de barbearia no Centro de Capacitação" loading="lazy" /></span>
+            <span class="uc-body">
+              <span class="unit-medal">
+                <span class="ring"></span>
+                <span class="disc"><img src="loaders/lion-white.png" alt="" /></span>
+                <span class="prop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2.5 9 2.5 12 0v-5" /></svg></span>
+              </span>
+              <h3>Centro de Capacitação</h3>
+              <p>Cursos e capacitação profissional que abrem portas e geram autonomia para o futuro.</p>
+              <span class="feats"><span class="feat">Cursos</span><span class="feat">Profissionalizante</span><span class="feat">Certificação</span></span>
+            </span>
+          </article>
+
+          <!-- Esportivo -->
+          <article class="unit-card reveal" style="--u1: #c24d0f; --u2: #752c05">
+            <span class="uc-photo"><span class="uc-tag">Esporte &amp; disciplina</span><img src="https://static.wixstatic.com/media/fb51a3_825d4d74bde84711a87fa15409c2dbe6~mv2.jpg/v1/fill/w_880,h_560,al_c,q_85,enc_avif,quality_auto/esportivo.jpg" alt="Aula de Jiu-Jitsu no Centro Esportivo" loading="lazy" /></span>
+            <span class="uc-body">
+              <span class="unit-medal">
+                <span class="ring"></span>
+                <span class="disc"><img src="loaders/lion-white.png" alt="" /></span>
+                <span class="prop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6" /><path d="m8.5 13-2 9 5.5-3 5.5 3-2-9" /></svg></span>
+              </span>
+              <h3>Centro Esportivo</h3>
+              <p>Esporte e disciplina que formam caráter — incluindo turmas de Jiu-Jitsu para crianças e jovens.</p>
+              <span class="feats"><span class="feat">Jiu-Jitsu</span><span class="feat">Disciplina</span><span class="feat">Turmas</span></span>
+            </span>
+          </article>
+
+          <!-- Recreativo -->
+          <article class="unit-card reveal d1" style="--u1: #10c2bb; --u2: #1a9d6b">
+            <span class="uc-photo"><span class="uc-tag">Cuidado infantil</span><img src="https://static.wixstatic.com/media/fb51a3_32fba3b6b23949b0b7208b8167f27635~mv2.jpg/v1/fill/w_880,h_560,al_c,q_85,enc_avif,quality_auto/recreativo.jpg" alt="Crianças do Centro Recreativo" loading="lazy" /></span>
+            <span class="uc-body">
+              <span class="unit-medal">
+                <span class="ring"></span>
+                <span class="disc"><img src="loaders/lion-white.png" alt="" /></span>
+                <span class="prop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9 10h.01M15 10h.01M8.5 14.5a4 4 0 0 0 7 0" /></svg></span>
+              </span>
+              <h3>Centro Recreativo</h3>
+              <p>Recreação e cuidado infantil em um espaço seguro, alegre e cheio de afeto.</p>
+              <span class="feats"><span class="feat">Recreação</span><span class="feat">Espaço seguro</span><span class="feat">Crianças</span></span>
+            </span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BANNER AÉREO (drone) ============ -->
+    <section class="aerial" id="nossa-casa">
+      <image-slot id="aerial-drone" fit="cover" src="fotos/aerea-centro-medico.jpg" placeholder="Arraste aqui a foto aérea (drone)"></image-slot>
+      <div class="scrim"></div>
+      <div class="wrap">
+        <span class="eyebrow reveal">Duque de Caxias · RJ</span>
+        <h2 class="reveal d1">Nossa casa é no coração da comunidade.</h2>
+        <p class="reveal d2">Estamos onde o cuidado mais importa — de portas abertas para as famílias do nosso bairro, todos os dias.</p>
+        <span class="hint reveal d3"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></svg> Centro Médico · Instituto Família Pôncio</span>
+      </div>
+    </section>
+
+    <!-- ============ QUEM SOMOS ============ -->
+    <section class="section about" id="quem-somos">
+      <div class="wrap">
+        <span class="eyebrow reveal">Quem somos</span>
+        <h2 class="sec-title reveal d1" style="margin-top: 14px">Uma família que cuida de famílias.</h2>
+        <p class="sec-lead reveal d2" style="margin-top: 16px">
+          Nascemos de uma experiência espiritual e do desejo de cuidar da comunidade, com atenção
+          especial às crianças. De base cristã, caminhamos lado a lado com a transformação social.
+        </p>
+
+        <div class="about-photo reveal">
+          <img src="https://static.wixstatic.com/media/fb51a3_04c74674e98f42c7a194c2851f12aa62~mv2.jpg/v1/fill/w_1400,h_600,al_c,q_85,enc_avif,quality_auto/equipe.jpg" alt="Equipe do Instituto Família Pôncio" loading="lazy" />
+          <figcaption class="cap">Nossa equipe — quem faz o cuidado acontecer</figcaption>
+        </div>
+
+        <div class="about-grid">
+          <div class="mvv m1 reveal">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11z" /></svg></span>
+            <h3>Missão</h3>
+            <p>Mudar realidades através de abrigo, amor, saúde, educação e capacitação profissional.</p>
+          </div>
+          <div class="mvv m2 reveal d1">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg></span>
+            <h3>Visão</h3>
+            <p>Ser referência em todas as esferas de atendimento ao próximo.</p>
+          </div>
+          <div class="mvv m3 reveal d2">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4z" /><path d="m9 12 2 2 4-4" /></svg></span>
+            <h3>Valores</h3>
+            <p>Familiares e direcionados pelos princípios da palavra de Deus.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MOMENTOS ============ -->
+    <section class="section moments" id="momentos">
+      <div class="wrap">
+        <span class="eyebrow reveal">Momentos</span>
+        <h2 class="sec-title reveal d1" style="margin-top: 14px">O dia a dia do cuidado</h2>
+        <p class="sec-lead reveal d2" style="margin-top: 16px">Saúde, educação, esporte e recreação — pessoas reais, histórias reais, todos os dias em Duque de Caxias.</p>
+        <div class="gallery-grid reveal">
+          <figure class="gphoto tall"><img src="https://static.wixstatic.com/media/fb51a3_ecc8af3a4ec54bc794ba0ea383612d72~mv2.jpg/v1/fill/w_640,h_800,al_c,q_85,enc_avif,quality_auto/g1.jpg" alt="Jiu-Jitsu no Centro Esportivo" loading="lazy" /><figcaption class="cap"><span class="u">Centro Esportivo</span>Jiu-Jitsu que forma caráter</figcaption></figure>
+          <figure class="gphoto wide"><img src="fotos/aerea-capacitacao.jpg" alt="Vista aérea do Centro de Capacitação" loading="lazy" /><figcaption class="cap"><span class="u">Centro de Capacitação</span>Nossa sede, vista de cima</figcaption></figure>
+          <figure class="gphoto"><img src="https://static.wixstatic.com/media/fb51a3_8a99f7065c5e40689890a4c64fad4177~mv2.jpg/v1/fill/w_600,h_500,al_c,q_85,enc_avif,quality_auto/g3.jpg" alt="Pintura no Centro Recreativo" loading="lazy" /><figcaption class="cap"><span class="u">Centro Recreativo</span>Arte e afeto</figcaption></figure>
+          <figure class="gphoto"><img src="https://static.wixstatic.com/media/fb51a3_f8e6cda03d17449a9ff2ea5f62fe9361~mv2.jpg/v1/fill/w_600,h_500,al_c,q_85,enc_avif,quality_auto/g4.jpg" alt="Curso de design de sobrancelha" loading="lazy" /><figcaption class="cap"><span class="u">Centro de Capacitação</span>Design de sobrancelha</figcaption></figure>
+          <figure class="gphoto"><img src="https://static.wixstatic.com/media/fb51a3_1115adae750b412085bb23120cc6a4d2~mv2.jpg/v1/fill/w_600,h_500,al_c,q_85,enc_avif,quality_auto/g5.jpg" alt="Educação infantil no Centro Recreativo" loading="lazy" /><figcaption class="cap"><span class="u">Centro Recreativo</span>Cuidar brincando</figcaption></figure>
+          <figure class="gphoto"><img src="https://static.wixstatic.com/media/fb51a3_5d9946aaf4d74c7899d907e132b99d46~mv2.jpg/v1/fill/w_600,h_500,al_c,q_85,enc_avif,quality_auto/g6.jpg" alt="Curso de cabeleireiro" loading="lazy" /><figcaption class="cap"><span class="u">Centro de Capacitação</span>Cabeleireiro profissional</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ IMPACTO ============ -->
+    <section class="section impact" id="impacto">
+      <div class="wrap">
+        <span class="eyebrow reveal">Nosso alcance</span>
+        <h2 class="sec-title reveal d1" style="margin-top: 14px">O cuidado em números</h2>
+        <div class="impact-grid">
+          <div class="stat reveal" style="--s1: #ff8a44; --s2: #c24d0f">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg></span>
+            <div class="num" data-count="4">0</div>
+            <div class="lbl">unidades de atendimento</div>
+          </div>
+          <div class="stat reveal d1" style="--s1: #10c2bb; --s2: #007571">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+            <div class="num" data-count="500" data-prefix="+">0</div>
+            <div class="lbl">famílias acolhidas</div>
+            <span class="tbc">a confirmar</span>
+          </div>
+          <div class="stat reveal d2" style="--s1: #f0a23b; --s2: #c24d0f">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></span>
+            <div class="num" data-count="8" data-prefix="+">0</div>
+            <div class="lbl">anos de história</div>
+            <span class="tbc">a confirmar</span>
+          </div>
+          <div class="stat reveal d3" style="--s1: #ff8a44; --s2: #e0590f">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11z" /></svg></span>
+            <div class="num">centenas</div>
+            <div class="lbl">de crianças atendidas</div>
+            <span class="tbc">a confirmar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAÇA PARTE ============ -->
+    <section class="section join" id="participe">
+      <div class="wrap">
+        <span class="eyebrow reveal">Faça parte</span>
+        <h2 class="sec-title reveal d1" style="margin-top: 14px">O Instituto é da nossa família — e da sua.</h2>
+        <p class="sec-lead reveal d2" style="margin-top: 16px">
+          Um projeto totalmente nosso, tocado pela própria Família Pôncio para a comunidade de Duque
+          de Caxias. Não dependemos de ninguém — caminhamos com fé, trabalho e gente boa do nosso lado.
+          Você também pode fazer parte: com tempo, talento e presença.
+        </p>
+        <div class="about-grid">
+          <div class="mvv m1 reveal">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11z" /></svg></span>
+            <h3>Seja voluntário</h3>
+            <p>Doe seu tempo e talento nas nossas unidades. Toda mão que ajuda transforma uma história.</p>
+          </div>
+          <div class="mvv m2 reveal d1">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /></svg></span>
+            <h3>Compartilhe</h3>
+            <p>Leve nossa história adiante nas redes e ajude mais famílias a encontrar o Instituto.</p>
+          </div>
+          <div class="mvv m3 reveal d2">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+            <h3>Indique uma família</h3>
+            <p>Conhece quem precisa de acolhimento? Conecte essa família ao cuidado do Instituto.</p>
+          </div>
+        </div>
+        <div class="join-cta reveal">
+          <h3>Quer caminhar com a gente?</h3>
+          <p>Fale com a Família Pôncio e descubra como você pode fazer parte desse cuidado, do jeitinho que combina com você.</p>
+          <div class="row">
+            <a href="#contato" class="btn-lg btn-solid">Fale com a gente</a>
+            <a href="https://instagram.com/institutofamiliaponcio" target="_blank" rel="noopener" class="btn-lg btn-outline">Siga no Instagram</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RODAPÉ / CONTATO ============ -->
+    <footer class="foot" id="contato">
+      <div class="wrap">
+        <div class="foot-top">
+          <div>
+            <a class="brand-lock" href="#topo">
+              <span class="sym"><img src="loaders/lion-white.png" alt="IFP" /></span>
+              <span class="txt">
+                <b>Família Pôncio</b>
+                <span>Instituto filantrópico</span>
+              </span>
+            </a>
+            <p class="foot-about">
+              Mudando realidades em Duque de Caxias através de abrigo, amor, saúde, educação e
+              capacitação profissional.
+            </p>
+            <div class="socials">
+              <a href="https://instagram.com/institutofamiliaponcio" target="_blank" rel="noopener" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
+              </a>
+              <a href="https://youtube.com/@institutofamiliaponcio" target="_blank" rel="noopener" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 8.5a3 3 0 0 0-2.1-2.1C18 6 12 6 12 6s-6 0-7.9.4A3 3 0 0 0 2 8.5 31 31 0 0 0 2 12a31 31 0 0 0 .1 3.5 3 3 0 0 0 2.1 2.1C6 18 12 18 12 18s6 0 7.9-.4a3 3 0 0 0 2.1-2.1A31 31 0 0 0 22 12a31 31 0 0 0 0-3.5z" /><path d="m10 15 5-3-5-3z" fill="currentColor" stroke="none" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h4>Contato</h4>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.5-1.1a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z" /></svg> Telefone / WhatsApp <span class="tbc">a confirmar</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg> E-mail <span class="tbc">a confirmar</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></svg> Endereço <span class="tbc">a confirmar</span></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Navegar</h4>
+            <ul>
+              <li><a href="#unidades">Nossas unidades</a></li>
+              <li><a href="#quem-somos">Quem somos</a></li>
+              <li><a href="#impacto">Impacto</a></li>
+              <li><a href="#participe">Faça parte</a></li>
+              <li><a href="#" data-open-access>Acesso ao Sistema</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-bottom">
+          <span>© 2026 Instituto Família Pôncio · Duque de Caxias / RJ</span>
+          <span>Feito com cuidado — @institutofamiliaponcio</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ============ PALAVRA DO DIA (popup de boas-vindas) ============ -->
+    <div class="daily-scrim" id="dailyScrim" aria-hidden="true">
+      <div class="daily-card" role="dialog" aria-modal="true" aria-labelledby="dailyKicker">
+        <button class="daily-close" id="dailyClose" aria-label="Fechar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        </button>
+        <div class="daily-medal"><span class="ring"></span><span class="disc"><img src="loaders/lion-white.png" alt="" /></span></div>
+        <div class="daily-kicker" id="dailyKicker">Palavra do Dia</div>
+        <div class="daily-date" id="dailyDate"></div>
+        <p class="daily-msg" id="dailyMsg"></p>
+        <cite class="daily-ref" id="dailyRef"></cite>
+        <button class="daily-amem btn-lg" id="dailyAmem">Amém · começar a visita</button>
+      </div>
+    </div>
+
+    <!-- ============ TRANSIÇÃO (leão loader) ============ -->
+    <div class="page-transition" id="pageTransition">
+      <div class="pt-inner">
+        <div class="pt-medal"><span class="ring"></span><img src="loaders/lion-white.png" alt="" /></div>
+        <div class="pt-phrase" id="ptPhrase">Carregando…</div>
+        <div class="pt-dots"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+
+    <script src="image-slot.js"></script>
+    <script src="site.js"></script>
+  </body>
+</html>

@@ -1,0 +1,287 @@
+/* ============================================================================
+   IFP CONNECT · Design Kit — TOKENS
+   Direção: "Ferramenta Clínica Premium" (não-Editorial).
+   Fonte da verdade para o projeto Next.js. Copie este arquivo e o
+   ifp-components.css para src/styles/ e importe em globals.css.
+
+   CAMADAS
+   1. Paleta canônica do brandbook (--ifp-*)  ........ NUNCA trocar (restrição de marca)
+   2. Sotaque de cor por unidade (--u-*)      ........ sinal funcional discreto
+   3. Camada semântica de tema (--bg/--surface/--text/--accent…) light + dark
+   4. Escalas (espaço, raio, sombra, tipo, motion)
+
+   Troca de tema:   <html data-theme="light">  |  data-theme="dark"
+   Sotaque unidade: <body data-unit="medico"> (medico|capacitacao|esportivo|
+                    recreativo|poncio|social) — define --unit p/ faixas e selos.
+   ============================================================================ */
+
+/* ---- Fontes (UI: Hanken Grotesk · Dados: IBM Plex Mono) -------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* === 1. PALETA CANÔNICA DO BRANDBOOK (apêndice A) ====================== */
+  --ifp-orange-500: #ff772e; /* ação primária, CTAs, estados ativos        */
+  --ifp-orange-700: #c24d0f; /* forte / hover                              */
+  --ifp-brown-900: #752c05; /* headlines, manchetes, mascote (leão)        */
+  --ifp-teal-500: #10c2bb; /* claro — success/info                        */
+  --ifp-teal-700: #007571; /* escuro — saúde/médico, success strong       */
+  --ifp-ink: #4a4a49; /* body text, cinza institucional               */
+  --ifp-muted: #6b6b6b; /* texto secundário                            */
+  --ifp-white: #ffffff;
+  --ifp-surface-50: #fafaf9; /* fundo de página                           */
+  --ifp-surface-100: #f4f4f2; /* fundo de card sutil                      */
+  --ifp-surface-200: #e5e4e1; /* bordas / divisores                       */
+  --ifp-danger: #ba1a1a; /* erro                                          */
+  --ifp-warning: #b45309; /* alerta                                        */
+
+  /* RGB triplets (paridade com globals.css → rgb(var(--x) / .12)) --------- */
+  --ifp-orange-500-rgb: 255 119 46;
+  --ifp-orange-700-rgb: 194 77 15;
+  --ifp-brown-900-rgb: 117 44 5;
+  --ifp-teal-500-rgb: 16 194 187;
+  --ifp-teal-700-rgb: 0 117 113;
+  --ifp-ink-rgb: 74 74 73;
+
+  /* === 2. SOTAQUE DE COR POR UNIDADE (login = cerimonial; app = discreto) = */
+  --u-medico: #007571; /* saúde / cuidado          */
+  --u-medico-2: #10c2bb;
+  --u-capacitacao: #ff772e; /* aprendizado / energia  */
+  --u-capacitacao-2: #c24d0f;
+  --u-esportivo: #c24d0f; /* movimento / fogo         */
+  --u-esportivo-2: #752c05;
+  --u-recreativo: #10c2bb; /* alegria / leveza        */
+  --u-recreativo-2: #007571;
+  --u-poncio: #752c05; /* sobriedade / autoridade    */
+  --u-poncio-2: #4a4a49;
+  --u-social: #4a4a49; /* transversal                */
+  --u-social-2: #6b6b6b;
+  --unit: var(--ifp-teal-700); /* default; sobrescrito por [data-unit] */
+  --unit-2: var(--ifp-teal-500);
+
+  /* === 4. ESCALAS ======================================================= */
+  /* Espaçamento — base 4px */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* Raio */
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* Tipografia */
+  --font-ui: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Motion */
+  --t-fast: 120ms ease-out;
+  --t-base: 200ms ease-out;
+  --t-slow: 320ms ease-out;
+}
+
+/* === 3. CAMADA SEMÂNTICA — TEMA CLARO ===================================== */
+:root,
+html[data-theme="light"] {
+  --bg: #e7eaea; /* canvas "meio termo": dimmed, cards brancos flutuam por cima */
+  --bg-grid: rgba(74, 74, 73, 0.04);
+  --surface: #ffffff;
+  --surface-2: #f6f8f8;
+  --surface-sunken: #edf0f0;
+  --line: #dfe3e3;
+  --line-strong: #ccd2d2;
+  --text: #1b1d1d;
+  --text-2: #4a4a49;
+  --text-3: #82888a;
+  --accent: var(--ifp-teal-700); /* acento de SISTEMA (saúde/ativo)     */
+  --accent-soft: rgba(0, 117, 113, 0.09);
+  --accent-line: rgba(0, 117, 113, 0.28);
+  --live: var(--ifp-orange-500); /* sinal vivo: agora / urgência         */
+  --live-soft: rgba(255, 119, 46, 0.12);
+  --warn: #b45309;
+  --warn-soft: rgba(180, 83, 9, 0.12);
+  --danger: #ba1a1a;
+  --danger-soft: rgba(186, 26, 26, 0.09);
+  --ok: var(--ifp-teal-700);
+  --ok-soft: rgba(0, 117, 113, 0.1);
+  --shadow: 0 1px 2px rgba(20, 22, 22, 0.04), 0 8px 24px rgba(20, 22, 22, 0.05);
+  --shadow-pop: 0 12px 40px rgba(20, 22, 22, 0.1);
+  --logo-bg: #fff;
+  --logo-ring: var(--line);
+  color-scheme: light;
+}
+
+/* === 3. CAMADA SEMÂNTICA — TEMA ESCURO ==================================== */
+html[data-theme="dark"] {
+  --bg: #0e1011;
+  --bg-grid: rgba(255, 255, 255, 0.025);
+  --surface: #16191a;
+  --surface-2: #1b1f20;
+  --surface-sunken: #101314;
+  --line: #262b2c;
+  --line-strong: #333a3b;
+  --text: #ecefef;
+  --text-2: #aab2b2;
+  --text-3: #6f7878;
+  --accent: var(--ifp-teal-500);
+  --accent-soft: rgba(16, 194, 187, 0.12);
+  --accent-line: rgba(16, 194, 187, 0.34);
+  --live: #ff8c4d;
+  --live-soft: rgba(255, 119, 46, 0.16);
+  --warn: #f0a850;
+  --warn-soft: rgba(240, 168, 80, 0.14);
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, 0.12);
+  --ok: var(--ifp-teal-500);
+  --ok-soft: rgba(16, 194, 187, 0.12);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45);
+  --shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --logo-bg: #f6f7f7;
+  --logo-ring: #2c3233;
+  color-scheme: dark;
+}
+
+/* === SOTAQUE DE UNIDADE (define --unit p/ faixas, selos, agenda) ========== */
+[data-unit="medico"] {
+  --unit: var(--u-medico);
+  --unit-2: var(--u-medico-2);
+}
+[data-unit="capacitacao"] {
+  --unit: var(--u-capacitacao);
+  --unit-2: var(--u-capacitacao-2);
+}
+[data-unit="esportivo"] {
+  --unit: var(--u-esportivo);
+  --unit-2: var(--u-esportivo-2);
+}
+[data-unit="recreativo"] {
+  --unit: var(--u-recreativo);
+  --unit-2: var(--u-recreativo-2);
+}
+[data-unit="poncio"] {
+  --unit: var(--u-poncio);
+  --unit-2: var(--u-poncio-2);
+}
+[data-unit="social"] {
+  --unit: var(--u-social);
+  --unit-2: var(--u-social-2);
+}
+
+/* === ACENTO SEGUE A UNIDADE ==============================================
+   Opt-in: em telas de uma unidade, ponha [data-unit-accent] junto de
+   [data-unit]. Isso remapeia o acento de SISTEMA (teal) para a cor da
+   unidade — botões primários, item de menu ativo, ícones de KPI, foco,
+   links e ticks passam a carregar a identidade da unidade.
+   Mantém "uma marca só": muda só o acento, não a tipografia/layout/fundo. */
+[data-unit-accent] {
+  --accent: var(--unit);
+  --accent-soft: color-mix(in srgb, var(--unit) 11%, transparent);
+  --accent-line: color-mix(in srgb, var(--unit) 32%, transparent);
+}
+
+/* ============================================================================
+   BASE / RESET
+   ============================================================================ */
+* {
+  box-sizing: border-box;
+}
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Tipografia: escala formal ------------------------------------------- */
+.t-display {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.t-h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.12;
+}
+.t-h2 {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.t-h3 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.t-body {
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+.t-small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+/* Microlabel: o "carimbo" de UI clínica — caixa-alta, mono, tracking largo */
+.micro {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ---- Utilitários de cor de texto ----------------------------------------- */
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.text-accent {
+  color: var(--accent);
+}
+.text-unit {
+  color: var(--unit);
+}
+
+/* ---- A11y: foco visível e redução de movimento --------------------------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+/* IFP brand font - Garet (self-hosted) */
+/* CDN cdnfonts.com so disponibiliza Book (300) e Heavy (850) */
+/* Mapeamos por range pra cobrir todos os font-weight CSS */
+@font-face {
+  font-family: "Garet";
+  font-style: normal;
+  font-weight: 100 500;
+  src: url("/fonts/garet/Garet-Book.woff") format("woff");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Garet";
+  font-style: normal;
+  font-weight: 600 900;
+  src: url("/fonts/garet/Garet-Heavy.woff") format("woff");
+  font-display: swap;
+}
+
+/* Tema editorial do /medico — fontes self-hosted (variable, subset latin = cobre pt-BR) */
+/* Fraunces = serifa display (números-manchete, títulos); Spline Sans = corpo */
+/* Só usadas dentro do wrapper .medico-editorial; resto do app segue Garet */
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 300 900;
+  src: url("/fonts/fraunces/Fraunces-latin-normal.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 300 900;
+  src: url("/fonts/fraunces/Fraunces-latin-italic.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Spline Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  src: url("/fonts/spline-sans/SplineSans-latin-normal.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  /* ---- Brandbook IFP 2026 — paleta canônica ---- */
+
+  /* Laranja institucional (accent principal) */
+  --ifp-orange-500: 255 119 46; /* #FF772E primary action */
+  --ifp-orange-700: 194 77 15; /* #C24D0F primary hover/strong */
+  --ifp-orange-900: 117 44 5; /* #752C05 text headlines, mascote */
+
+  /* Teal institucional (success/cuidado/info) */
+  --ifp-teal-500: 16 194 187; /* #10C2BB success state */
+  --ifp-teal-700: 0 117 113; /* #007571 success strong */
+
+  /* Neutros (brandbook + complementos) */
+  --ifp-ink: 74 74 73; /* #4A4A49 body text (cinza institucional) */
+  --ifp-canvas: 255 255 255; /* #FFFFFF surface branco */
+  --ifp-muted: 107 107 107; /* #6B6B6B secondary text */
+  --ifp-surface-50: 250 250 249; /* #FAFAF9 page bg */
+  --ifp-surface-100: 244 244 242; /* #F4F4F2 card bg sutil */
+  --ifp-surface-200: 229 228 225; /* #E5E4E1 borders/dividers */
+
+  /* Estados especiais (não-brandbook) */
+  --ifp-danger: 186 26 26; /* #BA1A1A erros */
+  --ifp-warning: 180 83 9; /* #B45309 alertas */
+
+  /* ---- Filtros temáticos por unidade (overlay do login) ---- */
+  /* Todos derivados do brandbook; mapeamento aprovado em 2026-05-28 */
+  --ifp-filter-medico: 0 117 113; /* #007571 teal escuro — saúde */
+  --ifp-filter-capacitacao: 255 119 46; /* #FF772E laranja vibrante — aprendizado */
+  --ifp-filter-esportivo: 194 77 15; /* #C24D0F laranja escuro — movimento */
+  --ifp-filter-recreativo: 16 194 187; /* #10C2BB teal claro — alegria */
+  --ifp-filter-poncio: 117 44 5; /* #752C05 marrom — sobriedade executiva */
+  --ifp-filter-social: 74 74 73; /* #4A4A49 cinza — transversal */
+
+  /* Opacidade do overlay temático sobre a foto */
+  --ifp-filter-opacity: 0.55;
+
+  /* ---- Spacing (escala 4px) ---- */
+  --ifp-space-1: 0.25rem;
+  --ifp-space-2: 0.5rem;
+  --ifp-space-3: 0.75rem;
+  --ifp-space-4: 1rem;
+  --ifp-space-6: 1.5rem;
+  --ifp-space-8: 2rem;
+  --ifp-space-12: 3rem;
+  --ifp-space-16: 4rem;
+  --ifp-space-24: 6rem;
+
+  /* ---- Radius ---- */
+  --ifp-radius-sm: 6px;
+  --ifp-radius-md: 10px;
+  --ifp-radius-lg: 16px;
+  --ifp-radius-xl: 24px;
+  --ifp-radius-full: 999px;
+
+  /* ---- Shadows ---- */
+  --ifp-shadow-sm: 0 1px 2px rgb(74 74 73 / 0.04);
+  --ifp-shadow-md: 0 4px 12px rgb(74 74 73 / 0.06);
+  --ifp-shadow-lg: 0 8px 24px rgb(74 74 73 / 0.08);
+  --ifp-shadow-xl: 0 16px 48px rgb(74 74 73 / 0.12);
+
+  /* ---- Transitions ---- */
+  --ifp-transition-fast: 120ms ease-out;
+  --ifp-transition-base: 200ms ease-out;
+  --ifp-transition-slow: 320ms ease-out;
+
+  /* ---- Tema editorial do /medico ("Editorial temperada") ---- */
+  /* Ramp creme+tinta paralelo ao DS, escopado a .medico-editorial — NÃO vaza */
+  /* aprovado por Erick 2026-05-31; ver docs/.../2026-05-31-editorial-temperada-propagacao.md */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Spline Sans", "Garet", ui-sans-serif, system-ui, sans-serif;
+  --ifp-paper: 251 248 243; /* #FBF8F3 creme base */
+  --ifp-paper-2: 244 239 230; /* #F4EFE6 camada mais profunda */
+  --ifp-ink-warm: 30 24 19; /* #1E1813 tinta quase-preta quente */
+  --ifp-ink-soft: 90 80 72; /* #5A5048 tinta suave (legível, passa WCAG sobre paper) */
+  --ifp-hair: rgb(30 24 19 / 0.14); /* hairline editorial */
+  --ifp-hair-strong: rgb(30 24 19 / 0.3); /* hairline forte (bordas/badge outline) */
+}
+
+/* Card canônico: branco, borda fina cinza, sombra suave, levanta no hover */
+.ifp-card {
+  background: rgb(var(--ifp-canvas));
+  border: 1px solid rgb(var(--ifp-surface-200));
+  border-radius: var(--ifp-radius-lg);
+  box-shadow: var(--ifp-shadow-sm);
+  transition:
+    transform var(--ifp-transition-base),
+    box-shadow var(--ifp-transition-base);
+}
+.ifp-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ifp-shadow-md);
+}
+
+body {
+  font-family:
+    "Garet",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}

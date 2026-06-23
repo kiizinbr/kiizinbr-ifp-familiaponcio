@@ -1,0 +1,132 @@
+<!doctype html>
+<!-- IFP Connect · Login temático (split-screen, foto por unidade) -->
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar · IFP Connect</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <link rel="stylesheet" href="scaffold-chrome.css" />
+    <style>
+      body { margin: 0; }
+      .login-split { min-height: 100vh; display: grid; grid-template-columns: 1.08fr 0.92fr; font-family: var(--font-ui); }
+      .lv { position: relative; overflow: hidden; background: linear-gradient(135deg, var(--u1, #4a4a49), var(--u2, #6b6b6b)); transition: background 0.5s ease; }
+      .lv .ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.4s ease; }
+      .lv .ov { position: absolute; inset: 0; transition: background 0.5s ease;
+        background: linear-gradient(175deg, color-mix(in srgb, var(--u1, #333) 26%, rgba(18,12,6,.42)) 0%, rgba(18,12,6,.6) 55%, rgba(14,9,5,.88) 100%); }
+      .lv .content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 46px; color: #fff; box-sizing: border-box; }
+      .lv .brand { display: flex; align-items: center; gap: 12px; }
+      .lv .brand .sym { width: 46px; height: 46px; border-radius: 13px; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); display: grid; place-items: center; border: 1px solid rgba(255,255,255,.32); }
+      .lv .brand .sym img { width: 32px; height: 32px; object-fit: contain; }
+      .lv .brand b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; display: block; line-height: 1.1; }
+      .lv .brand small { font-size: 11px; opacity: 0.82; }
+      .lv .unit-chip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.32); padding: 6px 13px; border-radius: 999px; margin-bottom: 18px; }
+      .lv .unit-chip .d { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+      .lv .welcome h2 { font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.04; margin: 0 0 12px; }
+      .lv .welcome p { font-size: 15px; opacity: 0.92; line-height: 1.55; max-width: 38ch; margin: 0; }
+      .lf { display: grid; place-items: center; padding: 40px 24px; background: var(--bg); }
+      .lf .form { width: 100%; max-width: 384px; }
+      .lf .back { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-3); text-decoration: none; margin-bottom: 26px; }
+      .lf .back:hover { color: var(--text); }
+      .lf .h { font-size: 25px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+      .lf .sub { font-size: 13.5px; color: var(--text-3); margin: 6px 0 26px; }
+      .lbtn { width: 100%; color: #fff; border: 0; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 15px; padding: 14px; border-radius: 12px; margin-top: 8px; background: linear-gradient(135deg, var(--u1), var(--u2)); transition: transform 0.14s; }
+      .lbtn:hover { transform: translateY(-1px); }
+      .links { display: flex; justify-content: space-between; margin-top: 18px; font-size: 12.5px; }
+      .links a { color: var(--text-3); text-decoration: none; }
+      .links a:hover { color: var(--text); }
+      .switcher { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); }
+      .switcher .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+      .switcher .dots { display: flex; gap: 8px; flex-wrap: wrap; }
+      .switcher button { width: 30px; height: 30px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; transition: transform 0.14s, border-color 0.14s; }
+      .switcher button:hover { transform: scale(1.1); }
+      .switcher button.on { border-color: var(--text); }
+      @media (max-width: 860px) {
+        .login-split { grid-template-columns: 1fr; }
+        .lv { min-height: 200px; }
+        .lv .content { padding: 24px; }
+        .lv .welcome p { display: none; }
+        .lv .welcome h2 { font-size: 24px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-split">
+      <div class="lv" id="lv">
+        <img class="ph" id="lvPhoto" src="../fotos/aerea-centro-medico.jpg" alt="" />
+        <div class="ov"></div>
+        <div class="content">
+          <div class="brand">
+            <span class="sym"><img src="../loaders/lion-white.png" alt="IFP" /></span>
+            <span><b>IFP Connect</b><small>Instituto Família Pôncio</small></span>
+          </div>
+          <div class="welcome">
+            <span class="unit-chip"><span class="d"></span> <span id="chipName">Unidade</span></span>
+            <h2 id="welcomeH">Bem-vindo.</h2>
+            <p id="welcomeP">Acesse o sistema da sua unidade.</p>
+          </div>
+        </div>
+      </div>
+      <div class="lf">
+        <div class="form">
+          <a class="back" href="../Site Institucional.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6" /></svg> Voltar ao site</a>
+          <div class="h" id="formH">Entrar</div>
+          <div class="sub">Use seu acesso da equipe.</div>
+          <div class="field-group"><label class="label">E-mail</label><input class="input" type="email" id="email" value="" /></div>
+          <div class="field-group"><label class="label">Senha</label><input class="input" type="password" value="········" /></div>
+          <button class="lbtn">Entrar</button>
+          <div class="links"><a href="#">Esqueci a senha</a><a href="#" id="helpLink">Falar com a coordenação</a></div>
+          <div class="switcher">
+            <div class="lbl">Acessar outra unidade</div>
+            <div class="dots" id="picker"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="scaffold-chrome.js"></script>
+    <script>
+      var units = {
+        medico: { n: "Centro Médico", c1: "#007571", c2: "#10c2bb", ph: "../fotos/aerea-centro-medico.jpg", w: "Bem-vindo de volta.", s: "Cuide de quem precisa — com agilidade e dignidade.", email: "joao.silva@ifp.org", help: "Falar com a recepção" },
+        capacitacao: { n: "Centro de Capacitação", c1: "#ff772e", c2: "#c24d0f", ph: "../fotos/aerea-capacitacao.jpg", w: "Vamos abrir portas.", s: "Acompanhe turmas, vagas e certificações.", email: "luciana@ifp.org", help: "Falar com a coordenação" },
+        esportivo: { n: "Centro Esportivo", c1: "#c24d0f", c2: "#752c05", ph: "https://static.wixstatic.com/media/fb51a3_825d4d74bde84711a87fa15409c2dbe6~mv2.jpg/v1/fill/w_1100,h_1500,al_c,q_85,enc_avif,quality_auto/esp.jpg", w: "Bora pro treino.", s: "Gerencie turmas, presença e a evolução dos atletas.", email: "professor@ifp.org", help: "Falar com a coordenação" },
+        recreativo: { n: "Centro Recreativo", c1: "#10c2bb", c2: "#1a9d6b", ph: "https://static.wixstatic.com/media/fb51a3_32fba3b6b23949b0b7208b8167f27635~mv2.jpg/v1/fill/w_1100,h_1500,al_c,q_85,enc_avif,quality_auto/rec.jpg", w: "Hora de cuidar e brincar.", s: "Acompanhe as crianças e o dia a dia das turmas.", email: "tia.ana@ifp.org", help: "Falar com a coordenação" },
+        social: { n: "Serviço Social", c1: "#4a4a49", c2: "#6b6b6b", ph: "https://static.wixstatic.com/media/fb51a3_04c74674e98f42c7a194c2851f12aa62~mv2.jpg/v1/fill/w_1100,h_1500,al_c,q_85,enc_avif,quality_auto/soc.jpg", w: "O cuidado começa aqui.", s: "Triagens, acolhimento e acompanhamento das famílias.", email: "regina@ifp.org", help: "Falar com a equipe interna" },
+        poncio: { n: "Pôncio Executivo", c1: "#752c05", c2: "#4a4a49", ph: "../fotos/aerea-capacitacao.jpg", w: "Visão de tudo.", s: "Acompanhe o impacto do Instituto nas quatro unidades.", email: "diretoria@ifp.org", help: "Suporte da diretoria" }
+      };
+      var order = ["medico", "capacitacao", "esportivo", "recreativo", "social", "poncio"];
+
+      function apply(key) {
+        var u = units[key]; if (!u) return;
+        var lv = document.getElementById("lv");
+        lv.style.setProperty("--u1", u.c1);
+        lv.style.setProperty("--u2", u.c2);
+        var img = document.getElementById("lvPhoto");
+        img.src = u.ph;
+        img.alt = u.n;
+        document.getElementById("chipName").textContent = u.n;
+        document.getElementById("welcomeH").textContent = u.w;
+        document.getElementById("welcomeP").textContent = u.s;
+        document.getElementById("formH").textContent = "Entrar · " + u.n;
+        document.getElementById("email").value = u.email;
+        document.getElementById("helpLink").textContent = u.help;
+        document.querySelector(".lbtn").style.background = "linear-gradient(135deg," + u.c1 + "," + u.c2 + ")";
+        document.querySelector(".lbtn").style.boxShadow = "0 10px 26px " + u.c1 + "59";
+        document.querySelectorAll("#picker button").forEach(function (b) { b.classList.toggle("on", b.dataset.u === key); });
+        document.documentElement.setAttribute("data-unit", key);
+        if (history.replaceState) history.replaceState(null, "", "#" + key);
+      }
+
+      var picker = document.getElementById("picker");
+      picker.innerHTML = order.map(function (k) {
+        return "<button data-u='" + k + "' title='" + units[k].n + "' style='background:linear-gradient(135deg," + units[k].c1 + "," + units[k].c2 + ")'></button>";
+      }).join("");
+      picker.addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) apply(b.dataset.u); });
+
+      var initial = (location.hash || "").replace("#", "");
+      if (!units[initial]) initial = "esportivo";
+      apply(initial);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<!-- IFP Connect · Login — Centro de Capacitação (split-screen com foto da unidade) -->
+<html lang="pt-BR" data-theme="light" data-unit="capacitacao">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar · Centro de Capacitação</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <style>
+      body { margin: 0; }
+      .login-split { min-height: 100vh; display: grid; grid-template-columns: 1.08fr 0.92fr; font-family: var(--font-ui); }
+      .lv { position: relative; overflow: hidden; background: linear-gradient(135deg, #ff772e, #c24d0f); }
+      .lv .ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .lv .ov { position: absolute; inset: 0; background: linear-gradient(175deg, rgba(120,45,8,0.30) 0%, rgba(120,45,8,0.55) 55%, rgba(70,26,4,0.88) 100%); }
+      .lv .content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 46px; color: #fff; box-sizing: border-box; }
+      .lv .brand { display: flex; align-items: center; gap: 12px; }
+      .lv .brand .sym { width: 46px; height: 46px; border-radius: 13px; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); display: grid; place-items: center; border: 1px solid rgba(255,255,255,.32); }
+      .lv .brand .sym img { width: 32px; height: 32px; object-fit: contain; }
+      .lv .brand b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; display: block; line-height: 1.1; }
+      .lv .brand small { font-size: 11px; opacity: 0.82; }
+      .lv .unit-chip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.32); padding: 6px 13px; border-radius: 999px; margin-bottom: 18px; }
+      .lv .unit-chip .d { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+      .lv .welcome h2 { font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.04; margin: 0 0 12px; }
+      .lv .welcome p { font-size: 15px; opacity: 0.92; line-height: 1.55; max-width: 38ch; margin: 0; }
+      .lf { display: grid; place-items: center; padding: 40px 24px; background: var(--bg); }
+      .lf .form { width: 100%; max-width: 384px; }
+      .lf .back { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-3); text-decoration: none; margin-bottom: 26px; }
+      .lf .back:hover { color: var(--ifp-orange-700); }
+      .lf .h { font-size: 25px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+      .lf .sub { font-size: 13.5px; color: var(--text-3); margin: 6px 0 26px; }
+      .lbtn { width: 100%; color: #fff; border: 0; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 15px; padding: 14px; border-radius: 12px; margin-top: 8px; background: linear-gradient(135deg, #ff772e, #c24d0f); box-shadow: 0 10px 26px rgba(194,77,15,.34); transition: transform 0.14s, box-shadow 0.14s; }
+      .lbtn:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(194,77,15,.44); }
+      .links { display: flex; justify-content: space-between; margin-top: 18px; font-size: 12.5px; }
+      .links a { color: var(--text-3); text-decoration: none; }
+      .links a:hover { color: var(--ifp-orange-700); }
+      @media (max-width: 860px) {
+        .login-split { grid-template-columns: 1fr; }
+        .lv { min-height: 220px; }
+        .lv .content { padding: 24px; }
+        .lv .welcome p { display: none; }
+        .lv .welcome h2 { font-size: 26px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-split">
+      <div class="lv">
+        <img class="ph" src="../fotos/aerea-capacitacao.jpg" alt="Centro de Capacitação · Instituto Família Pôncio" />
+        <div class="ov"></div>
+        <div class="content">
+          <div class="brand">
+            <span class="sym"><img src="../loaders/lion-white.png" alt="IFP" /></span>
+            <span><b>IFP Connect</b><small>Instituto Família Pôncio</small></span>
+          </div>
+          <div class="welcome">
+            <span class="unit-chip"><span class="d"></span> Centro de Capacitação</span>
+            <h2>Vamos abrir portas.</h2>
+            <p>Acesse o sistema do Centro de Capacitação para acompanhar turmas, vagas e certificações.</p>
+          </div>
+        </div>
+      </div>
+      <div class="lf">
+        <div class="form">
+          <a class="back" href="../Site Institucional.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6" /></svg> Voltar ao site</a>
+          <div class="h">Entrar na Capacitação</div>
+          <div class="sub">Use seu acesso da equipe.</div>
+          <div class="field-group"><label class="label">E-mail</label><input class="input" type="email" value="luciana@ifp.org" /></div>
+          <div class="field-group"><label class="label">Senha</label><input class="input" type="password" value="········" /></div>
+          <button class="lbtn">Entrar</button>
+          <div class="links"><a href="#">Esqueci a senha</a><a href="#">Falar com a coordenação</a></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<!--
+  IFP CONNECT · SCAFFOLD — Evolução do atleta (Esportivo, ref. TeamSnap/Tecnofit)
+  CAMPO ABERTO: proposta visual nova. Radar de atributos 1–5 + presença.
+  A família vê uma versão simplificada (toggle "Visão da família").
+-->
+<html lang="pt-BR" data-theme="light" data-unit="esportivo">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Atleta · IFP Esportivo</title>
+    <link rel="stylesheet" href="../ifp-tokens.css" />
+    <link rel="stylesheet" href="../ifp-components.css" />
+    <link rel="stylesheet" href="scaffold-chrome.css" />
+    <style>
+      .wrap { max-width: 980px; margin: 0 auto; padding: 28px 24px 90px; }
+      .athlete-head {
+        display: flex; align-items: center; gap: 18px; padding: 22px;
+        background: linear-gradient(135deg, color-mix(in srgb, var(--unit) 12%, var(--surface)), var(--surface));
+        border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--shadow); margin-bottom: 18px;
+        position: relative; overflow: hidden;
+      }
+      .athlete-head::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--unit), var(--unit-2)); }
+      .athlete-head .av { width: 64px; height: 64px; border-radius: 18px; font-size: 22px; }
+      .athlete-head .nm { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+      .athlete-head .meta { font-size: 13px; color: var(--text-3); margin-top: 3px; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+      .radar-svg { width: 100%; max-width: 320px; display: block; margin: 4px auto; }
+      .attr-list { display: flex; flex-direction: column; gap: 9px; margin-top: 8px; }
+      .attr { display: grid; grid-template-columns: 96px 1fr 28px; align-items: center; gap: 10px; font-size: 13px; }
+      .attr .track { height: 8px; border-radius: 5px; background: var(--surface-sunken); overflow: hidden; }
+      .attr .fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--unit), var(--unit-2)); }
+      .pres-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; margin-top: 6px; }
+      .pres-cell { aspect-ratio: 1; border-radius: 4px; background: var(--surface-sunken); }
+      .pres-cell.p { background: var(--unit); }
+      .pres-cell.a { background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
+      .fam-note { display: flex; gap: 10px; align-items: center; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-md); padding: 12px 14px; font-size: 12.5px; color: var(--text-2); margin-top: 16px; }
+      [data-fam="on"] .coach-only { display: none; }
+      @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap" id="wrap" data-fam="off">
+      <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 22px">
+        <span style="width: 34px; height: 34px; border-radius: 9px; background: var(--logo-bg); border: 1px solid var(--logo-ring); display: grid; place-items: center; overflow: hidden"><img src="../public/logo/ifp-symbol.png" alt="IFP" style="width: 25px; height: 25px; object-fit: contain" /></span>
+        <b style="font-size: 15px; font-weight: 800; letter-spacing: -0.02em">IFP Esportivo · Futsal sub-14</b>
+        <div class="segmented" id="famToggle" style="margin-left: auto">
+          <button class="on" data-fam="off">Visão do coach</button>
+          <button data-fam="on">Visão da família</button>
+        </div>
+        <button class="toggle-pill" data-theme-toggle><span class="dot"></span><span data-theme-label>Claro</span></button>
+      </div>
+
+      <div class="athlete-head">
+        <span class="avatar av unit">PN</span>
+        <div style="flex: 1">
+          <div class="nm">Pedro Nunes</div>
+          <div class="meta">13 anos · Futsal sub-14 · desde mar/2025 · responsável: Joana Ribeiro</div>
+        </div>
+        <div style="text-align: right">
+          <div class="kpi-val" style="font-family: var(--font-mono); font-size: 28px; font-weight: 600; color: var(--unit)">88<span style="font-size: 14px; color: var(--text-3)">%</span></div>
+          <div class="micro" style="color: var(--text-3)">Presença · trimestre</div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div class="card">
+          <header><span class="tick unit"></span><h3>Atributos técnicos</h3><span class="act mono coach-only" style="color: var(--text-3)">escala 1–5</span></header>
+          <div class="body">
+            <svg class="radar-svg" id="radar" viewBox="0 0 240 220"></svg>
+            <div class="attr-list">
+              <div class="attr"><span>Velocidade</span><span class="track"><span class="fill" style="width: 80%"></span></span><span class="mono" style="text-align: right">4</span></div>
+              <div class="attr"><span>Passe</span><span class="track"><span class="fill" style="width: 100%"></span></span><span class="mono" style="text-align: right">5</span></div>
+              <div class="attr"><span>Finalização</span><span class="track"><span class="fill" style="width: 60%"></span></span><span class="mono" style="text-align: right">3</span></div>
+              <div class="attr"><span>Defesa</span><span class="track"><span class="fill" style="width: 60%"></span></span><span class="mono" style="text-align: right">3</span></div>
+              <div class="attr"><span>Disciplina</span><span class="track"><span class="fill" style="width: 100%"></span></span><span class="mono" style="text-align: right">5</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom: 18px">
+            <header><span class="tick unit"></span><h3>Presença · últimos 3 meses</h3></header>
+            <div class="body">
+              <div class="pres-grid" id="pres"></div>
+              <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 11.5px; color: var(--text-3)">
+                <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--unit)"></span> Presente</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent)"></span> Falta</span>
+              </div>
+            </div>
+          </div>
+          <div class="card coach-only">
+            <header><span class="tick unit"></span><h3>Observação do coach</h3></header>
+            <div class="body">
+              <p class="t-body" style="margin: 0; color: var(--text-2)">Evolução clara no passe e na leitura de jogo. Trabalhar finalização de primeira. Liderança crescente no grupo.</p>
+            </div>
+          </div>
+          <div class="fam-note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex: none"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01" /></svg>
+            <span>A <b>família vê uma versão simplificada</b>: presença, atributos em estrelas e o recado do coach — sem notas internas de comparação entre atletas.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="scaffold-chrome.js"></script>
+    <script>
+      // radar 5 eixos, valores 1-5
+      (function () {
+        var vals = [4, 5, 3, 3, 5];
+        var labels = ["VEL", "PAS", "FIN", "DEF", "DIS"];
+        var cx = 120, cy = 105, R = 78, n = 5;
+        function pt(i, r) {
+          var a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+          return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+        }
+        var svg = document.getElementById("radar");
+        var g = "";
+        // grelhas
+        for (var ring = 1; ring <= 5; ring++) {
+          var pts = [];
+          for (var i = 0; i < n; i++) pts.push(pt(i, (R * ring) / 5).join(","));
+          g += "<polygon points='" + pts.join(" ") + "' fill='none' stroke='var(--line)' stroke-width='1'/>";
+        }
+        for (var i = 0; i < n; i++) {
+          var p = pt(i, R);
+          g += "<line x1='" + cx + "' y1='" + cy + "' x2='" + p[0] + "' y2='" + p[1] + "' stroke='var(--line)' stroke-width='1'/>";
+          var lp = pt(i, R + 16);
+          g += "<text x='" + lp[0] + "' y='" + lp[1] + "' fill='var(--text-3)' font-size='9' font-family='var(--font-mono)' text-anchor='middle' dominant-baseline='middle'>" + labels[i] + "</text>";
+        }
+        var poly = [];
+        for (var i = 0; i < n; i++) poly.push(pt(i, (R * vals[i]) / 5).join(","));
+        g += "<polygon points='" + poly.join(" ") + "' fill='color-mix(in srgb, var(--unit) 22%, transparent)' stroke='var(--unit)' stroke-width='2'/>";
+        for (var i = 0; i < n; i++) { var v = pt(i, (R * vals[i]) / 5); g += "<circle cx='" + v[0] + "' cy='" + v[1] + "' r='3' fill='var(--unit)'/>"; }
+        svg.innerHTML = g;
+      })();
+      // presença
+      (function () {
+        var seq = "";
+        for (var i = 0; i < 36; i++) { var miss = i === 5 || i === 14 || i === 27 || i === 31; seq += "<div class='pres-cell " + (miss ? "a" : "p") + "'></div>"; }
+        document.getElementById("pres").innerHTML = seq;
+      })();
+      // toggle família
+      document.getElementById("famToggle").addEventListener("click", function (e) {
+        var b = e.target.closest("button"); if (!b) return;
+        this.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+        b.classList.add("on");
+        document.getElementById("wrap").setAttribute("data-fam", b.dataset.fam);
+      });
+    </script>
+  </body>
+</html>

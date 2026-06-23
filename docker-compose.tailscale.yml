@@ -1,0 +1,25 @@
+# Override pro deploy na VM ifp-final (host único atrás do Tailscale HTTPS).
+# Uso:
+#   docker compose -f docker-compose.prod.yml -f docker-compose.tailscale.yml \
+#                  --env-file .env.production <cmd>
+services:
+  web:
+    build:
+      args:
+        # NEXT_PUBLIC_* é assado no build do Next — precisa ser a URL final.
+        NEXT_PUBLIC_API_URL: https://ifp-final.taile04c66.ts.net/api/v1
+
+  caddy:
+    # Remove o 443 (quem faz HTTPS é o Tailscale serve); fica só HTTP interno na 80.
+    ports: !override
+      - "80:80"
+    # Monta o site público institucional (servido em / pelo Caddyfile).
+    volumes:
+      - ./site-institucional:/srv/site:ro
+
+  migrate:
+    # O seed precisa enxergar as senhas de seed (senão pula as verticais).
+    environment:
+      SEED_SUPER_ADMIN_EMAIL: ${SEED_SUPER_ADMIN_EMAIL}
+      SEED_SUPER_ADMIN_PASSWORD: ${SEED_SUPER_ADMIN_PASSWORD}
+      SEED_MEDICO_PASSWORD: ${SEED_MEDICO_PASSWORD}

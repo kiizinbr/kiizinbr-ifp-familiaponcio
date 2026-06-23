@@ -1,0 +1,269 @@
+<!doctype html>
+<!-- IFP Connect · Mascote Loaders — leão temático por unidade + transição de página -->
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mascote Loaders · IFP Connect</title>
+    <meta name="ext-resource-dependency" content="loaders/lion-white.png" data-resource-id="lionWhite" />
+    <link rel="stylesheet" href="ifp-tokens.css" />
+    <link rel="stylesheet" href="ifp-components.css" />
+    <style>
+      body { padding: 0; }
+      .top {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; align-items: center; gap: 14px; padding: 16px 32px;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+      }
+      .top .brand { display: flex; align-items: center; gap: 11px; }
+      .top .brand .sym { width: 34px; height: 34px; border-radius: 9px; background: var(--logo-bg); border: 1px solid var(--logo-ring); display: grid; place-items: center; overflow: hidden; }
+      .top .brand .sym img { width: 25px; height: 25px; object-fit: contain; }
+      .top .brand b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+      .top .spacer { flex: 1; }
+      .wrap { max-width: 1160px; margin: 0 auto; padding: 30px 32px 90px; }
+      .intro .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+      .intro h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.025em; margin: 8px 0 6px; }
+      .intro p { font-size: 14.5px; color: var(--text-2); max-width: 680px; line-height: 1.6; margin: 0; }
+      .sec-h { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); margin: 44px 0 18px; display: flex; align-items: center; gap: 12px; }
+      .sec-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+      /* ===== MEDALHÃO (reutilizável) ===== */
+      .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
+      .mcard {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+        box-shadow: var(--shadow); padding: 26px 18px 20px; text-align: center;
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+      }
+      .medallion { position: relative; width: 116px; height: 116px; display: grid; place-items: center; margin-bottom: 12px; }
+      .medallion .ring {
+        position: absolute; inset: 0; border-radius: 50%;
+        background: conic-gradient(var(--unit) 0deg, var(--unit-2) 120deg, transparent 120deg, transparent 360deg);
+        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+        mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+        animation: spin 1.5s linear infinite;
+      }
+      .medallion .disc {
+        position: relative; width: 92px; height: 92px; border-radius: 50%;
+        background: linear-gradient(140deg, var(--unit), var(--unit-2));
+        display: grid; place-items: center; overflow: hidden;
+        box-shadow: inset 0 2px 8px rgba(255,255,255,.22), inset 0 -8px 18px rgba(0,0,0,.14);
+      }
+      .medallion .disc::after { /* brilho sutil */
+        content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.35), transparent 45%);
+      }
+      .medallion .lion { width: 70px; height: 70px; object-fit: contain; position: relative; z-index: 2; }
+      .medallion .prop {
+        position: absolute; right: -2px; bottom: -2px; z-index: 3;
+        width: 38px; height: 38px; border-radius: 50%;
+        background: var(--surface); border: 1px solid var(--line);
+        display: grid; place-items: center; color: var(--unit);
+        box-shadow: var(--shadow);
+      }
+      .medallion .prop svg { width: 20px; height: 20px; }
+      .mcard .nm { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.18; }
+      .mcard .phrase { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+      .mcard .pers { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--unit); margin-top: 8px; border: 1px solid color-mix(in srgb, var(--unit) 30%, transparent); border-radius: var(--r-full); padding: 3px 9px; }
+
+      /* ===== personalidades de movimento (no leão) ===== */
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes heartbeat { 0%,28%,100% { transform: scale(1); } 12% { transform: scale(1.1); } 20% { transform: scale(1.02); } }
+      @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+      @keyframes hustle { 0%,100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(-3px) rotate(-5deg); } 75% { transform: translateX(3px) rotate(5deg); } }
+      @keyframes wobble { 0%,100% { transform: rotate(-7deg) scale(1); } 50% { transform: rotate(7deg) scale(1.04); } }
+      @keyframes breathe { 0%,100% { transform: scale(0.98); } 50% { transform: scale(1.04); } }
+      .m-medico   .lion { animation: heartbeat 1.4s ease-in-out infinite; }
+      .m-capacitacao .lion { animation: bob 1.1s ease-in-out infinite; }
+      .m-esportivo .lion { animation: hustle 0.5s ease-in-out infinite; }
+      .m-recreativo .lion { animation: wobble 1s ease-in-out infinite; }
+      .m-poncio   .lion { animation: breathe 2.4s ease-in-out infinite; }
+      .m-social   .lion { animation: breathe 1.8s ease-in-out infinite; }
+      .m-esportivo .ring { animation-duration: 0.7s; }
+      .m-poncio .ring { animation-duration: 2.6s; }
+      .m-capacitacao .ring { animation-duration: 1.1s; }
+
+      /* ===== DEMO DE TRANSIÇÃO ===== */
+      .demo-stage { margin-top: 8px; display: grid; grid-template-columns: 260px 1fr; gap: 18px; }
+      .nav-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 14px; }
+      .nav-card .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); padding: 4px 6px 10px; }
+      .nav-card button {
+        display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+        background: transparent; border: 0; border-radius: var(--r-md); padding: 9px 10px;
+        font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--text-2); cursor: pointer;
+        transition: background var(--t-fast), color var(--t-fast);
+      }
+      .nav-card button:hover { background: var(--surface-sunken); color: var(--text); }
+      .nav-card button .sw { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+      .stage-frame {
+        position: relative; overflow: hidden; border-radius: var(--r-lg); border: 1px solid var(--line);
+        background: var(--surface); box-shadow: var(--shadow); min-height: 360px;
+      }
+      .stage-frame .mock-top { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+      .stage-frame .mock-top .mt-strip { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, var(--unit), var(--unit-2)); }
+      .stage-frame .mt-band { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--unit) 62%, var(--text)); }
+      .stage-frame .mt-band .d { width: 16px; height: 16px; border-radius: 5px; background: linear-gradient(135deg, var(--unit), var(--unit-2)); }
+      .stage-frame .mock-body { padding: 22px; }
+      .stage-frame .mock-body h3 { margin: 0 0 4px; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+      .stage-frame .mock-body p { margin: 0 0 16px; font-size: 13.5px; color: var(--text-3); }
+      .mock-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .mock-kpis .k { border: 1px solid var(--line); border-radius: var(--r-md); padding: 13px; }
+      .mock-kpis .k .v { font-family: var(--font-mono); font-size: 22px; font-weight: 600; color: var(--unit); }
+      .mock-kpis .k .l { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+
+      /* overlay de transição (cobre o frame) */
+      .t-overlay {
+        position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; gap: 0;
+        background: linear-gradient(150deg, var(--unit), var(--unit-2));
+        opacity: 0; visibility: hidden;
+      }
+      .t-overlay.show { animation: ovIn .28s ease forwards; }
+      .t-overlay.hide { animation: ovOut .42s ease forwards; }
+      @keyframes ovIn { from { opacity: 0; visibility: visible; clip-path: circle(0% at 18% 22%); } to { opacity: 1; visibility: visible; clip-path: circle(150% at 18% 22%); } }
+      @keyframes ovOut { from { opacity: 1; visibility: visible; } to { opacity: 0; visibility: hidden; } }
+      .t-overlay .tl { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+      .t-overlay .tl-medallion { position: relative; width: 104px; height: 104px; display: grid; place-items: center; }
+      .t-overlay .tl-medallion .tring { position: absolute; inset: 0; border-radius: 50%;
+        background: conic-gradient(#fff 0deg, rgba(255,255,255,.25) 130deg, transparent 130deg);
+        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+        mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+        animation: spin 0.9s linear infinite; }
+      .t-overlay .tl-medallion .tlion { width: 64px; height: 64px; object-fit: contain; animation: bob 0.9s ease-in-out infinite; }
+      .t-overlay .tl-phrase { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.01em; }
+      .t-overlay .tl-dots { display: flex; gap: 6px; }
+      .t-overlay .tl-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.55); animation: blink 1s infinite; }
+      .t-overlay .tl-dots i:nth-child(2) { animation-delay: .15s; }
+      .t-overlay .tl-dots i:nth-child(3) { animation-delay: .3s; }
+      @keyframes blink { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .lion, .ring, .tlion, .tring, .tl-dots i { animation: none !important; }
+        .t-overlay.show { animation: none; opacity: 1; visibility: visible; }
+      }
+      @media (max-width: 760px) { .demo-stage { grid-template-columns: 1fr; } }
+    </style>
+    <template id="__bundler_thumbnail" data-bg-color="#007571">
+      <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="1200" height="800" fill="#007571" />
+        <circle cx="600" cy="400" r="230" fill="none" stroke="#10c2bb" stroke-width="22" stroke-dasharray="760 360" stroke-linecap="round" />
+        <circle cx="600" cy="400" r="170" fill="#0a5e3e" />
+        <text x="600" y="400" font-family="Hanken Grotesk, sans-serif" font-size="150" font-weight="800" fill="#ffffff" text-anchor="middle" dominant-baseline="central">🦁</text>
+      </svg>
+    </template>
+  </head>
+  <body>
+    <div class="top">
+      <div class="brand"><span class="sym"><img src="public/logo/ifp-symbol.png" alt="IFP" /></span><b>IFP Connect</b></div>
+      <span class="badge badge-default">Mascote · loaders</span>
+      <span class="spacer"></span>
+      <a class="btn btn-ghost btn-sm" href="index.html">← Design Kit</a>
+      <button class="toggle-pill" id="themeToggle"><span class="dot"></span><span id="themeLabel">Claro</span></button>
+    </div>
+
+    <div class="wrap">
+      <div class="intro">
+        <div class="eyebrow">Experimento · identidade em movimento</div>
+        <h1>O leão veste a unidade 🦁</h1>
+        <p>
+          Em vez de redesenhar o mascote (isso pede ilustrador), o leão real entra num <b>medalhão da cor da unidade</b>,
+          com um <b>adereço</b> em ícone e uma <b>personalidade de movimento própria</b>. Mesmo mascote, seis humores —
+          perfeito como loader de transição entre páginas. Role até o fim pra testar a transição de verdade.
+        </p>
+      </div>
+
+      <div class="sec-h">Medalhões por unidade</div>
+      <div class="gallery" id="gallery"></div>
+
+      <div class="sec-h">Transição de página · clique numa unidade</div>
+      <div class="demo-stage">
+        <div class="nav-card">
+          <div class="lbl">Navegar para</div>
+          <div id="navBtns"></div>
+        </div>
+        <div class="stage-frame" id="stage" data-unit="medico">
+          <div class="mock-top"><span class="mt-strip"></span><span class="mt-band"><span class="d"></span><span id="stageUnit">Centro Médico</span></span></div>
+          <div class="mock-body">
+            <h3 id="stageTitle">Fila do dia</h3>
+            <p id="stageSub">Conteúdo da unidade carregado após a transição.</p>
+            <div class="mock-kpis">
+              <div class="k"><div class="v" id="k1">42</div><div class="l">Hoje</div></div>
+              <div class="k"><div class="v" id="k2">7</div><div class="l">Pendentes</div></div>
+              <div class="k"><div class="v" id="k3">18</div><div class="l">24h</div></div>
+            </div>
+          </div>
+          <!-- overlay injetado por JS -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // tema
+      (function () {
+        var html = document.documentElement, saved = localStorage.getItem("ifp-theme");
+        if (saved) html.setAttribute("data-theme", saved);
+        var b = document.getElementById("themeToggle"), l = document.getElementById("themeLabel");
+        function s() { l.textContent = html.getAttribute("data-theme") === "dark" ? "Escuro" : "Claro"; } s();
+        b.onclick = function () { var d = html.getAttribute("data-theme") === "dark"; html.setAttribute("data-theme", d ? "light" : "dark"); localStorage.setItem("ifp-theme", d ? "light" : "dark"); s(); };
+      })();
+
+      // ícones de adereço (line icons)
+      var ICON = {
+        medico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v6a4 4 0 0 0 8 0V3"/><path d="M9 13v3a5 5 0 0 0 10 0v-2"/><circle cx="19" cy="11" r="2.4"/></svg>',
+        capacitacao: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg>',
+        esportivo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12a10 10 0 0 1 14-9"/><path d="M14 6a6 6 0 1 0 6 6"/><circle cx="8" cy="14" r="3"/></svg>',
+        recreativo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="7"/><path d="M12 17v4M9 21h6"/><path d="M9 9h.01M15 9h.01M9.5 12.5a3.5 3 0 0 0 5 0"/></svg>',
+        poncio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4 3 5-6 5 6 4-3-2 11H5z"/></svg>',
+        social: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 12c0 4.6-7 9-7 9z"/></svg>'
+      };
+      var UNITS = [
+        { k: "medico", n: "Centro Médico", phrase: "Preparando o prontuário…", pers: "Batimento", title: "Fila do dia", sub: "18 consultas nas próximas 24h.", kpi: ["42", "7", "18"] },
+        { k: "capacitacao", n: "Capacitação", phrase: "Carregando sua turma…", pers: "Pulinho", title: "Painel da turma", sub: "9 turmas ativas · 341 alunos.", kpi: ["9", "3", "82%"] },
+        { k: "esportivo", n: "Esportivo", phrase: "Aquecendo…", pers: "Enérgico", title: "Treino de hoje", sub: "Futsal sub-14 · presença 88%.", kpi: ["24", "88%", "5"] },
+        { k: "recreativo", n: "Recreativo", phrase: "Chegando pra brincar…", pers: "Brincalhão", title: "Como foi o dia", sub: "Turma Girassol · 18 crianças.", kpi: ["18", "12", "6"] },
+        { k: "poncio", n: "Pôncio Executivo", phrase: "Reunindo os números…", pers: "Sóbrio", title: "Visão geral", sub: "Agregado das 4 unidades.", kpi: ["1.284", "9", "82%"] },
+        { k: "social", n: "Serviço Social", phrase: "Organizando as fichas…", pers: "Acolhedor", title: "Triagens", sub: "9 triagens pendentes.", kpi: ["1.284", "9", "41"] }
+      ];
+
+      // galeria de medalhões
+      document.getElementById("gallery").innerHTML = UNITS.map(function (u) {
+        return '<div class="mcard m-' + u.k + '" data-unit="' + u.k + '">' +
+          '<div class="medallion"><span class="ring"></span><span class="disc"><img class="lion" src="' + window.__resources.lionWhite + '" alt=""/></span>' +
+          '<span class="prop">' + ICON[u.k] + '</span></div>' +
+          '<div class="nm">' + u.n + '</div><div class="phrase">' + u.phrase + '</div>' +
+          '<div class="pers">' + u.pers + '</div></div>';
+      }).join("");
+
+      // botões de navegação
+      document.getElementById("navBtns").innerHTML = UNITS.map(function (u) {
+        return '<button data-k="' + u.k + '" data-unit="' + u.k + '"><span class="sw" style="background:linear-gradient(135deg,var(--unit),var(--unit-2))"></span>' + u.n + '</button>';
+      }).join("");
+
+      // transição
+      var stage = document.getElementById("stage");
+      function navigate(u) {
+        var ov = document.createElement("div");
+        ov.className = "t-overlay show";
+        ov.setAttribute("data-unit", u.k);
+        ov.innerHTML = '<div class="tl"><div class="tl-medallion"><span class="tring"></span><img class="tlion" src="' + window.__resources.lionWhite + '" alt=""/></div>' +
+          '<div class="tl-phrase">' + u.phrase + '</div><div class="tl-dots"><i></i><i></i><i></i></div></div>';
+        stage.appendChild(ov);
+        setTimeout(function () {
+          // troca o conteúdo "por trás" do overlay
+          stage.setAttribute("data-unit", u.k);
+          document.getElementById("stageUnit").textContent = u.n;
+          document.getElementById("stageTitle").textContent = u.title;
+          document.getElementById("stageSub").textContent = u.sub;
+          document.getElementById("k1").textContent = u.kpi[0];
+          document.getElementById("k2").textContent = u.kpi[1];
+          document.getElementById("k3").textContent = u.kpi[2];
+        }, 700);
+        setTimeout(function () { ov.className = "t-overlay hide"; }, 1250);
+        setTimeout(function () { ov.remove(); }, 1700);
+      }
+      document.getElementById("navBtns").addEventListener("click", function (e) {
+        var b = e.target.closest("button"); if (!b) return;
+        var u = UNITS.find(function (x) { return x.k === b.dataset.k; });
+        navigate(u);
+      });
+    </script>
+  </body>
+</html>

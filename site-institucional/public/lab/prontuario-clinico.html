@@ -1,0 +1,991 @@
+<!doctype html>
+<!--
+  IFP Connect — Prontuário Médico · direção "Ferramenta Clínica Premium"
+  Tema NOVO do zero (não-Editorial). Mantém SÓ as cores do brandbook + o logo (leão).
+  Teal = acento funcional (saúde/ativo). Laranja = sinal vivo (agora/urgência/fora-de-faixa).
+  Tipo: Hanken Grotesk (UI) + IBM Plex Mono (dados clínicos). Toggle claro/escuro embutido.
+  Dados fictícios. Demo estática para revisão (Erick escolhe direção).
+-->
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prontuário · IFP Centro Médico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* === marca (cores que o Erick enviou) === */
+        --orange: #ff772e;
+        --orange-strong: #c24d0f;
+        --brown: #752c05;
+        --teal: #007571;
+        --teal-bright: #10c2bb;
+        --ink-brand: #4a4a49;
+
+        /* === tema CLARO (clínico premium) === */
+        --bg: #f6f7f7;
+        --bg-grid: rgba(74, 74, 73, 0.035);
+        --surface: #ffffff;
+        --surface-2: #fafafa;
+        --surface-sunken: #f1f3f3;
+        --line: #e4e6e6;
+        --line-strong: #d2d6d6;
+        --text: #1b1d1d;
+        --text-2: #4a4a49;
+        --text-3: #82888a;
+        --accent: var(--teal);
+        --accent-soft: rgba(0, 117, 113, 0.09);
+        --accent-line: rgba(0, 117, 113, 0.28);
+        --live: var(--orange);
+        --live-soft: rgba(255, 119, 46, 0.12);
+        --warn: #b45309;
+        --warn-soft: rgba(180, 83, 9, 0.12);
+        --danger: #ba1a1a;
+        --danger-soft: rgba(186, 26, 26, 0.09);
+        --shadow: 0 1px 2px rgba(20, 22, 22, 0.04), 0 8px 24px rgba(20, 22, 22, 0.05);
+        --shadow-pop: 0 12px 40px rgba(20, 22, 22, 0.1);
+        --logo-bg: #fff;
+        --logo-ring: var(--line);
+      }
+
+      html[data-theme="dark"] {
+        --bg: #0e1011;
+        --bg-grid: rgba(255, 255, 255, 0.025);
+        --surface: #16191a;
+        --surface-2: #1b1f20;
+        --surface-sunken: #101314;
+        --line: #262b2c;
+        --line-strong: #333a3b;
+        --text: #ecefef;
+        --text-2: #aab2b2;
+        --text-3: #6f7878;
+        --accent: var(--teal-bright);
+        --accent-soft: rgba(16, 194, 187, 0.12);
+        --accent-line: rgba(16, 194, 187, 0.34);
+        --live: #ff8c4d;
+        --live-soft: rgba(255, 119, 46, 0.16);
+        --warn: #f0a850;
+        --warn-soft: rgba(240, 168, 80, 0.14);
+        --danger: #ff6b6b;
+        --danger-soft: rgba(255, 107, 107, 0.12);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45);
+        --shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.6);
+        --logo-bg: #f6f7f7;
+        --logo-ring: #2c3233;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      body {
+        margin: 0;
+        font-family: "Hanken Grotesk", sans-serif;
+        background-color: var(--bg);
+        background-image:
+          linear-gradient(var(--bg-grid) 1px, transparent 1px),
+          linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+        color: var(--text);
+        line-height: 1.45;
+        letter-spacing: -0.01em;
+      }
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+        font-feature-settings: "tnum" 1;
+      }
+      .micro {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10.5px;
+        font-weight: 500;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--text-3);
+      }
+
+      /* ===== topbar ===== */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 12px 22px;
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        backdrop-filter: blur(14px) saturate(1.3);
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .brand .symbol {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: var(--logo-bg);
+        border: 1px solid var(--logo-ring);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .brand .symbol img {
+        width: 26px;
+        height: 26px;
+        object-fit: contain;
+      }
+      .brand .who b {
+        display: block;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .brand .who span {
+        display: block;
+        font-size: 11px;
+        color: var(--text-3);
+        letter-spacing: 0.02em;
+      }
+      .topbar nav {
+        display: flex;
+        gap: 2px;
+        margin-left: 8px;
+      }
+      .topbar nav a {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-3);
+        text-decoration: none;
+        padding: 7px 12px;
+        border-radius: 8px;
+      }
+      .topbar nav a.on {
+        color: var(--text);
+        background: var(--surface-sunken);
+      }
+      .topbar .spacer {
+        flex: 1;
+      }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        color: var(--text-2);
+        border-radius: 999px;
+        padding: 7px 13px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 0.18s;
+      }
+      .toggle:hover {
+        border-color: var(--accent-line);
+      }
+      .toggle .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      /* ===== faixa de identificação do paciente ===== */
+      .patient {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 16px 22px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+      .avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: linear-gradient(
+          135deg,
+          var(--accent),
+          color-mix(in srgb, var(--accent) 55%, var(--brown))
+        );
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 17px;
+        letter-spacing: 0.02em;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+      }
+      .patient .pname {
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+      }
+      .patient .pmeta {
+        display: flex;
+        gap: 14px;
+        margin-top: 3px;
+        font-size: 12.5px;
+        color: var(--text-3);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .patient .pmeta .mono {
+        color: var(--text-2);
+      }
+      .sep {
+        width: 1px;
+        height: 11px;
+        background: var(--line-strong);
+      }
+      .patient .right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .slotbox {
+        text-align: right;
+      }
+      .slotbox .t {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        border: 1px solid transparent;
+      }
+      .badge.live {
+        color: var(--live);
+        background: var(--live-soft);
+        border-color: color-mix(in srgb, var(--live) 30%, transparent);
+      }
+      .pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--live);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 60%, transparent);
+        animation: pulse 1.9s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 55%, transparent);
+        }
+        70% {
+          box-shadow: 0 0 0 7px transparent;
+        }
+        100% {
+          box-shadow: 0 0 0 0 transparent;
+        }
+      }
+
+      /* ===== grid 3 colunas ===== */
+      main {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr) 290px;
+        gap: 16px;
+        padding: 18px 22px 60px;
+        max-width: 1500px;
+        margin: 0 auto;
+        align-items: start;
+      }
+      .col {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+        animation: rise 0.5s both;
+      }
+      .col.c1 {
+        animation-delay: 0.04s;
+      }
+      .col.c2 {
+        animation-delay: 0.11s;
+      }
+      .col.c3 {
+        animation-delay: 0.18s;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+      }
+      .card > header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--line);
+      }
+      .card > header .tick {
+        width: 3px;
+        height: 13px;
+        border-radius: 2px;
+        background: var(--accent);
+      }
+      .card > header h3 {
+        margin: 0;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .card > header .act {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+      }
+      .card .body {
+        padding: 14px 15px;
+      }
+
+      /* ---- coluna 1: saúde + histórico ---- */
+      .field {
+        margin-bottom: 13px;
+      }
+      .field:last-child {
+        margin-bottom: 0;
+      }
+      .field > .micro {
+        display: block;
+        margin-bottom: 6px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 9px;
+        border-radius: 7px;
+        background: var(--surface-sunken);
+        border: 1px solid var(--line);
+        color: var(--text-2);
+      }
+      .chip.alergia {
+        background: var(--danger-soft);
+        border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+        color: var(--danger);
+      }
+      .chip.blood {
+        background: var(--accent-soft);
+        border-color: var(--accent-line);
+        color: var(--accent);
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .med {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 13px;
+        padding: 7px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .med:last-child {
+        border-bottom: 0;
+      }
+      .med .dose {
+        color: var(--text-3);
+      }
+
+      .timeline {
+        position: relative;
+        padding-left: 16px;
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 4px;
+        bottom: 4px;
+        width: 1.5px;
+        background: var(--line-strong);
+      }
+      .ev {
+        position: relative;
+        padding: 0 0 14px 0;
+        cursor: pointer;
+      }
+      .ev:last-child {
+        padding-bottom: 0;
+      }
+      .ev::before {
+        content: "";
+        position: absolute;
+        left: -14.5px;
+        top: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 2px solid var(--accent);
+      }
+      .ev .when {
+        font-size: 11px;
+        color: var(--text-3);
+        display: flex;
+        gap: 7px;
+        align-items: center;
+      }
+      .ev .who2 {
+        font-size: 12.5px;
+        font-weight: 700;
+        margin: 2px 0 1px;
+      }
+      .ev .esp {
+        font-size: 11px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .ev .snip {
+        font-size: 12px;
+        color: var(--text-2);
+        margin-top: 3px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      /* ---- coluna 2: evolução ---- */
+      .evolucao .body {
+        padding: 16px;
+      }
+      .note {
+        width: 100%;
+        min-height: 150px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--surface-2);
+        padding: 14px 15px;
+        font: inherit;
+        font-size: 14.5px;
+        line-height: 1.6;
+        color: var(--text);
+        resize: vertical;
+        outline: none;
+        transition:
+          border-color 0.18s,
+          box-shadow 0.18s;
+      }
+      .note:focus {
+        border-color: var(--accent-line);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+        background: var(--surface);
+      }
+      .block-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 20px 0 11px;
+      }
+      .block-label .micro {
+        margin: 0;
+      }
+      .block-label .hr {
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .vitais {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .vital {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 10px 8px;
+        background: var(--surface-2);
+      }
+      .vital .vlabel {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-3);
+      }
+      .vital .vval {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 19px;
+        font-weight: 600;
+        line-height: 1.2;
+        margin-top: 3px;
+      }
+      .vital .vval .u {
+        font-size: 11px;
+        color: var(--text-3);
+        font-weight: 500;
+      }
+      .vital.flag {
+        border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+        background: var(--warn-soft);
+      }
+      .vital.flag .vval {
+        color: var(--warn);
+      }
+      .vital.derived {
+        background: var(--accent-soft);
+        border-color: var(--accent-line);
+      }
+      .vital.derived .vval {
+        color: var(--accent);
+      }
+      .cidrow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .cid {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 11px;
+        border-radius: 9px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface-2);
+        font-size: 13px;
+      }
+      .cid .code {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .cid.principal {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+      }
+      .cid .tag {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid var(--accent-line);
+        border-radius: 5px;
+        padding: 1px 5px;
+      }
+      .cid-add {
+        border: 1px dashed var(--line-strong);
+        color: var(--text-3);
+        background: transparent;
+        cursor: pointer;
+      }
+      .signbar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+      .signbar .hint {
+        font-size: 11.5px;
+        color: var(--text-3);
+        max-width: 240px;
+      }
+      .btn-sign {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        font-size: 14px;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 11px;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--teal) 92%, #fff), var(--teal));
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.25) inset,
+          0 6px 18px rgba(0, 117, 113, 0.32);
+        transition:
+          transform 0.14s,
+          box-shadow 0.14s;
+      }
+      html[data-theme="dark"] .btn-sign {
+        background: linear-gradient(180deg, var(--teal-bright), var(--teal));
+        color: #04201f;
+      }
+      .btn-sign:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.25) inset,
+          0 10px 26px rgba(0, 117, 113, 0.42);
+      }
+
+      /* ---- coluna 3: ações (placeholder F1.B.3) ---- */
+      .soon {
+        opacity: 0.62;
+      }
+      .soon .body {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .soon .ico {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: var(--surface-sunken);
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: center;
+        color: var(--text-3);
+        flex: none;
+      }
+      .soon .ttl {
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+      .soon .pill {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--text-3);
+        border: 1px dashed var(--line-strong);
+        border-radius: 6px;
+        padding: 2px 6px;
+        margin-top: 3px;
+        display: inline-block;
+      }
+      .lgpd {
+        font-size: 11px;
+        color: var(--text-3);
+        line-height: 1.5;
+        display: flex;
+        gap: 8px;
+      }
+      .lgpd .lk {
+        color: var(--accent);
+        flex: none;
+      }
+
+      /* ===== responsivo ===== */
+      @media (max-width: 1080px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+        .col.c3 {
+          order: 3;
+        }
+      }
+      @media (max-width: 560px) {
+        .vitais {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .topbar nav {
+          display: none;
+        }
+      }
+
+      /* a11y: respeita redução de movimento, restaurando estado final */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+        .col {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="symbol"><img src="../logo/ifp-symbol.png" alt="IFP" /></span>
+        <span class="who">
+          <b>IFP&nbsp;Connect</b>
+          <span>Centro Médico</span>
+        </span>
+      </div>
+      <nav aria-label="Seções">
+        <a href="#">Fila do dia</a>
+        <a href="#">Agenda</a>
+        <a href="#" class="on">Atendimento</a>
+        <a href="#">Profissionais</a>
+      </nav>
+      <span class="spacer"></span>
+      <button class="toggle" id="themeToggle" aria-label="Alternar tema claro/escuro">
+        <span class="dot"></span><span id="themeLabel">Tema claro</span>
+      </button>
+    </header>
+
+    <section class="patient">
+      <div class="avatar">MF</div>
+      <div>
+        <div class="pname">Marcos Antônio Ferreira</div>
+        <div class="pmeta">
+          <span>54 anos · Masculino</span>
+          <span class="sep"></span>
+          <span class="mono">PRONT #04127</span>
+          <span class="sep"></span>
+          <span>Convênio: <b>Filantropia</b></span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="slotbox">
+          <div class="micro">Consulta de hoje</div>
+          <div class="t mono">14:30 · Clínico Geral</div>
+        </div>
+        <span class="badge live"><span class="pulse"></span> Em atendimento</span>
+      </div>
+    </section>
+
+    <main>
+      <!-- ============ COLUNA 1 — CONTEXTO / HISTÓRICO ============ -->
+      <div class="col c1">
+        <section class="card">
+          <header>
+            <span class="tick"></span>
+            <h3>Saúde do paciente</h3>
+            <span class="act">Editar</span>
+          </header>
+          <div class="body">
+            <div class="field">
+              <span class="micro">Tipo sanguíneo</span>
+              <span class="chip blood">O+</span>
+            </div>
+            <div class="field">
+              <span class="micro">Alergias</span>
+              <div class="chips">
+                <span class="chip alergia">Dipirona</span>
+                <span class="chip alergia">Penicilina</span>
+              </div>
+            </div>
+            <div class="field">
+              <span class="micro">Condições crônicas</span>
+              <div class="chips">
+                <span class="chip">Hipertensão (HAS)</span>
+                <span class="chip">Diabetes tipo 2</span>
+              </div>
+            </div>
+            <div class="field">
+              <span class="micro">Medicamentos em uso</span>
+              <div class="med">
+                <span>Losartana</span><span class="dose mono">50&nbsp;mg · 1x/dia</span>
+              </div>
+              <div class="med">
+                <span>Metformina</span><span class="dose mono">850&nbsp;mg · 2x/dia</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <header>
+            <span class="tick"></span>
+            <h3>Histórico de atendimentos</h3>
+          </header>
+          <div class="body">
+            <div class="timeline">
+              <div class="ev">
+                <div class="when"><span class="mono">12/05/2026</span></div>
+                <div class="who2">Dr. João Silva</div>
+                <div class="esp">Clínico Geral</div>
+                <div class="snip">
+                  Retorno de HAS. PA controlada com Losartana. Mantida conduta. Solicitado perfil
+                  lipídico.
+                </div>
+              </div>
+              <div class="ev">
+                <div class="when"><span class="mono">03/03/2026</span></div>
+                <div class="who2">Dra. Maria Santos</div>
+                <div class="esp">Cardiologia</div>
+                <div class="snip">
+                  ECG sem alterações agudas. Orientado controle de peso e atividade física regular.
+                </div>
+              </div>
+              <div class="ev">
+                <div class="when"><span class="mono">18/11/2025</span></div>
+                <div class="who2">Enf. Ana Lima</div>
+                <div class="esp">Enfermagem</div>
+                <div class="snip">
+                  Aferição de PA e glicemia capilar. Orientação sobre adesão medicamentosa.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ COLUNA 2 — EVOLUÇÃO ============ -->
+      <div class="col c2">
+        <section class="card evolucao">
+          <header>
+            <span class="tick"></span>
+            <h3>Evolução do atendimento</h3>
+            <span class="act mono" style="color: var(--text-3)">rascunho · não assinada</span>
+          </header>
+          <div class="body">
+            <textarea class="note" aria-label="Texto da evolução">
+Paciente comparece para retorno. Refere boa adesão ao tratamento anti-hipertensivo, sem queixas álgicas. Nega dispneia ou edema. Relata episódios ocasionais de cefaleia ao fim do dia.
+
+Ao exame: lúcido, orientado, corado, hidratado. ACV: ritmo regular, 2 tempos, sem sopros. AP: murmúrio vesicular presente bilateralmente.</textarea
+            >
+
+            <div class="block-label">
+              <span class="micro">Sinais vitais</span><span class="hr"></span>
+            </div>
+            <div class="vitais">
+              <div class="vital flag">
+                <div class="vlabel">PA</div>
+                <div class="vval">138/86<span class="u"> mmHg</span></div>
+              </div>
+              <div class="vital">
+                <div class="vlabel">FC</div>
+                <div class="vval">78<span class="u"> bpm</span></div>
+              </div>
+              <div class="vital">
+                <div class="vlabel">FR</div>
+                <div class="vval">16<span class="u"> irpm</span></div>
+              </div>
+              <div class="vital">
+                <div class="vlabel">Temp</div>
+                <div class="vval">36.4<span class="u"> °C</span></div>
+              </div>
+              <div class="vital">
+                <div class="vlabel">SpO₂</div>
+                <div class="vval">97<span class="u"> %</span></div>
+              </div>
+              <div class="vital">
+                <div class="vlabel">Peso</div>
+                <div class="vval">82.5<span class="u"> kg</span></div>
+              </div>
+              <div class="vital">
+                <div class="vlabel">Altura</div>
+                <div class="vval">174<span class="u"> cm</span></div>
+              </div>
+              <div class="vital derived">
+                <div class="vlabel">IMC ·&nbsp;deriv.</div>
+                <div class="vval">27.3</div>
+              </div>
+            </div>
+
+            <div class="block-label">
+              <span class="micro">Diagnóstico (CID-10)</span><span class="hr"></span>
+            </div>
+            <div class="cidrow">
+              <span class="cid principal"
+                ><span class="code">I10</span> Hipertensão essencial
+                <span class="tag">Principal</span></span
+              >
+              <span class="cid"><span class="code">E11.9</span> Diabetes tipo 2</span>
+              <button class="cid cid-add">+ adicionar CID</button>
+            </div>
+
+            <div class="signbar">
+              <span class="hint"
+                >Ao assinar, a nota torna-se imutável e a consulta é concluída. Correções
+                posteriores entram como addendo.</span
+              >
+              <button class="btn-sign">Assinar e concluir →</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ COLUNA 3 — AÇÕES (F1.B.3) ============ -->
+      <div class="col c3">
+        <section class="card soon">
+          <div class="body">
+            <span class="ico">℞</span>
+            <div>
+              <div class="ttl">Prescrição</div>
+              <span class="pill">Chega no F1.B.3</span>
+            </div>
+          </div>
+        </section>
+        <section class="card soon">
+          <div class="body">
+            <span class="ico">⇄</span>
+            <div>
+              <div class="ttl">Encaminhamento</div>
+              <span class="pill">Chega no F1.B.3</span>
+            </div>
+          </div>
+        </section>
+        <section class="card soon">
+          <div class="body">
+            <span class="ico">✓</span>
+            <div>
+              <div class="ttl">Atestado</div>
+              <span class="pill">Chega no F1.B.3</span>
+            </div>
+          </div>
+        </section>
+        <section class="card">
+          <header>
+            <span class="tick" style="background: var(--text-3)"></span>
+            <h3>Privacidade</h3>
+          </header>
+          <div class="body">
+            <p class="lgpd">
+              <span class="lk mono">●</span>
+              <span
+                >Dado de saúde (LGPD art. 11). Esta abertura foi registrada na auditoria — quem
+                acessou o prontuário de quem.</span
+              >
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      // Toggle claro/escuro (não há persistência — é mockup de revisão).
+      (function () {
+        var html = document.documentElement;
+        var btn = document.getElementById("themeToggle");
+        var label = document.getElementById("themeLabel");
+        btn.addEventListener("click", function () {
+          var dark = html.getAttribute("data-theme") === "dark";
+          html.setAttribute("data-theme", dark ? "light" : "dark");
+          label.textContent = dark ? "Tema claro" : "Tema escuro";
+        });
+      })();
+    </script>
+  </body>
+</html>
