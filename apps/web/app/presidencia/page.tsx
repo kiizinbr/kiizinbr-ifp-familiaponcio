@@ -5,7 +5,7 @@
  * todas as unidades + atalhos para as visões aprofundadas. Tudo com dado real.
  */
 import Link from "next/link";
-import { ArrowRight, BarChart3, LayoutGrid, Network, Users } from "lucide-react";
+import { ArrowRight, BarChart3, LayoutGrid, MapPin, Network, Users } from "lucide-react";
 
 import { Card, Kpi, PageHeader, SecTitle } from "@/components/casa";
 import { Alerta, Spinner } from "@/components/ui";
@@ -29,6 +29,12 @@ const ATALHOS = [
     titulo: "Impacto",
     desc: "Tendência de 12 meses e crescimento.",
     icone: BarChart3,
+  },
+  {
+    href: "/presidencia/territorio",
+    titulo: "Território",
+    desc: "Distribuição das famílias por bairro e cidade.",
+    icone: MapPin,
   },
   {
     href: "/presidencia/jornada",

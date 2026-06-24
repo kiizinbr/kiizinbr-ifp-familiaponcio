@@ -200,6 +200,103 @@ export class PresidenciaService {
     return top;
   }
 
+  // ============================================================
+  // Território — panorama por BAIRRO (não é mapa geográfico)
+  // ============================================================
+  /**
+   * Panorama territorial HONESTO: distribuição das famílias ativas pelos bairros
+   * que o banco JÁ guarda (FichaCidada.bairro / FichaCidada.cidade). NÃO é mapa,
+   * não tem lat/long nem heatmap — o banco não tem geolocalização. Não inventa
+   * "demanda reprimida" (não há dado para isso).
+   *
+   * Dimensão extra REAL: cruzamento bairro × unidade via `elegibilidades`
+   * (ElegibilidadePorUnidade liga ficha→unidade). É dado limpo, então CRUZAMOS.
+   * Atenção à semântica: a soma de `porBairroUnidade` conta ELEGIBILIDADES
+   * aprovadas (uma família em 2 unidades aparece 2x), enquanto `porBairro` conta
+   * FAMÍLIAS (1x). Por isso são totais separados e rotulados de forma distinta —
+   * só `porBairro` soma == `totalFamilias`.
+   */
+  async territorio(user: AuthenticatedUser) {
+    this.auditarLeitura(user, "territorio");
+
+    // 1) Distribuição de FAMÍLIAS ativas por bairro (reusa o consolidado top-6 +
+    //    "Outros" + "Não informado"). A soma destes == totalFamilias.
+    const bairroGrupos = await this.prisma.fichaCidada.groupBy({
+      by: ["bairro"],
+      where: { ativa: true },
+      _count: { _all: true },
+      orderBy: { _count: { bairro: "desc" } },
+    });
+    const porBairro = this.consolidarBairros(bairroGrupos);
+    const totalFamilias = await this.prisma.fichaCidada.count({ where: { ativa: true } });
+
+    // 2) Distribuição por CIDADE (campo real, default "Duque de Caxias") — outra
+    //    dimensão honesta do mesmo endereço cadastrado.
+    const cidadeGrupos = await this.prisma.fichaCidada.groupBy({
+      by: ["cidade"],
+      where: { ativa: true },
+      _count: { _all: true },
+      orderBy: { _count: { cidade: "desc" } },
+    });
+    const porCidade = cidadeGrupos
+      .map((c) => ({ cidade: c.cidade?.trim() || "Não informado", total: c._count._all }))
+      .sort((a, b) => b.total - a.total);
+
+    // 3) Cruzamento bairro × unidade: contagem de ELEGIBILIDADES aprovadas por
+    //    (bairro, tipo de unidade). Dado limpo da tabela `elegibilidades`. Só
+    //    entram os bairros que aparecem no top de `porBairro` (os demais caem em
+    //    "Outros"/"Não informado" para não estourar a tabela). count distinto de
+    //    ficha por unidade para não duplicar se houvesse linhas repetidas.
+    const bairrosTop = new Set(porBairro.map((b) => b.bairro));
+    const cruzamentoRaw = await this.prisma.$queryRaw<
+      { bairro: string | null; tipo: string; total: number }[]
+    >`
+      SELECT f.bairro AS bairro, u.tipo::text AS tipo,
+             count(DISTINCT f.id)::int AS total
+      FROM fichas_cidadas f
+      JOIN elegibilidades e ON e."fichaId" = f.id
+        AND e.status = 'APROVADO'::"StatusElegibilidade"
+      JOIN unidades u ON u.id = e."unidadeId"
+      WHERE f.ativa = true
+      GROUP BY f.bairro, u.tipo
+    `;
+
+    // Reduz o cruzamento aos rótulos de bairro do top (resto → "Outros",
+    // nulo/vazio → "Não informado"), somando por (rótulo, tipo de unidade).
+    const acc = new Map<string, Map<string, number>>();
+    for (const linha of cruzamentoRaw) {
+      const nome = linha.bairro?.trim() || "Não informado";
+      const rotulo = bairrosTop.has(nome) ? nome : "Outros";
+      const porTipo = acc.get(rotulo) ?? new Map<string, number>();
+      porTipo.set(linha.tipo, (porTipo.get(linha.tipo) ?? 0) + linha.total);
+      acc.set(rotulo, porTipo);
+    }
+    // Mantém a MESMA ordem de `porBairro` para a UI ler alinhado.
+    const porBairroUnidade = porBairro
+      .map((b) => ({
+        bairro: b.bairro,
+        unidades: Array.from(acc.get(b.bairro)?.entries() ?? [])
+          .map(([tipo, total]) => ({ tipo, total }))
+          .sort((a, z) => z.total - a.total),
+      }))
+      .filter((linha) => linha.unidades.length > 0);
+
+    const familiasComBairro = porBairro
+      .filter((b) => b.bairro !== "Não informado")
+      .reduce((soma, b) => soma + b.total, 0);
+
+    return {
+      // contexto honesto da tela (a UI usa isto no texto explicativo)
+      tipo: "distribuicao-por-bairro" as const,
+      totalFamilias,
+      familiasComBairro,
+      bairrosDistintos: bairroGrupos.length,
+      porBairro,
+      porCidade,
+      porBairroUnidade,
+    };
+  }
+
   private ordenarFaixas(linhas: { faixa: string; total: number }[]) {
     const ordem = ["0-6", "7-17", "18-39", "40-59", "60+"];
     return ordem.map((faixa) => ({

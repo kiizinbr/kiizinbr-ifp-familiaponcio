@@ -70,6 +70,9 @@ caso("super admin lê resumo (200)", 200, (await req(admin, "GET", "/presidencia
 caso("médico bloqueado (403)", 403, (await req(medico, "GET", "/presidencia/resumo")).status);
 caso("família bloqueada (403)", 403, (await req(familia, "GET", "/presidencia/resumo")).status);
 caso("família bloqueada na jornada (403)", 403, (await req(familia, "GET", "/presidencia/jornada")).status);
+caso("médico bloqueado no território (403)", 403, (await req(medico, "GET", "/presidencia/territorio")).status);
+caso("família bloqueada no território (403)", 403, (await req(familia, "GET", "/presidencia/territorio")).status);
+caso("super admin lê território (200)", 200, (await req(admin, "GET", "/presidencia/territorio")).status);
 
 console.log("--- RESUMO ---");
 const resumo = (await req(presidencia, "GET", "/presidencia/resumo")).json;
@@ -120,6 +123,29 @@ ok("cross2mais >= 3 (seed: João, Maria, Pedro)", jor.cross2mais >= 3);
 ok("cross3mais >= 2 (seed: João, Maria)", jor.cross3mais >= 2);
 ok("há ao menos uma ponte entre unidades", jor.pontes.length >= 1);
 ok("constelações anonimizadas (código sequencial, sem nome/protocolo)", jor.constelacoes.every((c) => /^Família \d+$/.test(c.codigo) && !("nome" in c) && !("protocolo" in c)));
+
+console.log("--- TERRITÓRIO (panorama por bairro) ---");
+const terResp = await req(presidencia, "GET", "/presidencia/territorio");
+const ter = terResp.json ?? {};
+caso("presidência lê território (200)", 200, terResp.status);
+ok("tipo é distribuicao-por-bairro", ter.tipo === "distribuicao-por-bairro");
+ok("porBairro é array", Array.isArray(ter.porBairro));
+ok("porCidade é array", Array.isArray(ter.porCidade));
+ok("porBairroUnidade é array", Array.isArray(ter.porBairroUnidade));
+ok("territorio.totalFamilias == resumo.familiasAtivas", ter.totalFamilias === resumo.familiasAtivas);
+ok("soma porBairro == totalFamilias", soma(ter.porBairro, (b) => b.total) === ter.totalFamilias);
+ok("soma porCidade == totalFamilias", soma(ter.porCidade, (c) => c.total) === ter.totalFamilias);
+ok("porBairro bate com /familias (mesma agregação)", JSON.stringify(ter.porBairro) === JSON.stringify(fam.porBairro));
+ok("familiasComBairro <= totalFamilias", ter.familiasComBairro <= ter.totalFamilias);
+ok(
+  "cada linha bairro×unidade soma > 0 e usa tipos válidos",
+  ter.porBairroUnidade.every(
+    (l) =>
+      Array.isArray(l.unidades) &&
+      l.unidades.length > 0 &&
+      l.unidades.every((u) => ["MEDICO", "CAPACITACAO", "ESPORTIVO", "EDUCACIONAL"].includes(u.tipo) && u.total > 0),
+  ),
+);
 
 console.log("--- PRESTAÇÃO DE CONTAS ---");
 caso("família bloqueada na prestação (403)", 403, (await req(familia, "GET", "/presidencia/prestacao-contas")).status);

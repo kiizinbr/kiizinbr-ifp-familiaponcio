@@ -77,6 +77,14 @@ export class PresidenciaController {
     return this.presidencia.jornada(user);
   }
 
+  @Get("territorio")
+  @ApiOperation({
+    summary: "Panorama territorial: distribuição de famílias por bairro (não é mapa)",
+  })
+  territorio(@CurrentUser() user: AuthenticatedUser) {
+    return this.presidencia.territorio(user);
+  }
+
   @Get("prestacao-contas")
   @ApiOperation({ summary: "Números reais de um período (mes|ano|12m)" })
   @ApiQuery({ name: "periodo", required: false, enum: ["mes", "ano", "12m"] })

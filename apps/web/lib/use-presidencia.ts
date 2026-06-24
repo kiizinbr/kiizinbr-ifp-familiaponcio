@@ -105,6 +105,19 @@ export interface JornadaPresidencia {
   constelacoes: { codigo: string; pessoas: number; unidades: string[] }[];
 }
 
+export interface TerritorioPresidencia {
+  tipo: "distribuicao-por-bairro";
+  totalFamilias: number;
+  familiasComBairro: number;
+  bairrosDistintos: number;
+  porBairro: { bairro: string; total: number }[];
+  porCidade: { cidade: string; total: number }[];
+  porBairroUnidade: {
+    bairro: string;
+    unidades: { tipo: string; total: number }[];
+  }[];
+}
+
 // ============================================================
 // Queries
 // ============================================================
@@ -124,6 +137,8 @@ export const useFamiliasPresidencia = () => usePresidenciaQuery<FamiliasPresiden
 export const useUnidadesPresidencia = () => usePresidenciaQuery<UnidadesPresidencia>("unidades");
 export const useImpactoPresidencia = () => usePresidenciaQuery<ImpactoPresidencia>("impacto");
 export const useJornadaPresidencia = () => usePresidenciaQuery<JornadaPresidencia>("jornada");
+export const useTerritorioPresidencia = () =>
+  usePresidenciaQuery<TerritorioPresidencia>("territorio");
 
 /** Séries temporais cruzando as verticais; `meses` entre 3 e 24 (default 12). */
 export function useImpactoSeries(meses: number) {
