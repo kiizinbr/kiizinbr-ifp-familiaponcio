@@ -98,6 +98,20 @@ const membroInvalido = await req(medico, "POST", "/servico-social/ponte", {
 });
 caso("membro fora da ficha → 400", 400, membroInvalido.status);
 
+// Payload EXATO que a UI envia (botão "Sinalizar ao Social" das verticais):
+// só fichaId + descricao + tipo + prioridade, SEM unidadeOrigemSlug (origem é
+// server-authoritative). tipo OBSERVACAO p/ não colidir com o ALERTA/ENCAMINHAMENTO
+// já criados acima (índice único parcial por ficha+origem+tipo).
+const uiPayload = await req(medico, "POST", "/servico-social/ponte", {
+  fichaId,
+  tipo: "OBSERVACAO",
+  prioridade: "NORMAL",
+  descricao: "QA payload da UI (Sinalizar ao Social)",
+});
+caso("UI: POST sem unidadeOrigemSlug → 201", 201, uiPayload.status);
+caso("UI: nasce PENDENTE", "PENDENTE", uiPayload.json?.status);
+caso("UI: origem = unidade do profissional", "medico", uiPayload.json?.unidadeOrigem?.slug);
+
 console.log("--- CONSUMO (social) ---");
 const lista = await req(admin, "GET", "/servico-social/ponte?status=PENDENTE");
 caso("lista → 200", 200, lista.status);

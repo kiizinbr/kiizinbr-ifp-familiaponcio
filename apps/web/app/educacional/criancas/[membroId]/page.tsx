@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { Alerta, Botao, Campo, Checkbox, Input, Spinner } from "@/components/ui";
+import { SinalizarSocial } from "@/components/casa";
 import { idade } from "@/lib/idade";
 import { cn } from "@/lib/cn";
 import {
@@ -251,6 +252,9 @@ export default function PerfilCriancaPage({
           </ul>
         </div>
       )}
+
+      {/* Ponte cross-vertical: educador sinaliza a família desta criança ao Social. */}
+      <SinalizarSocial fichaId={crianca.ficha.id} membroId={crianca.id} className="mt-4" />
 
       {erroAcao ? (
         <div className="mt-4">

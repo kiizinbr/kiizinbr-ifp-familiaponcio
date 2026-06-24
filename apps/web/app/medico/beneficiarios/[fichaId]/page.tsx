@@ -28,6 +28,7 @@ import {
   type MembroFicha,
 } from "@/lib/use-medico";
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
+import { SinalizarSocial } from "@/components/casa";
 import { cn } from "@/lib/cn";
 import { idade } from "@/lib/idade";
 
@@ -208,6 +209,12 @@ export default function FichaClinicaPage() {
             Família: {ficha.membros.map((m) => m.nomeCompleto).join(", ")}
           </p>
         ) : null}
+        {/* Ponte cross-vertical: pedir um olhar do Serviço Social para esta família. */}
+        <SinalizarSocial
+          fichaId={ficha.id}
+          membros={ficha.membros.map((m) => ({ id: m.id, nomeCompleto: m.nomeCompleto }))}
+          className="mt-4"
+        />
       </div>
 
       {/* Alergias */}
