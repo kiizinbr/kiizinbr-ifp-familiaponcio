@@ -1,19 +1,21 @@
 # 📍 ONDE PARAMOS — IFP Connect
 
-> **Atualizado em 2026-06-23 (~20h30).** Este é o doc de estado VIVO — abra aqui ao retomar.
+> **Atualizado em 2026-06-24.** Este é o doc de estado VIVO — abra aqui ao retomar.
 > Branch de trabalho/entrega: `claude/continue-projetoifp-section-10-RKC1n`.
 > Detalhe do gap por tela: `docs/COMPARATIVO-100.md`. Esteiras autônomas: `docs/RFC-FECHAR-GAP-AUTONOMO.md`.
 
 ---
 
-## ✅ ESTADO ATUAL (tudo verde, tudo no ar)
+## ✅ ESTADO ATUAL
 
-- **Repo:** branch em `b536b7d`, working tree limpo, **tudo empurrado** pro GitHub.
-- **Produção (`ifp-final`):** rodando **`b536b7d`** — **20 unidades no ar** (9 da entrega da noite + Onda B 6 + Onda C 5), **8 migrations aditivas aplicadas**. Smoke HTTPS verde.
+- **Repo:** branch em `1b33af1`, working tree limpo, **tudo empurrado** pro GitHub.
+- **Produção (`ifp-final`):** rodando **`b536b7d`** — 20 unidades, 8 migrations. Smoke HTTPS verde.
+  - ⚠️ **A Onda D (`6f3f95f`→`1b33af1`, 6 commits) está no repo e verificada localmente, mas AINDA NÃO foi deployada** — produção está atrás. Como a Onda D é **zero-migration**, o deploy é trivial (build + up, **sem** rodar `migrate`).
   - URL: **https://ifp-final.taile04c66.ts.net** · SSH: `ifp@100.118.69.57` · stack em `/opt/ifp-connect`.
-- **Verificação:** `pnpm typecheck` do repo inteiro VERDE; **18 scripts `valida-*` verdes** (regressão backend por área).
+- **Verificação da Onda D (2026-06-24, ambiente local):** `pnpm typecheck` do repo inteiro VERDE; `valida-*` das áreas tocadas **todos verdes** — notificacoes **31/31** · ponte **15/15** · encaminhamentos **21/21** · social-ficha **32/32** · presidencia **54/54**.
 
-### O que foi entregue nas esteiras desta sessão (23/06)
+### O que foi entregue nas esteiras (23–24/06)
+- **Onda D (`6f3f95f`→`1b33af1`) — esteira ralphinho, zero-migration, verificada 24/06:** D1 Serviço Social a ~100% (timeline de encaminhamentos na ficha + `motivo` obrigatório no backend ao reprovar/suspender/desligar) · D2 ponte cross-vertical (ação "Sinalizar ao Social" reutilizável nas verticais médico/educacional → `POST /servico-social/ponte`) · D3 Central de Avisos real (`GET /notificacoes` agregando sinais por perfil, RBAC/tenant, + sino na topbar) · D4 panorama territorial por bairro (`GET /presidencia/territorio`, dado real de `fichaCidada.bairro`, sem geo falso) · D5 polimento de credibilidade (painel médico + chamada da capacitação).
 - **Onda B (`c90ed32`→`df4ac17`):** seletor de unidade pós-login · polimento esportivo/cap (4º estado "Atrasado", ocupação) · consentimento da família (imagem+dados LGPD) · agenda transversal das 4 unidades · relatórios institucionais selados em PDF · linha do tempo da criança.
 - **Onda C (`ea08a82`→`b536b7d`):** edição inline da ficha (+ corrigiu bug: CPF era editável) · painel/catálogo esportivo rico · impacto longitudinal (séries temporais) · **Banco de Modelos** (sessões práticas + matching aluno↔modelo) · **auto-provisionamento** de acesso da família (senha provisória, sem SMTP).
 
@@ -41,12 +43,14 @@ Em `ifp@100.118.69.57:/opt/ifp-connect` (detalhe e receita completa na memória 
 
 ---
 
-## 📋 PENDÊNCIAS (em aberto, sem pressa)
+## 📋 PENDÊNCIAS (em aberto)
 
-1. **Segurança:** `.env.production` ainda tem **senhas dev** → rotacionar segredos. *(próximo passo natural)*
-2. **Infra:** desativar a VM velha `ifp-app` (`100.104.192.49`) — exportar backup Amplimed (dado clínico) antes.
-3. **Bug menor (script de teste):** `scripts/valida-presidencia.mjs` loga o admin com a senha do médico (`SENHA_DEV`) em vez de `SENHA_ADMIN` → 401. É bug do teste, não do app.
-4. **Gap restante = decisão humana:** o "poço seguro" afinou. O que falta no `COMPARATIVO-100.md` é majoritariamente **IA** (resumo-ia, triagem-ia, histórias-ia, áudio), **site público** (design), e telas que dependem de **dados que não existem** (custo/beneficiário, CRM doadores, mapa territorial). Nada disso dá pra automatizar com segurança — exige você decidir escopo/design/dados.
+1. **Deploy da Onda D em produção (`ifp-final`):** repo está em `1b33af1`, produção em `b536b7d`. É **zero-migration** → seguir a receita de deploy acima **pulando o passo 4 (migrate)**: `pg_dump` backup → `git pull --ff-only` → `build api web` → `up -d` → smoke HTTPS. *(passo natural agora)*
+2. **Segurança:** `.env.production` ainda tem **senhas dev** → rotacionar segredos.
+3. **Infra:** desativar a VM velha `ifp-app` (`100.104.192.49`) — exportar backup Amplimed (dado clínico) antes.
+4. **Gap restante = decisão humana:** o "poço seguro" afinou. O que falta no `COMPARATIVO-100.md` é majoritariamente **IA** (resumo-ia, triagem-ia, histórias-ia, áudio), **site público** (design), e telas que dependem de **dados que não existem** (custo/beneficiário, CRM doadores). Nada disso dá pra automatizar com segurança — exige você decidir escopo/design/dados.
+
+> ✅ Resolvida (24/06): o bug do `valida-presidencia.mjs` (logava admin com `SENHA_DEV`) foi corrigido em `d98fcc8` — suíte agora passa 54/54.
 
 ## 📌 ATALHO
-Quer só continuar de onde paramos? Diga **"vamos pro passo natural"** → a sugestão é a **rotação de segredos do `.env.production`** (pendência #1). Ou aponte uma frente do gap (com sua decisão de escopo) que eu desenho e construo.
+Quer só continuar de onde paramos? Diga **"vamos pro passo natural"** → a sugestão é o **deploy da Onda D na `ifp-final`** (pendência #1, deploy trivial sem migration). Ou aponte uma frente do gap (com sua decisão de escopo) que eu desenho e construo.
