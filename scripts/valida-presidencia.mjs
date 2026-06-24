@@ -2,20 +2,23 @@
  * E2E da Sala de Comando (Presidência): RBAC (só PRESIDENCIA/SUPER_ADMIN),
  * forma das 5 respostas e INVARIANTES de agregação cross-unidade + fatos
  * conhecidos do seed (João/Maria em 3 unidades, Pedro em 2, Sandra em 1).
- * Uso: SENHA_DEV=... node scripts/valida-presidencia.mjs
+ * Uso: SENHA_DEV=... [SENHA_ADMIN=...] node scripts/valida-presidencia.mjs
+ *   SENHA_DEV   = SEED_MEDICO_PASSWORD (medico@/familia@ — perfis nao-admin)
+ *   SENHA_ADMIN = SEED_SUPER_ADMIN_PASSWORD (admin@ifp.local; cai em SENHA_DEV se ausente)
  */
 const API = process.env.API_URL_TESTE ?? "http://127.0.0.1:3333/api/v1";
 const SENHA = process.env.SENHA_DEV;
+const SENHA_ADMIN = process.env.SENHA_ADMIN ?? SENHA;
 if (!SENHA) {
   console.error("Defina SENHA_DEV");
   process.exit(2);
 }
 
-async function login(email) {
+async function login(email, senha = SENHA) {
   const r = await fetch(`${API}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, senha: SENHA }),
+    body: JSON.stringify({ email, senha }),
   });
   if (!r.ok) throw new Error(`login ${email}: ${r.status}`);
   return (await r.json()).accessToken;
@@ -57,7 +60,7 @@ function ok(nome, cond) {
 const soma = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
 
 const presidencia = await login("presidencia@ifp.local");
-const admin = await login("admin@ifp.local");
+const admin = await login("admin@ifp.local", SENHA_ADMIN);
 const medico = await login("medico@ifp.local");
 const familia = await login("familia@ifp.local");
 
