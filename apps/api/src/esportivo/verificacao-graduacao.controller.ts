@@ -1,10 +1,18 @@
-import { Controller, Get, NotFoundException, Param, Req } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Req,
+  StreamableFile,
+} from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 import { AcaoAuditoria } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { GraduacaoPdfService } from "./graduacao-pdf.service";
 
 /**
  * Verificação PÚBLICA de graduação (anti-fraude) — sem autenticação, molde
@@ -16,8 +24,27 @@ import { PrismaService } from "../prisma/prisma.service";
 export class VerificacaoGraduacaoController {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly pdf: GraduacaoPdfService,
     private readonly audit: AuditService,
   ) {}
+
+  @Get("verificar/:codigo/pdf")
+  @ApiOperation({ summary: "Baixa o diploma de graduação em PDF com QR (público)" })
+  @ApiParam({ name: "codigo", description: "código de verificação da graduação" })
+  async baixarPdf(
+    @Param("codigo") codigo: string,
+    @Req() req: Request,
+  ): Promise<StreamableFile> {
+    // Endpoint público: a trilha sem ip/userAgent seria anônima e inútil (LGPD).
+    const { buffer, filename } = await this.pdf.gerar(codigo, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+    return new StreamableFile(buffer, {
+      type: "application/pdf",
+      disposition: `inline; filename="${filename}"`,
+    });
+  }
 
   @Get("verificar/:codigo")
   @ApiOperation({ summary: "Verifica a autenticidade de uma graduação (público)" })

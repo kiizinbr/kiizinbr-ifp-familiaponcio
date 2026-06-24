@@ -148,6 +148,22 @@ console.log(
 const verificaFake = await req(null, "GET", "/esportivo/graduacoes/verificar/codigo-falso");
 caso("código falso", 404, verificaFake.status);
 
+console.log("--- DIPLOMA DE GRADUAÇÃO EM PDF (download público) ---");
+const pdfRes = await fetch(
+  `${API}/esportivo/graduacoes/verificar/${grad.json?.codigoVerificacao}/pdf`,
+);
+caso("baixa diploma PDF (sem token)", 200, pdfRes.status);
+caso(
+  "content-type é application/pdf",
+  true,
+  (pdfRes.headers.get("content-type") ?? "").includes("application/pdf"),
+);
+const pdfBuf = Buffer.from(await pdfRes.arrayBuffer());
+caso("corpo começa com a assinatura %PDF", "%PDF", pdfBuf.subarray(0, 4).toString("latin1"));
+caso("PDF tem tamanho razoável (>1KB)", true, pdfBuf.length > 1024);
+const pdfFake = await fetch(`${API}/esportivo/graduacoes/verificar/codigo-falso/pdf`);
+caso("PDF de código inexistente", 404, pdfFake.status);
+
 console.log("--- TREINO + CHAMADA SELADA ---");
 const treino = await req(sensei, "POST", `/esportivo/turmas/${turma.json.id}/treinos`, {
   data: new Date().toISOString(),

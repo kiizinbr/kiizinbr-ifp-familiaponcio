@@ -2,7 +2,7 @@
  * Verificação PÚBLICA de graduação esportiva — molde da verificação de
  * certificado. Sem login: qualquer federação/escola valida a autenticidade.
  */
-import { BadgeCheck, ShieldX } from "lucide-react";
+import { BadgeCheck, Download, ShieldX } from "lucide-react";
 
 import { API_BASE_URL } from "@/lib/api";
 
@@ -62,6 +62,16 @@ export default async function VerificarGraduacaoPage({
               : "—"}{" "}
             pelo Instituto Família Poncio
           </p>
+          <a
+            href={`${API_BASE_URL}/esportivo/graduacoes/verificar/${encodeURIComponent(
+              params.codigo,
+            )}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center justify-center gap-2 rounded-md border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white shadow-casa-sm transition hover:opacity-90"
+          >
+            <Download className="h-4 w-4" /> Baixar diploma (PDF)
+          </a>
         </div>
       ) : (
         <div className="mt-6 w-full rounded-lg border border-danger/40 bg-surface p-6 text-center shadow-ifp-sm">
