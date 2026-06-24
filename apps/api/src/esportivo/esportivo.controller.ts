@@ -167,4 +167,11 @@ export class EsportivoController {
   ) {
     return this.graduacoes.conceder(user, id, dto);
   }
+
+  @Get("matriculas/:id/frequencia")
+  @ApiOperation({ summary: "Ficha de frequência do atleta (treinos selados + sinal de evasão)" })
+  @ApiParam({ name: "id", description: "cuid da matrícula esportiva" })
+  frequenciaAtleta(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.treinos.frequenciaPorAtleta(user, id);
+  }
 }

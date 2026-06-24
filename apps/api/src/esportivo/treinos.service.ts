@@ -203,4 +203,66 @@ export class TreinosService {
 
     return { ...encerrado, resumoPresenca };
   }
+
+  /**
+   * Ficha de frequência de um atleta: agrega as presenças dele nos treinos
+   * SELADOS da turma (chamada imutável). Dá ao instrutor o sinal para graduar
+   * ou sinalizar evasão (sequência de faltas recentes).
+   */
+  async frequenciaPorAtleta(user: AuthenticatedUser, matriculaId: string) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.ESPORTIVO);
+    const matricula = await this.prisma.matriculaEsportiva.findUnique({
+      where: { id: matriculaId },
+      include: {
+        ficha: { select: { nomeCompleto: true } },
+        membro: { select: { nomeCompleto: true } },
+        turma: { include: { modalidade: { select: { nome: true } } } },
+      },
+    });
+    if (!matricula) throw new NotFoundException("Matrícula não encontrada");
+    if (
+      !user.perfis.includes(Perfil.SUPER_ADMIN) &&
+      matricula.unidadeId !== profissional.unidadeId
+    ) {
+      throw new ForbiddenException("Esta matrícula pertence a outra unidade.");
+    }
+
+    // Só treinos SELADOS entram na frequência oficial (chamada já imutável).
+    const presencas = await this.prisma.presencaTreino.findMany({
+      where: { matriculaId, treino: { encerradoEm: { not: null } } },
+      include: { treino: { select: { data: true, conteudo: true } } },
+      orderBy: { treino: { data: "desc" } },
+    });
+
+    const resumo = resumoDePresencas(presencas);
+
+    // Faltas consecutivas a partir do treino mais recente — gatilho de evasão.
+    let sequenciaFaltasRecentes = 0;
+    for (const p of presencas) {
+      if (p.status === StatusPresenca.FALTA) sequenciaFaltasRecentes++;
+      else break;
+    }
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "MatriculaEsportiva.frequencia",
+      entidadeId: matriculaId,
+      metadados: { turmaId: matricula.turmaId },
+    });
+
+    return {
+      matriculaId,
+      atleta: matricula.membro?.nomeCompleto ?? matricula.ficha.nomeCompleto,
+      modalidade: matricula.turma.modalidade.nome,
+      turma: matricula.turma.codigo,
+      ...resumo,
+      sequenciaFaltasRecentes,
+      historico: presencas.map((p) => ({
+        data: p.treino.data,
+        status: p.status,
+        conteudo: p.treino.conteudo,
+      })),
+    };
+  }
 }

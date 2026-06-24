@@ -220,6 +220,22 @@ caso("chamada após o selo (imutável)", 409, chamadaPosSelo.status);
 const selo2 = await req(sensei, "POST", `/esportivo/treinos/${treino.json?.id}/encerrar`);
 caso("selar 2x", 409, selo2.status);
 
+console.log("--- FICHA DE FREQUÊNCIA POR ATLETA ---");
+const freq = await req(sensei, "GET", `/esportivo/matriculas/${m1.json.id}/frequencia`);
+caso("frequência do atleta -> 200", 200, freq.status);
+// O treino selado acima tinha m1 PRESENTE → 1 treino contado, compareceu, 100%.
+caso("frequência: 1 treino selado contado", 1, freq.json?.total);
+caso("frequência: compareceu = 1", 1, freq.json?.compareceu);
+caso("frequência: % presença 100", 100, freq.json?.pctPresenca);
+caso("frequência: histórico é array", true, Array.isArray(freq.json?.historico));
+caso("frequência: histórico tem o treino selado", 1, (freq.json?.historico ?? []).length);
+caso("frequência: sequência de faltas recentes = 0", 0, freq.json?.sequenciaFaltasRecentes);
+// Dado sensível de presença — família não lê a ficha de frequência (RBAC).
+const freqFamilia = await req(familia, "GET", `/esportivo/matriculas/${m1.json.id}/frequencia`);
+caso("família -> frequência (RBAC)", 403, freqFamilia.status);
+const freqInexistente = await req(sensei, "GET", "/esportivo/matriculas/nao-existe/frequencia");
+caso("matrícula inexistente -> 404", 404, freqInexistente.status);
+
 console.log("--- DASHBOARDS (indicadores / painel / catálogo) ---");
 const indicadores = await req(sensei, "GET", "/esportivo/indicadores");
 caso("sensei -> indicadores", 200, indicadores.status);

@@ -163,6 +163,26 @@ export interface CatalogoEsportivo {
   };
 }
 
+export interface FrequenciaAtletaFicha {
+  matriculaId: string;
+  atleta: string;
+  modalidade: string;
+  turma: string;
+  total: number;
+  presentes: number;
+  faltas: number;
+  justificadas: number;
+  atrasos: number;
+  compareceu: number;
+  pctPresenca: number | null;
+  sequenciaFaltasRecentes: number;
+  historico: {
+    data: string;
+    status: "PRESENTE" | "FALTA" | "JUSTIFICADA" | "ATRASADO";
+    conteudo: string | null;
+  }[];
+}
+
 // ============================================================
 // Consultas
 // ============================================================
@@ -240,6 +260,17 @@ export function useTurmaEsportiva(id: string | undefined) {
     queryFn: () => authFetch<TurmaEsportivaDetalhe>(`/esportivo/turmas/${id}`),
     enabled: status === "authenticated" && !!id,
     placeholderData: (prev) => prev,
+  });
+}
+
+export function useFrequenciaAtleta(matriculaId: string | null) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["esportivo", "frequencia", matriculaId],
+    queryFn: () =>
+      authFetch<FrequenciaAtletaFicha>(`/esportivo/matriculas/${matriculaId}/frequencia`),
+    enabled: status === "authenticated" && !!matriculaId,
   });
 }
 

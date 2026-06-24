@@ -9,6 +9,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
+  Activity,
   ArrowLeft,
   CalendarPlus,
   Lock,
@@ -25,6 +26,7 @@ import {
   useCriarTreino,
   useEncerrarTurmaEsportiva,
   useFichasElegiveisEsportivo,
+  useFrequenciaAtleta,
   useGraduar,
   useMatricularEsportivo,
   useTurmaEsportiva,
@@ -182,6 +184,81 @@ function GraduarAtleta({
   );
 }
 
+/** Ficha de frequência do atleta — treinos selados + sinal de evasão (faltas seguidas). */
+function FrequenciaAtleta({
+  matriculaId,
+  onFechar,
+}: {
+  matriculaId: string;
+  onFechar: () => void;
+}) {
+  const { data, isLoading, isError } = useFrequenciaAtleta(matriculaId);
+
+  return (
+    <div className="mt-2 rounded-md border border-border bg-muted/40 p-3">
+      {isLoading ? (
+        <Spinner />
+      ) : isError || !data ? (
+        <p className="text-xs text-danger">Não foi possível carregar a frequência.</p>
+      ) : data.total === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Sem treinos selados ainda — a frequência aparece após o primeiro treino encerrado.
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <span className="font-semibold text-foreground">
+              Presença: {data.pctPresenca ?? 0}%
+            </span>
+            <span className="text-muted-foreground">
+              {data.compareceu}/{data.total} treinos
+            </span>
+            <span className="text-muted-foreground">Faltas: {data.faltas}</span>
+            <span className="text-muted-foreground">Atrasos: {data.atrasos}</span>
+            <span className="text-muted-foreground">Justificadas: {data.justificadas}</span>
+          </div>
+          {data.sequenciaFaltasRecentes >= 2 ? (
+            <p className="mt-2 inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">
+              ⚠ {data.sequenciaFaltasRecentes} faltas seguidas — risco de evasão
+            </p>
+          ) : null}
+          <ul className="mt-2 space-y-1">
+            {data.historico.slice(0, 6).map((h, i) => (
+              <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="w-12 font-medium text-foreground">
+                  {new Date(h.data).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}
+                </span>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                    h.status === "PRESENTE" && "bg-success/10 text-success",
+                    h.status === "ATRASADO" && "bg-primary/10 text-primary",
+                    h.status === "FALTA" && "bg-danger/10 text-danger",
+                    h.status === "JUSTIFICADA" && "bg-muted text-foreground",
+                  )}
+                >
+                  {h.status}
+                </span>
+                <span className="truncate">{h.conteudo ?? "—"}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={onFechar}
+            className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+          >
+            Fechar
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function TurmaEsportivaDetalhePage() {
   const { turmaId } = useParams<{ turmaId: string }>();
   const router = useRouter();
@@ -191,6 +268,7 @@ export default function TurmaEsportivaDetalhePage() {
 
   const [matricularAberto, setMatricularAberto] = useState(false);
   const [graduandoId, setGraduandoId] = useState<string | null>(null);
+  const [frequenciaId, setFrequenciaId] = useState<string | null>(null);
   const [resumoEncerramento, setResumoEncerramento] = useState<string | null>(null);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
 
@@ -340,6 +418,15 @@ export default function TurmaEsportivaDetalhePage() {
                     <Medal className="h-3.5 w-3.5" /> Graduar
                   </button>
                 ) : null}
+                {frequenciaId !== m.id ? (
+                  <button
+                    type="button"
+                    onClick={() => setFrequenciaId(m.id)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-primary"
+                  >
+                    <Activity className="h-3.5 w-3.5" /> Frequência
+                  </button>
+                ) : null}
               </div>
 
               {m.graduacoes.length > 0 ? (
@@ -363,6 +450,10 @@ export default function TurmaEsportivaDetalhePage() {
                   trilha={trilha}
                   onFechar={() => setGraduandoId(null)}
                 />
+              ) : null}
+
+              {frequenciaId === m.id ? (
+                <FrequenciaAtleta matriculaId={m.id} onFechar={() => setFrequenciaId(null)} />
               ) : null}
             </li>
           );
