@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   CalendarDays,
   CheckCircle2,
-  ClipboardList,
   Clock,
   FileText,
   ListOrdered,
@@ -12,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { STATUS_AGENDAMENTO_LABEL } from "@/lib/api";
 import { useAgendaDoDia } from "@/lib/use-medico";
 
 const ATALHOS = [
@@ -63,14 +63,32 @@ function Kpi({
   );
 }
 
+function horaDe(iso: string) {
+  return new Date(iso).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function MedicoHome() {
-  const { data } = useAgendaDoDia();
+  const { data, isLoading } = useAgendaDoDia();
   const items = data?.items ?? [];
   const aguardando = items.filter(
     (a) => a.status === "AGENDADO" || a.status === "CONFIRMADO",
   ).length;
   const emAtendimento = items.filter((a) => a.status === "EM_ATENDIMENTO").length;
   const concluidos = items.filter((a) => a.status === "CONCLUIDO").length;
+
+  // Próximos da fila: ainda não atendidos/encerrados/cancelados, por horário.
+  const proximos = items
+    .filter(
+      (a) =>
+        a.status === "AGENDADO" ||
+        a.status === "CONFIRMADO" ||
+        a.status === "EM_ATENDIMENTO",
+    )
+    .sort((a, b) => a.inicioEm.localeCompare(b.inicioEm))
+    .slice(0, 5);
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -83,6 +101,43 @@ export default function MedicoHome() {
         <Kpi rotulo="Em atendimento" valor={emAtendimento} icone={<Stethoscope className="h-5 w-5" />} />
         <Kpi rotulo="Concluídos" valor={concluidos} icone={<CheckCircle2 className="h-5 w-5" />} />
       </div>
+
+      <section className="mt-8 rounded-lg border border-border bg-surface p-5 shadow-ifp-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-foreground">Próximos pacientes</h2>
+          <Link
+            href="/medico/fila"
+            className="text-sm text-muted-foreground hover:text-primary"
+          >
+            Ver fila
+          </Link>
+        </div>
+
+        {isLoading ? (
+          <p className="mt-3 text-sm text-muted-foreground">Carregando agenda…</p>
+        ) : proximos.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Nenhum paciente aguardando atendimento agora.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-border">
+            {proximos.map((a) => (
+              <li key={a.id} className="flex items-center gap-3 py-2.5">
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  <Clock className="h-4 w-4" />
+                  {horaDe(a.inicioEm)}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                  {a.membro?.nomeCompleto ?? a.ficha.nomeCompleto}
+                </span>
+                <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+                  {STATUS_AGENDAMENTO_LABEL[a.status]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ATALHOS.map((a) => {

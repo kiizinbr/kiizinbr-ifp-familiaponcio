@@ -70,6 +70,18 @@ export default function ChamadaPage() {
     return alunos.map((m) => ({ matriculaId: m.id, status: statusDe(m.id) }));
   }
 
+  // Resumo da chamada — derivado da marcação atual (mesma regra do `itens()`).
+  const resumo = alunos.reduce(
+    (acc, m) => {
+      const s = statusDe(m.id);
+      if (s === "PRESENTE") acc.presentes += 1;
+      else if (s === "FALTA") acc.faltas += 1;
+      else if (s === "JUSTIFICADA") acc.justificados += 1;
+      return acc;
+    },
+    { presentes: 0, faltas: 0, justificados: 0 },
+  );
+
   async function salvar(selarDepois: boolean) {
     setAviso(null);
     try {
@@ -107,6 +119,29 @@ export default function ChamadaPage() {
         </div>
       ) : null}
       {aviso ? <div className="mt-4"><Alerta tipo={aviso === "Chamada salva." ? "info" : "erro"}>{aviso}</Alerta></div> : null}
+
+      {alunos.length > 0 ? (
+        <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-lg border border-border bg-surface p-2.5">
+            <div className="text-xl font-bold text-success">{resumo.presentes}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              Presentes
+            </div>
+          </div>
+          <div className="rounded-lg border border-border bg-surface p-2.5">
+            <div className="text-xl font-bold text-danger">{resumo.faltas}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              Faltas
+            </div>
+          </div>
+          <div className="rounded-lg border border-border bg-surface p-2.5">
+            <div className="text-xl font-bold text-warning">{resumo.justificados}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              Justificados
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <ul className="mt-5 space-y-2">
         {alunos.map((m) => {
