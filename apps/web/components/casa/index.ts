@@ -7,6 +7,7 @@ export { CoroaSeal } from "./CoroaSeal";
 export { CasaDefs } from "./CasaDefs";
 export { BuscaGlobal } from "./BuscaGlobal";
 export { SeletorUnidade } from "./SeletorUnidade";
+export { SinoNotificacoes } from "./SinoNotificacoes";
 export { SinalizarSocial } from "./SinalizarSocial";
 export { Card, PageHeader, SecTitle, Kpi, Pill, ListRow, Pulso } from "./blocks";
 export { ShellInterno, ShellPublico, ShellMobile } from "./Shell";

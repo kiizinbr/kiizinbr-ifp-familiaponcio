@@ -485,6 +485,26 @@ export const TIPO_ITEM_AGENDA_LABEL: Record<TipoItemAgenda, string> = {
 };
 
 // ============================================================
+// Central de Avisos (sino da topbar) — agregação read-only de
+// sinais reais por perfil. `total` = nº de pendências; `itens` é a
+// janela das mais recentes (pode ser menor que `total`).
+// ============================================================
+
+export interface NotificacaoItem {
+  id: string;
+  tipo: string;
+  titulo: string;
+  descricao?: string;
+  href: string;
+  em?: string; // ISO
+}
+
+export interface Notificacoes {
+  total: number;
+  itens: NotificacaoItem[];
+}
+
+// ============================================================
 // Centro Médico (Fase 1 — agenda + prancha de atendimento)
 // ============================================================
 
