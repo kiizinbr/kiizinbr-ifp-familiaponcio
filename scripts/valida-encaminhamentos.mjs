@@ -119,7 +119,30 @@ caso("recusar já aceito → 409", 409, recusarAposAceite.status);
 console.log("--- HISTÓRICO ---");
 const hist = await req(admin, "GET", `/servico-social/encaminhamentos/${fichaId}/historico`);
 caso("histórico → 200", 200, hist.status);
+caso("histórico devolve array em items", true, Array.isArray(hist.json?.items));
 caso("histórico tem itens", true, (hist.json?.items ?? []).length > 0);
+// Todo item é desta ficha e traz origem→destino + status (timeline coerente p/ a UI).
+const histItems = hist.json?.items ?? [];
+caso(
+  "todo item é da ficha consultada",
+  true,
+  histItems.every((e) => e.fichaId === fichaId),
+);
+caso(
+  "todo item traz origem→destino e status",
+  true,
+  histItems.every((e) => !!e.unidadeOrigem && !!e.unidadeDestino && !!e.status),
+);
+// Ordenação esperada: mais recentes primeiro (criadoEm desc).
+caso(
+  "histórico ordenado por criadoEm desc",
+  true,
+  histItems.every((e, i) => i === 0 || new Date(histItems[i - 1].criadoEm) >= new Date(e.criadoEm)),
+);
+// Histórico de ficha inexistente → 200 com array vazio (não 500).
+const histVazio = await req(admin, "GET", `/servico-social/encaminhamentos/ficha-inexistente-xyz/historico`);
+caso("histórico de ficha inexistente → 200", 200, histVazio.status);
+caso("histórico de ficha inexistente → array vazio", 0, (histVazio.json?.items ?? []).length);
 
 console.log("--- RBAC ---");
 const rbac = await req(medico, "GET", "/servico-social/encaminhamentos");

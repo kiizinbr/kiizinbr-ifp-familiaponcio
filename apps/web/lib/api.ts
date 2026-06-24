@@ -405,6 +405,11 @@ export interface ListaEncaminhamentos {
   pagination: Paginacao;
 }
 
+/** Timeline de encaminhamentos de uma ficha (sem KPIs/paginação). */
+export interface HistoricoEncaminhamentos {
+  items: Encaminhamento[];
+}
+
 export interface SinalizacaoPonte {
   id: string;
   fichaId: string;

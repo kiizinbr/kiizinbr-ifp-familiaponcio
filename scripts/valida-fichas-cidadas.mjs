@@ -91,16 +91,37 @@ caso("#4 cria autorizado c/ vigenteAte (201)", 201, na.status);
 caso("#4 vigenteAte gravado como fim do dia SP", "2026-06-23T02:59:59.999Z", na.json?.vigenteAte);
 
 // ── motivo obrigatório ao revogar elegibilidade (P2 rodada 2) ─────────
+// O backend é a fonte de verdade: TODO status negativo (REPROVADO/SUSPENSO/
+// DESLIGADO) exige motivo. Validamos os três + os caminhos felizes.
 const semMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
   status: "REPROVADO",
 });
 caso("reprovar elegibilidade SEM motivo → 400", 400, semMotivo.status);
+const suspSemMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
+  status: "SUSPENSO",
+});
+caso("suspender elegibilidade SEM motivo → 400", 400, suspSemMotivo.status);
+const deslSemMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
+  status: "DESLIGADO",
+});
+caso("desligar elegibilidade SEM motivo → 400", 400, deslSemMotivo.status);
+// Motivo só de espaços não vale (backend faz trim + mín. 3 chars).
+const soEspacos = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
+  status: "REPROVADO",
+  motivo: "   ",
+});
+caso("reprovar com motivo em branco → 400", 400, soEspacos.status);
 const comMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
   status: "REPROVADO",
   motivo: "Renda acima do critério (QA).",
 });
 caso("reprovar COM motivo → 200", 200, comMotivo.status);
 caso("motivo fica gravado", true, /renda acima/i.test(comMotivo.json?.motivo ?? ""));
+// Caminho feliz não regride: status positivo dispensa motivo.
+const aprovaSemMotivo = await req(admin, "PUT", `/fichas-cidadas/${ficha.id}/elegibilidade/educacional`, {
+  status: "APROVADO",
+});
+caso("aprovar SEM motivo → 200 (não exige motivo)", 200, aprovaSemMotivo.status);
 
 console.log("");
 console.log(`${res.filter(Boolean).length}/${res.length}`);

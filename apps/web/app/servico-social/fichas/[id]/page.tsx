@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Check, KeyRound, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, KeyRound, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import {
   asOptions,
   ESCOLARIDADE_LABEL,
   ESTADO_CIVIL_LABEL,
   PARENTESCO_LABEL,
+  PRIORIDADE_SINAL_LABEL,
   SITUACAO_MORADIA_LABEL,
+  STATUS_ENCAMINHAMENTO_LABEL,
   STATUS_LABEL,
   UNIDADES,
   type Elegibilidade,
@@ -19,7 +21,9 @@ import {
   type FichaDetalhe,
   type Membro,
   type Parentesco,
+  type PrioridadeSinal,
   type StatusElegibilidade,
+  type StatusEncaminhamento,
 } from "@/lib/api";
 import {
   useAcessoFamilia,
@@ -31,6 +35,7 @@ import {
   type AtualizarFichaPayload,
   type MembroPayload,
 } from "@/lib/use-fichas";
+import { useHistoricoEncaminhamentos } from "@/lib/use-encaminhamentos";
 import {
   formatCpf,
   formatDataHora,
@@ -39,6 +44,7 @@ import {
   formatTelefone,
   idadeAnos,
 } from "@/lib/format";
+import { cn } from "@/lib/cn";
 import { Alerta, BadgeStatus, Botao, Campo, Select, Spinner, Textarea, Input } from "@/components/ui";
 
 const statusOptions = asOptions(STATUS_LABEL);
@@ -599,6 +605,87 @@ function SecaoAcessoFamilia({ fichaId }: { fichaId: string }) {
   );
 }
 
+// ============================================================
+// Histórico de encaminhamentos (timeline) — read-only, padrão CASA
+// ============================================================
+const PRIORIDADE_PILULA: Record<PrioridadeSinal, string> = {
+  NORMAL: "border-border text-muted-foreground",
+  URGENTE: "border-danger/40 bg-danger/10 text-danger",
+};
+const STATUS_PILULA: Record<StatusEncaminhamento, string> = {
+  PENDENTE: "border-border text-muted-foreground",
+  ACEITO: "border-success/40 bg-success/10 text-success",
+  RECUSADO: "border-danger/40 bg-danger/10 text-danger",
+};
+
+function Pilula({ className, children }: { className: string; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function SecaoHistoricoEncaminhamentos({ fichaId }: { fichaId: string }) {
+  const { data, isLoading, isError, error } = useHistoricoEncaminhamentos(fichaId);
+  const items = data?.items ?? [];
+
+  return (
+    <Secao titulo="Histórico de encaminhamentos">
+      <p className="mb-4 text-sm text-muted-foreground">
+        Encaminhamentos desta família entre as unidades, dos mais recentes aos mais antigos.
+      </p>
+
+      {isLoading ? (
+        <Spinner label="Carregando histórico..." />
+      ) : isError ? (
+        <Alerta>{(error as Error)?.message ?? "Não foi possível carregar o histórico."}</Alerta>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum encaminhamento registrado.</p>
+      ) : (
+        <ol className="relative space-y-5 border-l border-border pl-5">
+          {items.map((enc) => (
+            <li key={enc.id} className="relative">
+              <span
+                className="absolute -left-[1.4rem] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-primary"
+                aria-hidden
+              />
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+                  <span>{enc.unidadeOrigem.nome}</span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <span>{enc.unidadeDestino.nome}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Pilula className={PRIORIDADE_PILULA[enc.prioridade]}>
+                    {PRIORIDADE_SINAL_LABEL[enc.prioridade]}
+                  </Pilula>
+                  <Pilula className={STATUS_PILULA[enc.status]}>
+                    {STATUS_ENCAMINHAMENTO_LABEL[enc.status]}
+                  </Pilula>
+                </div>
+              </div>
+              <p className="mt-1 text-sm text-foreground">{enc.motivo}</p>
+              {enc.justificativaResposta ? (
+                <p className="mt-1 text-xs text-danger">Recusado: {enc.justificativaResposta}</p>
+              ) : null}
+              <p className="mt-1 text-xs text-muted-foreground">
+                Aberto em {formatDataHora(enc.criadoEm)}
+                {enc.respondidoEm ? ` · respondido em ${formatDataHora(enc.respondidoEm)}` : ""}
+              </p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Secao>
+  );
+}
+
 export default function FichaDetalhePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -794,6 +881,9 @@ export default function FichaDetalhePage() {
           ))}
         </div>
       </Secao>
+
+      {/* Histórico de encaminhamentos entre unidades (timeline read-only) */}
+      <SecaoHistoricoEncaminhamentos fichaId={ficha.id} />
 
       {/* Acesso da família (auto-provisionamento) */}
       <SecaoAcessoFamilia fichaId={ficha.id} />

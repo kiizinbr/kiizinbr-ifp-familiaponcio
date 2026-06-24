@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useAuthFetch } from "./use-auth-fetch";
 import type {
   Encaminhamento,
+  HistoricoEncaminhamentos,
   ListaEncaminhamentos,
   PrioridadeSinal,
   StatusEncaminhamento,
@@ -45,6 +46,20 @@ export function useEncaminhamentos(params: EncaminhamentosQuery) {
       authFetch<ListaEncaminhamentos>(`/servico-social/encaminhamentos${buildQuery(params)}`),
     enabled: status === "authenticated",
     placeholderData: (prev) => prev,
+  });
+}
+
+/** Timeline de encaminhamentos de uma ficha (mais recentes primeiro). */
+export function useHistoricoEncaminhamentos(fichaId: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["encaminhamentos", "historico", fichaId],
+    queryFn: () =>
+      authFetch<HistoricoEncaminhamentos>(
+        `/servico-social/encaminhamentos/${fichaId}/historico`,
+      ),
+    enabled: status === "authenticated" && Boolean(fichaId),
   });
 }
 
