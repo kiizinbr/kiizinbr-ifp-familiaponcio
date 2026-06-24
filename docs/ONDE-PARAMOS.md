@@ -45,12 +45,12 @@ Em `ifp@100.118.69.57:/opt/ifp-connect` (detalhe e receita completa na memória 
 
 ## 📋 PENDÊNCIAS (em aberto)
 
-1. **Deploy da Onda D em produção (`ifp-final`):** repo está em `1b33af1`, produção em `b536b7d`. É **zero-migration** → seguir a receita de deploy acima **pulando o passo 4 (migrate)**: `pg_dump` backup → `git pull --ff-only` → `build api web` → `up -d` → smoke HTTPS. *(passo natural agora)*
-2. **Segurança:** `.env.production` ainda tem **senhas dev** → rotacionar segredos.
-3. **Infra:** desativar a VM velha `ifp-app` (`100.104.192.49`) — exportar backup Amplimed (dado clínico) antes.
-4. **Gap restante = decisão humana:** o "poço seguro" afinou. O que falta no `COMPARATIVO-100.md` é majoritariamente **IA** (resumo-ia, triagem-ia, histórias-ia, áudio), **site público** (design), e telas que dependem de **dados que não existem** (custo/beneficiário, CRM doadores). Nada disso dá pra automatizar com segurança — exige você decidir escopo/design/dados.
+1. **Infra:** desativar a VM velha `ifp-app` (`100.104.192.49`) — **exportar o backup Amplimed (dado clínico) ANTES** (irreversível). *(passo natural agora)*
+2. **Gap restante = decisão humana:** o "poço seguro" afinou. O que falta no `COMPARATIVO-100.md` é majoritariamente **IA** (resumo-ia, triagem-ia, histórias-ia, áudio), **site público** (design), e telas que dependem de **dados que não existem** (custo/beneficiário, CRM doadores). Nada disso dá pra automatizar com segurança — exige você decidir escopo/design/dados.
 
+> ✅ Resolvida (24/06): **Onda D deployada** na `ifp-final` (`ab767fb`, zero-migration) — 5 unidades no ar.
+> ✅ Resolvida (24/06): **rotação de segredos de produção** — 4 estruturais (POSTGRES/REDIS/JWT/NEXTAUTH) + as 8 senhas de conta `@ifp.local` trocadas por fortes (login com senha dev antiga agora dá 401). Segredos em `C:\Users\Erick\ifp-deploy\secrets-prod-20260624.txt` → **mover pro Vaultwarden e apagar**. ⚠ **Pegadinha:** `up -d` NÃO recria api/web/redis quando só o `.env` muda (valor interpolado em `DATABASE_URL`/`REDIS_URL` etc.) — precisa **`--force-recreate`**; e o **`/health` não detecta** (não toca banco/redis) → smoke sempre com **login**. Postgres rotaciona por `ALTER USER` (volume persiste); redis precisa recreate (senha vive no `command`). *(Dev local segue com senhas dev — não confundir com produção.)*
 > ✅ Resolvida (24/06): o bug do `valida-presidencia.mjs` (logava admin com `SENHA_DEV`) foi corrigido em `d98fcc8` — suíte agora passa 54/54.
 
 ## 📌 ATALHO
-Quer só continuar de onde paramos? Diga **"vamos pro passo natural"** → a sugestão é o **deploy da Onda D na `ifp-final`** (pendência #1, deploy trivial sem migration). Ou aponte uma frente do gap (com sua decisão de escopo) que eu desenho e construo.
+Quer continuar de onde paramos? Diga **"vamos pro passo natural"** → a sugestão é **desativar a VM velha `ifp-app`** (exportando o backup Amplimed antes). Ou aponte uma frente do gap (com sua decisão de escopo) que eu desenho e construo.
