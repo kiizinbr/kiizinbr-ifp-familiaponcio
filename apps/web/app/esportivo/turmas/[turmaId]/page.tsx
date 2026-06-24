@@ -14,6 +14,7 @@ import {
   CalendarPlus,
   Lock,
   Medal,
+  Pencil,
   Search,
   Stamp,
   Trophy,
@@ -24,6 +25,7 @@ import {
 import { STATUS_MATRICULA_LABEL, STATUS_TURMA_LABEL } from "@/lib/api";
 import {
   useCriarTreino,
+  useEditarTurmaEsportiva,
   useEncerrarTurmaEsportiva,
   useFichasElegiveisEsportivo,
   useFrequenciaAtleta,
@@ -31,6 +33,7 @@ import {
   useMatricularEsportivo,
   useTurmaEsportiva,
   type MatriculaEsportivaItem,
+  type TurmaEsportivaDetalhe,
 } from "@/lib/use-esportivo";
 import { Alerta, Botao, Campo, Input, Select, Spinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -259,6 +262,112 @@ function FrequenciaAtleta({
   );
 }
 
+/** Form de correção dos dados operacionais da turma (não muda modalidade/código). */
+function EditarTurma({
+  turma,
+  onFechar,
+}: {
+  turma: TurmaEsportivaDetalhe;
+  onFechar: () => void;
+}) {
+  const editar = useEditarTurmaEsportiva();
+  const [diasHorario, setDiasHorario] = useState(turma.diasHorario);
+  const [local, setLocal] = useState(turma.local ?? "");
+  const [vagas, setVagas] = useState(String(turma.vagasTotais));
+  const [faixaMin, setFaixaMin] = useState(turma.faixaEtariaMin?.toString() ?? "");
+  const [faixaMax, setFaixaMax] = useState(turma.faixaEtariaMax?.toString() ?? "");
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function salvar() {
+    setErro(null);
+    try {
+      await editar.mutateAsync({
+        turmaId: turma.id,
+        diasHorario: diasHorario.trim(),
+        local: local.trim() || undefined,
+        vagasTotais: Number(vagas),
+        faixaEtariaMin: faixaMin !== "" ? Number(faixaMin) : undefined,
+        faixaEtariaMax: faixaMax !== "" ? Number(faixaMax) : undefined,
+      });
+      onFechar();
+    } catch (e) {
+      setErro((e as Error).message || "Falha ao salvar.");
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-primary/30 bg-surface p-4 shadow-casa-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Corrigir dados da turma</h3>
+        <button
+          onClick={onFechar}
+          aria-label="Fechar"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+        <Campo label="Dias e horário" htmlFor="ed-dias">
+          <Input id="ed-dias" value={diasHorario} onChange={(e) => setDiasHorario(e.target.value)} />
+        </Campo>
+        <Campo label="Local" htmlFor="ed-local">
+          <Input
+            id="ed-local"
+            value={local}
+            onChange={(e) => setLocal(e.target.value)}
+            placeholder="Opcional"
+          />
+        </Campo>
+        <Campo label="Vagas" htmlFor="ed-vagas">
+          <Input
+            id="ed-vagas"
+            type="number"
+            min={1}
+            value={vagas}
+            onChange={(e) => setVagas(e.target.value)}
+          />
+        </Campo>
+        <div className="grid grid-cols-2 gap-2">
+          <Campo label="Idade mín." htmlFor="ed-min">
+            <Input
+              id="ed-min"
+              type="number"
+              min={0}
+              value={faixaMin}
+              onChange={(e) => setFaixaMin(e.target.value)}
+              placeholder="—"
+            />
+          </Campo>
+          <Campo label="Idade máx." htmlFor="ed-max">
+            <Input
+              id="ed-max"
+              type="number"
+              min={0}
+              value={faixaMax}
+              onChange={(e) => setFaixaMax(e.target.value)}
+              placeholder="—"
+            />
+          </Campo>
+        </div>
+      </div>
+      {erro ? (
+        <div className="mt-2">
+          <Alerta tipo="erro">{erro}</Alerta>
+        </div>
+      ) : null}
+      <div className="mt-3 flex gap-2">
+        <Botao carregando={editar.isPending} onClick={salvar}>
+          Salvar
+        </Botao>
+        <Botao variante="ghost" disabled={editar.isPending} onClick={onFechar}>
+          Cancelar
+        </Botao>
+      </div>
+    </div>
+  );
+}
+
 export default function TurmaEsportivaDetalhePage() {
   const { turmaId } = useParams<{ turmaId: string }>();
   const router = useRouter();
@@ -269,6 +378,7 @@ export default function TurmaEsportivaDetalhePage() {
   const [matricularAberto, setMatricularAberto] = useState(false);
   const [graduandoId, setGraduandoId] = useState<string | null>(null);
   const [frequenciaId, setFrequenciaId] = useState<string | null>(null);
+  const [editando, setEditando] = useState(false);
   const [resumoEncerramento, setResumoEncerramento] = useState<string | null>(null);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
 
@@ -341,16 +451,27 @@ export default function TurmaEsportivaDetalhePage() {
                 : ""}
             </p>
           </div>
-          <span
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-semibold",
-              encerrada
-                ? "border-success/50 bg-success/10 text-success"
-                : "border-primary/60 bg-primary/10 text-primary",
-            )}
-          >
-            {STATUS_TURMA_LABEL[turma.status]}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-semibold",
+                encerrada
+                  ? "border-success/50 bg-success/10 text-success"
+                  : "border-primary/60 bg-primary/10 text-primary",
+              )}
+            >
+              {STATUS_TURMA_LABEL[turma.status]}
+            </span>
+            {!encerrada ? (
+              <button
+                type="button"
+                onClick={() => setEditando((v) => !v)}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:text-primary"
+              >
+                <Pencil className="h-3.5 w-3.5" /> Editar
+              </button>
+            ) : null}
+          </div>
         </div>
         {trilha.length > 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
@@ -359,6 +480,8 @@ export default function TurmaEsportivaDetalhePage() {
           </p>
         ) : null}
       </div>
+
+      {editando ? <EditarTurma turma={turma} onFechar={() => setEditando(false)} /> : null}
 
       {resumoEncerramento ? (
         <div className="mt-4">

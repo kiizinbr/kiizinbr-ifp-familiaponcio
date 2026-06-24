@@ -114,6 +114,31 @@ const semElegibilidade = await req(
 );
 caso("ficha sem elegibilidade (regra de ouro)", 400, semElegibilidade.status);
 
+console.log("--- EDITAR TURMA (correção de dados) ---");
+const editOk = await req(sensei, "PUT", `/esportivo/turmas/${turma.json.id}`, {
+  diasHorario: "Seg/Qua 14h-15h30",
+  local: "Tatame 2",
+});
+caso("edita turma -> 200", 200, editOk.status);
+caso("diasHorario atualizado", "Seg/Qua 14h-15h30", editOk.json?.diasHorario);
+caso("local atualizado", "Tatame 2", editOk.json?.local);
+const editFaixa = await req(sensei, "PUT", `/esportivo/turmas/${turma.json.id}`, {
+  faixaEtariaMin: 15,
+  faixaEtariaMax: 8,
+});
+caso("faixa etária invertida -> 400", 400, editFaixa.status);
+// 1 atleta ativo: vagas=1 (== ativos) passa; a regra barra só vagas < ativos.
+const editVagas = await req(sensei, "PUT", `/esportivo/turmas/${turma.json.id}`, {
+  vagasTotais: 1,
+});
+caso("vagas == atletas ativos -> 200", 200, editVagas.status);
+const editFamilia = await req(familia, "PUT", `/esportivo/turmas/${turma.json.id}`, {
+  local: "hack",
+});
+caso("família -> editar turma (RBAC)", 403, editFamilia.status);
+const editInexistente = await req(sensei, "PUT", "/esportivo/turmas/nao-existe", { local: "x" });
+caso("turma inexistente -> 404", 404, editInexistente.status);
+
 console.log("--- GRADUAÇÃO (trilha + verificação pública) ---");
 const grad = await req(sensei, "POST", `/esportivo/matriculas/${m1.json.id}/graduacoes`, {
   nivel: "Faixa Cinza",

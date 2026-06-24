@@ -21,6 +21,7 @@ import { ConcederGraduacaoDto } from "./dto/conceder-graduacao.dto";
 import { CriarMatriculaEsportivaDto } from "./dto/criar-matricula-esportiva.dto";
 import { CriarTreinoDto } from "./dto/criar-treino.dto";
 import { CriarTurmaEsportivaDto } from "./dto/criar-turma-esportiva.dto";
+import { EditarTurmaEsportivaDto } from "./dto/editar-turma-esportiva.dto";
 import { LancarChamadaTreinoDto } from "./dto/lancar-chamada-treino.dto";
 import { GraduacoesService } from "./graduacoes.service";
 import { TreinosService } from "./treinos.service";
@@ -108,6 +109,17 @@ export class EsportivoController {
   @ApiParam({ name: "id", description: "cuid da turma esportiva" })
   detalhe(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.turmas.detalhe(user, id);
+  }
+
+  @Put("turmas/:id")
+  @ApiOperation({ summary: "Corrige dados da turma (horário, local, faixa etária, vagas)" })
+  @ApiParam({ name: "id", description: "cuid da turma esportiva" })
+  editarTurma(
+    @Param("id") id: string,
+    @Body() dto: EditarTurmaEsportivaDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.turmas.editar(user, id, dto);
   }
 
   @Post("turmas/:id/encerrar")

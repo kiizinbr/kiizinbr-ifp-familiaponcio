@@ -419,6 +419,28 @@ export function useEncerrarTreino() {
   });
 }
 
+export interface EditarTurmaEsportivaPayload {
+  turmaId: string;
+  diasHorario?: string;
+  local?: string;
+  faixaEtariaMin?: number;
+  faixaEtariaMax?: number;
+  vagasTotais?: number;
+}
+
+export function useEditarTurmaEsportiva() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ turmaId, ...payload }: EditarTurmaEsportivaPayload) =>
+      authFetch<TurmaEsportivaResumo>(`/esportivo/turmas/${turmaId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["esportivo"] }),
+  });
+}
+
 export function useEncerrarTurmaEsportiva() {
   const authFetch = useAuthFetch();
   const qc = useQueryClient();

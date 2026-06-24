@@ -20,6 +20,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import type { CriarMatriculaEsportivaDto } from "./dto/criar-matricula-esportiva.dto";
 import type { CriarTurmaEsportivaDto } from "./dto/criar-turma-esportiva.dto";
+import type { EditarTurmaEsportivaDto } from "./dto/editar-turma-esportiva.dto";
 import { ProfissionaisService } from "../medico/profissionais.service";
 
 const turmaEsportivaDetalheInclude = {
@@ -473,6 +474,66 @@ export class TurmasEsportivasService {
     });
 
     return turma;
+  }
+
+  /**
+   * Corrige os dados operacionais da turma (horário, local, faixa etária, vagas).
+   * Não mexe em identidade (modalidade/código) nem no status (tem fluxo próprio).
+   */
+  async editar(user: AuthenticatedUser, id: string, dto: EditarTurmaEsportivaDto) {
+    const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.ESPORTIVO);
+    const turma = await this.prisma.turmaEsportiva.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        profissionalId: true,
+        status: true,
+        faixaEtariaMin: true,
+        faixaEtariaMax: true,
+        _count: { select: { matriculas: { where: { status: StatusMatricula.ATIVA } } } },
+      },
+    });
+    if (!turma) throw new NotFoundException("Turma não encontrada");
+    this.profissionais.assertOwnership(turma.profissionalId, profissional, user);
+    if (turma.status === StatusTurma.ENCERRADA) {
+      throw new BadRequestException("Turma encerrada não pode ser editada.");
+    }
+
+    // Faixa etária final coerente (considera os valores que ficarão após o patch).
+    const min = dto.faixaEtariaMin !== undefined ? dto.faixaEtariaMin : turma.faixaEtariaMin;
+    const max = dto.faixaEtariaMax !== undefined ? dto.faixaEtariaMax : turma.faixaEtariaMax;
+    if (min != null && max != null && min > max) {
+      throw new BadRequestException("Faixa etária mínima maior que a máxima.");
+    }
+
+    // Não reduzir vagas abaixo dos atletas já ATIVOS (evita overbooking retroativo).
+    if (dto.vagasTotais !== undefined && dto.vagasTotais < turma._count.matriculas) {
+      throw new BadRequestException(
+        `A turma já tem ${turma._count.matriculas} atleta(s) ativo(s) — defina ao menos esse número de vagas.`,
+      );
+    }
+
+    const atualizada = await this.prisma.turmaEsportiva.update({
+      where: { id },
+      data: {
+        ...(dto.diasHorario !== undefined ? { diasHorario: dto.diasHorario } : {}),
+        ...(dto.local !== undefined ? { local: dto.local } : {}),
+        ...(dto.faixaEtariaMin !== undefined ? { faixaEtariaMin: dto.faixaEtariaMin } : {}),
+        ...(dto.faixaEtariaMax !== undefined ? { faixaEtariaMax: dto.faixaEtariaMax } : {}),
+        ...(dto.vagasTotais !== undefined ? { vagasTotais: dto.vagasTotais } : {}),
+      },
+      include: { modalidade: true, _count: { select: { matriculas: true } } },
+    });
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.UPDATE,
+      entidade: "TurmaEsportiva",
+      entidadeId: id,
+      metadados: { acao: "edicao", campos: Object.keys(dto) },
+    });
+
+    return atualizada;
   }
 
   /** Matricula respeitando a regra de ouro (elegibilidade APROVADA) e as vagas. */
