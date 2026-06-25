@@ -1697,7 +1697,11 @@ async function seedConquistasFamilia() {
     }
     await prisma.graduacao.upsert({
       where: { matriculaId_nivel: { matriculaId: matEsp.id, nivel: "Faixa Branca" } },
-      update: {},
+      // concedidaEm refrescado a cada seed: a graduação é o marco "de hoje", sempre
+      // o evento mais novo da linha do tempo da criança (o diário é de "ontem").
+      // Sem isso, o @default(now()) congelava na 1ª seed e re-seeds diários
+      // diários acabavam ficando mais novos que a graduação (timeline fora de ordem).
+      update: { concedidaEm: new Date() },
       create: {
         unidadeId: unidadeEsp.id,
         matriculaId: matEsp.id,
@@ -1705,6 +1709,7 @@ async function seedConquistasFamilia() {
         codigoVerificacao: "seed-grad-ana",
         observacao: "Primeira graduação — fixture do portal da família",
         concedidaPor: sensei.userId,
+        concedidaEm: new Date(),
       },
     });
     console.log("  ✓ Graduação esportiva da Ana (cód. seed-grad-ana)");
