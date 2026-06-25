@@ -84,19 +84,37 @@ export class TurmasController {
   }
 
   @Get("certificados")
-  @ApiOperation({ summary: "Certificados emitidos na unidade (consulta/2ª via)" })
-  certificados(@CurrentUser() user: AuthenticatedUser) {
-    return this.turmas.certificados(user);
+  @ApiOperation({
+    summary:
+      "Certificados emitidos na unidade (consulta/2ª via). Filtros: busca (aluno/código/curso), curso e período",
+  })
+  @ApiQuery({ name: "q", required: false, description: "Busca por aluno, código ou curso" })
+  @ApiQuery({ name: "cursoId", required: false })
+  @ApiQuery({ name: "de", required: false, description: "Emitido a partir de (YYYY-MM-DD)" })
+  @ApiQuery({ name: "ate", required: false, description: "Emitido até (YYYY-MM-DD)" })
+  certificados(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("q") q?: string,
+    @Query("cursoId") cursoId?: string,
+    @Query("de") de?: string,
+    @Query("ate") ate?: string,
+  ) {
+    return this.turmas.certificados(user, { q, cursoId, de, ate });
   }
 
   @Get("matriculas/semestre")
   @ApiOperation({
-    summary: "Matrículas consolidadas da unidade, agrupadas por turma (opcional: filtra por status)",
+    summary:
+      "Matrículas consolidadas da unidade, agrupadas por turma. Filtros: status, busca (aluno/protocolo) e curso",
   })
   @ApiQuery({ name: "status", required: false, enum: StatusMatricula })
+  @ApiQuery({ name: "q", required: false, description: "Busca por aluno ou protocolo" })
+  @ApiQuery({ name: "cursoId", required: false })
   matriculasSemestre(
     @CurrentUser() user: AuthenticatedUser,
     @Query("status") status?: string,
+    @Query("q") q?: string,
+    @Query("cursoId") cursoId?: string,
   ) {
     let filtro: StatusMatricula | undefined;
     if (status) {
@@ -105,7 +123,7 @@ export class TurmasController {
       }
       filtro = status as StatusMatricula;
     }
-    return this.turmas.matriculasSemestre(user, filtro);
+    return this.turmas.matriculasSemestre(user, filtro, { q, cursoId });
   }
 
   @Patch("matriculas/:id")

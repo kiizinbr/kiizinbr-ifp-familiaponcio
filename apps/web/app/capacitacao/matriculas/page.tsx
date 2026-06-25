@@ -8,12 +8,12 @@
  */
 import { useState } from "react";
 import Link from "next/link";
-import { GraduationCap, Users } from "lucide-react";
+import { GraduationCap, Search, Users } from "lucide-react";
 
-import { Alerta, Select, Spinner } from "@/components/ui";
+import { Alerta, Input, Select, Spinner } from "@/components/ui";
 import { Card, Kpi, PageHeader, Pill, SecTitle } from "@/components/casa";
 import { STATUS_MATRICULA_LABEL, STATUS_TURMA_LABEL, type StatusMatricula } from "@/lib/api";
-import { useMatriculasSemestre } from "@/lib/use-capacitacao";
+import { useCursosGestao, useMatriculasSemestre } from "@/lib/use-capacitacao";
 
 /** Tom da pílula por situação da matrícula (espelha a UI da turma). */
 function tomStatus(status: StatusMatricula): "ok" | "warn" | "neutro" | "unidade" {
@@ -34,7 +34,14 @@ const OPCOES_FILTRO: { valor: StatusMatricula | "TODOS"; label: string }[] = [
 
 export default function PaginaMatriculas() {
   const [filtro, setFiltro] = useState<StatusMatricula | "TODOS">("TODOS");
-  const { data, isLoading, isFetching, error } = useMatriculasSemestre(filtro);
+  const [busca, setBusca] = useState("");
+  const [cursoId, setCursoId] = useState("");
+  const { data: cursos } = useCursosGestao();
+  const { data, isLoading, isFetching, error } = useMatriculasSemestre({
+    status: filtro,
+    q: busca,
+    cursoId: cursoId || undefined,
+  });
 
   const ativas = data?.totaisPorStatus.ATIVA ?? 0;
   const espera = data?.totaisPorStatus.LISTA_ESPERA ?? 0;
@@ -60,6 +67,34 @@ export default function PaginaMatriculas() {
         }
       />
 
+      {/* Busca (aluno/protocolo) + filtro por curso. Read-only: só estreitam a
+          listagem da unidade — o servidor aplica os filtros e o tenant. */}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[16rem] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            aria-label="Buscar por aluno ou protocolo"
+            placeholder="Buscar por aluno ou protocolo…"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select
+          aria-label="Filtrar por curso"
+          className="w-auto"
+          value={cursoId}
+          onChange={(e) => setCursoId(e.target.value)}
+        >
+          <option value="">Todos os cursos</option>
+          {(cursos?.items ?? []).map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nome}
+            </option>
+          ))}
+        </Select>
+      </div>
+
       {/* KPIs do período (não mudam com o filtro: vêm do conjunto carregado). */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi label="Total" valor={data?.total ?? 0} />
@@ -75,7 +110,9 @@ export default function PaginaMatriculas() {
         data.turmas.length === 0 ? (
           <Card className="text-center text-sm text-muted-foreground">
             <Users className="mx-auto mb-2 h-5 w-5" />
-            Nenhuma matrícula{filtro !== "TODOS" ? " nesta situação" : ""} no momento.
+            {busca.trim() || cursoId || filtro !== "TODOS"
+              ? "Nenhuma matrícula encontrada com esses filtros."
+              : "Nenhuma matrícula no momento."}
           </Card>
         ) : (
           <div className={isFetching ? "space-y-6 opacity-70" : "space-y-6"}>

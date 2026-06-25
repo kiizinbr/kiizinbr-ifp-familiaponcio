@@ -118,6 +118,106 @@ const certs = await req(instrutor, "GET", "/capacitacao/certificados");
 caso("lista certificados", 200, certs.status);
 caso("retorno tem items[]", true, Array.isArray(certs.json?.items));
 
+console.log("--- CERTIFICADOS: FILTROS/BUSCA (A3) ---");
+const todosCerts = certs.json?.items ?? [];
+
+const alvo = todosCerts[0];
+if (alvo) {
+  // Busca por nome: confirma que o filtro acha o alvo e estreita o conjunto.
+  // (O subconjunto estrito é checado pelo código abaixo — campo único e exibido.)
+  const termoAluno = alvo.aluno.split(" ")[0];
+  const buscaAluno = await req(
+    instrutor,
+    "GET",
+    `/capacitacao/certificados?q=${encodeURIComponent(termoAluno)}`,
+  );
+  caso("busca por aluno responde 200", 200, buscaAluno.status);
+  caso(
+    "busca por aluno acha o certificado alvo",
+    true,
+    (buscaAluno.json?.items ?? []).some((c) => c.id === alvo.id),
+  );
+  caso(
+    "busca por aluno é subconjunto (≤ total)",
+    true,
+    (buscaAluno.json?.items?.length ?? 0) <= todosCerts.length,
+  );
+
+  // Busca pelo código de verificação (2ª via): o código é único e aparece em
+  // toda linha, então o subconjunto é verificável sem ambiguidade.
+  const buscaCodigo = await req(
+    instrutor,
+    "GET",
+    `/capacitacao/certificados?q=${encodeURIComponent(alvo.codigoVerificacao)}`,
+  );
+  caso("busca pelo código acha o certificado", true, (buscaCodigo.json?.items ?? []).some((c) => c.id === alvo.id));
+  caso(
+    "busca pelo código só traz quem casa o código",
+    true,
+    (buscaCodigo.json?.items ?? []).every((c) =>
+      c.codigoVerificacao.toLowerCase().includes(alvo.codigoVerificacao.toLowerCase()),
+    ),
+  );
+} else {
+  // Sem certificados no seed: a busca ainda precisa responder 200 com items vazio.
+  const buscaVazia = await req(instrutor, "GET", "/capacitacao/certificados?q=zzznaoexiste");
+  caso("busca sem dados responde 200", 200, buscaVazia.status);
+  caso("busca sem dados traz items[]", true, Array.isArray(buscaVazia.json?.items));
+}
+
+// Termo improvável → subconjunto vazio (filtro realmente estreita).
+const buscaInexistente = await req(
+  instrutor,
+  "GET",
+  "/capacitacao/certificados?q=zzz-termo-improvavel-9876",
+);
+caso("busca improvável → 200", 200, buscaInexistente.status);
+caso("busca improvável → vazio", 0, buscaInexistente.json?.items?.length);
+
+// Filtro por curso: todo item retornado tem de ser do curso pedido. Usa o curso
+// de algum certificado existente (se houver) cruzando com a gestão de cursos.
+const cursosGestao = (await req(instrutor, "GET", "/capacitacao/cursos/todos")).json?.items ?? [];
+if (alvo) {
+  const cursoDoAlvo = cursosGestao.find((c) => c.nome === alvo.curso);
+  if (cursoDoAlvo) {
+    const porCurso = await req(
+      instrutor,
+      "GET",
+      `/capacitacao/certificados?cursoId=${cursoDoAlvo.id}`,
+    );
+    caso("filtro por curso → 200", 200, porCurso.status);
+    caso(
+      "filtro por curso só traz daquele curso",
+      true,
+      (porCurso.json?.items ?? []).every((c) => c.curso === alvo.curso),
+    );
+    caso(
+      "filtro por curso é subconjunto (≤ total)",
+      true,
+      (porCurso.json?.items?.length ?? 0) <= todosCerts.length,
+    );
+  }
+}
+
+// Filtro por período: janela futura não pode conter nada (todos emitidos no passado).
+const futuro = await req(
+  instrutor,
+  "GET",
+  "/capacitacao/certificados?de=2999-01-01&ate=2999-12-31",
+);
+caso("período futuro → 200", 200, futuro.status);
+caso("período futuro → vazio", 0, futuro.json?.items?.length);
+
+// Janela ampla (passado→hoje) tem de devolver o total (nenhum certificado fora dela).
+const hojeIso = new Date().toISOString().slice(0, 10);
+const janelaAmpla = await req(
+  instrutor,
+  "GET",
+  `/capacitacao/certificados?de=2000-01-01&ate=${hojeIso}`,
+);
+caso("período amplo → 200", 200, janelaAmpla.status);
+caso("período amplo cobre todos", todosCerts.length, janelaAmpla.json?.items?.length);
+
 console.log("--- RBAC ---");
 const famAltera = await req(familia, "PATCH", `/capacitacao/matriculas/${matriculaId}`, { status: "ATIVA" });
 caso("família não altera matrícula (RBAC)", 403, famAltera.status);

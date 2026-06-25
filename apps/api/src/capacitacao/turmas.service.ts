@@ -641,11 +641,59 @@ export class TurmasService {
     return atualizada;
   }
 
-  /** Certificados emitidos na unidade (consulta/segunda via). */
-  async certificados(user: AuthenticatedUser) {
+  /**
+   * Certificados emitidos na unidade (consulta/segunda via). Filtros opcionais
+   * (A3, read-only — só estreitam a listagem dentro da própria unidade, sem
+   * abrir tenant):
+   *  - `q`: busca por nome do aluno (titular/dependente), código de verificação
+   *    ou nome do curso. Tudo via filtros do Prisma (`contains`/`mode insensitive`)
+   *    → sem SQL concatenado.
+   *  - `cursoId`: só os certificados de turmas daquele curso.
+   *  - `de`/`ate`: janela de emissão (`emitidoEm`); datas inválidas são ignoradas.
+   */
+  async certificados(
+    user: AuthenticatedUser,
+    filtros: { q?: string; cursoId?: string; de?: string; ate?: string } = {},
+  ) {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+
+    const termo = filtros.q?.trim();
+    const emitidoEm = this.intervaloData(filtros.de, filtros.ate);
+
+    // Busca textual (insensível a caixa) cobre aluno (titular OU dependente),
+    // código do certificado e nome do curso. OR só entra no where quando há termo.
+    const buscaTexto = termo
+      ? {
+          OR: [
+            { codigoVerificacao: { contains: termo, mode: "insensitive" as const } },
+            {
+              matricula: {
+                ficha: { nomeCompleto: { contains: termo, mode: "insensitive" as const } },
+              },
+            },
+            {
+              matricula: {
+                membro: { nomeCompleto: { contains: termo, mode: "insensitive" as const } },
+              },
+            },
+            {
+              matricula: {
+                turma: { curso: { nome: { contains: termo, mode: "insensitive" as const } } },
+              },
+            },
+          ],
+        }
+      : {};
+
     const items = await this.prisma.certificado.findMany({
-      where: { unidadeId: profissional.unidadeId },
+      where: {
+        unidadeId: profissional.unidadeId,
+        ...(filtros.cursoId
+          ? { matricula: { turma: { cursoId: filtros.cursoId } } }
+          : {}),
+        ...(emitidoEm ? { emitidoEm } : {}),
+        ...buscaTexto,
+      },
       orderBy: { emitidoEm: "desc" },
       select: {
         id: true,
@@ -667,7 +715,15 @@ export class TurmasService {
       userId: user.id,
       acao: AcaoAuditoria.READ,
       entidade: "Certificado",
-      metadados: { contexto: "listagem", total: items.length },
+      metadados: {
+        contexto: "listagem",
+        total: items.length,
+        filtros: {
+          q: termo ?? null,
+          cursoId: filtros.cursoId ?? null,
+          periodo: emitidoEm ? { de: filtros.de ?? null, ate: filtros.ate ?? null } : null,
+        },
+      },
     });
 
     return {
@@ -685,17 +741,63 @@ export class TurmasService {
   }
 
   /**
+   * Monta o filtro Prisma de intervalo de data (`{ gte, lte }`) a partir de
+   * `de`/`ate` em ISO (YYYY-MM-DD). Datas inválidas são ignoradas; `ate` inclui
+   * o dia inteiro (vai até 23:59:59.999). Retorna undefined se nada válido.
+   */
+  private intervaloData(
+    de?: string,
+    ate?: string,
+  ): { gte?: Date; lte?: Date } | undefined {
+    const filtro: { gte?: Date; lte?: Date } = {};
+    if (de) {
+      const d = new Date(`${de}T00:00:00`);
+      if (!Number.isNaN(d.getTime())) filtro.gte = d;
+    }
+    if (ate) {
+      const a = new Date(`${ate}T23:59:59.999`);
+      if (!Number.isNaN(a.getTime())) filtro.lte = a;
+    }
+    return filtro.gte || filtro.lte ? filtro : undefined;
+  }
+
+  /**
    * Matrículas consolidadas da unidade (visão de semestre), agrupadas por turma.
    * Hoje a lista de alunos só existe dentro do detalhe de uma turma — esta visão
    * cruza todas as turmas para acompanhar quem está matriculado no período.
-   * `status` opcional filtra (ATIVA, LISTA_ESPERA...). Leitura de dado pessoal → LGPD.
+   * Filtros opcionais (A3, read-only — só estreitam dentro da própria unidade):
+   *  - `status`: situação da matrícula (ATIVA, LISTA_ESPERA...).
+   *  - `q`: busca por nome do aluno (titular/dependente) ou protocolo da ficha.
+   *  - `cursoId`: só matrículas em turmas daquele curso.
+   * Leitura de dado pessoal → LGPD.
    */
-  async matriculasSemestre(user: AuthenticatedUser, status?: StatusMatricula) {
+  async matriculasSemestre(
+    user: AuthenticatedUser,
+    status?: StatusMatricula,
+    filtros: { q?: string; cursoId?: string } = {},
+  ) {
     const profissional = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
     const unidadeId = profissional.unidadeId;
 
+    const termo = filtros.q?.trim();
+    // Busca textual (insensível a caixa) cobre aluno titular, dependente e protocolo.
+    const buscaTexto = termo
+      ? {
+          OR: [
+            { ficha: { nomeCompleto: { contains: termo, mode: "insensitive" as const } } },
+            { ficha: { protocolo: { contains: termo, mode: "insensitive" as const } } },
+            { membro: { nomeCompleto: { contains: termo, mode: "insensitive" as const } } },
+          ],
+        }
+      : {};
+
     const matriculas = await this.prisma.matricula.findMany({
-      where: { unidadeId, ...(status ? { status } : {}) },
+      where: {
+        unidadeId,
+        ...(status ? { status } : {}),
+        ...(filtros.cursoId ? { turma: { cursoId: filtros.cursoId } } : {}),
+        ...buscaTexto,
+      },
       orderBy: [{ turma: { codigo: "asc" } }, { criadoEm: "asc" }],
       select: {
         id: true,
@@ -767,6 +869,8 @@ export class TurmasService {
         contexto: "matriculasSemestre",
         total: matriculas.length,
         filtroStatus: status ?? "todos",
+        q: termo ?? null,
+        cursoId: filtros.cursoId ?? null,
       },
     });
 

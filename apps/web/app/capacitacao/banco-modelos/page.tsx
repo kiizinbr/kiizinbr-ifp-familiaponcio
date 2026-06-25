@@ -403,7 +403,7 @@ function useSessoesAlunos(turmaId: string) {
 
 /** Atalho local para as matrículas ATIVAS (reusa o endpoint de semestre). */
 function useMatriculasSemestreLocal() {
-  return useMatriculasSemestre("ATIVA");
+  return useMatriculasSemestre({ status: "ATIVA" });
 }
 
 export default function BancoModelosPage() {

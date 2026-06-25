@@ -202,6 +202,101 @@ caso("status inválido → 400", 400, semInvalido.status);
 const semRbac = await req(familia, "GET", "/capacitacao/matriculas/semestre");
 caso("família não vê matrículas consolidadas (RBAC)", 403, semRbac.status);
 
+console.log("--- MATRÍCULAS: BUSCA + FILTRO POR CURSO (A3) ---");
+// Achata os alunos de todas as turmas do consolidado para checar os subconjuntos.
+const alunosDoSemestre = (sem.json?.turmas ?? []).flatMap((t) =>
+  t.alunos.map((a) => ({ ...a, cursoNome: t.curso })),
+);
+const alunoAlvo = alunosDoSemestre[0];
+if (alunoAlvo) {
+  // Busca pelo protocolo: o protocolo é um dos campos do OR e aparece em TODA
+  // linha retornada, então o subconjunto é verificável sem ambiguidade (o nome
+  // exibido pode ser de um dependente, mas o protocolo da ficha é estável).
+  const termoProtocolo = alunoAlvo.protocolo;
+  const buscaProto = await req(
+    instrutor,
+    "GET",
+    `/capacitacao/matriculas/semestre?q=${encodeURIComponent(termoProtocolo)}`,
+  );
+  caso("busca por protocolo → 200", 200, buscaProto.status);
+  caso(
+    "busca por protocolo só traz quem casa o protocolo",
+    true,
+    (buscaProto.json?.turmas ?? [])
+      .flatMap((t) => t.alunos)
+      .every((a) => a.protocolo.toLowerCase().includes(termoProtocolo.toLowerCase())),
+  );
+  caso(
+    "busca por protocolo acha o aluno alvo",
+    true,
+    (buscaProto.json?.turmas ?? []).some((t) => t.alunos.some((a) => a.id === alunoAlvo.id)),
+  );
+  caso(
+    "busca por protocolo é subconjunto (total ≤ geral)",
+    true,
+    (buscaProto.json?.total ?? 0) <= (sem.json?.total ?? 0),
+  );
+
+  // Busca por nome: confirma que o filtro acha o alvo e estreita o conjunto.
+  const termoNome = alunoAlvo.aluno.split(" ")[0];
+  const buscaNome = await req(
+    instrutor,
+    "GET",
+    `/capacitacao/matriculas/semestre?q=${encodeURIComponent(termoNome)}`,
+  );
+  caso("busca por nome → 200", 200, buscaNome.status);
+  caso(
+    "busca por nome acha o aluno alvo",
+    true,
+    (buscaNome.json?.turmas ?? []).some((t) => t.alunos.some((a) => a.id === alunoAlvo.id)),
+  );
+  caso(
+    "busca por nome é subconjunto (total ≤ geral)",
+    true,
+    (buscaNome.json?.total ?? 0) <= (sem.json?.total ?? 0),
+  );
+}
+
+// Busca improvável → consolidado vazio (filtro realmente estreita).
+const buscaVazia = await req(
+  instrutor,
+  "GET",
+  "/capacitacao/matriculas/semestre?q=zzz-aluno-inexistente-321",
+);
+caso("busca improvável → 200", 200, buscaVazia.status);
+caso("busca improvável → 0 matrículas", 0, buscaVazia.json?.total);
+caso("busca improvável → 0 turmas", 0, buscaVazia.json?.turmas?.length);
+
+// Filtro por curso: toda turma retornada tem de ser do curso pedido. Usa o curso
+// recém-criado (cursoId), que tem turma mas nenhuma matrícula → consolidado vazio.
+const porCursoNovo = await req(
+  instrutor,
+  "GET",
+  `/capacitacao/matriculas/semestre?cursoId=${cursoId}`,
+);
+caso("filtro por curso → 200", 200, porCursoNovo.status);
+caso("curso sem matrícula → consolidado vazio", 0, porCursoNovo.json?.total);
+
+// Filtro por curso do seed (Barbearia) — todas as turmas têm de ser desse curso.
+if (cursoComTrilha?.id) {
+  const porCursoSeed = await req(
+    instrutor,
+    "GET",
+    `/capacitacao/matriculas/semestre?cursoId=${cursoComTrilha.id}`,
+  );
+  caso("filtro por curso do seed → 200", 200, porCursoSeed.status);
+  caso(
+    "filtro por curso só traz turmas daquele curso",
+    true,
+    (porCursoSeed.json?.turmas ?? []).every((t) => t.curso === cursoComTrilha.nome),
+  );
+  caso(
+    "filtro por curso é subconjunto (total ≤ geral)",
+    true,
+    (porCursoSeed.json?.total ?? 0) <= (sem.json?.total ?? 0),
+  );
+}
+
 console.log("--- INDICADORES LONGITUDINAIS (A2: séries temporais) ---");
 const CHAVES_SERIE = ["matriculas", "conclusoes", "certificados", "evasoes"];
 

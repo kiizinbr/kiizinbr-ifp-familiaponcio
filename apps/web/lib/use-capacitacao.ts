@@ -355,13 +355,41 @@ export interface CertificadoEmitido {
   turma: string;
 }
 
-export function useCertificados() {
+/** Filtros opcionais da listagem de certificados (A3). */
+export interface FiltrosCertificados {
+  /** Busca por aluno, código de verificação ou curso. */
+  q?: string;
+  cursoId?: string;
+  /** Emitido a partir de (YYYY-MM-DD). */
+  de?: string;
+  /** Emitido até (YYYY-MM-DD). */
+  ate?: string;
+}
+
+export function useCertificados(filtros: FiltrosCertificados = {}) {
   const authFetch = useAuthFetch();
   const { status } = useSession();
+  const params = new URLSearchParams();
+  if (filtros.q?.trim()) params.set("q", filtros.q.trim());
+  if (filtros.cursoId) params.set("cursoId", filtros.cursoId);
+  if (filtros.de) params.set("de", filtros.de);
+  if (filtros.ate) params.set("ate", filtros.ate);
+  const qs = params.toString();
   return useQuery({
-    queryKey: ["capacitacao", "certificados"],
-    queryFn: () => authFetch<{ items: CertificadoEmitido[] }>("/capacitacao/certificados"),
+    queryKey: [
+      "capacitacao",
+      "certificados",
+      filtros.q ?? "",
+      filtros.cursoId ?? "",
+      filtros.de ?? "",
+      filtros.ate ?? "",
+    ],
+    queryFn: () =>
+      authFetch<{ items: CertificadoEmitido[] }>(
+        `/capacitacao/certificados${qs ? `?${qs}` : ""}`,
+      ),
     enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -430,19 +458,40 @@ export function useIndicadoresSeriesCapacitacao(meses: number) {
 // Matrículas consolidadas do semestre (cruza todas as turmas)
 // ============================================================
 
+/** Filtros opcionais da visão consolidada de matrículas (A3). */
+export interface FiltrosMatriculas {
+  status?: StatusMatricula | "TODOS";
+  /** Busca por nome do aluno ou protocolo da ficha. */
+  q?: string;
+  cursoId?: string;
+}
+
 /**
- * Matrículas da unidade agrupadas por turma. `status` opcional filtra por
- * situação (ATIVA, LISTA_ESPERA, CONCLUIDA...). Sem filtro = todas.
+ * Matrículas da unidade agrupadas por turma. Filtros opcionais: `status`
+ * (ATIVA, LISTA_ESPERA, CONCLUIDA...), `q` (aluno/protocolo) e `cursoId`.
+ * Sem filtros = todas as matrículas da unidade.
  */
-export function useMatriculasSemestre(status?: StatusMatricula | "TODOS") {
+export function useMatriculasSemestre(filtros: FiltrosMatriculas = {}) {
   const authFetch = useAuthFetch();
   const { status: sessao } = useSession();
-  const filtro = status && status !== "TODOS" ? status : undefined;
+  const filtroStatus =
+    filtros.status && filtros.status !== "TODOS" ? filtros.status : undefined;
+  const params = new URLSearchParams();
+  if (filtroStatus) params.set("status", filtroStatus);
+  if (filtros.q?.trim()) params.set("q", filtros.q.trim());
+  if (filtros.cursoId) params.set("cursoId", filtros.cursoId);
+  const qs = params.toString();
   return useQuery({
-    queryKey: ["capacitacao", "matriculas-semestre", filtro ?? "todos"],
+    queryKey: [
+      "capacitacao",
+      "matriculas-semestre",
+      filtroStatus ?? "todos",
+      filtros.q ?? "",
+      filtros.cursoId ?? "",
+    ],
     queryFn: () =>
       authFetch<MatriculasSemestre>(
-        `/capacitacao/matriculas/semestre${filtro ? `?status=${filtro}` : ""}`,
+        `/capacitacao/matriculas/semestre${qs ? `?${qs}` : ""}`,
       ),
     enabled: sessao === "authenticated",
     placeholderData: (prev) => prev,
