@@ -7,7 +7,13 @@ import { AcessoRestrito, ShellInterno } from "@/components/casa";
 
 /** Guard único de toda a área /educacional/*. */
 const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE", "PROFISSIONAL"];
-const ROTAS_PRONTAS = ["/educacional", "/educacional/indicadores", "/educacional/comunicados"];
+const ROTAS_PRONTAS = [
+  "/educacional",
+  "/educacional/turmas",
+  "/educacional/mensagens",
+  "/educacional/indicadores",
+  "/educacional/comunicados",
+];
 
 export default async function EducacionalLayout({
   children,

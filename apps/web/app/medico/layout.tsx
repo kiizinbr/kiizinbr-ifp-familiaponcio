@@ -9,6 +9,7 @@ const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "PROFISSIONAL", "GESTOR_UNIDADE", "REC
 
 /** Rotas do médico que já existem (as demais aparecem como "em breve" no rail). */
 const ROTAS_PRONTAS = [
+  "/medico",
   "/medico/agenda",
   "/medico/fila",
   "/medico/fila-chegada",

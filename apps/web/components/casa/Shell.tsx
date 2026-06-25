@@ -1,8 +1,7 @@
 /**
- * Shell CASA — o "esqueleto" das telas, em 3 modos:
+ * Shell CASA — o "esqueleto" das telas, em 2 modos:
  *  - ShellInterno: topbar + rail lateral (gestão/operação), recolore por unidade.
  *    Vai no layout.tsx do módulo; as páginas mantêm seu próprio conteúdo/<main>.
- *  - ShellPublico: header + footer do site institucional.
  *  - ShellMobile: moldura de celular + navegação inferior (portal família).
  */
 import Link from "next/link";
@@ -80,43 +79,6 @@ export function ShellInterno({
       <Topbar modulo={modulo} user={user} cargo={cargo} iniciais={iniciais} />
       <Rail modulo={modulo} habilitadas={habilitadas} />
       <div className="col-start-2 row-start-2 overflow-y-auto">{children}</div>
-    </div>
-  );
-}
-
-export function ShellPublico({ children }: { children: ReactNode }) {
-  const nav = [
-    { href: "/", label: "Início" },
-    { href: "/unidades", label: "Unidades" },
-    { href: "/como-ser-atendido", label: "Como funciona" },
-    { href: "/doe", label: "Doe" },
-    { href: "/voluntario", label: "Voluntário" },
-  ];
-  return (
-    <div data-theme="presidencia" className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-20 flex items-center gap-4 border-b border-border bg-background/85 px-10 py-4 backdrop-blur">
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-background text-primary shadow-[inset_0_0_0_1.5px_var(--ifp-dourado)]">
-          <Brandmark size={31} title="IFP" />
-        </span>
-        <span className="text-sm font-semibold uppercase tracking-[0.13em] text-foreground">Instituto Família Poncio</span>
-        <nav className="ml-auto flex items-center gap-6">
-          {nav.map((n) => (
-            <Link key={n.href} href={n.href} className="text-[13px] font-medium text-foreground/80 hover:text-foreground">
-              {n.label}
-            </Link>
-          ))}
-          <Link href="/login" className="rounded-md bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground">
-            Acessar sistema
-          </Link>
-        </nav>
-      </header>
-      <main className="flex-1">{children}</main>
-      <footer className="mt-10 bg-[var(--ifp-tinta)] px-10 py-10 text-center text-[13px] text-[#f3e9e2]">
-        <span className="mx-auto mb-3 block h-10 w-10 text-[var(--ifp-dourado)]">
-          <Brandmark size={40} title="IFP" />
-        </span>
-        Instituto Família Poncio · Acolhimento integral à família
-      </footer>
     </div>
   );
 }

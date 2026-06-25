@@ -10,5 +10,5 @@ export { SeletorUnidade } from "./SeletorUnidade";
 export { SinoNotificacoes } from "./SinoNotificacoes";
 export { SinalizarSocial } from "./SinalizarSocial";
 export { Card, PageHeader, SecTitle, Kpi, Pill, ListRow, Pulso } from "./blocks";
-export { ShellInterno, ShellPublico, ShellMobile } from "./Shell";
+export { ShellInterno, ShellMobile } from "./Shell";
 export type { ModuloCasa } from "./nav";
