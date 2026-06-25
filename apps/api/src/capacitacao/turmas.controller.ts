@@ -64,6 +64,19 @@ export class TurmasController {
     return this.turmas.indicadores(user);
   }
 
+  @Get("indicadores/series")
+  @ApiOperation({
+    summary:
+      "Séries temporais por mês (matrículas/conclusões/certificados/evasão) da unidade — últimos N meses",
+  })
+  @ApiQuery({ name: "meses", required: false, description: "3 a 24 (default 12)" })
+  indicadoresSeries(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("meses") meses?: string,
+  ) {
+    return this.turmas.indicadoresSeries(user, meses);
+  }
+
   @Get("fichas-elegiveis")
   @ApiOperation({ summary: "Fichas APROVADAS na Capacitação (form de matrícula)" })
   fichasElegiveis(@Query("q") q: string, @CurrentUser() user: AuthenticatedUser) {

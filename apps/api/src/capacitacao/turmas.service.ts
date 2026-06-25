@@ -813,4 +813,134 @@ export class TurmasService {
 
     return { turmas, matriculas, certificados, cursosAtivos, taxaConclusao };
   }
+
+  // ============================================================
+  // Indicadores LONGITUDINAIS — séries temporais por mês (A2)
+  // ============================================================
+  /**
+   * Visão longitudinal da Capacitação DA UNIDADE: para cada um dos últimos N
+   * meses, conta matrículas novas, conclusões, certificados emitidos e evasões.
+   * generate_series garante a grade de N meses (meses sem dado = 0) para o
+   * gráfico não "pular" buracos. Só agregação READ sobre o que o banco já tem;
+   * sem IA, sem schema novo. Espelha o padrão de `presidencia.impactoSeries`,
+   * mas FILTRADO POR UNIDADE (tenant): `unidadeId` vem de resolverPorUser e é
+   * PARAMETRIZADO ($queryRaw) — nunca concatenado → sem SQLi. `meses` é um
+   * inteiro saneado por normalizarMeses (3 a 24).
+   */
+  async indicadoresSeries(user: AuthenticatedUser, mesesBruto?: string | number) {
+    const prof = await this.profissionais.resolverPorUser(user, TipoUnidade.CAPACITACAO);
+    const unidadeId = prof.unidadeId;
+
+    this.audit.registrar({
+      userId: user.id,
+      acao: AcaoAuditoria.READ,
+      entidade: "CapacitacaoIndicadoresSeries",
+      entidadeId: unidadeId,
+    });
+
+    const meses = this.normalizarMeses(mesesBruto);
+    const offset = meses - 1;
+
+    // Matrículas novas no mês (criadoEm) — todos os status, pois conta a entrada.
+    const serieMatriculas = await this.serieMensalMatricula(unidadeId, offset, {
+      colunaData: "criadoEm",
+    });
+    // Conclusões: matrícula que chegou a CONCLUIDA. Sem coluna de "concluído em",
+    // usamos atualizadoEm (instante da última mudança de estado da matrícula).
+    const serieConclusoes = await this.serieMensalMatricula(unidadeId, offset, {
+      colunaData: "atualizadoEm",
+      status: StatusMatricula.CONCLUIDA,
+    });
+    // Evasões: idem, status EVADIDA pelo atualizadoEm.
+    const serieEvasoes = await this.serieMensalMatricula(unidadeId, offset, {
+      colunaData: "atualizadoEm",
+      status: StatusMatricula.EVADIDA,
+    });
+    // Certificados emitidos no mês (emitidoEm) — tabela própria.
+    const serieCertificados = await this.serieMensalCertificado(unidadeId, offset);
+
+    const somar = (s: { total: number }[]) => s.reduce((a, p) => a + p.total, 0);
+    const totalConclusoes = somar(serieConclusoes);
+    const totalEvasoes = somar(serieEvasoes);
+    // Taxa de conclusão do período: concluídas sobre concluídas + evadidas.
+    const taxaConclusao =
+      totalConclusoes + totalEvasoes > 0
+        ? Math.round((totalConclusoes / (totalConclusoes + totalEvasoes)) * 100)
+        : null;
+
+    return {
+      meses,
+      kpis: {
+        matriculas: somar(serieMatriculas),
+        conclusoes: totalConclusoes,
+        certificados: somar(serieCertificados),
+        evasoes: totalEvasoes,
+        taxaConclusao,
+      },
+      series: [
+        { chave: "matriculas", label: "Matrículas", pontos: serieMatriculas },
+        { chave: "conclusoes", label: "Conclusões", pontos: serieConclusoes },
+        { chave: "certificados", label: "Certificados", pontos: serieCertificados },
+        { chave: "evasoes", label: "Evasões", pontos: serieEvasoes },
+      ],
+    };
+  }
+
+  /** Saneia o nº de meses pedido: inteiro entre 3 e 24 (default 12). */
+  private normalizarMeses(bruto?: string | number): number {
+    const n = typeof bruto === "string" ? Number.parseInt(bruto, 10) : bruto;
+    if (n == null || Number.isNaN(n)) return 12;
+    return Math.min(24, Math.max(3, Math.trunc(n)));
+  }
+
+  /**
+   * Série mensal de matrículas da unidade. `unidadeId` é PARAMETRIZADO; `offset`
+   * é inteiro saneado; `colunaData`/`status` vêm SÓ de literais internos deste
+   * service (enum Prisma / nomes de coluna fixos) → sem entrada externa
+   * interpolada, sem SQLi. generate_series preenche meses vazios com zero.
+   */
+  private serieMensalMatricula(
+    unidadeId: string,
+    offset: number,
+    opts: { colunaData: "criadoEm" | "atualizadoEm"; status?: StatusMatricula },
+  ) {
+    // offset é inteiro saneado (Math.trunc no normalizarMeses) → seguro como
+    // literal em make_interval (evita ambiguidade de tipo do bind do Prisma).
+    const offsetSeguro = Math.trunc(offset);
+    const coluna = Prisma.raw(`"${opts.colunaData}"`);
+    const grade = Prisma.raw(`make_interval(months => ${offsetSeguro})`);
+    const filtroStatus = opts.status
+      ? Prisma.sql`AND t.status = ${opts.status}::"StatusMatricula"`
+      : Prisma.empty;
+    return this.prisma.$queryRaw<{ mes: string; total: number }[]>`
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(t.id)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - ${grade},
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN matriculas t
+        ON date_trunc('month', t.${coluna}) = m.mes
+        AND t."unidadeId" = ${unidadeId}
+        ${filtroStatus}
+      GROUP BY m.mes ORDER BY m.mes
+    `;
+  }
+
+  /** Série mensal de certificados emitidos (emitidoEm) na unidade. */
+  private serieMensalCertificado(unidadeId: string, offset: number) {
+    const grade = Prisma.raw(`make_interval(months => ${Math.trunc(offset)})`);
+    return this.prisma.$queryRaw<{ mes: string; total: number }[]>`
+      SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(t.id)::int AS total
+      FROM generate_series(
+        date_trunc('month', now()) - ${grade},
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS m(mes)
+      LEFT JOIN certificados t
+        ON date_trunc('month', t."emitidoEm") = m.mes
+        AND t."unidadeId" = ${unidadeId}
+      GROUP BY m.mes ORDER BY m.mes
+    `;
+  }
 }

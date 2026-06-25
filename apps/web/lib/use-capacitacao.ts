@@ -384,6 +384,49 @@ export function useIndicadoresCapacitacao() {
 }
 
 // ============================================================
+// Indicadores longitudinais — séries temporais por mês (A2)
+// ============================================================
+
+export type ChaveSerieCapacitacao =
+  | "matriculas"
+  | "conclusoes"
+  | "certificados"
+  | "evasoes";
+
+export interface SerieCapacitacao {
+  chave: ChaveSerieCapacitacao;
+  label: string;
+  pontos: { mes: string; total: number }[];
+}
+
+export interface IndicadoresSeriesCapacitacao {
+  meses: number;
+  kpis: {
+    matriculas: number;
+    conclusoes: number;
+    certificados: number;
+    evasoes: number;
+    taxaConclusao: number | null;
+  };
+  series: SerieCapacitacao[];
+}
+
+/** Séries temporais por mês (janela 3 a 24 meses; default 12) da unidade. */
+export function useIndicadoresSeriesCapacitacao(meses: number) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["capacitacao", "indicadores-series", meses],
+    queryFn: () =>
+      authFetch<IndicadoresSeriesCapacitacao>(
+        `/capacitacao/indicadores/series?meses=${meses}`,
+      ),
+    enabled: status === "authenticated",
+    placeholderData: (prev) => prev,
+  });
+}
+
+// ============================================================
 // Matrículas consolidadas do semestre (cruza todas as turmas)
 // ============================================================
 

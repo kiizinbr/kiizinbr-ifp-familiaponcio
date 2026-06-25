@@ -202,6 +202,85 @@ caso("status inválido → 400", 400, semInvalido.status);
 const semRbac = await req(familia, "GET", "/capacitacao/matriculas/semestre");
 caso("família não vê matrículas consolidadas (RBAC)", 403, semRbac.status);
 
+console.log("--- INDICADORES LONGITUDINAIS (A2: séries temporais) ---");
+const CHAVES_SERIE = ["matriculas", "conclusoes", "certificados", "evasoes"];
+
+const serieDefault = await req(instrutor, "GET", "/capacitacao/indicadores/series");
+caso("séries (default 12m)", 200, serieDefault.status);
+caso("default devolve 12 meses", 12, serieDefault.json?.meses);
+caso(
+  "12 meses → 12 pontos por série",
+  true,
+  Array.isArray(serieDefault.json?.series) &&
+    serieDefault.json.series.length === CHAVES_SERIE.length &&
+    serieDefault.json.series.every((s) => Array.isArray(s.pontos) && s.pontos.length === 12),
+);
+caso(
+  "todas as chaves de série presentes",
+  true,
+  CHAVES_SERIE.every((c) => serieDefault.json?.series?.some((s) => s.chave === c)),
+);
+caso(
+  "pontos têm mes (YYYY-MM) e total inteiro",
+  true,
+  (serieDefault.json?.series ?? []).every((s) =>
+    s.pontos.every((p) => /^\d{4}-\d{2}$/.test(p.mes) && Number.isInteger(p.total) && p.total >= 0),
+  ),
+);
+caso(
+  "meses em ordem crescente",
+  true,
+  (serieDefault.json?.series ?? []).every((s) => {
+    const ms = s.pontos.map((p) => p.mes);
+    return ms.every((m, i) => i === 0 || m > ms[i - 1]);
+  }),
+);
+// KPI = soma da própria série (coerência número grande × gráfico).
+caso(
+  "KPI matrículas == soma da série",
+  true,
+  (() => {
+    const serie = serieDefault.json?.series?.find((s) => s.chave === "matriculas");
+    const soma = (serie?.pontos ?? []).reduce((a, p) => a + p.total, 0);
+    return soma === serieDefault.json?.kpis?.matriculas;
+  })(),
+);
+caso(
+  "taxaConclusao é número (0-100) ou null",
+  true,
+  serieDefault.json?.kpis?.taxaConclusao === null ||
+    (Number.isInteger(serieDefault.json?.kpis?.taxaConclusao) &&
+      serieDefault.json.kpis.taxaConclusao >= 0 &&
+      serieDefault.json.kpis.taxaConclusao <= 100),
+);
+
+// Janela explícita e saneamento (min 3, max 24).
+const serie6 = await req(instrutor, "GET", "/capacitacao/indicadores/series?meses=6");
+caso("janela de 6 meses", 6, serie6.json?.meses);
+caso("6 meses → 6 pontos", true, (serie6.json?.series ?? []).every((s) => s.pontos.length === 6));
+const serieAlta = await req(instrutor, "GET", "/capacitacao/indicadores/series?meses=999");
+caso("meses acima do teto satura em 24", 24, serieAlta.json?.meses);
+const serieBaixa = await req(instrutor, "GET", "/capacitacao/indicadores/series?meses=1");
+caso("meses abaixo do piso satura em 3", 3, serieBaixa.json?.meses);
+const serieLixo = await req(instrutor, "GET", "/capacitacao/indicadores/series?meses=abc");
+caso("meses não-numérico cai no default 12", 12, serieLixo.json?.meses);
+
+// SQLi: payload malicioso no parâmetro NÃO deve derrubar nem vazar — vira default.
+const sqli = await req(
+  instrutor,
+  "GET",
+  `/capacitacao/indicadores/series?meses=${encodeURIComponent("12; DROP TABLE matriculas;--")}`,
+);
+caso("payload SQLi no meses → 200 sem quebrar", 200, sqli.status);
+caso("payload SQLi vira número saneado", true, Number.isInteger(sqli.json?.meses));
+// Prova viva de que matriculas continua de pé após a tentativa de DROP.
+const aindaVivo = await req(instrutor, "GET", "/capacitacao/matriculas/semestre");
+caso("tabela matriculas intacta após SQLi", 200, aindaVivo.status);
+
+// RBAC: família não enxerga indicadores da unidade.
+const serieRbac = await req(familia, "GET", "/capacitacao/indicadores/series");
+caso("família não vê séries (RBAC)", 403, serieRbac.status);
+
 const total = resultados.length;
 const ok = resultados.filter(Boolean).length;
 console.log(`\n${ok}/${total}`);
