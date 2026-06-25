@@ -45,6 +45,27 @@ services:
       retries: 10
     networks: [ifp-net]
 
+  # MinIO — storage S3-compatível para documentos da ficha e fotos do diário (Onda C).
+  # Só é acessível dentro da rede docker (sem porta publicada); a API fala com ele
+  # por "minio:9000" em HTTP interno. Para usar S3/R2 GERENCIADO em vez deste service,
+  # remova este bloco e aponte as MINIO_* da API para o endpoint/credenciais do provedor
+  # (MINIO_ENDPOINT=s3.amazonaws.com / MINIO_USE_SSL=true etc.).
+  minio:
+    image: minio/minio:latest
+    <<: *restart-policy
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY é obrigatório}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY é obrigatório}
+    volumes:
+      - ifp-miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [ifp-net]
+
   # Rodar via `docker compose run --rm migrate` antes de subir api/web.
   # Reaproveita a imagem ifp-api mas no target "migrator" (prisma CLI disponível).
   migrate:
@@ -75,10 +96,20 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      # Storage (Onda C) — endpoint interno do service `minio` na rede docker.
+      # Para S3/R2 gerenciado, troque MINIO_ENDPOINT/MINIO_USE_SSL pelos do provedor.
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-ifp-documentos}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3333/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
@@ -128,6 +159,7 @@ services:
 volumes:
   ifp-pgdata:
   ifp-redisdata:
+  ifp-miniodata:
   ifp-caddy-data:
   ifp-caddy-config:
 

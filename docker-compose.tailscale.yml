@@ -3,6 +3,15 @@
 #   docker compose -f docker-compose.prod.yml -f docker-compose.tailscale.yml \
 #                  --env-file .env.production <cmd>
 services:
+  api:
+    # O storage (Onda C) usa o service `minio` INTERNO à rede docker (minio:9000),
+    # falado em HTTP puro. Fixa USE_SSL=false aqui para não depender do .env: o
+    # tráfego para o MinIO não sai da máquina, quem faz HTTPS é o Tailscale serve
+    # na borda. Se um dia migrar para S3/R2 GERENCIADO, remova esta linha e ponha
+    # MINIO_USE_SSL=true (+ endpoint do provedor) no .env.production.
+    environment:
+      MINIO_USE_SSL: "false"
+
   web:
     build:
       args:
