@@ -575,6 +575,19 @@ export class TurmasEsportivasService {
         throw new BadRequestException("A turma já foi encerrada.");
       }
 
+      // IDOR (P1.1): se vier membroId, ele tem de ser dependente DESTA ficha —
+      // senão um atleta de outra família é vinculado a esta matrícula (dado de
+      // menor cruzando famílias). Mesmo padrão da Capacitação/Educacional.
+      if (dto.membroId) {
+        const membro = await tx.membroFamiliar.findFirst({
+          where: { id: dto.membroId, fichaId: dto.fichaId },
+          select: { id: true },
+        });
+        if (!membro) {
+          throw new NotFoundException("Dependente não encontrado nesta família.");
+        }
+      }
+
       const duplicada = await tx.matriculaEsportiva.findFirst({
         where: { turmaId, fichaId: dto.fichaId, membroId: dto.membroId ?? null },
         select: { id: true },

@@ -114,6 +114,40 @@ const semElegibilidade = await req(
 );
 caso("ficha sem elegibilidade (regra de ouro)", 400, semElegibilidade.status);
 
+// --- IDOR (P1.1): membroId tem de pertencer ao fichaId ---
+// Turma própria pra o caso ser independente do lock/vagas acima.
+const turmaIdor = await req(sensei, "POST", "/esportivo/turmas", {
+  modalidadeId: judo.id,
+  codigo: `JUDO-IDOR-${marca}`,
+  diasHorario: "Ter/Qui 11h-12h30",
+  local: "Tatame IDOR",
+  faixaEtariaMin: 0,
+  faixaEtariaMax: 99,
+  inicioEm: "2026-06-01",
+  vagasTotais: 5,
+});
+caso("sensei -> cria turma p/ teste IDOR", 201, turmaIdor.status);
+
+// Ficha da Maria (CPF 22222222222) — elegível no esportivo, OUTRA família.
+const mariaBusca = await req(sensei, "GET", "/esportivo/fichas-elegiveis?q=Maria");
+const mariaFicha = mariaBusca.json?.items?.[0];
+if (!mariaFicha) throw new Error("Ficha da Maria não encontrada — rode o seed");
+// 'seed-membro-fora-unidade' (Caio) pertence à família do JOÃO, NÃO à da Maria.
+const idor = await req(sensei, "POST", `/esportivo/turmas/${turmaIdor.json.id}/matriculas`, {
+  fichaId: mariaFicha.id,
+  membroId: "seed-membro-fora-unidade",
+});
+caso("IDOR: membro de outra família -> 404", 404, idor.status);
+// Sanidade: o MESMO membro com a ficha CERTA (do João) é matrícula válida.
+const joaoBusca = await req(sensei, "GET", "/esportivo/fichas-elegiveis?q=João");
+const joaoFicha = joaoBusca.json?.items?.[0];
+if (!joaoFicha) throw new Error("Ficha do João não encontrada — rode o seed");
+const membroOk = await req(sensei, "POST", `/esportivo/turmas/${turmaIdor.json.id}/matriculas`, {
+  fichaId: joaoFicha.id,
+  membroId: "seed-membro-fora-unidade",
+});
+caso("membro com a ficha correta -> 201", 201, membroOk.status);
+
 console.log("--- EDITAR TURMA (correção de dados) ---");
 const editOk = await req(sensei, "PUT", `/esportivo/turmas/${turma.json.id}`, {
   diasHorario: "Seg/Qua 14h-15h30",
