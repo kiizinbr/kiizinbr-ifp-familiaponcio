@@ -12,5 +12,6 @@ import { VerificacaoGraduacaoController } from "./verificacao-graduacao.controll
   imports: [MedicoModule], // reusa ProfissionaisService (resolver + ownership)
   controllers: [EsportivoController, VerificacaoGraduacaoController],
   providers: [TurmasEsportivasService, GraduacoesService, GraduacaoPdfService, TreinosService],
+  exports: [GraduacaoPdfService], // reusado pelo portal da família (educacional)
 })
 export class EsportivoModule {}

@@ -58,4 +58,22 @@ export class FamiliaRecebidoController {
       disposition: `inline; filename="${filename}"`,
     });
   }
+
+  @Get("graduacoes/:codigo/pdf")
+  @ApiOperation({ summary: "Baixa o diploma de graduação da PRÓPRIA família (IDOR: outra família → 404)" })
+  @ApiParam({ name: "codigo", description: "código de verificação da graduação" })
+  async graduacaoPdf(
+    @Param("codigo") codigo: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() req: Request,
+  ): Promise<StreamableFile> {
+    const { buffer, filename } = await this.recebido.graduacaoPdf(user, codigo, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+    return new StreamableFile(buffer, {
+      type: "application/pdf",
+      disposition: `inline; filename="${filename}"`,
+    });
+  }
 }

@@ -125,6 +125,29 @@ caso("família -> PDF de OUTRA família (IDOR)", 404, pdfOutra.status);
 const pdfInexistente = await req(familia, "GET", "/familia/certificados/nao-existe/pdf");
 caso("família -> PDF inexistente", 404, pdfInexistente.status);
 
+console.log("--- DIPLOMA DE GRADUAÇÃO (próprio x de outra família = IDOR) ---");
+// A4: a família baixa o diploma esportivo da PRÓPRIA criança (reusa o gerador
+// de PDF + verificação pública do Esportivo), e NÃO o de terceiros.
+const gradPdfProprio = await req(familia, "GET", "/familia/graduacoes/seed-grad-ana/pdf");
+caso("família -> baixa diploma da própria graduação", 200, gradPdfProprio.status);
+caso("o diploma é mesmo um PDF", true, gradPdfProprio.isPdf);
+
+const gradPdfOutra = await req(
+  familia,
+  "GET",
+  "/familia/graduacoes/seed-grad-outra-familia/pdf",
+);
+caso("família -> diploma de OUTRA família (IDOR)", 404, gradPdfOutra.status);
+
+const gradPdfInexistente = await req(familia, "GET", "/familia/graduacoes/nao-existe/pdf");
+caso("família -> diploma inexistente", 404, gradPdfInexistente.status);
+
+// RBAC: perfil errado e sem token não baixam o diploma.
+const medicoGradPdf = await req(medico, "GET", "/familia/graduacoes/seed-grad-ana/pdf");
+caso("médico -> diploma de graduação (RBAC)", 403, medicoGradPdf.status);
+const semTokenGradPdf = await req(null, "GET", "/familia/graduacoes/seed-grad-ana/pdf");
+caso("sem token -> diploma de graduação (401)", 401, semTokenGradPdf.status);
+
 console.log("--- AGENDA (calendário só das unidades das minhas crianças) ---");
 const agenda = await req(familia, "GET", "/familia/agenda");
 caso("família -> agenda", 200, agenda.status);

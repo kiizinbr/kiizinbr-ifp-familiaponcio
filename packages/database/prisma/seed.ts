@@ -1613,5 +1613,38 @@ async function seedConquistasFamilia() {
       },
     });
     console.log("  ✓ Graduação esportiva da Ana (cód. seed-grad-ana)");
+
+    // ── 3) Graduação de OUTRA família (João/11111111111) — fixture IDOR do
+    //       diploma esportivo: o portal da Sandra deve dar 404 ao baixar este PDF.
+    const joao = await prisma.fichaCidada.findUnique({ where: { cpf: "11111111111" } });
+    if (joao) {
+      let matJoaoEsp = await prisma.matriculaEsportiva.findFirst({
+        where: { turmaId: turmaEsp.id, fichaId: joao.id, membroId: null },
+      });
+      if (!matJoaoEsp) {
+        matJoaoEsp = await prisma.matriculaEsportiva.create({
+          data: {
+            unidadeId: unidadeEsp.id,
+            turmaId: turmaEsp.id,
+            fichaId: joao.id,
+            status: StatusMatricula.ATIVA,
+            criadoPor: sensei.userId,
+          },
+        });
+      }
+      await prisma.graduacao.upsert({
+        where: { matriculaId_nivel: { matriculaId: matJoaoEsp.id, nivel: "Faixa Branca" } },
+        update: {},
+        create: {
+          unidadeId: unidadeEsp.id,
+          matriculaId: matJoaoEsp.id,
+          nivel: "Faixa Branca",
+          codigoVerificacao: "seed-grad-outra-familia",
+          observacao: "Graduação de outra família — fixture IDOR do portal",
+          concedidaPor: sensei.userId,
+        },
+      });
+      console.log("  ✓ Graduação de outra família (cód. seed-grad-outra-familia — fixture IDOR)");
+    }
   }
 }

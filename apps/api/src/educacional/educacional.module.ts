@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { CapacitacaoModule } from "../capacitacao/capacitacao.module";
+import { EsportivoModule } from "../esportivo/esportivo.module";
 import { MedicoModule } from "../medico/medico.module";
 import { ComunicadosController } from "./comunicados.controller";
 import { ComunicadosService } from "./comunicados.service";
@@ -27,6 +28,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
   imports: [
     MedicoModule, // reusa ProfissionaisService (resolver + parede de TipoUnidade)
     CapacitacaoModule, // reusa CertificadoPdfService (PDF do portal da família)
+    EsportivoModule, // reusa GraduacaoPdfService (diploma do portal da família)
   ],
   controllers: [
     TurmasInfantisController,

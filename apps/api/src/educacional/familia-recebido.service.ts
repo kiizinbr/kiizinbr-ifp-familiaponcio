@@ -5,6 +5,7 @@ import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import { CertificadoPdfService } from "../capacitacao/certificado-pdf.service";
+import { GraduacaoPdfService } from "../esportivo/graduacao-pdf.service";
 
 /**
  * Portal da família — "O que recebi" + galeria de conquistas.
@@ -21,6 +22,7 @@ export class FamiliaRecebidoService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly certificadoPdfService: CertificadoPdfService,
+    private readonly graduacaoPdfService: GraduacaoPdfService,
   ) {}
 
   /** O login do responsável → a ficha da família. Sem vínculo, 403. */
@@ -265,5 +267,31 @@ export class FamiliaRecebidoService {
     }
 
     return this.certificadoPdfService.gerar(codigo, origem);
+  }
+
+  /**
+   * Gera o DIPLOMA de graduação esportiva da PRÓPRIA família. Confere o
+   * ownership por `fichaId` ANTES de gerar (IDOR): graduação de outra família
+   * → 404 (mesma resposta de "não existe", não vaza existência). Reusa o
+   * mesmo GraduacaoPdfService da verificação pública do Esportivo (Grupo A);
+   * o download em si é auditado como EXPORT por aquele serviço.
+   */
+  async graduacaoPdf(
+    user: AuthenticatedUser,
+    codigo: string,
+    origem?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    const fichaId = await this.resolverFichaId(user);
+
+    const grad = await this.prisma.graduacao.findUnique({
+      where: { codigoVerificacao: codigo },
+      select: { matricula: { select: { fichaId: true } } },
+    });
+    // Mesma resposta para "não existe" e "de outra família" — não vaza existência.
+    if (!grad || grad.matricula.fichaId !== fichaId) {
+      throw new NotFoundException("Graduação não encontrada.");
+    }
+
+    return this.graduacaoPdfService.gerar(codigo, origem);
   }
 }
