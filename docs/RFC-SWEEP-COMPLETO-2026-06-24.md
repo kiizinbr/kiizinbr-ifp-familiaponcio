@@ -67,9 +67,34 @@ Itens sem dependência externa do `GAP-ATUAL`. Todos preferencialmente **zero-mi
 ---
 
 ## 🅲 ONDA C — storage + envio (parcial; MinIO já no ar)
-- **Autônomo:** wiring do MinIO (`ifp_minio_dev`) ao app + endpoints/UI de **upload** — documentos na ficha (LGPD), **fotos no diário da creche** (afetivo), fotos visíveis à família, anexos no chat. Notificação **in-app** (reusa `/notificacoes` da Onda D).
-- **Gate (seu):** **envio externo** (recuperação de senha por e-mail; push/WhatsApp real à família) = credencial de SMTP/WhatsApp. Defino os campos de config; você fornece a credencial (Vaultwarden) quando for ligar.
-- **Migrations:** aditivas (`Anexo`/`Documento`/`FotoDiario` com referência ao objeto MinIO).
+
+**Achados do scout (24/06):** o MinIO roda em `ifp_minio_dev` (:9000 API / :9001 console; creds dev fora do git, injetadas no prompt da esteira). O schema **JÁ TEM** o modelo `Documento` (campos `url // S3/R2/MinIO`, `nomeArquivo`, `tipo TipoDocumento`, FK `FichaCidada.documentos`), `DocumentoMedico` e campos `fotoUrl` — ou seja, **o data model de storage já existe**; falta o wiring. A API **não tem** módulo de storage hoje (zero MinIO/S3). Notificação in-app já existe (`/notificacoes`, Onda D).
+
+### C1 — Fundação de storage (StorageService + MinIO) `[Tier 3]`
+- **depends_on:** —
+- **scope:** adicionar o client MinIO (pkg `minio`) ao `@ifp/api`; `StorageModule`+`StorageService` (putObject/presignedGetUrl/removeObject) lendo `MINIO_*` do env; bootstrap idempotente do bucket no start; documentar `MINIO_*` no `.env` (dev) e `.env.example`. Endpoint `GET /admin/storage/health` (`@Perfis(SUPER_ADMIN)`) que faz round-trip put+get de um objeto temпорário.
+- **acceptance_tests:** `scripts/valida-storage.mjs`: health 200 com round-trip ok; 403 p/ não-admin. **rollback:** reverter commit (dep nova é reversível).
+- **risk_level:** alto (infra/dependência nova). ZERO-MIGRATION.
+
+### C2 — Upload de documento na ficha cidadã `[Tier 3, LGPD]`
+- **depends_on:** C1
+- **scope:** `POST /fichas-cidadas/:id/documentos` (multipart, FileInterceptor) → StorageService.put → cria linha `Documento` (REUSA o model existente, **ZERO-MIGRATION**); `GET .../documentos` (lista), `GET .../documentos/:docId` (download por presigned URL com checagem ownership/tenant/RBAC), `DELETE`. UI na ficha (upload + lista + baixar). Limite de tamanho/MIME; trilha LGPD.
+- **acceptance_tests:** `valida-documentos-ficha.mjs`: upload→201+linha, lista, download presigned, **IDOR/tenant** (profissional de outra unidade não baixa), RBAC, delete. **rollback:** reverter commit.
+- **risk_level:** alto (dado sensível). ZERO-MIGRATION (model já existe).
+
+### C3 — Fotos no diário da creche `[Tier 3, LGPD afetivo]`
+- **depends_on:** C1
+- **scope:** anexar foto(s) ao registro do diário; família do aluno vê. Reusar `fotoUrl` se servir, senão 1 migration ADITIVA (`FotoDiario`). Watermark é desejável (ver comentário do schema) mas opcional nesta unidade.
+- **acceptance_tests:** `valida-edu-fotos.mjs`: educadora sobe foto no diário, família DAQUELE aluno vê, outra família NÃO vê. **rollback:** reverter commit (+ migration aditiva vazia, reversível).
+- **risk_level:** alto. Aditiva só se preciso.
+
+### C4 — Notificação in-app à família (eventos de storage) `[Tier 2]`
+- **depends_on:** C2/C3
+- **scope:** estender o `/notificacoes` (Onda D) p/ a família receber aviso in-app de novo documento/foto/registro (SEM envio externo). Sino na topbar já existe.
+- **acceptance_tests:** estende `valida-notificacoes.mjs`: evento de storage gera notificação ao perfil família, com tenant/RBAC. ZERO-MIGRATION (reusa agregação).
+- **risk_level:** médio.
+
+> **Gate (seu) — fora desta onda autônoma:** **envio externo** (recuperação de senha por e-mail; push/WhatsApp real) = credencial de SMTP/WhatsApp do Vaultwarden. Defino os campos de config; ligo quando você passar a credencial.
 
 ## 🅱 ONDA B — camada de IA (scaffolding; precisa de chave + LGPD)
 - **Autônomo:** fundação `@ifp/ai` (cliente Anthropic Opus, fila de **revisão humana obrigatória**, log de auditoria LGPD, feature-flag OFF por padrão) + os 5 consumidores atrás da flag: resumo clínico · triagem assistida · resumo do dia (creche) · histórias de impacto · áudio/TTS do diário.
