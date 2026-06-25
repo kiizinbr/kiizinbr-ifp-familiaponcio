@@ -4,13 +4,14 @@ import {
   Injectable,
   NotFoundException,
   PayloadTooLargeException,
-  UnsupportedMediaTypeException,
 } from "@nestjs/common";
 import { AcaoAuditoria, TipoDocumento } from "@ifp/database";
 
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { StorageService } from "../storage/storage.service";
+import { validarTipoPorConteudo } from "../storage/magic-bytes";
+import { persistirComRollbackDeObjeto } from "../storage/com-rollback";
 
 /** Teto de tamanho do upload (8 MB). Documentos de cadastro (RG, comprovantes,
  * laudos) cabem com folga; arquivos maiores são quase sempre erro/abuso. */
@@ -83,28 +84,36 @@ export class DocumentosService {
         `Arquivo acima do limite de ${Math.floor(TAMANHO_MAX_BYTES / (1024 * 1024))} MB.`,
       );
     }
-    const ext = MIME_PERMITIDOS[arquivo.mimetype];
-    if (!ext) {
-      throw new UnsupportedMediaTypeException(
-        "Tipo de arquivo não permitido. Aceitos: PDF, JPG, PNG.",
-      );
-    }
+    // Valida o tipo pelos MAGIC BYTES (não pelo Content-Type do cliente, que
+    // pode mentir): HTML/exe disfarçado de imagem é barrado aqui (415). Usamos
+    // o MIME/ext DETECTADOS — não os declarados — para nomear e gravar.
+    const { mime, ext } = await validarTipoPorConteudo(
+      arquivo.buffer,
+      MIME_PERMITIDOS,
+      "Tipo de arquivo não permitido. Aceitos: PDF, JPG, PNG.",
+    );
 
     const objectName = this.montarObjectName(fichaId, ext);
-    await this.storage.putObject(objectName, arquivo.buffer, arquivo.mimetype);
+    await this.storage.putObject(objectName, arquivo.buffer, mime);
 
-    const doc = await this.prisma.documento.create({
-      data: {
-        fichaId,
-        tipo,
-        // nome original do arquivo (saneado p/ não carregar caminho/reservados).
-        nomeArquivo: this.sanitizarNome(arquivo.originalname),
-        url: objectName,
-        tamanhoBytes: arquivo.size,
-        mimeType: arquivo.mimetype,
-        enviadoPor: autorId,
-      },
-    });
+    // Anti-órfão (P1.3): se o INSERT falhar APÓS o putObject, o objeto no MinIO
+    // ficaria sem linha que o referencie (lixo + dado pessoal solto). O helper
+    // remove o objeto (best-effort) antes de relançar, mantendo storage e banco
+    // em sincronia.
+    const doc = await persistirComRollbackDeObjeto(this.storage, objectName, () =>
+      this.prisma.documento.create({
+        data: {
+          fichaId,
+          tipo,
+          // nome original do arquivo (saneado p/ não carregar caminho/reservados).
+          nomeArquivo: this.sanitizarNome(arquivo.originalname),
+          url: objectName,
+          tamanhoBytes: arquivo.size,
+          mimeType: mime,
+          enviadoPor: autorId,
+        },
+      }),
+    );
 
     // Trilha LGPD: anexar documento a uma família é manuseio de dado pessoal.
     this.audit.registrar({
@@ -116,7 +125,7 @@ export class DocumentosService {
         fichaId,
         protocolo: ficha.protocolo,
         tipo,
-        mimeType: arquivo.mimetype,
+        mimeType: mime,
         tamanhoBytes: arquivo.size,
       },
     });

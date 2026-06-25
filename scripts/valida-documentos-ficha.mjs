@@ -107,6 +107,11 @@ const fichaA = lista.json.items[0].id;
 const fichaB = lista.json.items[1].id;
 
 const pdf = Buffer.from("%PDF-1.4\n%fake pdf para teste C2\n", "utf-8");
+// PNG real (assinatura de 8 bytes — basta para o file-type reconhecer image/png).
+const png = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // \x89PNG\r\n\x1a\n
+  0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, // IHDR
+]);
 
 // ============================================================
 console.log("--- UPLOAD (caminho feliz) ---");
@@ -122,12 +127,12 @@ ok("resposta NÃO expõe a chave do storage (url)", up.json?.url === undefined);
 caso("tipo gravado", "COMPROVANTE_RENDA", up.json?.tipo);
 const docId = up.json?.id;
 
-// segundo upload (imagem PNG) — confirma que outro MIME permitido passa
+// segundo upload (imagem PNG REAL) — confirma que outro MIME permitido passa
 const upPng = await upload(admin, fichaA, {
   tipo: "RG",
   nome: "rg.png",
   mime: "image/png",
-  conteudo: Buffer.from("PNGfake", "utf-8"),
+  conteudo: png,
 });
 caso("admin sobe imagem PNG → 201", 201, upPng.status);
 
@@ -140,6 +145,26 @@ const upBad = await upload(admin, fichaA, {
   conteudo: Buffer.from("MZ", "utf-8"),
 });
 caso("MIME não permitido → 415", 415, upBad.status);
+
+// MAGIC BYTES (P1.4): extensão/Content-Type de imagem, mas BYTES de outra coisa.
+// Texto puro disfarçado de PNG: o Content-Type mente, os magic bytes não.
+// No código antigo (que confiava no Content-Type) isso passava como 201.
+const upDisfarcado = await upload(admin, fichaA, {
+  tipo: "OUTRO",
+  nome: "imagem.png",
+  mime: "image/png",
+  conteudo: Buffer.from("isto e texto puro, nao e uma imagem de verdade\n", "utf-8"),
+});
+caso("PNG falso (bytes de texto) → 415", 415, upDisfarcado.status);
+
+// HTML disfarçado de JPEG (vetor de XSS via presigned URL) → 415.
+const upHtml = await upload(admin, fichaA, {
+  tipo: "OUTRO",
+  nome: "foto.jpg",
+  mime: "image/jpeg",
+  conteudo: Buffer.from("<html><script>alert(1)</script></html>", "utf-8"),
+});
+caso("HTML disfarçado de JPEG → 415", 415, upHtml.status);
 
 const upSemTipo = await upload(admin, fichaA, {
   nome: "doc.pdf",

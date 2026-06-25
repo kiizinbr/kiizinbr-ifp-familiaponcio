@@ -6,7 +6,6 @@ import {
   Injectable,
   NotFoundException,
   PayloadTooLargeException,
-  UnsupportedMediaTypeException,
 } from "@nestjs/common";
 import { AcaoAuditoria, Prisma, StatusDiario, TipoUnidade } from "@ifp/database";
 
@@ -14,6 +13,8 @@ import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "../auth/current-user.decorator";
 import { StorageService } from "../storage/storage.service";
+import { validarTipoPorConteudo } from "../storage/magic-bytes";
+import { persistirComRollbackDeObjeto } from "../storage/com-rollback";
 import { ProfissionaisService } from "../medico/profissionais.service";
 import { CriancasService } from "./criancas.service";
 import { janelaDoDiaSP } from "./dia-util";
@@ -101,12 +102,14 @@ export class FotosDiarioService {
         `Foto acima do limite de ${Math.floor(TAMANHO_MAX_BYTES / (1024 * 1024))} MB.`,
       );
     }
-    const ext = MIME_PERMITIDOS[arquivo.mimetype];
-    if (!ext) {
-      throw new UnsupportedMediaTypeException(
-        "Tipo de arquivo não permitido. Aceitos: JPG, PNG, WEBP.",
-      );
-    }
+    // Valida o tipo pelos MAGIC BYTES (não pelo Content-Type do cliente, que
+    // pode mentir): HTML/exe/PDF disfarçado de imagem é barrado aqui (415).
+    // Usamos o MIME/ext DETECTADOS — não os declarados — para nomear e gravar.
+    const { mime, ext } = await validarTipoPorConteudo(
+      arquivo.buffer,
+      MIME_PERMITIDOS,
+      "Tipo de arquivo não permitido. Aceitos: JPG, PNG, WEBP.",
+    );
 
     const { dataDb } = janelaDoDiaSP();
 
@@ -129,21 +132,25 @@ export class FotosDiarioService {
       return d;
     });
 
-    // 2) Sobe ao MinIO e cria a linha FotoDiario.
+    // 2) Sobe ao MinIO e cria a linha FotoDiario. Anti-órfão (P1.3): se o INSERT
+    //    falhar APÓS o putObject, o objeto ficaria solto no bucket (imagem de
+    //    menor sem trilha) — o helper o remove (best-effort) antes de relançar.
     const objectName = this.montarObjectName(diario.id, ext);
-    await this.storage.putObject(objectName, arquivo.buffer, arquivo.mimetype);
+    await this.storage.putObject(objectName, arquivo.buffer, mime);
 
-    const foto = await this.prisma.fotoDiario.create({
-      data: {
-        diarioId: diario.id,
-        url: objectName,
-        nomeArquivo: this.sanitizarNome(arquivo.originalname),
-        mimeType: arquivo.mimetype,
-        tamanhoBytes: arquivo.size,
-        legenda: legenda?.trim() || null,
-        profissionalId: profissional.id,
-      },
-    });
+    const foto = await persistirComRollbackDeObjeto(this.storage, objectName, () =>
+      this.prisma.fotoDiario.create({
+        data: {
+          diarioId: diario.id,
+          url: objectName,
+          nomeArquivo: this.sanitizarNome(arquivo.originalname),
+          mimeType: mime,
+          tamanhoBytes: arquivo.size,
+          legenda: legenda?.trim() || null,
+          profissionalId: profissional.id,
+        },
+      }),
+    );
 
     // Imagem de menor é dado sensível — anexar entra na trilha LGPD.
     this.audit.registrar({
@@ -151,7 +158,7 @@ export class FotosDiarioService {
       acao: AcaoAuditoria.CREATE,
       entidade: "FotoDiario",
       entidadeId: foto.id,
-      metadados: { membroId, diarioId: diario.id, mimeType: arquivo.mimetype },
+      metadados: { membroId, diarioId: diario.id, mimeType: mime },
     });
 
     return this.semChave(foto);

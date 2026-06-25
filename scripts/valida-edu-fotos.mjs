@@ -139,6 +139,25 @@ const upPdf = await uploadFoto(educadora, anaId, {
   conteudo: Buffer.from("%PDF-1.4", "utf-8"),
 });
 caso("MIME não-imagem (PDF) → 415", 415, upPdf.status);
+
+// MAGIC BYTES (P1.4): Content-Type/extensão de imagem, mas BYTES de outra coisa.
+// PDF disfarçado de JPEG: o Content-Type mente, os magic bytes não.
+// No código antigo (que confiava no Content-Type) isso passava como 201.
+const upPdfDisfarcado = await uploadFoto(educadora, anaId, {
+  nome: "foto.jpg",
+  mime: "image/jpeg",
+  conteudo: Buffer.from("%PDF-1.4\n%conteudo de pdf disfarcado de jpeg\n", "utf-8"),
+});
+caso("PDF disfarçado de JPEG → 415", 415, upPdfDisfarcado.status);
+
+// Texto puro disfarçado de PNG → 415 (file-type não reconhece → bloqueia).
+const upTextoDisfarcado = await uploadFoto(educadora, anaId, {
+  nome: "foto.png",
+  mime: "image/png",
+  conteudo: Buffer.from("isto e so texto, nao uma imagem\n", "utf-8"),
+});
+caso("texto disfarçado de PNG → 415", 415, upTextoDisfarcado.status);
+
 const upSemArquivo = await uploadFoto(educadora, anaId, { legenda: "sem foto" });
 caso("sem arquivo → 400", 400, upSemArquivo.status);
 
