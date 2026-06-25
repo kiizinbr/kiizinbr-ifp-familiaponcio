@@ -312,3 +312,62 @@ export function useComunicadosEntrega(opts: { unidade?: string; criticos?: boole
     enabled: status === "authenticated",
   });
 }
+
+// ============================================================
+// Configuração da plataforma (espelha /admin/config) — A6
+// ============================================================
+
+export type ValorParametro = boolean | number | string;
+
+export interface ParametroConfig {
+  chave: string;
+  rotulo: string;
+  descricao: string;
+  tipo: "boolean" | "number" | "string";
+  valor: ValorParametro;
+  padrao: ValorParametro;
+  personalizado: boolean;
+  min?: number;
+  max?: number;
+  maxLength?: number;
+  atualizadoEm: string | null;
+}
+
+export interface UnidadeResumo {
+  id: string;
+  tipo: TipoUnidade;
+  nome: string;
+  slug: string;
+  ativo: boolean;
+  usuarios: number;
+}
+
+export interface ConfigPlataforma {
+  unidades: UnidadeResumo[];
+  tiposUnidade: TipoUnidade[];
+  perfis: string[];
+  parametros: ParametroConfig[];
+}
+
+export function useConfigPlataforma() {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: () => authFetch<ConfigPlataforma>("/admin/config"),
+    enabled: status === "authenticated",
+  });
+}
+
+export function useAtualizarParametro() {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ chave, valor }: { chave: string; valor: ValorParametro }) =>
+      authFetch<ParametroConfig>(`/admin/config/parametros/${encodeURIComponent(chave)}`, {
+        method: "PUT",
+        body: JSON.stringify({ valor }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "config"] }),
+  });
+}

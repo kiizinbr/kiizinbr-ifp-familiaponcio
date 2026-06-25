@@ -1723,3 +1723,20 @@ model InscricaoModelo {
   @@index([sessaoId, status])
   @@map("inscricoes_modelo")
 }
+
+// ============================================================
+// Admin · Configuração da plataforma (parâmetros key/value) — A6
+// ============================================================
+// Painel de configuração do SUPER_ADMIN. A tabela guarda APENAS overrides de
+// parâmetros simples e conhecidos (whitelist no service): cada chave tem tipo e
+// default na aplicação; aqui persistimos só o que o admin alterou. O valor é
+// sempre String (serializado conforme o tipo declarado no catálogo). Toda
+// alteração gera AuditLog (LGPD). Aditiva — não toca nenhuma tabela existente.
+model Configuracao {
+  chave        String   @id // ex.: "matricula.idadeMinimaConsentimento"
+  valor        String // valor serializado (string/number/boolean em texto)
+  atualizadoPor String? // userId de quem alterou por último
+  atualizadoEm DateTime @default(now()) @updatedAt
+
+  @@map("configuracoes")
+}

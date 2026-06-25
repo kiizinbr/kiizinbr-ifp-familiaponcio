@@ -13,7 +13,12 @@ const PERFIS_PERMITIDOS = ["SUPER_ADMIN", "GESTOR_UNIDADE"];
  * devolve 403 para gestor; aqui só liberamos o item do rail para o admin).
  */
 const ROTAS_BASE = ["/admin/usuarios"];
-const ROTAS_SUPER_ADMIN = ["/admin/auditoria", "/admin/unidades", "/admin/comunicados"];
+const ROTAS_SUPER_ADMIN = [
+  "/admin/auditoria",
+  "/admin/unidades",
+  "/admin/comunicados",
+  "/admin/config",
+];
 
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);
