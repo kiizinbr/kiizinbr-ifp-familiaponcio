@@ -13,6 +13,7 @@ import {
 
 import { authOptions } from "@/lib/auth";
 import { UNIDADES_ACESSO } from "@/lib/unidades";
+import SiteShell from "./(site)/_components/SiteShell";
 
 /** Áreas de trabalho por perfil — o hub de quem está logado. */
 const AREAS: {
@@ -75,9 +76,14 @@ const AREAS: {
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
-  const minhasAreas = session
-    ? AREAS.filter((a) => session.perfis?.some((p) => a.perfis.includes(p)))
-    : [];
+
+  // Anônimo: a "/" é a landing pública institucional (porta de entrada calorosa,
+  // tom energético, sem doação/parcerias). O hub abaixo é só para quem já entrou.
+  if (!session) {
+    return <SiteShell />;
+  }
+
+  const minhasAreas = AREAS.filter((a) => session.perfis?.some((p) => a.perfis.includes(p)));
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-16">
@@ -91,43 +97,32 @@ export default async function HomePage() {
         </p>
       </header>
 
-      {session ? (
-        <section aria-label="Suas áreas" className="mb-16">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Olá, {session.user?.name ?? session.user?.email} — suas áreas de trabalho
-          </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {minhasAreas.map((a) => (
-              <Link
-                key={a.href}
-                href={a.href}
-                className="group rounded-lg border border-border bg-surface p-5 shadow-ifp-sm transition hover:shadow-casa-sm"
-              >
-                <span className="text-primary">{a.icone}</span>
-                <h3 className="mt-3 flex items-center gap-1 font-semibold text-foreground group-hover:text-primary">
-                  {a.nome}
-                  <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">{a.descricao}</p>
-              </Link>
-            ))}
-            {minhasAreas.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Seu usuário ainda não tem áreas atribuídas — fale com o administrador.
-              </p>
-            ) : null}
-          </div>
-        </section>
-      ) : (
-        <div className="mb-16 text-center">
-          <Link
-            href="/acesso"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-ifp-sm transition hover:bg-primary-hover"
-          >
-            Acesso ao Sistema <ArrowRight className="h-4 w-4" />
-          </Link>
+      <section aria-label="Suas áreas" className="mb-16">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Olá, {session.user?.name ?? session.user?.email} — suas áreas de trabalho
+        </h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {minhasAreas.map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="group rounded-lg border border-border bg-surface p-5 shadow-ifp-sm transition hover:shadow-casa-sm"
+            >
+              <span className="text-primary">{a.icone}</span>
+              <h3 className="mt-3 flex items-center gap-1 font-semibold text-foreground group-hover:text-primary">
+                {a.nome}
+                <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">{a.descricao}</p>
+            </Link>
+          ))}
+          {minhasAreas.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Seu usuário ainda não tem áreas atribuídas — fale com o administrador.
+            </p>
+          ) : null}
         </div>
-      )}
+      </section>
 
       {/* Vitrine: cada unidade leva ao login já com o tema do salão. */}
       <section aria-label="Unidades" className="grid gap-6 md:grid-cols-2">
