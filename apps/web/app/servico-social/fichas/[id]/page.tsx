@@ -1,9 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, KeyRound, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Download,
+  FileText,
+  KeyRound,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 
 import {
   asOptions,
@@ -14,7 +26,9 @@ import {
   SITUACAO_MORADIA_LABEL,
   STATUS_ENCAMINHAMENTO_LABEL,
   STATUS_LABEL,
+  TIPO_DOCUMENTO_LABEL,
   UNIDADES,
+  type DocumentoFicha,
   type Elegibilidade,
   type Escolaridade,
   type EstadoCivil,
@@ -24,6 +38,7 @@ import {
   type PrioridadeSinal,
   type StatusElegibilidade,
   type StatusEncaminhamento,
+  type TipoDocumento,
 } from "@/lib/api";
 import {
   useAcessoFamilia,
@@ -36,6 +51,12 @@ import {
   type MembroPayload,
 } from "@/lib/use-fichas";
 import { useHistoricoEncaminhamentos } from "@/lib/use-encaminhamentos";
+import {
+  useBaixarDocumento,
+  useDocumentos,
+  useRemoverDocumento,
+  useUploadDocumento,
+} from "@/lib/use-documentos";
 import {
   formatCpf,
   formatDataHora,
@@ -513,6 +534,126 @@ function CardElegibilidade({
 }
 
 // ============================================================
+// Documentos da ficha (upload + lista + download/baixar) — Onda C2
+// ============================================================
+const TIPO_DOC_OPTIONS = Object.entries(TIPO_DOCUMENTO_LABEL) as [TipoDocumento, string][];
+
+/** Tamanho legível (KB/MB) — só para exibição na lista. */
+function formatTamanho(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function LinhaDocumento({ doc, fichaId }: { doc: DocumentoFicha; fichaId: string }) {
+  const baixar = useBaixarDocumento(fichaId);
+  const remover = useRemoverDocumento(fichaId);
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-3 py-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <FileText className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">{doc.nomeArquivo}</p>
+          <p className="text-xs text-muted-foreground">
+            {TIPO_DOCUMENTO_LABEL[doc.tipo]} · {formatTamanho(doc.tamanhoBytes)} ·{" "}
+            {formatDataHora(doc.enviadoEm)}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Botao
+          type="button"
+          variante="outline"
+          onClick={() => baixar.mutate(doc.id)}
+          carregando={baixar.isPending}
+          className="px-3 py-1.5 text-sm"
+        >
+          <Download className="h-3.5 w-3.5" /> Baixar
+        </Botao>
+        <Botao
+          type="button"
+          variante="ghost"
+          onClick={() => {
+            if (confirm(`Remover o documento "${doc.nomeArquivo}"?`)) remover.mutate(doc.id);
+          }}
+          carregando={remover.isPending}
+          className="px-2 py-1.5 text-sm text-danger"
+        >
+          <Trash2 className="h-3.5 w-3.5" /> Excluir
+        </Botao>
+      </div>
+    </li>
+  );
+}
+
+function SecaoDocumentos({ fichaId }: { fichaId: string }) {
+  const { data: docs, isLoading } = useDocumentos(fichaId);
+  const upload = useUploadDocumento(fichaId);
+  const [tipo, setTipo] = useState<TipoDocumento>("RG");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function enviar(arquivo: File) {
+    await upload.mutateAsync({ tipo, arquivo });
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  return (
+    <Secao titulo="Documentos">
+      <p className="mb-4 text-sm text-muted-foreground">
+        Anexe documentos da família (PDF, JPG ou PNG, até 8 MB). Cada acesso e exclusão fica
+        registrado na trilha de auditoria.
+      </p>
+
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-md border border-border p-4">
+        <Campo label="Tipo do documento">
+          <Select value={tipo} onChange={(e) => setTipo(e.target.value as TipoDocumento)}>
+            {TIPO_DOC_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </Campo>
+        <div>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="application/pdf,image/jpeg,image/png"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void enviar(f);
+            }}
+          />
+          <Botao
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            carregando={upload.isPending}
+          >
+            <Upload className="h-4 w-4" /> Enviar arquivo
+          </Botao>
+        </div>
+      </div>
+
+      {upload.isError ? <Alerta>{(upload.error as Error).message}</Alerta> : null}
+
+      {isLoading ? (
+        <Spinner label="Carregando documentos..." />
+      ) : !docs || docs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum documento anexado.</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {docs.map((doc) => (
+            <LinhaDocumento key={doc.id} doc={doc} fichaId={fichaId} />
+          ))}
+        </ul>
+      )}
+    </Secao>
+  );
+}
+
+// ============================================================
 // Acesso da família (auto-provisionamento — reusa o 1º acesso)
 // ============================================================
 function SecaoAcessoFamilia({ fichaId }: { fichaId: string }) {
@@ -884,6 +1025,9 @@ export default function FichaDetalhePage() {
 
       {/* Histórico de encaminhamentos entre unidades (timeline read-only) */}
       <SecaoHistoricoEncaminhamentos fichaId={ficha.id} />
+
+      {/* Documentos da ficha (upload + lista + baixar) */}
+      <SecaoDocumentos fichaId={ficha.id} />
 
       {/* Acesso da família (auto-provisionamento) */}
       <SecaoAcessoFamilia fichaId={ficha.id} />

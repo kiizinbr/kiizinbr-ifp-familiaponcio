@@ -253,6 +253,50 @@ export interface GerarAcessoFamiliaResposta {
   acesso: AcessoFamiliaResumo;
 }
 
+/** Tipos de documento anexável à ficha (espelha o enum TipoDocumento). */
+export type TipoDocumento =
+  | "RG"
+  | "CPF"
+  | "COMPROVANTE_RESIDENCIA"
+  | "COMPROVANTE_RENDA"
+  | "CADUNICO"
+  | "CARTEIRA_TRABALHO"
+  | "CERTIDAO_NASCIMENTO"
+  | "LAUDO_MEDICO"
+  | "OUTRO";
+
+export const TIPO_DOCUMENTO_LABEL: Record<TipoDocumento, string> = {
+  RG: "RG",
+  CPF: "CPF",
+  COMPROVANTE_RESIDENCIA: "Comprovante de residência",
+  COMPROVANTE_RENDA: "Comprovante de renda",
+  CADUNICO: "CadÚnico",
+  CARTEIRA_TRABALHO: "Carteira de trabalho",
+  CERTIDAO_NASCIMENTO: "Certidão de nascimento",
+  LAUDO_MEDICO: "Laudo médico",
+  OUTRO: "Outro",
+};
+
+/** Documento da ficha como devolvido pela API (sem a chave interna do storage). */
+export interface DocumentoFicha {
+  id: string;
+  fichaId: string;
+  tipo: TipoDocumento;
+  nomeArquivo: string;
+  tamanhoBytes: number;
+  mimeType: string;
+  enviadoPor?: string | null;
+  enviadoEm: string;
+}
+
+/** Resposta do endpoint de download: URL pré-assinada (curta validade). */
+export interface DownloadDocumento {
+  url: string;
+  nomeArquivo: string;
+  mimeType: string;
+  expiraEm: number;
+}
+
 export interface Paginacao {
   page: number;
   perPage: number;
