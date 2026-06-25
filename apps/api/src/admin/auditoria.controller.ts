@@ -2,6 +2,7 @@ import { Controller, Get, Header, Query, StreamableFile, UseGuards } from "@nest
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Perfil } from "@ifp/database";
 
+import { AuditService } from "../audit/audit.service";
 import { CurrentUser, type AuthenticatedUser } from "../auth/current-user.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Perfis } from "../auth/perfis.decorator";
@@ -19,12 +20,24 @@ import { ListarAuditoriaDto } from "./dto/listar-auditoria.dto";
 @Perfis(Perfil.SUPER_ADMIN)
 @Controller("admin/auditoria")
 export class AuditoriaController {
-  constructor(private readonly auditoria: AuditoriaService) {}
+  constructor(
+    private readonly auditoria: AuditoriaService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "Lista a trilha de auditoria (filtros ator/ação/entidade/período)" })
   listar(@Query() dto: ListarAuditoriaDto, @CurrentUser() user: AuthenticatedUser) {
     return this.auditoria.listar(user, dto);
+  }
+
+  @Get("saude-trilha")
+  @ApiOperation({
+    summary: "Saúde da gravação da trilha LGPD (contador de falhas fire-and-forget — P0.3)",
+  })
+  saudeTrilha() {
+    // Torna observável uma falha de auditoria que, de outro modo, seria silenciosa.
+    return this.audit.getSaude();
   }
 
   @Get("facetas")

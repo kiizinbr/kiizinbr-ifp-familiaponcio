@@ -136,6 +136,23 @@ caso("export bloqueado p/ família (403)", 403, (await reqRaw(familia, "/admin/a
 const aposExport = await req(admin, "GET", "/admin/auditoria?acao=EXPORT&entidade=AuditLog&perPage=3");
 ok("export deixou rastro EXPORT na trilha", (aposExport.json?.pagination?.total ?? 0) >= 1);
 
+// P0.3 — a gravação da trilha é fire-and-forget; expomos um contador de FALHAS
+// para que uma falha de auditoria deixe de ser puramente silenciosa.
+console.log("--- AUDITORIA: saúde da gravação da trilha (P0.3) ---");
+const saude = await req(admin, "GET", "/admin/auditoria/saude-trilha");
+caso("saúde da trilha (200)", 200, saude.status);
+ok("saúde expõe contador de falhas (number)", typeof saude.json?.falhas === "number");
+ok("saúde expõe se está saudável (boolean)", typeof saude.json?.saudavel === "boolean");
+ok(
+  "saúde coerente: 0 falhas → saudável e sem ultimaFalha",
+  saude.json?.falhas !== 0 || (saude.json?.saudavel === true && saude.json?.ultimaFalha === null),
+);
+caso(
+  "saúde da trilha bloqueada p/ família (403)",
+  403,
+  (await req(familia, "GET", "/admin/auditoria/saude-trilha")).status,
+);
+
 // ============================================================
 console.log("--- UNIDADES: listar (SUPER_ADMIN only) ---");
 const unids = await req(admin, "GET", "/admin/unidades");
