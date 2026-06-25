@@ -13,11 +13,13 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
+  ImagePlus,
   Layers,
   LogIn,
   LogOut,
   Lock,
   NotebookPen,
+  Trash2,
   X,
 } from "lucide-react";
 
@@ -27,13 +29,17 @@ import { cn } from "@/lib/cn";
 import {
   TAGS_ROTINA,
   TIPO_ROTINA_LABEL,
+  useAnexarFotoDiario,
   useAutorizados,
+  useBaixarFotoEducadora,
   useCheckin,
   useCheckout,
   useDiarioDoDia,
   useFecharDiario,
+  useFotosDiarioEducadora,
   useRegistrarRotina,
   useRegistrarRotinaLote,
+  useRemoverFotoDiario,
   useTurmaInfantil,
   type AutorizadoItem,
   type EstadoDia,
@@ -221,6 +227,99 @@ function ModalCheck({
   );
 }
 
+/**
+ * Fotos afetivas do diário do dia (C3): a educadora anexa foto(s) com legenda;
+ * a família vê depois do selo. Só aparece com o diário ABERTO (fechado é
+ * imutável — fotos inclusive). MIME só de imagem (JPG/PNG/WEBP, até 8 MB).
+ */
+function FotosDoDia({ membroId }: { membroId: string }) {
+  const { data } = useFotosDiarioEducadora(membroId);
+  const anexar = useAnexarFotoDiario();
+  const remover = useRemoverFotoDiario(membroId);
+  const baixar = useBaixarFotoEducadora();
+  const [legenda, setLegenda] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  const fotos = data?.items ?? [];
+
+  async function aoEscolher(e: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = e.target.files?.[0];
+    e.target.value = ""; // permite reescolher o mesmo arquivo depois
+    if (!arquivo) return;
+    setErro(null);
+    try {
+      await anexar.mutateAsync({ membroId, arquivo, legenda: legenda.trim() || undefined });
+      setLegenda("");
+    } catch (err) {
+      setErro((err as Error).message || "Falha ao anexar a foto.");
+    }
+  }
+
+  return (
+    <div className="mt-3 border-t border-border pt-3">
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <ImagePlus className="h-4 w-4" /> Fotos do dia ({fotos.length})
+      </p>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Input
+          value={legenda}
+          onChange={(e) => setLegenda(e.target.value)}
+          placeholder="Legenda (opcional): Primeira pintura a dedo!"
+          className="flex-1"
+          maxLength={280}
+        />
+        <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20">
+          <ImagePlus className="h-3.5 w-3.5" />
+          {anexar.isPending ? "Enviando..." : "Anexar foto"}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            disabled={anexar.isPending}
+            onChange={aoEscolher}
+          />
+        </label>
+      </div>
+
+      {fotos.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {fotos.map((f) => (
+            <li
+              key={f.id}
+              className="flex items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-xs"
+            >
+              <button
+                type="button"
+                onClick={() => baixar.mutate(f.id)}
+                className="min-w-0 flex-1 truncate text-left font-semibold text-primary hover:underline"
+                title={f.nomeArquivo}
+              >
+                {f.legenda || f.nomeArquivo}
+              </button>
+              <button
+                type="button"
+                disabled={remover.isPending}
+                onClick={() => remover.mutate(f.id)}
+                className="shrink-0 text-muted-foreground hover:text-danger disabled:opacity-50"
+                aria-label="Remover foto"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {erro && (
+        <div className="mt-2">
+          <Alerta tipo="erro">{erro}</Alerta>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Painel de rotina por criança: tipo → tag de 1 toque (envia direto) + nota livre. */
 function PainelRotina({ matricula }: { matricula: MatriculaTurmaDia }) {
   const { data } = useDiarioDoDia(matricula.membroId);
@@ -332,6 +431,9 @@ function PainelRotina({ matricula }: { matricula: MatriculaTurmaDia }) {
               <Lock className="mr-1 h-3.5 w-3.5" /> Fechar diário do dia
             </Botao>
           </div>
+
+          {/* Fotos afetivas do dia — só com o diário aberto (fechado é imutável). */}
+          <FotosDoDia membroId={matricula.membroId} />
         </>
       )}
 

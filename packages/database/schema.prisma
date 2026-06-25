@@ -511,6 +511,7 @@ model Profissional {
   checksRegistrados CheckInOut[]
   diariosFechados   DiarioDia[]
   registrosRotina   RegistroRotina[]
+  fotosDiario       FotoDiario[]
   turmasEsportivas  TurmaEsportiva[]
   treinosEsportivos TreinoEsportivo[]
   prescricoes       Prescricao[]
@@ -1194,6 +1195,7 @@ model DiarioDia {
   criadoEm       DateTime         @default(now())
   atualizadoEm   DateTime         @updatedAt
   registros      RegistroRotina[]
+  fotos          FotoDiario[]
 
   @@unique([membroId, data])
   @@map("diarios_dia")
@@ -1211,6 +1213,30 @@ model RegistroRotina {
 
   @@index([diarioId])
   @@map("registros_rotina")
+}
+
+// Fotos afetivas do dia da criança na creche (Onda C3). Anexadas ao DiarioDia
+// pela educadora; a FAMÍLIA do aluno só as vê depois do SELO (diário FECHADO),
+// mesma regra de visibilidade da rotina (dado sensível de menor). `url` guarda
+// a CHAVE do objeto no MinIO — nunca uma URL pública: o download é sempre por
+// presigned, com checagem de ownership/tenant. Model ADITIVO (não toca nada
+// existente). Reusa o StorageService (C1); reusa a FK forte ao Profissional
+// (autoria = quem registrou, padrão de prontuário de menor).
+model FotoDiario {
+  id             String       @id @default(cuid())
+  diarioId       String
+  diario         DiarioDia    @relation(fields: [diarioId], references: [id], onDelete: Cascade)
+  url            String // chave do objeto no MinIO (não pública)
+  nomeArquivo    String
+  mimeType       String
+  tamanhoBytes   Int
+  legenda        String? // "Primeira pintura a dedo!" (afetivo, opcional)
+  profissionalId String
+  registradoPor  Profissional @relation(fields: [profissionalId], references: [id])
+  criadoEm       DateTime     @default(now())
+
+  @@index([diarioId])
+  @@map("fotos_diario")
 }
 
 model Comunicado {

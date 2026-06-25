@@ -8,10 +8,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Lock, Moon, Apple, Paintbrush, Droplets, AlertCircle, MessagesSquare } from "lucide-react";
 
+import { Image as ImageIcon } from "lucide-react";
+
 import { Alerta, Spinner } from "@/components/ui";
 import {
   TIPO_ROTINA_LABEL,
+  useBaixarFotoFamilia,
   useDiarioFamilia,
+  useFotosDiarioFamilia,
   useMinhasCriancas,
   type TipoRegistroRotina,
 } from "@/lib/use-educacional";
@@ -43,6 +47,8 @@ export default function DiarioFamiliaPage() {
 
   const data = diaISO(offset);
   const { data: diario, isLoading } = useDiarioFamilia(selecionado ?? undefined, data);
+  const { data: fotos } = useFotosDiarioFamilia(selecionado ?? undefined, data);
+  const baixarFoto = useBaixarFotoFamilia();
   const { data: conversas } = useConversas("familia");
   const mensagensNaoLidas = (conversas ?? []).reduce((soma, c) => soma + c.naoLidas, 0);
 
@@ -164,6 +170,36 @@ export default function DiarioFamiliaPage() {
               </li>
             ))}
           </ul>
+
+          {/* Fotos afetivas do dia (C3) — só do diário fechado, da própria criança. */}
+          {(fotos?.items?.length ?? 0) > 0 && (
+            <div className="mt-5">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                <ImageIcon className="h-4 w-4" /> Fotos do dia
+              </p>
+              <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {fotos?.items.map((f) => (
+                  <li key={f.id}>
+                    <button
+                      type="button"
+                      onClick={() => baixarFoto.mutate(f.id)}
+                      className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface p-3 text-left transition hover:border-primary/50"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <ImageIcon className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {f.legenda || "Foto do dia"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">Toque para abrir 💛</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { useAuthFetch } from "./use-auth-fetch";
+import { API_BASE_URL, ApiError } from "./api";
 
 // ============================================================
 // Tipos (espelham as respostas do módulo educacional no NestJS)
@@ -171,6 +172,24 @@ export interface DiarioFamilia {
   crianca: { id: string; nomeCompleto: string };
   diario: DiarioItem | null;
   checks: CheckItem[];
+}
+
+/** Foto afetiva do diário (C3) — nunca expõe a chave do storage; o download
+ * é sempre por presigned (rota própria que checa ownership/tenant). */
+export interface FotoDiarioItem {
+  id: string;
+  nomeArquivo: string;
+  mimeType: string;
+  tamanhoBytes: number;
+  legenda: string | null;
+  criadoEm: string;
+}
+
+export interface DownloadFoto {
+  url: string;
+  nomeArquivo: string;
+  mimeType: string;
+  expiraEm: number;
 }
 
 /** Linha do tempo da criança — categorias de evento (guiam ícone/cor na UI). */
@@ -419,6 +438,94 @@ export function useFecharDiario() {
 }
 
 // ============================================================
+// Fotos do diário (C3) — lado educadora
+// ============================================================
+
+/** Fotos do diário do dia da criança (visão da educadora). */
+export function useFotosDiarioEducadora(membroId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["educacional", "fotos", membroId],
+    queryFn: () =>
+      authFetch<{ items: FotoDiarioItem[] }>(`/educacional/diarios/${membroId}/fotos`),
+    enabled: status === "authenticated" && !!membroId,
+  });
+}
+
+/** Anexa uma foto ao diário do dia. Multipart (FormData) — por isso não usa o
+ * useAuthFetch (que força Content-Type JSON e quebraria o boundary). */
+export function useAnexarFotoDiario() {
+  const { data: session } = useSession();
+  const token = session?.accessToken;
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      membroId,
+      arquivo,
+      legenda,
+    }: {
+      membroId: string;
+      arquivo: File;
+      legenda?: string;
+    }) => {
+      const form = new FormData();
+      form.append("arquivo", arquivo);
+      if (legenda) form.append("legenda", legenda);
+
+      const res = await fetch(`${API_BASE_URL}/educacional/diarios/${membroId}/fotos`, {
+        method: "POST",
+        cache: "no-store",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (!res.ok) {
+        let body: unknown = null;
+        try {
+          body = await res.json();
+        } catch {
+          /* sem corpo */
+        }
+        const raw = (body as { message?: unknown })?.message;
+        const message = Array.isArray(raw)
+          ? raw.join("; ")
+          : typeof raw === "string"
+            ? raw
+            : res.statusText || "Falha ao anexar a foto";
+        throw new ApiError(message, res.status, body);
+      }
+      return (await res.json()) as FotoDiarioItem;
+    },
+    onSuccess: (_d, { membroId }) =>
+      qc.invalidateQueries({ queryKey: ["educacional", "fotos", membroId] }),
+  });
+}
+
+export function useRemoverFotoDiario(membroId: string | undefined) {
+  const authFetch = useAuthFetch();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (fotoId: string) =>
+      authFetch<{ removido: boolean; id: string }>(
+        `/educacional/diarios/fotos/${fotoId}`,
+        { method: "DELETE" },
+      ),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["educacional", "fotos", membroId] }),
+  });
+}
+
+/** Pede a presigned e abre a foto (educadora). */
+export function useBaixarFotoEducadora() {
+  const authFetch = useAuthFetch();
+  return useMutation({
+    mutationFn: (fotoId: string) =>
+      authFetch<DownloadFoto>(`/educacional/diarios/fotos/${fotoId}/download`),
+    onSuccess: (data) => window.open(data.url, "_blank", "noopener,noreferrer"),
+  });
+}
+
+// ============================================================
 // Gestão (gestora/admin): comunicados, autorizados, imagem
 // ============================================================
 
@@ -556,6 +663,31 @@ export function useDiarioFamilia(membroId: string | undefined, data?: string) {
       ),
     enabled: status === "authenticated" && !!membroId,
     placeholderData: (prev) => prev,
+  });
+}
+
+/** Fotos do diário FECHADO do dia (visão da família). */
+export function useFotosDiarioFamilia(membroId: string | undefined, data?: string) {
+  const authFetch = useAuthFetch();
+  const { status } = useSession();
+  return useQuery({
+    queryKey: ["familia", "fotos", membroId, data ?? "hoje"],
+    queryFn: () =>
+      authFetch<{ items: FotoDiarioItem[] }>(
+        `/familia/educacional/diario/${membroId}/fotos${data ? `?data=${data}` : ""}`,
+      ),
+    enabled: status === "authenticated" && !!membroId,
+    placeholderData: (prev) => prev,
+  });
+}
+
+/** Pede a presigned e abre a foto da própria criança (família). */
+export function useBaixarFotoFamilia() {
+  const authFetch = useAuthFetch();
+  return useMutation({
+    mutationFn: (fotoId: string) =>
+      authFetch<DownloadFoto>(`/familia/educacional/diario/fotos/${fotoId}/download`),
+    onSuccess: (data) => window.open(data.url, "_blank", "noopener,noreferrer"),
   });
 }
 

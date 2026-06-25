@@ -998,6 +998,51 @@ async function seedEducacional() {
     },
   });
 
+  // 3b) SEGUNDA família na MESMA turma — fixture do IDOR família-vs-família das
+  // fotos do diário (C3): a educadora sobe foto do Caio (filho do João),
+  // e a Sandra (mãe da Ana) NÃO pode ver/baixar a foto do Caio. Caio já existe
+  // (seed-membro-fora-unidade, ficha do João); aqui matriculamos ele na turma e
+  // criamos a conta do responsável dele (familia2@ifp.local → ficha do João).
+  if (joao) {
+    await prisma.matriculaInfantil.upsert({
+      where: {
+        turmaId_membroId: { turmaId: turmaInf.id, membroId: "seed-membro-fora-unidade" },
+      },
+      update: { ativa: true },
+      create: {
+        unidadeId: unidadeEdu.id,
+        turmaId: turmaInf.id,
+        fichaId: joao.id,
+        membroId: "seed-membro-fora-unidade",
+        consentimentoLgpdEm: new Date(),
+        criadoPor: educadoraUser.id,
+      },
+    });
+
+    const responsavel2User = await prisma.user.upsert({
+      where: { email: "familia2@ifp.local" },
+      update: { senhaHash, ativo: true, fichaCidadaId: joao.id },
+      create: {
+        email: "familia2@ifp.local",
+        senhaHash,
+        nome: "Beatriz da Silva",
+        ativo: true,
+        fichaCidadaId: joao.id,
+      },
+    });
+    await prisma.usuarioPerfil.upsert({
+      where: {
+        userId_perfil: {
+          userId: responsavel2User.id,
+          perfil: Perfil.RESPONSAVEL_FAMILIAR,
+        },
+      },
+      update: {},
+      create: { userId: responsavel2User.id, perfil: Perfil.RESPONSAVEL_FAMILIAR },
+    });
+    console.log("  ✓ Família 2 Beatriz (familia2@ifp.local) + Caio na turma (fixture IDOR fotos)");
+  }
+
   // 4) Autorizações de imagem — default NEGADO; só uso interno concedido
   const escopos: Array<{ escopo: EscopoImagem; concedido: boolean }> = [
     { escopo: EscopoImagem.USO_INTERNO, concedido: true },

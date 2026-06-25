@@ -12,11 +12,14 @@ import { CriancasService } from "./criancas.service";
 import { FamiliaAgendaController } from "./familia-agenda.controller";
 import { FamiliaAgendaService } from "./familia-agenda.service";
 import { FamiliaController } from "./familia.controller";
+import { FamiliaFotosDiarioController } from "./familia-fotos-diario.controller";
 import { FamiliaRecebidoController } from "./familia-recebido.controller";
 import { FamiliaRecebidoService } from "./familia-recebido.service";
 import { FamiliaTimelineController } from "./familia-timeline.controller";
 import { FamiliaTimelineService } from "./familia-timeline.service";
 import { FamiliaService } from "./familia.service";
+import { FotosDiarioController } from "./fotos-diario.controller";
+import { FotosDiarioService } from "./fotos-diario.service";
 import { IndicadoresController } from "./indicadores.controller";
 import { IndicadoresService } from "./indicadores.service";
 import { RotinaController } from "./rotina.controller";
@@ -34,10 +37,12 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     TurmasInfantisController,
     CriancasController,
     RotinaController,
+    FotosDiarioController,
     IndicadoresController,
     ComunicadosController,
     ConversasController,
     FamiliaController,
+    FamiliaFotosDiarioController,
     FamiliaRecebidoController,
     FamiliaAgendaController,
     FamiliaTimelineController,
@@ -46,6 +51,7 @@ import { TurmasInfantisService } from "./turmas-infantis.service";
     TurmasInfantisService,
     CriancasService,
     RotinaService,
+    FotosDiarioService,
     IndicadoresService,
     ComunicadosService,
     ConversasService,
