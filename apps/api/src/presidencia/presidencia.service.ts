@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import {
   AcaoAuditoria,
+  Prisma,
   StatusAgendamento,
   StatusElegibilidade,
   StatusMatricula,
@@ -551,12 +552,10 @@ export class PresidenciaService {
     // identificadores, mas `meses` é um inteiro saneado por normalizarMeses.)
     const offset = meses - 1;
 
-    const serieAtendimentos = await this.serieMensal(offset, "atendimentos", "encerradoEm", {
-      whereExtra: '"encerradoEm" IS NOT NULL',
-    });
+    const serieAtendimentos = await this.serieMensal(offset, "atendimentos");
     const serieMatriculas = await this.serieMatriculas(offset);
-    const serieGraduacoes = await this.serieMensal(offset, "graduacoes", "concedidaEm");
-    const serieCertificados = await this.serieMensal(offset, "certificados", "emitidoEm");
+    const serieGraduacoes = await this.serieMensal(offset, "graduacoes");
+    const serieCertificados = await this.serieMensal(offset, "certificados");
     const seriePresencas = await this.seriePresencas(offset);
 
     // Totais do período (a barra de topo da tela) — soma das próprias séries,
@@ -590,29 +589,42 @@ export class PresidenciaService {
   }
 
   /**
-   * Série mensal genérica para uma tabela com UMA coluna de data. `tabela` e
-   * `coluna` vêm SÓ de literais internos deste service (nunca do usuário);
-   * `offset` é inteiro saneado. Sem entrada externa interpolada → sem SQLi.
+   * Allowlist EXPLÍCITA das séries mensais simples (tabela + 1 coluna de data).
+   * Os identificadores (nome de tabela/coluna) NUNCA vêm do usuário: só destas
+   * entradas fixas. `apenasNaoNulo` adiciona o filtro `coluna IS NOT NULL`
+   * (atendimentos só conta os encerrados). Trocar o antigo `whereExtra: string`
+   * por esta config fechada elimina qualquer interpolação de identificador.
    */
-  private serieMensal(
-    offset: number,
-    tabela: string,
-    coluna: string,
-    opts?: { whereExtra?: string },
-  ) {
-    const where = opts?.whereExtra ? `AND t.${opts.whereExtra}` : "";
-    const sql = `
+  private static readonly SERIES_MENSAIS = {
+    atendimentos: { tabela: "atendimentos", coluna: "encerradoEm", apenasNaoNulo: true },
+    graduacoes: { tabela: "graduacoes", coluna: "concedidaEm", apenasNaoNulo: false },
+    certificados: { tabela: "certificados", coluna: "emitidoEm", apenasNaoNulo: false },
+  } as const;
+
+  /**
+   * Série mensal genérica para uma tabela com UMA coluna de data. `serie` é uma
+   * chave da allowlist `SERIES_MENSAIS` (nunca entrada externa); `offset` é
+   * inteiro saneado. Identificadores entram via `Prisma.raw` (a partir da
+   * allowlist) e o `offset` saneado via `Prisma.raw` numérico — sem entrada
+   * externa interpolada, sem SQLi (mesmo padrão de `capacitacao/turmas.service`).
+   */
+  private serieMensal(offset: number, serie: keyof typeof PresidenciaService.SERIES_MENSAIS) {
+    const { tabela, coluna, apenasNaoNulo } = PresidenciaService.SERIES_MENSAIS[serie];
+    const tabelaRaw = Prisma.raw(tabela);
+    const colunaRaw = Prisma.raw(`"${coluna}"`);
+    const grade = Prisma.raw(`make_interval(months => ${Math.trunc(offset)})`);
+    const filtroNaoNulo = apenasNaoNulo ? Prisma.sql`AND t.${colunaRaw} IS NOT NULL` : Prisma.empty;
+    return this.prisma.$queryRaw<{ mes: string; total: number }[]>`
       SELECT to_char(m.mes, 'YYYY-MM') AS mes, count(t.id)::int AS total
       FROM generate_series(
-        date_trunc('month', now()) - make_interval(months => ${offset}),
+        date_trunc('month', now()) - ${grade},
         date_trunc('month', now()),
         interval '1 month'
       ) AS m(mes)
-      LEFT JOIN ${tabela} t
-        ON date_trunc('month', t."${coluna}") = m.mes ${where}
+      LEFT JOIN ${tabelaRaw} t
+        ON date_trunc('month', t.${colunaRaw}) = m.mes ${filtroNaoNulo}
       GROUP BY m.mes ORDER BY m.mes
     `;
-    return this.prisma.$queryRawUnsafe<{ mes: string; total: number }[]>(sql);
   }
 
   /** Matrículas no mês: soma capacitação + infantil + esportiva (criadoEm). */
