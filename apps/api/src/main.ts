@@ -1,15 +1,19 @@
 import { NestFactory, Reflector } from "@nestjs/core";
-import { ClassSerializerInterceptor, Logger, ValidationPipe } from "@nestjs/common";
+import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { Logger as PinoAppLogger } from "nestjs-pino";
 import helmet from "helmet";
 
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ["error", "warn", "log", "debug"],
-  });
+  // bufferLogs: segura os logs do boot até o logger do pino estar pronto, então
+  // TODO log (inclusive o de inicialização) sai em JSON estruturado e redatado.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // Substitui o logger nativo do Nest pelo pino (estruturado + redação — P1.8).
+  app.useLogger(app.get(PinoAppLogger));
 
   app.use(helmet());
   app.enableCors({
@@ -43,7 +47,9 @@ async function bootstrap() {
   const port = configService.get<number>("PORT", 3333);
   await app.listen(port);
 
-  Logger.log(`IFP Connect API rodando em http://localhost:${port}/api/v1`, "Bootstrap");
+  app
+    .get(PinoAppLogger)
+    .log(`IFP Connect API rodando em http://localhost:${port}/api/v1`, "Bootstrap");
 }
 
 void bootstrap();

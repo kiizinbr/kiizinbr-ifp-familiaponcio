@@ -1,8 +1,11 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { LoggerModule } from "nestjs-pino";
 
+import { AllExceptionsFilter } from "./common/all-exceptions.filter";
+import { loggerConfig } from "./common/logger.config";
 import { HealthController } from "./health.controller";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuditModule } from "./audit/audit.module";
@@ -25,6 +28,8 @@ import { StorageModule } from "./storage/storage.module";
   imports: [
     // .env vive na raiz do monorepo; em dev (turbo) o cwd é apps/api.
     ConfigModule.forRoot({ isGlobal: true, cache: true, envFilePath: ["../../.env", ".env"] }),
+    // Logging estruturado (JSON) com redação de PII (P1.8). Ver common/logger.config.
+    LoggerModule.forRoot(loggerConfig()),
     // Teto global de requisições; o login tem limite próprio (10/min) em auth.controller.
     // skipIf desliga o throttle só em regressão/E2E em lote (que bate no rate-limit do
     // login). Guarda dupla: exige THROTTLE_DISABLED=1 E NODE_ENV != production — assim,
@@ -52,6 +57,10 @@ import { StorageModule } from "./storage/storage.module";
     StorageModule,
   ],
   controllers: [HealthController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Exception filter global: padroniza erros sem vazar PII/stack (P1.8).
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule {}
