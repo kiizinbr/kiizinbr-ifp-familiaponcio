@@ -49,6 +49,9 @@ prisma/migrations/dev/
 uploads/
 storage/
 public/uploads/
+# Exceção: o módulo de código-fonte do StorageService (Onda C) não é storage local.
+!apps/api/src/storage/
+!apps/api/src/storage/**
 
 # Sentry / Vercel
 .vercel
