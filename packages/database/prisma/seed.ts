@@ -20,6 +20,7 @@ import {
   StatusSinalizacao,
   StatusTriagem,
   StatusTurma,
+  TipoDocumento,
   TipoRegistroRotina,
   TipoSinalizacao,
   TipoUnidade,
@@ -1213,6 +1214,55 @@ async function seedEducacional() {
       },
     });
     console.log("  ✓ Comunicado crítico sem leitura");
+  }
+
+  // 7b) Fixtures de STORAGE (Onda C4) — para a Central de Avisos da família
+  // notificar evento de storage. São representações de metadados (a `url` é só
+  // a CHAVE do objeto no MinIO, como em C2/C3); o seed não sobe bytes. Idempotente.
+  //
+  // Documento recente na ficha da Sandra → aviso "Novo documento".
+  const jaTemDocumento = await prisma.documento.findFirst({
+    where: { fichaId: sandra.id, nomeArquivo: "comprovante-residencia.pdf" },
+  });
+  if (!jaTemDocumento) {
+    await prisma.documento.create({
+      data: {
+        fichaId: sandra.id,
+        tipo: TipoDocumento.COMPROVANTE_RESIDENCIA,
+        nomeArquivo: "comprovante-residencia.pdf",
+        url: "fichas/seed-sandra/comprovante-residencia.pdf", // chave (não pública)
+        tamanhoBytes: 102_400,
+        mimeType: "application/pdf",
+        enviadoPor: educadoraUser.id,
+      },
+    });
+    console.log("  ✓ Documento recente na ficha da Sandra (fixture C4)");
+  }
+
+  // Foto nova no diário FECHADO da Ana → aviso "Nova foto no diário". Só anexa
+  // se o diário selado de ontem existir (ele é o mesmo do passo 6, sempre FECHADO).
+  const diarioFechadoAna = await prisma.diarioDia.findUnique({
+    where: { membroId_data: { membroId: ana.id, data: dataDiario } },
+    select: { id: true },
+  });
+  if (diarioFechadoAna) {
+    const jaTemFoto = await prisma.fotoDiario.findFirst({
+      where: { diarioId: diarioFechadoAna.id, nomeArquivo: "pintura-a-dedo.jpg" },
+    });
+    if (!jaTemFoto) {
+      await prisma.fotoDiario.create({
+        data: {
+          diarioId: diarioFechadoAna.id,
+          url: `diarios/${diarioFechadoAna.id}/fotos/seed-pintura.jpg`, // chave
+          nomeArquivo: "pintura-a-dedo.jpg",
+          mimeType: "image/jpeg",
+          tamanhoBytes: 256_000,
+          legenda: "Primeira pintura a dedo!",
+          profissionalId: educadora.id,
+        },
+      });
+      console.log("  ✓ Foto no diário FECHADO da Ana (fixture C4)");
+    }
   }
 
   // 8) Agenda da família (U6): eventos do calendário + confirmação de presença.

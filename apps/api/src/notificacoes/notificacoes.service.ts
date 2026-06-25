@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import {
   Perfil,
   StatusAgendamento,
+  StatusDiario,
   StatusEncaminhamento,
   StatusEvento,
   StatusSinalizacao,
@@ -16,6 +17,13 @@ import type { AuthenticatedUser } from "../auth/current-user.decorator";
 const LIMITE_ITENS = 20;
 /** Janela do "agenda próxima" do profissional: agendamentos das próximas 24h. */
 const JANELA_AGENDA_MS = 24 * 60 * 60 * 1000;
+/**
+ * Janela de "novidade" para eventos de storage (C4): documento na ficha e foto
+ * no diário não têm recibo de leitura, então "novo" = recente (últimos 14 dias).
+ * É a noção coerente com a agregação read-only: nada de coluna/estado novo, só
+ * conta o que chegou na janela. Vencido o prazo, deixa de pesar no sino.
+ */
+const JANELA_STORAGE_MS = 14 * 24 * 60 * 60 * 1000;
 
 /** Um aviso já no shape do payload (sem PII além do necessário pra navegar). */
 export interface ItemNotificacao {
@@ -191,8 +199,12 @@ export class NotificacoesService {
     const membroIds = [...new Set(matriculas.map((m) => m.membroId))];
 
     const { dataDb: inicioHoje } = janelaInicioHojeSP();
+    // Corte de "novidade" dos eventos de storage (C4): só conta o que chegou na
+    // janela recente (sem recibo de leitura, é a noção de "novo" possível aqui).
+    const corteStorage = new Date(Date.now() - JANELA_STORAGE_MS);
 
-    const [comunicados, conversas, eventos] = await this.prisma.$transaction([
+    const [comunicados, conversas, eventos, documentos, fotosDiario] =
+      await this.prisma.$transaction([
       // Comunicados das unidades/turmas da família, ainda SEM leitura registrada.
       this.prisma.comunicado.findMany({
         where: {
@@ -234,6 +246,31 @@ export class NotificacoesService {
           confirmacoes: { where: { fichaId }, select: { membroId: true } },
         },
       }),
+      // Storage (C4): documentos recentes na PRÓPRIA ficha da família. Escopo por
+      // `fichaId` (ownership por User.fichaCidadaId) — nunca aceita ficha do client.
+      this.prisma.documento.findMany({
+        where: { fichaId, enviadoEm: { gte: corteStorage } },
+        orderBy: { enviadoEm: "desc" },
+        take: LIMITE_ITENS,
+        select: { id: true, nomeArquivo: true, enviadoEm: true },
+      }),
+      // Storage (C4): fotos novas no diário FECHADO (selo) das crianças da família.
+      // O filtro por `membroId in membroIds` (só os filhos desta ficha) é a parede
+      // de tenant: foto de criança de OUTRA família nunca entra. Diário ABERTO não
+      // conta (mesma regra de visibilidade da galeria — só após o selo).
+      this.prisma.fotoDiario.findMany({
+        where: {
+          criadoEm: { gte: corteStorage },
+          diario: { membroId: { in: membroIds }, status: StatusDiario.FECHADO },
+        },
+        orderBy: { criadoEm: "desc" },
+        take: LIMITE_ITENS,
+        select: {
+          id: true,
+          criadoEm: true,
+          diario: { select: { crianca: { select: { nomeCompleto: true } } } },
+        },
+      }),
     ]);
 
     // Eventos só viram aviso se ALGUMA criança da família ainda não respondeu.
@@ -270,9 +307,30 @@ export class NotificacoesService {
         href: `/familia/agenda`,
         em: ev.inicioEm.toISOString(),
       })),
+      // Novo documento na ficha (C4) → aviso no portal "O que a gente recebeu".
+      ...documentos.map((d) => ({
+        id: `documento:${d.id}`,
+        tipo: "DOCUMENTO",
+        titulo: `Novo documento: ${d.nomeArquivo}`,
+        href: `/familia/recebido`,
+        em: d.enviadoEm.toISOString(),
+      })),
+      // Nova foto no diário selado (C4) → aviso que leva à galeria do diário.
+      ...fotosDiario.map((f) => ({
+        id: `foto-diario:${f.id}`,
+        tipo: "FOTO_DIARIO",
+        titulo: `Nova foto no diário — ${f.diario.crianca.nomeCompleto}`,
+        href: `/familia/diario`,
+        em: f.criadoEm.toISOString(),
+      })),
     ];
 
-    const total = comunicados.length + conversas.length + eventosPendentes.length;
+    const total =
+      comunicados.length +
+      conversas.length +
+      eventosPendentes.length +
+      documentos.length +
+      fotosDiario.length;
     return { total, itens };
   }
 

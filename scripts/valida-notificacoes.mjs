@@ -78,6 +78,15 @@ function validaShape(prefixo, json) {
 const admin = await login("admin@ifp.local", SENHA_ADMIN);
 const medico = await login("medico@ifp.local", SENHA_DEV);
 const familia = await login("familia@ifp.local", SENHA_DEV);
+// 2ª família (Beatriz → ficha do João, Caio na mesma turma) — fixture do IDOR
+// família-vs-família dos eventos de storage (C4). Login pode não existir em
+// bases antigas; tratamos como opcional para não quebrar o smoke.
+let familia2 = null;
+try {
+  familia2 = await login("familia2@ifp.local", SENHA_DEV);
+} catch {
+  console.log("  (familia2@ifp.local ausente — pulando IDOR de storage; rode o seed)");
+}
 
 console.log("--- AUTH obrigatória ---");
 const semToken = await req(null, "GET", "/notificacoes");
@@ -97,9 +106,11 @@ caso(
 );
 // Cross-tenant: admin do Social NÃO recebe avisos de família/agenda médica.
 caso(
-  "admin: sem avisos de família (COMUNICADO/MENSAGEM/EVENTO)",
+  "admin: sem avisos de família (COMUNICADO/MENSAGEM/EVENTO/DOCUMENTO/FOTO_DIARIO)",
   false,
-  itensAdmin.some((i) => ["COMUNICADO", "MENSAGEM", "EVENTO"].includes(i.tipo)),
+  itensAdmin.some((i) =>
+    ["COMUNICADO", "MENSAGEM", "EVENTO", "DOCUMENTO", "FOTO_DIARIO"].includes(i.tipo),
+  ),
 );
 caso(
   "admin: sem avisos de AGENDAMENTO (não é profissional médico)",
@@ -115,6 +126,9 @@ caso(
   (filaTriagem.json?.kpis?.naFila ?? 0) >= triagensNoAviso,
 );
 
+// Tipos válidos do portal da família (inclui os eventos de storage da Onda C4).
+const TIPOS_PORTAL = ["COMUNICADO", "MENSAGEM", "EVENTO", "DOCUMENTO", "FOTO_DIARIO"];
+
 console.log("--- FAMÍLIA (ownership por ficha) ---");
 const rFamilia = await req(familia, "GET", "/notificacoes");
 caso("família → 200", 200, rFamilia.status);
@@ -122,14 +136,38 @@ const itensFamilia = validaShape("familia", rFamilia.json);
 const tiposFamilia = new Set(itensFamilia.map((i) => i.tipo));
 // A família só pode ver tipos do portal — nunca a fila do Social nem agenda médica.
 caso(
-  "família: só tipos do portal (COMUNICADO/MENSAGEM/EVENTO)",
+  "família: só tipos do portal (COMUNICADO/MENSAGEM/EVENTO/DOCUMENTO/FOTO_DIARIO)",
   true,
-  itensFamilia.every((i) => ["COMUNICADO", "MENSAGEM", "EVENTO"].includes(i.tipo)),
+  itensFamilia.every((i) => TIPOS_PORTAL.includes(i.tipo)),
 );
 caso(
   "família: NÃO vê fila do Social (cross-tenant)",
   false,
   ["TRIAGEM", "SINALIZACAO_PONTE", "ENCAMINHAMENTO"].some((t) => tiposFamilia.has(t)),
+);
+
+// Onda C4 — eventos de storage viram aviso in-app à família (seed cria fixtures:
+// documento recente na ficha da Sandra + foto no diário FECHADO da Ana).
+caso(
+  "família: recebe aviso de DOCUMENTO novo na ficha (C4)",
+  true,
+  tiposFamilia.has("DOCUMENTO"),
+);
+caso(
+  "família: recebe aviso de FOTO no diário selado (C4)",
+  true,
+  tiposFamilia.has("FOTO_DIARIO"),
+);
+// O href do documento leva ao portal "O que a gente recebeu"; da foto, ao diário.
+caso(
+  "família: aviso de DOCUMENTO aponta para /familia/recebido",
+  true,
+  itensFamilia.filter((i) => i.tipo === "DOCUMENTO").every((i) => i.href === "/familia/recebido"),
+);
+caso(
+  "família: aviso de FOTO_DIARIO aponta para /familia/diario",
+  true,
+  itensFamilia.filter((i) => i.tipo === "FOTO_DIARIO").every((i) => i.href === "/familia/diario"),
 );
 // O seed cria um comunicado crítico sem leitura para a Sandra → aviso real.
 caso(
@@ -144,6 +182,30 @@ caso(
   itensFamilia.every((i) => i.href.startsWith("/familia/")),
 );
 
+// IDOR de storage (C4): a 2ª família NÃO pode receber o aviso do documento da
+// Sandra nem da foto da Ana — só o que é da PRÓPRIA ficha/criança. Comparamos
+// pelos ids dos itens (o id do aviso carrega o id da linha de origem).
+if (familia2) {
+  console.log("--- FAMÍLIA 2 (IDOR de storage família-vs-família) ---");
+  const rFamilia2 = await req(familia2, "GET", "/notificacoes");
+  caso("família2 → 200", 200, rFamilia2.status);
+  const itens2 = validaShape("familia2", rFamilia2.json);
+  const idsStorageSandra = new Set(
+    itensFamilia.filter((i) => ["DOCUMENTO", "FOTO_DIARIO"].includes(i.tipo)).map((i) => i.id),
+  );
+  caso(
+    "família2: NÃO recebe nenhum aviso de storage da família da Sandra",
+    false,
+    itens2.some((i) => idsStorageSandra.has(i.id)),
+  );
+  // E continua só nos tipos do portal (parede de perfil intacta).
+  caso(
+    "família2: só tipos do portal",
+    true,
+    itens2.every((i) => TIPOS_PORTAL.includes(i.tipo)),
+  );
+}
+
 console.log("--- MÉDICO (profissional, parede de unidade) ---");
 const rMedico = await req(medico, "GET", "/notificacoes");
 caso("médico → 200", 200, rMedico.status);
@@ -157,7 +219,9 @@ caso(
 caso(
   "médico: NÃO vê avisos de família",
   false,
-  itensMedico.some((i) => ["COMUNICADO", "MENSAGEM", "EVENTO"].includes(i.tipo)),
+  itensMedico.some((i) =>
+    ["COMUNICADO", "MENSAGEM", "EVENTO", "DOCUMENTO", "FOTO_DIARIO"].includes(i.tipo),
+  ),
 );
 // Se houver agendamento nas próximas 24h, vira AGENDAMENTO com href da agenda.
 caso(
