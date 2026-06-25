@@ -7,6 +7,7 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import type { Request } from "express";
 import { AcaoAuditoria } from "@ifp/database";
 
@@ -21,6 +22,10 @@ import { CertificadoPdfService } from "./certificado-pdf.service";
  */
 @ApiTags("capacitacao")
 @Controller("capacitacao/certificados")
+// Throttle dedicado (P1.5): rota PÚBLICA sem auth que expõe nome do aluno +
+// curso. 20/min por IP fica acima do médico (dado menos sensível) mas bem
+// abaixo do teto global (120/min), inviabilizando varredura por PII.
+@Throttle({ default: { ttl: 60_000, limit: 20 } })
 export class VerificacaoController {
   constructor(
     private readonly prisma: PrismaService,

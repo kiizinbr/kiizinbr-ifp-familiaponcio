@@ -126,6 +126,25 @@ console.log("--- CÓDIGO VAZIO/ESPAÇO (não casa, 404) ---");
 const espaco = await req(null, "GET", `/medico/documentos/verificar/${encodeURIComponent("   ")}`);
 caso("código só com espaço → 404", 404, espaco.status);
 
+// --- THROTTLE DEDICADO (P1.5): a rota pública médica é dado clínico (PII) e
+// precisa de limite próprio (10/min) mais apertado que o teto global (120/min).
+// Provamos disparando uma rajada acima de 10 e exigindo um 429. Roda por ÚLTIMO
+// porque consome o orçamento de rate-limit do IP. Pula se o throttle estiver
+// desligado para regressão em lote (THROTTLE_DISABLED=1).
+if (process.env.THROTTLE_DISABLED === "1") {
+  console.log("--- THROTTLE (pulado: THROTTLE_DISABLED=1) ---");
+} else {
+  console.log("--- THROTTLE DEDICADO (rajada > 10/min → 429) ---");
+  const status429 = [];
+  for (let i = 0; i < 15; i++) {
+    const r = await req(null, "GET", "/medico/documentos/verificar/RAJADA-THROTTLE-P15");
+    status429.push(r.status);
+  }
+  // Antes da correção a rota só tinha o teto global (120/min) e 15 requisições
+  // nunca davam 429; com o @Throttle(10/min) a 11ª em diante deve barrar.
+  caso("rajada de 15 dispara 429 (limite dedicado 10/min)", true, status429.includes(429));
+}
+
 const total = resultados.length;
 const okN = resultados.filter(Boolean).length;
 console.log(`\n${okN}/${total}`);

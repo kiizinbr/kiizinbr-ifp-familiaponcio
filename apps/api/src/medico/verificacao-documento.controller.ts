@@ -7,6 +7,7 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import type { Request } from "express";
 import { AcaoAuditoria } from "@ifp/database";
 
@@ -28,6 +29,11 @@ const TIPO_LABEL: Record<string, string> = {
  */
 @ApiTags("medico")
 @Controller("medico/documentos")
+// Throttle dedicado (P1.5): rota PÚBLICA sem auth que expõe PII clínica
+// (paciente + tipo atestado/receita). 10/min por IP é bem mais apertado que o
+// teto global (120/min) — o código é um cuid de alta entropia, então 10/min
+// inviabiliza varredura sem atrapalhar a verificação anti-fraude legítima.
+@Throttle({ default: { ttl: 60_000, limit: 10 } })
 export class VerificacaoDocumentoController {
   constructor(
     private readonly prisma: PrismaService,
