@@ -15,6 +15,7 @@ const ROTAS_PRONTAS = [
   "/presidencia/impacto-series",
   "/presidencia/familias",
   "/presidencia/territorio",
+  "/presidencia/saude",
   "/presidencia/jornada",
   "/presidencia/prestacao-contas",
   "/presidencia/relatorios",

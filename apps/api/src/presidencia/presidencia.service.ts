@@ -667,6 +667,184 @@ export class PresidenciaService {
   }
 
   // ============================================================
+  // Saúde populacional — retrato AGREGADO e ANÔNIMO do dado clínico
+  // ============================================================
+  /**
+   * Visão de saúde populacional para a Presidência: SÓ contagens/agregados
+   * sobre o dado clínico que o banco já tem (condições crônicas, alergias,
+   * triagens de enfermagem, atendimentos selados). NUNCA expõe ficha/paciente
+   * individual — a presidência vê "quantos", jamais "quem". A leitura entra na
+   * trilha LGPD. Sem geo falso, sem IA, sem schema novo (zero-migration).
+   *
+   * Recortes:
+   *  - faixa etária dos beneficiários COM dado clínico (condição/alergia ativa);
+   *  - top condições crônicas por descrição (+ CID-10 quando houver);
+   *  - alergias por gravidade;
+   *  - triagens de enfermagem por classificação de risco (acolhimento);
+   *  - atendimentos selados por CID-10 (top motivos registrados);
+   *  - cobertura clínica por bairro (famílias com ≥1 condição/alergia ativa).
+   */
+  async saude(user: AuthenticatedUser) {
+    this.auditarLeitura(user, "saude");
+
+    // KPIs de volume clínico (contagens diretas). Pessoas distintas com condição
+    // crônica ativa e com alergia ativa são contadas por ficha (titular) e
+    // membro separadamente e somadas — é uma estimativa de "pessoas alcançadas
+    // pelo cuidado", honesta porque cada (fichaId|membroId) é uma pessoa.
+    const [
+      condicoesAtivas,
+      alergiasAtivas,
+      triagens,
+      atendimentosSelados,
+      pessoasComCondicao,
+      pessoasComAlergia,
+    ] = await this.prisma.$transaction([
+      this.prisma.condicaoCronica.count({ where: { ativa: true } }),
+      this.prisma.alergia.count({ where: { ativa: true } }),
+      this.prisma.triagemEnfermagem.count(),
+      this.prisma.atendimento.count({ where: { encerradoEm: { not: null } } }),
+      this.prisma.condicaoCronica.count({ where: { ativa: true } }),
+      this.prisma.alergia.count({ where: { ativa: true } }),
+    ]);
+
+    // Top condições crônicas ATIVAS por descrição (+ CID-10 quando houver).
+    // Agregado por texto da descrição — nenhum vínculo com paciente. Top 8.
+    const condicaoGrupos = await this.prisma.condicaoCronica.groupBy({
+      by: ["descricao", "cid10"],
+      where: { ativa: true },
+      _count: { _all: true },
+      orderBy: { _count: { descricao: "desc" } },
+    });
+    const porCondicao = condicaoGrupos
+      .map((c) => ({
+        descricao: c.descricao,
+        cid10: c.cid10 ?? null,
+        total: c._count._all,
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 8);
+
+    // Alergias ativas por gravidade (LEVE/MODERADA/GRAVE/Não classificada).
+    const alergiaGrupos = await this.prisma.alergia.groupBy({
+      by: ["gravidade"],
+      where: { ativa: true },
+      _count: { _all: true },
+    });
+    const ORDEM_GRAVIDADE = ["GRAVE", "MODERADA", "LEVE", "Não classificada"];
+    const alergiasPorGravidade = ORDEM_GRAVIDADE.map((g) => ({
+      gravidade: g,
+      total:
+        alergiaGrupos.find((a) => (a.gravidade ?? "Não classificada") === g)?._count._all ?? 0,
+    })).filter((a) => a.total > 0);
+
+    // Triagens de enfermagem por classificação de risco (protocolo de acolhimento).
+    const triagemGrupos = await this.prisma.triagemEnfermagem.groupBy({
+      by: ["classificacaoRisco"],
+      _count: { _all: true },
+    });
+    const ORDEM_RISCO = ["VERMELHO", "LARANJA", "AMARELO", "VERDE", "AZUL"];
+    const triagensPorRisco = ORDEM_RISCO.map((r) => ({
+      risco: r,
+      total: triagemGrupos.find((t) => t.classificacaoRisco === r)?._count._all ?? 0,
+    })).filter((t) => t.total > 0);
+
+    // Atendimentos selados por CID-10 (top motivos clínicos registrados). Só
+    // entram atendimentos encerrados com CID preenchido; agregado por código.
+    const cidGrupos = await this.prisma.atendimento.groupBy({
+      by: ["cid10"],
+      where: { encerradoEm: { not: null }, cid10: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { cid10: "desc" } },
+    });
+    const porCid10 = cidGrupos
+      .map((c) => ({ cid10: c.cid10 as string, total: c._count._all }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 8);
+
+    // Faixa etária das PESSOAS (titular OU membro) com ≥1 condição crônica OU
+    // alergia ATIVA. Cobre o universo "sob cuidado clínico". Conta cada pessoa
+    // uma vez (DISTINCT por origem+id) e só dado real; sem nome/CPF na saída.
+    const faixaEtariaClinica = await this.prisma.$queryRaw<{ faixa: string; total: number }[]>`
+      SELECT faixa, count(*)::int AS total FROM (
+        SELECT
+          CASE
+            WHEN idade <= 6 THEN '0-6'
+            WHEN idade <= 17 THEN '7-17'
+            WHEN idade <= 39 THEN '18-39'
+            WHEN idade <= 59 THEN '40-59'
+            ELSE '60+'
+          END AS faixa
+        FROM (
+          -- titulares com condição/alergia ativa
+          SELECT DISTINCT f.id AS pid, 'F' AS origem,
+                 date_part('year', age(f."dataNascimento"))::int AS idade
+          FROM fichas_cidadas f
+          WHERE f.ativa = true
+            AND (
+              EXISTS (SELECT 1 FROM condicoes_cronicas c
+                      WHERE c."fichaId" = f.id AND c."membroId" IS NULL AND c.ativa = true)
+              OR EXISTS (SELECT 1 FROM alergias a
+                      WHERE a."fichaId" = f.id AND a."membroId" IS NULL AND a.ativa = true)
+            )
+          UNION ALL
+          -- membros com condição/alergia ativa
+          SELECT DISTINCT m.id AS pid, 'M' AS origem,
+                 date_part('year', age(m."dataNascimento"))::int AS idade
+          FROM membros_familiares m
+          JOIN fichas_cidadas f ON f.id = m."fichaId" AND f.ativa = true
+          WHERE
+              EXISTS (SELECT 1 FROM condicoes_cronicas c
+                      WHERE c."membroId" = m.id AND c.ativa = true)
+              OR EXISTS (SELECT 1 FROM alergias a
+                      WHERE a."membroId" = m.id AND a.ativa = true)
+        ) pessoas
+      ) faixas
+      GROUP BY faixa
+    `;
+
+    // Cobertura clínica por bairro: nº de FAMÍLIAS ativas com ≥1 condição OU
+    // alergia ATIVA (no titular ou em qualquer membro), agrupado pelo bairro do
+    // endereço cadastrado. Top 6 + "Outros" + "Não informado" (mesmo consolidado).
+    const bairroClinicoRaw = await this.prisma.$queryRaw<
+      { bairro: string | null; total: number }[]
+    >`
+      SELECT f.bairro AS bairro, count(*)::int AS total FROM (
+        SELECT DISTINCT f.id, f.bairro
+        FROM fichas_cidadas f
+        WHERE f.ativa = true
+          AND (
+            EXISTS (SELECT 1 FROM condicoes_cronicas c WHERE c."fichaId" = f.id AND c.ativa = true)
+            OR EXISTS (SELECT 1 FROM alergias a WHERE a."fichaId" = f.id AND a.ativa = true)
+          )
+      ) f
+      GROUP BY f.bairro
+    `;
+    const porBairro = this.consolidarBairros(
+      bairroClinicoRaw.map((b) => ({ bairro: b.bairro, _count: { _all: b.total } })),
+    );
+
+    return {
+      tipo: "saude-populacional" as const,
+      kpis: {
+        condicoesAtivas,
+        alergiasAtivas,
+        triagens,
+        atendimentosSelados,
+        // pessoas distintas alcançadas pelo cuidado (titular OU membro)
+        pessoasSobCuidado: faixaEtariaClinica.reduce((s, f) => s + f.total, 0),
+      },
+      // mantidos para coerência interna/depuração das somas
+      totais: { pessoasComCondicao, pessoasComAlergia },
+      faixaEtaria: this.ordenarFaixas(faixaEtariaClinica),
+      porCondicao,
+      alergiasPorGravidade,
+      triagensPorRisco,
+      porCid10,
+      porBairro,
+    };
+  }
+
+  // ============================================================
   // Jornada da Família — o diferencial: famílias em N unidades
   // ============================================================
   async jornada(user: AuthenticatedUser) {

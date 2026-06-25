@@ -85,6 +85,15 @@ export class PresidenciaController {
     return this.presidencia.territorio(user);
   }
 
+  @Get("saude")
+  @ApiOperation({
+    summary:
+      "Saúde populacional: agregados clínicos anônimos (condições, alergias, risco, faixa etária)",
+  })
+  saude(@CurrentUser() user: AuthenticatedUser) {
+    return this.presidencia.saude(user);
+  }
+
   @Get("prestacao-contas")
   @ApiOperation({ summary: "Números reais de um período (mes|ano|12m)" })
   @ApiQuery({ name: "periodo", required: false, enum: ["mes", "ano", "12m"] })

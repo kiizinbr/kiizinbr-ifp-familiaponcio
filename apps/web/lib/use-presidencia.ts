@@ -118,6 +118,24 @@ export interface TerritorioPresidencia {
   }[];
 }
 
+export interface SaudePopulacional {
+  tipo: "saude-populacional";
+  kpis: {
+    condicoesAtivas: number;
+    alergiasAtivas: number;
+    triagens: number;
+    atendimentosSelados: number;
+    pessoasSobCuidado: number;
+  };
+  totais: { pessoasComCondicao: number; pessoasComAlergia: number };
+  faixaEtaria: { faixa: string; total: number }[];
+  porCondicao: { descricao: string; cid10: string | null; total: number }[];
+  alergiasPorGravidade: { gravidade: string; total: number }[];
+  triagensPorRisco: { risco: string; total: number }[];
+  porCid10: { cid10: string; total: number }[];
+  porBairro: { bairro: string; total: number }[];
+}
+
 // ============================================================
 // Queries
 // ============================================================
@@ -139,6 +157,7 @@ export const useImpactoPresidencia = () => usePresidenciaQuery<ImpactoPresidenci
 export const useJornadaPresidencia = () => usePresidenciaQuery<JornadaPresidencia>("jornada");
 export const useTerritorioPresidencia = () =>
   usePresidenciaQuery<TerritorioPresidencia>("territorio");
+export const useSaudePresidencia = () => usePresidenciaQuery<SaudePopulacional>("saude");
 
 /** Séries temporais cruzando as verticais; `meses` entre 3 e 24 (default 12). */
 export function useImpactoSeries(meses: number) {
@@ -255,4 +274,21 @@ export const UNIDADE_COR: Record<string, string> = {
   CAPACITACAO: "#FF772E",
   ESPORTIVO: "#9A3D0B",
   EDUCACIONAL: "#007571",
+};
+
+// Cores da classificação de risco da triagem (protocolo de acolhimento).
+export const RISCO_COR: Record<string, string> = {
+  VERMELHO: "#DC2626",
+  LARANJA: "#EA580C",
+  AMARELO: "#CA8A04",
+  VERDE: "#16A34A",
+  AZUL: "#2563EB",
+};
+
+// Cores da gravidade da alergia.
+export const GRAVIDADE_COR: Record<string, string> = {
+  GRAVE: "#DC2626",
+  MODERADA: "#EA580C",
+  LEVE: "#CA8A04",
+  "Não classificada": "#94A3B8",
 };
