@@ -19,6 +19,7 @@
     "migrate:reset": "prisma migrate reset",
     "studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "seed:admin": "tsx prisma/seed-admin.ts",
     "format": "prisma format",
     "validate": "prisma validate",
     "typecheck": "tsc --noEmit",

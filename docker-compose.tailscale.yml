@@ -17,9 +17,14 @@ services:
     volumes:
       - ./site-institucional:/srv/site:ro
 
-  migrate:
-    # O seed precisa enxergar as senhas de seed (senão pula as verticais).
-    environment:
-      SEED_SUPER_ADMIN_EMAIL: ${SEED_SUPER_ADMIN_EMAIL}
-      SEED_SUPER_ADMIN_PASSWORD: ${SEED_SUPER_ADMIN_PASSWORD}
-      SEED_MEDICO_PASSWORD: ${SEED_MEDICO_PASSWORD}
+  # NOTA (P0.1): o service `migrate` roda APENAS `prisma migrate deploy` (target
+  # `migrator` do apps/api/Dockerfile) — ele NÃO chama o seed. As envs SEED_* do
+  # seed DEV (famílias/CPFs fictícios, prontuários, fixtures de IDOR) foram
+  # removidas daqui para não contaminarem a base de produção.
+  #
+  # Para criar o Super Admin inicial em PROD, rode o seed MÍNIMO separado:
+  #   docker compose ... run --rm \
+  #     -e SEED_ADMIN_ONLY=true \
+  #     -e SEED_SUPER_ADMIN_EMAIL=... -e SEED_SUPER_ADMIN_PASSWORD=... \
+  #     migrate pnpm --filter @ifp/database seed:admin
+  # NUNCA rode `pnpm --filter @ifp/database seed` (seed DEV) em produção.
